@@ -13,8 +13,11 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
+    <!-- -->
+    <link  href="{{ asset('css/app.css') }}"rel="stylesheet">
     <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @vite([ 'resources/sass/app.scss',
+            'resources/js/app.js'])
 </head>
 <body>
     <div id="app">
@@ -29,9 +32,16 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
+                    @auth
                     <ul class="navbar-nav me-auto">
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{route('users.index')}}">Users</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{route('user.create')}}">Create User</a>
+                        </li>
                     </ul>
+                    @endauth
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
@@ -76,5 +86,7 @@
             @yield('content')
         </main>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
 </body>
 </html>

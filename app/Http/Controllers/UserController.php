@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
+use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+
+
+
+class UserController extends Controller
+{
+
+
+
+
+    //
+    // PRITAIKYTI USERIUI NUKOPIJUOTA IS BUDGET Controllerio
+    //
+
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index() 
+    {
+        $users = User::latest()->paginate(10);
+
+        return view('user.index', compact('users'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('user.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreBudgetRequest  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => bcrypt($validatedData['password']),
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'User created successfully');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function show(User $user)
+    {
+        //*
+        if((auth()->user()->id==$user->id)||(auth()->user()->isRoleBelow($user))){
+            return view('user.show', ['user' => $user]);
+        }else{
+            $user = auth()->user();
+            return redirect()->route('user.show', ['user' => $user])->withError(__('Cannot access that user.'));
+        }
+        //*/
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Budget  $budget
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(User $user)
+    {
+        if((auth()->user()->id==$user->id)||(auth()->user()->isRoleBelow($user))){
+            return view('user.edit', ['user' => $user]);
+        }else{
+            $user = auth()->user();
+            return redirect()->route('user.show', ['user' => $user])->withError(__('Cannot access that user.'));
+        }
+        //return view('user.edit', ['user' => $user]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\UpdateBudgetRequest  $request
+     * @param  \App\Models\Budget  $budget
+     * @return \Illuminate\Http\Response
+     */
+    public function addBudget(UpdateUserRequest $request,User $user, Budget $budget)
+    {
+        $user->budgets()->attach($budget);
+    }
+    public function update(UpdateUserRequest $request, User $user)
+    {
+        //
+        $user->name = $request->user_name;
+        $user->email = $request->user_email;
+        $user->save();
+        return redirect()->route('user.show',['user' => $user])->with('success_message', 'Sėkmingai pakeistas.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\Budget  $budget
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(User $user)
+    {
+        //User::factory()->count(15)->create();
+        //return redirect()->route('user.index')->with('success_message', 'Vartotojas :  Sekmingai ištrintas.');    
+        //
+        if($user->budgets->count()){
+            return redirect()->route('user.index')->with('info_message', 'Trinti negalima, nes turi Biudžetų.');
+        }
+        $user_name = $user->name;
+        $user->delete();
+        return redirect()->route('user.index')->with('success_message', 'Vartotojas : '.$user_name.' Sekmingai ištrintas.');
+    }
+    public function notif(){
+
+    }
+}
