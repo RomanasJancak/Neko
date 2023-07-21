@@ -13,9 +13,8 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
-    <!-- Bootstrap 5.0 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <!-- -->
+    <link  href="{{ asset('css/app.css') }}"rel="stylesheet">
     <!-- Scripts -->
     @vite([ 'resources/sass/app.scss',
             'resources/js/app.js'])
@@ -87,13 +86,7 @@
             @yield('content')
         </main>
     </div>
-
-    <!-- jQuery is required for Bootstrap's JavaScript plugins -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    
-    <!-- Bootstrap 5.0 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
 </body>
 </html>

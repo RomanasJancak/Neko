@@ -26,7 +26,8 @@ Route::group(['prefix' => 'users'], function(){
     Route::post('store',            [UserController::class, 'store'])->name('user.store')->middleware('auth');
     Route::get('edit/{user}',       [UserController::class, 'edit'])->name('user.edit')->middleware('auth');
     Route::post('update/{user}',    [UserController::class, 'update'])->name('user.update')->middleware('auth');
-    Route::get('delete/{user}',     [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
+    Route::get('delete/{user}',     [UserController::class, 'delete'])->name('user.delete')->middleware('auth');
+    Route::post('destroy/{user}',   [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
     Route::get('show/{user}',       [UserController::class, 'show'])->name('user.show')->middleware('auth');
 });
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

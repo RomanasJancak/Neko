@@ -26,5 +26,7 @@ class UserSeeder extends Seeder
             'email' => 'SAdmin@localhost.lt',
             'password' => Hash::make('password')
          ]);
+         $role = Role::find(1);
+         $user->assignRole($role);
     }
 }

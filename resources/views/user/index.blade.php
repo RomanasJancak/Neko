@@ -9,8 +9,14 @@
                         <div class="row">
                             <div class="col-md-1">{{ $user->id }}</div>
                             <div class="col-md-3">{{ $user->name }}</div>
-                            <div class="col-md-4">{{ $user->email }}</div>
+                            <div class="col-md-1">{{ $user->email }}</div>
                             <div class="col-md-2">{{ $user->username }}</div>
+                            @foreach($user->getRoleNames() as $rolename)
+                                {{$rolename.' , '}}
+                            @endforeach
+                            <div class="col-md-1"><a href="{{route('user.show',$user)}}">More...</a></div>
+                            <div class="col-md-1"><a href="{{route('user.edit',$user)}}">Edit</a></div>
+                            <div class="col-md-1"><a href="{{route('user.delete',$user)}}">Delete</a></div>
                         </div>
                     </li>
                 @endforeach

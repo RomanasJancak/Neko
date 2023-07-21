@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
+use App\Models\Role;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 
@@ -29,6 +30,7 @@ class UserController extends Controller
      */
     public function index() 
     {
+
         $users = User::latest()->paginate(10);
 
         return view('user.index', compact('users'));
@@ -63,6 +65,7 @@ class UserController extends Controller
             'email' => $validatedData['email'],
             'password' => bcrypt($validatedData['password']),
         ]);
+        $user->assignRole($request->role);
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
@@ -76,12 +79,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         //*
-        if((auth()->user()->id==$user->id)||(auth()->user()->isRoleBelow($user))){
             return view('user.show', ['user' => $user]);
-        }else{
-            $user = auth()->user();
-            return redirect()->route('user.show', ['user' => $user])->withError(__('Cannot access that user.'));
-        }
         //*/
     }
 
@@ -93,13 +91,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        if((auth()->user()->id==$user->id)||(auth()->user()->isRoleBelow($user))){
+
             return view('user.edit', ['user' => $user]);
-        }else{
-            $user = auth()->user();
-            return redirect()->route('user.show', ['user' => $user])->withError(__('Cannot access that user.'));
-        }
-        //return view('user.edit', ['user' => $user]);
     }
 
     /**
@@ -116,8 +109,10 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         //
+        //dd();
         $user->name = $request->user_name;
         $user->email = $request->user_email;
+        $user->syncRoles(Role::find($request->role));
         $user->save();
         return redirect()->route('user.show',['user' => $user])->with('success_message', 'Sėkmingai pakeistas.');
     }
@@ -130,17 +125,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //User::factory()->count(15)->create();
-        //return redirect()->route('user.index')->with('success_message', 'Vartotojas :  Sekmingai ištrintas.');    
-        //
-        if($user->budgets->count()){
-            return redirect()->route('user.index')->with('info_message', 'Trinti negalima, nes turi Biudžetų.');
-        }
-        $user_name = $user->name;
         $user->delete();
-        return redirect()->route('user.index')->with('success_message', 'Vartotojas : '.$user_name.' Sekmingai ištrintas.');
+        return redirect()->route('user.index')->with('success_message', 'Vartotojas : '.$user->name.' Sekmingai ištrintas.');
     }
-    public function notif(){
-
+    public function delete(User $user ){
+        return view('user.delete', ['user' => $user]);
     }
 }

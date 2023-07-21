@@ -16,12 +16,13 @@ class ClientFactory extends Factory
      */
     public function definition(): array
     {
+        //$faker = Faker\Factory::create();
         return [
-            'name'      =>  fake()->name(),
+            'name'      =>  $this->faker->name(),
             'email'     =>  fake()->unique()->safeEmail(),
-            'vat'       =>  fake()->vat('UK'),
+            'vat'       =>  'GB'.fake()->numberBetween(100000,9999999),
             'address'   =>  fake()->address(),
-            'note'      =>  fake()->paragraph(),
+            'note'      =>  $this->faker->catchPhrase(),
         ];
     }
 }
