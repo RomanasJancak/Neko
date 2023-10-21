@@ -36,6 +36,13 @@
                             @endrole
                             <div class="col-md-1 border border-primary rounded "><a href="{{ route('job.show', $job) }}">More...</a></div>
                             <div class="col-md-1 border border-primary rounded "><a href="{{ route('job.edit', $job) }}">Edit...</a></div>
+                            @role('courier')
+                            <form method="POST" action="{{ route('job.updateStatus', [$job,3]) }}">
+                                <input type="hidden" name="status_id" value="3">
+                                @csrf
+                                <button type="submit">Accept</button>
+                            </form>
+                            @endrole
                         </div>
                     </li>
                 @endforeach
