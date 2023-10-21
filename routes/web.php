@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\JobController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,7 +20,7 @@ use App\Http\Controllers\UserController;
 //     return view('welcome');
 // });
 Route::get('/',  'App\Http\Controllers\UserController@index')->name('users.index')->middleware('auth');
-
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Auth::routes();
 Route::group(['prefix' => 'users'], function(){
     Route::get('',                  [UserController::class, 'index'])->name('user.index')->middleware('auth');
@@ -30,4 +32,25 @@ Route::group(['prefix' => 'users'], function(){
     Route::post('destroy/{user}',   [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
     Route::get('show/{user}',       [UserController::class, 'show'])->name('user.show')->middleware('auth');
 });
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::group(['prefix' => 'clients'], function(){
+    Route::get('',                  [ClientController::class, 'index'])->name('client.index')->middleware('auth');
+    Route::get('create',            [ClientController::class, 'create'])->name('client.create')->middleware('auth');
+    Route::post('store',            [ClientController::class, 'store'])->name('client.store')->middleware('auth');
+    Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
+    Route::put('update/{client}',   [ClientController::class, 'update'])->name('client.update')->middleware('auth');
+    Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
+    Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
+    Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
+    
+});
+Route::group(['prefix' => 'jobs'], function(){
+    Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
+    Route::get('create',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
+    Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
+    Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
+    Route::put('update/{job}',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
+    // Route::get('delete/{job}',   [JobController::class, 'delete'])->name('job.delete')->middleware('auth');
+    // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
+    Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
+    
+});

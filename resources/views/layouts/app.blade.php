@@ -9,16 +9,18 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <!-- Include Bootstrap CSS from a CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
 
-    <!-- Bootstrap 5.0 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Font Awesome for icons (if needed) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/fontawesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
 
-    <!-- Scripts -->
-    @vite([ 'resources/sass/app.scss',
-            'resources/js/app.js'])
+    <!-- Include your custom CSS -->
+    <link href="your-custom-css-file.css" rel="stylesheet">
+
+    <!-- Include additional stylesheets or scripts you might need -->
+
 </head>
 <body>
     <div id="app">
@@ -35,12 +37,51 @@
                     <!-- Left Side Of Navbar -->
                     @auth
                     <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{route('users.index')}}">Users</a>
+                        @if(auth()->user()->can('user-view') || auth()->user()->can('user-create'))
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Users
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{route('users.index')}}">List</a></li>
+                                    @can('user-create')
+                                    <li><a class="dropdown-item" href="{{route('user.create')}}">Create</a></li>
+                                    @endcan
+                                </ul>
+                            </div>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{route('user.create')}}">Create User</a>
+                        @endif
+                        @if(auth()->user()->can('client-view') || auth()->user()->can('client-create'))
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Clients
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{route('client.index')}}">List</a></li>
+                                    @can('client-create')
+                                    <li><a class="dropdown-item" href="{{route('client.create')}}">Create</a></li>
+                                    @endcan
+                                </ul>
+                            </div>
                         </li>
+                        @endif
+                        @if(auth()->user()->can('job-view') || auth()->user()->can('job-create'))
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Jobs
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li>
+                                    @can('client-create')
+                                    <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li>
+                                    @endcan
+                                </ul>
+                            </div>
+                        </li>
+                        @endif
                     </ul>
                     @endauth
 
@@ -88,12 +129,12 @@
         </main>
     </div>
 
-    <!-- jQuery is required for Bootstrap's JavaScript plugins -->
+    <!-- Include jQuery, Popper.js, and Bootstrap JavaScript from CDNs -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    
-    <!-- Bootstrap 5.0 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
+    <!-- Include additional JavaScript libraries or your custom scripts -->
+
 </body>
 </html>

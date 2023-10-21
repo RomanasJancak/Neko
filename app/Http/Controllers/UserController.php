@@ -43,7 +43,15 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('user.create');
+        foreach(auth()->user()->roles as $role){
+            if(($role->id === 1)||($role->id === 2)){
+                return view('user.create');
+                
+            }
+        }
+        $users = User::latest()->paginate(10);
+        return view('user.index', compact('users'));
+        
     }
 
     /**

@@ -13,16 +13,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            PermissionSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
+            StatusSeeder::class,
             
         ]);
         \App\Models\User::factory(100)->create();
-
-        \App\Models\User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
         \App\Models\Client::factory(100)->create();
+        \App\Models\Job::factory(100)->create();
     }
 }

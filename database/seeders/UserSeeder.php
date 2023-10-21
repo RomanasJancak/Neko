@@ -28,5 +28,29 @@ class UserSeeder extends Seeder
          ]);
          $role = Role::find(1);
          $user->assignRole($role);
+
+         $user = User::create([
+            'name' => 'Thomas',
+            'email' => 'thomas@neko.co.uk',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(2);
+         $user->assignRole($role);
+                  
+         $user = User::create([
+            'name' => 'Aurelija',
+            'email' => 'aurelija@neko.co.uk',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(3);
+         $user->assignRole($role);
+                           
+         $user = User::create([
+            'name' => 'Romanas',
+            'email' => 'romanas@neko.co.uk',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(5);
+         $user->assignRole($role);
     }
 }
