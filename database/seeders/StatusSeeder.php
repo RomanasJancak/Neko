@@ -15,10 +15,14 @@ class StatusSeeder extends Seeder
     public function run(): void
     {
         $statuses = [
-            'unassigned',
-            'assigned',
-            'accepted',
-            'completed'
+            'unassigned',//1
+            'assigned',//2
+            'accepted',//3
+            'completed',//4
+            'declined',//5
+            'issue',//6
+            'proposed',//7
+            'completedwithIssue',//8
         ];
         foreach($statuses as $status){
             Status::create(['name'=> $status]);

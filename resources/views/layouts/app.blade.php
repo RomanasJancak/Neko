@@ -23,6 +23,7 @@
 
 </head>
 <body>
+
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
@@ -77,6 +78,7 @@
                                     <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li>
                                     @can('client-create')
                                     <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li>
+                                    <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li>
                                     @endcan
                                 </ul>
                             </div>
@@ -96,9 +98,9 @@
                             @endif
 
                             @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
+                                <!-- <li class="nav-item"> -->
+                                    <!-- <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a> -->
+                                <!-- </li> -->
                             @endif
                         @else
                             <li class="nav-item dropdown">

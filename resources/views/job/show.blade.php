@@ -13,8 +13,8 @@
                         <li><strong>ID:</strong> {{ $job->id }}</li>
                         <li><strong>Client:</strong> {{ $job->client->name }}</li>
                         <li><strong>Courier:</strong> {{ $job->courier->name }}</li>
-                        <li><strong>Creation Time:</strong> {{ $job->creation_time }}</li>
-                        <li><strong>Completion Time:</strong> {{ $job->completion_time }}</li>
+                        <li><strong>Pickup time:</strong> {{ $job->creation_time }}</li>
+                        <li><strong>Dropoff Time:</strong> {{ $job->completion_time }}</li>
                         <li><strong>Status:</strong> {{ $job->status->name}}</li>
                         <li><strong>Collection Details:</strong> {{ $job->collection_details }}</li>
                         <li><strong>Pickup Address:</strong> {{ $job->pickup_address }}</li>

@@ -7,7 +7,7 @@
             <h1>Jobs</h1>
             <ul class="list-group">
                 @foreach($jobs as $job)
-
+                    
                     <li class="list-group-item">
                         <div class="row border border-primary rounded">
                             @role('courier')
@@ -20,8 +20,8 @@
                             @else
                             <div class="col-md-2 ">Courier: {{ $job->courier->name }}</div>
                             @endrole
-                            <div class="col-md-1 ">Creation Time: {{ $job->creation_time }}</div>
-                            <div class="col-md-1 ">Completion Time: {{ $job->completion_time }}</div>
+                            <div class="col-md-1 ">Pickup time: {{ $job->creation_time }}</div>
+                            <div class="col-md-1 ">Dropoff Time: {{ $job->completion_time }}</div>
                             <div class="col-md-2 ">Status: {{ $job->status->name }}</div>
                             <div class="col-md-2 ">Collection Details: {{ $job->collection_details }}</div>
                             <div class="col-md-2 ">Pickup Address: {{ $job->pickup_address }}</div>
@@ -37,14 +37,32 @@
                             <div class="col-md-1 border border-primary rounded "><a href="{{ route('job.show', $job) }}">More...</a></div>
                             <div class="col-md-1 border border-primary rounded "><a href="{{ route('job.edit', $job) }}">Edit...</a></div>
                             @role('courier')
-                            <form method="POST" action="{{ route('job.updateStatus', [$job,3]) }}">
+                            @if($job->status->id === 7)
+                            <form method="POST" action="{{ route('job.updateStatus', [$job]) }}">
                                 <input type="hidden" name="status_id" value="3">
                                 @csrf
-                                <button type="submit">Accept</button>
+                                <button type="submit" class="btn btn-info">Accept</button>
+                            </form>
+                            @endif
+                            <form method="POST" action="{{ route('job.updateStatus', [$job]) }}">
+                                <input type="hidden" name="status_id" value="6">
+                                @csrf
+                                <button type="submit" class="btn btn-warning">Issue</button>
+                            </form>
+                            <form method="POST" action="{{ route('job.updateStatus', [$job]) }}">
+                                <input type="hidden" name="status_id" value="5">
+                                @csrf
+                                <button type="submit" class="btn btn-danger">Decline</button>
+                            </form>
+                            <form method="POST" action="{{ route('job.updateStatus', [$job]) }}">
+                                <input type="hidden" name="status_id" value="4">
+                                @csrf
+                                <button type="submit" class="btn btn-success">Complete</button>
                             </form>
                             @endrole
                         </div>
                     </li>
+                    
                 @endforeach
             </ul>
         </div>

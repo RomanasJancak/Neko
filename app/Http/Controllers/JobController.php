@@ -150,4 +150,15 @@ class JobController extends Controller
     {
         //
     }
+    public function assign(){
+        {
+
+            if(auth()->user()->hasRole('courier')){
+                $jobs = Job::where('courrier_id',auth()->user()->id)->latest()->paginate(10);
+            }else{
+                $jobs = Job::latest()->paginate(10);
+            }
+            return view('job.assign', compact('jobs'));
+        }
+    }
 }

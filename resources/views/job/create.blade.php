@@ -9,14 +9,6 @@
             <form method="POST" action="{{ route('job.store') }}">
                 @csrf
                 <div class="form-group">
-                    <label for="client_id">Client</label>
-                    <select id="client_id" name="client_id" class="form-control">
-                        @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group">
                     <label for="courrier_id">Courier</label>
                     <select id="courrier_id" name="courrier_id" class="form-control">
                         @foreach($couriers as $courrier)
@@ -25,25 +17,47 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="creation_time">Creation Time</label>
+                    <label for="client_id">Sender</label>
+                    <select id="client_id" name="client_id" class="form-control">
+                        @foreach($clients as $client)
+                            <option value="{{ $client->id }}">{{ $client->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="creation_time">Pickup time:</label>
                     <input type="datetime-local" id="creation_time" name="creation_time" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="completion_time">Completion Time</label>
-                    <input type="datetime-local" id="completion_time" name="completion_time" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="collection_details">Collection Details</label>
-                    <textarea id="collection_details" name="collection_details" class="form-control"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="pickup_address">Pickup Address</label>
                     <input type="text" id="pickup_address" name="pickup_address" class="form-control">
                 </div>
+                <hr class="hr hr-blurry" />
                 <div class="form-group">
-                    <label for="delivery_address">Delivery Address</label>
+                    <label for="client_id">Receiver</label>
+                    <select id="client_id" name="client_id" class="form-control">
+                        @foreach($clients as $client)
+                            <option value="{{ $client->id }}">{{ $client->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="completion_time">Drop off time:</label>
+                    <input type="datetime-local" id="completion_time" name="completion_time" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="delivery_address">Drop off adress:</label>
                     <input type="text" id="delivery_address" name="delivery_address" class="form-control">
                 </div>
+
+
+
+                <div class="form-group">
+                    <label for="collection_details">Collection Details</label>
+                    <textarea id="collection_details" name="collection_details" class="form-control"></textarea>
+                </div>
+
+
                 <div class="form-group">
                     <label for="senderContacts">Sender Contacts</label>
                     <input type="text" id="senderContacts" name="senderContacts" class="form-control">
