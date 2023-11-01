@@ -27,9 +27,13 @@ class Job extends Model
     public function status(){
         return $this->belongsTo(Status::class);
     }
-    public function client()
+    public function sender()
     {
-        return $this->belongsTo(Client::class, 'client_id');
+        return $this->belongsTo(Client::class, 'sender_id');
+    }
+    public function receiver()
+    {
+        return $this->belongsTo(Client::class, 'receiver_id');
     }
 
     public function courier()

@@ -13,6 +13,7 @@ use App\Models\Role;
  */
 class JobFactory extends Factory
 {
+
     /**
      * Define the model's default state.
      *
@@ -24,21 +25,41 @@ class JobFactory extends Factory
         $statusIds = Status::pluck('id')->toArray();
         $courierIds =   Role::where('name', 'courier')->first()->users->pluck('id')->toArray();
         $managerIds =   Role::where('name', 'manager')->first()->users->pluck('id')->toArray();
+        $pickup_time_begin = $this->faker->dateTimeBetween(
+            '07:00',
+             '21:00'
+            );
+        $pickup_time_end = $this->faker->dateTimeBetween(
+            $pickup_time_begin->modify('+15 minutes'),
+             '21:30'
+            );
+        $dropoff_time_begin = $this->faker->dateTimeBetween(
+            $pickup_time_end->modify('+30 minutes'),
+             '22:15'
+            );
+        $dropoff_time_end = $this->faker->dateTimeBetween(
+            $dropoff_time_begin->modify('+15 minutes'),
+             '23:00'
+            );
         return [
-            'client_id' => $this->faker->randomElement($clientIds),
+            'sender_id' => $this->faker->randomElement($clientIds),
+            'receiver_id' => $this->faker->randomElement($clientIds),
             'courrier_id' => $this->faker->randomElement($courierIds),
-            'creation_time' => $this->faker->dateTimeThisYear,
-            'completion_time' => $this->faker->dateTimeThisYear,
+            'pickup_time_begin' =>  $pickup_time_begin->format('Y-m-d H:i:s'),
+            'pickup_time_end'   =>  $pickup_time_end->format('Y-m-d H:i:s'),
+            'dropoff_time_begin'=>  $dropoff_time_begin->format('Y-m-d H:i:s'),
+            'dropoff_time_end'  =>  $dropoff_time_end->format('Y-m-d H:i:s'),
+
+
             'status_id' => $this->faker->randomElement($statusIds),
             'collection_details' => $this->faker->text,
+            'dropoff_details'   =>  $this->faker->text,
             'pickup_address' => $this->faker->address,
             'delivery_address' => $this->faker->address,
             'senderContacts' => $this->faker->name,
             'manager_id' => $this->faker->randomElement($managerIds),
             'receiverContacts' => $this->faker->name,
-            'group_id' => rand(1, 3), // Replace 1 and 3 with your group IDs
             'notes' => $this->faker->text,
-            'invoice_id' => rand(1, 10), // Replace 1 and 10 with your invoice IDs
         ];
     }
 }

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\JobController;
+use App\Http\Controllers\DayController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,6 +22,9 @@ use App\Http\Controllers\JobController;
 // });
 Route::get('/',  'App\Http\Controllers\UserController@index')->name('users.index')->middleware('auth');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/get-client-info/{clientId}', [ClientController::class, 'getClientInfo'])
+    ->name('getClientInfo')->middleware('auth');
 Auth::routes();
 Route::group(['prefix' => 'users'], function(){
     Route::get('',                  [UserController::class, 'index'])->name('user.index')->middleware('auth');
@@ -54,4 +58,16 @@ Route::group(['prefix' => 'jobs'], function(){
     // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
+});
+Route::group(['prefix' => 'days'], function(){
+    Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');
+    // Route::get('create',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
+    // Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
+    // Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
+    // Route::put('update/{job}',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
+    // Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');
+    // Route::get('delete/{job}',   [JobController::class, 'delete'])->name('job.delete')->middleware('auth');
+    // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
+    Route::get('show/{day}',        [DayController::class, 'show'])->name('day.show')->middleware('auth');
+    // Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
 });

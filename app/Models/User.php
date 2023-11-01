@@ -44,4 +44,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    public function jobs(){
+        return $this->hasMany(Job::class,'courrier_id');
+    }
 }

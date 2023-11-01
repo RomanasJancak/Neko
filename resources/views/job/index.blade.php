@@ -15,21 +15,25 @@
                             @else
                             <div class="col-md-1">{{ $job->id }}</div>
                             @endrole    
-                            <div class="col-md-3 ">Client: {{ $job->client->name }}</div>
+                            <div class="col-md-3 ">Sender: {{ $job->sender->name }}</div>
                             @role('courier')
                             @else
                             <div class="col-md-2 ">Courier: {{ $job->courier->name }}</div>
                             @endrole
-                            <div class="col-md-1 ">Pickup time: {{ $job->creation_time }}</div>
-                            <div class="col-md-1 ">Dropoff Time: {{ $job->completion_time }}</div>
-                            <div class="col-md-2 ">Status: {{ $job->status->name }}</div>
-                            <div class="col-md-2 ">Collection Details: {{ $job->collection_details }}</div>
+                            <div class="col-md-1 ">Pickup time begin: {{ $job->pickup_time_begin }}</div>
+                            <div class="col-md-1 ">Pickup time end: {{ $job->pickup_time_end }}</div>
                             <div class="col-md-2 ">Pickup Address: {{ $job->pickup_address }}</div>
+                            <div class="col-md-1 ">Dropoff Time begin: {{ $job->dropoff_time_begin }}</div>
+                            <div class="col-md-1 ">Dropoff Time end: {{ $job->dropoff_time_begin }}</div>
+
+                            <div class="col-md-2 ">Collection Details: {{ $job->collection_details }}</div>
+
                             <div class="col-md-2 ">Delivery Address: {{ $job->delivery_address }}</div>
                             <div class="col-md-2 ">Sender Contacts: {{ $job->senderContacts }}</div>
                             <div class="col-md-2 ">Manager: {{ $job->manager->name }}</div>
                             <div class="col-md-2 ">Receiver Contacts: {{ $job->receiverContacts }}</div>
                             <div class="col-md-2 ">Notes: {{ $job->notes }}</div>
+                            <div class="col-md-2 ">Status: {{ $job->status->name }}</div>
                             @role('courier')
                             @else
                             <div class="col-md-2 border border-primary rounded">Invoice ID: {{ $job->invoice_id }}</div>

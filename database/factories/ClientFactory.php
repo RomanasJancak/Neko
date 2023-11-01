@@ -23,6 +23,10 @@ class ClientFactory extends Factory
             'vat'       =>  'GB'.fake()->numberBetween(100000,9999999),
             'address'   =>  fake()->address(),
             'note'      =>  $this->faker->catchPhrase(),
+            'senderContacts'    => $this->faker->name." ".$this->faker->numerify('+## ###-#######'),
+            'receiverContacts'  => $this->faker->name." ".$this->faker->numerify('+## ###-#######'),
+            'collection_details' => $this->faker->text,
+            'dropoff_details'   =>  $this->faker->text,
         ];
     }
 }

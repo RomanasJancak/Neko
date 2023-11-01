@@ -38,6 +38,16 @@
                     <!-- Left Side Of Navbar -->
                     @auth
                     <ul class="navbar-nav me-auto">
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Dashboard
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ route('day.show',1) }}">Today</a></li>
+                                </ul>
+                            </div>
+                        </li>
                         @if(auth()->user()->can('user-view') || auth()->user()->can('user-create'))
                         <li>
                             <div class="btn-group">
@@ -137,6 +147,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Include additional JavaScript libraries or your custom scripts -->
-
+    @yield('scripts')
 </body>
 </html>

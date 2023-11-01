@@ -20,7 +20,10 @@ return new class extends Migration
             $table->string('regNumber')->nullable();
             $table->string('address');
             $table->string('note');
-
+            $table->string('senderContacts')->nullable();
+            $table->string('receiverContacts')->nullable();
+            $table->string('collection_details')->nullable();
+            $table->string('dropoff_details')->nullable();
         });
     }
 

@@ -97,4 +97,26 @@ class ClientController extends Controller
 
         return redirect()->route('client.index')->with('success', 'Client deleted successfully');
     }
+    public function getClientInfo($clientId)
+    {
+        // Fetch the client's information based on the $clientId
+        $client = Client::find($clientId);
+
+        if ($client) {
+            return response()->json([
+                'name'                  => $client->name,
+                'email'                 => $client->email,
+                'vat'                   => $client->vat,
+                'regNumber'             => $client->regNumber,
+                'address'               => $client->address,
+                'note'                  => $client->note,
+                'senderContacts'        => $client->senderContacts,
+                'receiverContacts'      => $client->receiverContacts,
+                'collection_details'    => $client->collection_details,
+                'dropoff_details'       => $client->dropoff_details,
+                ]);
+        }
+
+        return response()->json(['error' => 'Client not found'], 404);
+    }
 }

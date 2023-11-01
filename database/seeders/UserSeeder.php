@@ -52,5 +52,21 @@ class UserSeeder extends Seeder
          ]);
          $role = Role::find(5);
          $user->assignRole($role);
+
+         $user = User::create([
+            'name' => 'courier_1',
+            'email' => 'courier_1@neko.co.uk',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(5);
+         $user->assignRole($role);
+
+         $user = User::create([
+            'name' => 'courier_2',
+            'email' => 'courier_2@neko.co.uk',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(5);
+         $user->assignRole($role);
     }
 }

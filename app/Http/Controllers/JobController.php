@@ -34,15 +34,14 @@ class JobController extends Controller
         {
             $clients = Client::all();
             $couriers = User::all();
-            // $statuses = Status::all();
+             $statuses = Status::all();
             $managers = User::all();
-            // $groups = Group::all();
+
     
             return view('job.create', compact('clients'
             , 'couriers', 
-            // 'statuses',
+             'statuses',
              'managers'
-            // , 'groups'
         ));
         }
     }
@@ -70,10 +69,13 @@ class JobController extends Controller
             // 'invoice_id' => 'required',
         ]);
         $job    =   new Job();
-        $job->client_id =   $request->client_id;
+        $job->sender_id =   $request->sender_id;
+        $job->pickup_time_begin =   $request->pickup_time_begin;
+        $job->pickup_time_end =   $request->pickup_time_end;
+        $job->dropoff_time_begin =   $request->dropoff_time_begin;
+        $job->dropoff_time_end =   $request->dropoff_time_end;
+        $job->receiver_id =   $request->receiver_id;
         $job->courrier_id   =   $request->courrier_id;
-        $job->creation_time =   $request->creation_time;
-        $job->completion_time   =   $request->completion_time;
         $job->status_id =   $request->status_id;
         $job->collection_details    =   $request->collection_details;
         $job->pickup_address    =   $request->pickup_address;
@@ -81,10 +83,7 @@ class JobController extends Controller
         $job->senderContacts    =   $request->senderContacts;
         $job->manager_id    =   $request->manager_id;
         $job->receiverContacts  =   $request->receiverContacts;
-        $job->group_id  =   0;
         $job->notes =   $request->notes;
-        $job->invoice_id    =   $request->invoice_id;
-        //dd($job);
         $job->save();
         
         //Job::create($request->all());

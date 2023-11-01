@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Day;
+use App\Models\User;
+use App\Models\Job;
 use App\Http\Requests\StoreDayRequest;
 use App\Http\Requests\UpdateDayRequest;
 
@@ -37,7 +39,12 @@ class DayController extends Controller
      */
     public function show(Day $day)
     {
-        //
+        //$users  =   User::all();
+        $usersWithCourierRole = User::whereHas('roles', function ($query) {
+            $query->where('name', 'courier');
+        })->get();
+        $jobs   =   $day->jobs();
+        return view('day.show', ['day' => $day,'users' => $usersWithCourierRole,'jobs' => $jobs]);
     }
 
     /**
