@@ -42,6 +42,7 @@ class JobFactory extends Factory
              '23:00'
             );
         return [
+            'eilesNumeris' => $this->faker->numberBetween(1, 100),
             'sender_id' => $this->faker->randomElement($clientIds),
             'receiver_id' => $this->faker->randomElement($clientIds),
             'courrier_id' => $this->faker->randomElement($courierIds),

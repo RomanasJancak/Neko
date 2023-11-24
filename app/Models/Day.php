@@ -23,5 +23,5 @@ class Day extends Model
         })
         ->get();
     }
-    
+
 }

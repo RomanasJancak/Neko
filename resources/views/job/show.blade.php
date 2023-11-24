@@ -4,14 +4,14 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12">
-            <h1>Job Details</h1>
+            <h1>Job Detailis</h1>
 
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Job Information</h5>
                     <ul>
                         <li><strong>ID:</strong> {{ $job->id }}</li>
-                        <li><strong>Client:</strong> {{ $job->client->name }}</li>
+                        <li><strong>Sender:</strong> {{ $job->sender->name }}</li>
                         <li><strong>Courier:</strong> {{ $job->courier->name }}</li>
                         <li><strong>Pickup time:</strong> {{ $job->creation_time }}</li>
                         <li><strong>Dropoff Time:</strong> {{ $job->completion_time }}</li>

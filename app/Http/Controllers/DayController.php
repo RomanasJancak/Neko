@@ -44,7 +44,10 @@ class DayController extends Controller
             $query->where('name', 'courier');
         })->get();
         $jobs   =   $day->jobs();
-        return view('day.show', ['day' => $day,'users' => $usersWithCourierRole,'jobs' => $jobs]);
+        $filteredJobs = $jobs->filter(function ($job) {
+            return $job->status_id === 1;
+        });
+        return view('day.show', ['day' => $day,'users' => $usersWithCourierRole,'jobs' => $filteredJobs]);
     }
 
     /**

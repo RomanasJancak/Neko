@@ -45,6 +45,20 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
     public function jobs(){
-        return $this->hasMany(Job::class,'courrier_id');
+        return $this->hasMany(Job::class,'courrier_id')->orderBy('eilesNumeris');
     }
+    public function jobsWithDate($date)
+    {
+        $date = \Carbon\Carbon::parse($date);
+    return $this->hasMany(Job::class, 'courrier_id')
+        ->where(function ($query) use ($date) {
+            $query->where('pickup_time_begin', '>', $date->startOfDay())
+                ->where('pickup_time_end', '<', $date->endOfDay());
+        })
+        ->orWhere(function ($query) use ($date) {
+            $query->where('dropoff_time_begin', '>', $date->startOfDay())
+                ->where('dropoff_time_end', '<', $date->endOfDay());
+        }) ->orderBy('eilesNumeris');
+    }
+
 }

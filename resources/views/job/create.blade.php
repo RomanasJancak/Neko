@@ -67,12 +67,7 @@
                     </div>    
                 </div>
 
-                <hr class="hr hr-blurry" />
-
-
-
-
-                    
+                <hr class="hr hr-blurry" />                    
                     <div class="row g-3">
                         <div class="form-group col-md-3">
                             <label for="receiver_id">Receiver</label>

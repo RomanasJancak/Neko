@@ -119,10 +119,14 @@ class JobController extends Controller
      */
     public function update(UpdateJobRequest $request, Job $job)
     {
-        $job->client_id =   $request->client_id;
+        $job->sender_id =   $request->sender_id;
+        $job->pickup_time_begin =   $request->pickup_time_begin;
+        $job->pickup_time_end =   $request->pickup_time_end;
+        $job->dropoff_time_begin =   $request->dropoff_time_begin;
+        
+        $job->dropoff_time_end =   $request->dropoff_time_end;
+        $job->receiver_id =   $request->receiver_id;
         $job->courrier_id   =   $request->courrier_id;
-        $job->creation_time =   $request->creation_time;
-        $job->completion_time   =   $request->completion_time;
         $job->status_id =   $request->status_id;
         $job->collection_details    =   $request->collection_details;
         $job->pickup_address    =   $request->pickup_address;
@@ -130,9 +134,7 @@ class JobController extends Controller
         $job->senderContacts    =   $request->senderContacts;
         $job->manager_id    =   $request->manager_id;
         $job->receiverContacts  =   $request->receiverContacts;
-        $job->group_id  =   0;
         $job->notes =   $request->notes;
-        $job->invoice_id    =   $request->invoice_id;
         //dd($job);
         $job->save();
         return redirect()->route('job.show',['job' => $job])->with('success_message', 'Updated sucsesfully');
@@ -148,6 +150,35 @@ class JobController extends Controller
     public function destroy(Job $job)
     {
         //
+    }
+    public function updateJobAjax(UpdateJobRequest $request)
+    {
+        $jobId = $request->input('jobId');
+        $targetListId = $request->input('targetListId');
+        $eilesNumeris = $request->input('eilesNumeris');
+        // Find the job by its ID
+        $job = Job::find($jobId);
+
+        if (!$job) {
+            return response()->json(['error' => 'Job not found'], 404);
+        }
+
+        // Update job data based on the target list
+        if ($targetListId === 'job-list') {
+            $job->status_id = 1; //;
+            $job->courrier_id = null;
+            $job->eilesNumeris = $eilesNumeris;
+        } else {
+            // Extract the user ID from the targetListId
+            $userId = substr($targetListId, strrpos($targetListId, '-') + 1);
+            $job->status_id = 2;//'assigned';
+            $job->courrier_id = $userId;
+            $job->eilesNumeris = $eilesNumeris;
+        }
+
+        $job->save();
+
+        return response()->json(['message' => 'Job updated successfully']);
     }
     public function assign(){
         {

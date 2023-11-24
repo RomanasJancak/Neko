@@ -24,8 +24,21 @@ class StatusSeeder extends Seeder
             'proposed',//7
             'completedwithIssue',//8
         ];
-        foreach($statuses as $status){
-            Status::create(['name'=> $status]);
+        $colors =   [
+            '#808080',
+            '#3d85c6',
+            '#d9ead3',
+            '#274e13',
+            '#a64d79',
+            '#cc0000',
+            '#7f6000',
+            '#e69138',
+        ];
+        foreach ($statuses as $index => $status) {
+            Status::create([
+                'name' => $status,
+                'color' => $colors[$index], // Use the corresponding color from the $colors array
+            ]);
         }
     }
 }
