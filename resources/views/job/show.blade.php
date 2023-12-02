@@ -12,7 +12,13 @@
                     <ul>
                         <li><strong>ID:</strong> {{ $job->id }}</li>
                         <li><strong>Sender:</strong> {{ $job->sender->name }}</li>
-                        <li><strong>Courier:</strong> {{ $job->courier->name }}</li>
+                        @if($job->courier == null)
+                                <li><strong>Courier:</strong> COURIER NOT SET</li>
+                        @else
+                                 <li><strong>Courier:</strong> {{ $job->courier->name }}</li>
+                        @endif    
+                        
+                        <li><strong>Price:</strong> {{ $job->price/100 }}$</li>
                         <li><strong>Pickup time:</strong> {{ $job->creation_time }}</li>
                         <li><strong>Dropoff Time:</strong> {{ $job->completion_time }}</li>
                         <li><strong>Status:</strong> {{ $job->status->name}}</li>

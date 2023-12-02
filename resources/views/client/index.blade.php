@@ -10,13 +10,14 @@
                 @foreach($clients as $client)
                     <li class="list-group-item">
                         <div class="row">
-                            <div class="col-md-1">{{ $client->id }}</div>
+                            <div class="col-md-1">NC{{ $client->id }}</div>
                             <div class="col-md-3">{{ $client->name }}</div>
                             <div class="col-md-2">{{ $client->email }}</div>
                             <div class="col-md-2">{{ $client->vat }}</div>
                             <div class="col-md-2">{{ $client->regNumber }}</div>
                             <div class="col-md-2">{{ $client->address }}</div>
                             <div class="col-md-2">{{ $client->note }}</div>
+                            <div class="col-md-2">{{ $client->postal_code }}</div>
                             <div class="col-md-1"><a href="{{ route('client.show', $client) }}">More...</a></div>
                             <div class="col-md-1"><a href="{{ route('client.edit', $client) }}">Edit</a></div>
                             <div class="col-md-1"><a href="{{ route('client.delete', $client) }}">Delete</a></div>

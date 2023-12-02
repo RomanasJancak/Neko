@@ -50,7 +50,7 @@ class JobFactory extends Factory
             'pickup_time_end'   =>  $pickup_time_end->format('Y-m-d H:i:s'),
             'dropoff_time_begin'=>  $dropoff_time_begin->format('Y-m-d H:i:s'),
             'dropoff_time_end'  =>  $dropoff_time_end->format('Y-m-d H:i:s'),
-
+            'price'             =>  $this->faker->numberBetween(100, 2000),
 
             'status_id' => $this->faker->randomElement($statusIds),
             'collection_details' => $this->faker->text,

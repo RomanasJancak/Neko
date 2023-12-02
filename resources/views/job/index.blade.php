@@ -11,14 +11,19 @@
                     <li class="list-group-item">
                         <div class="row border border-primary rounded">
                             @role('courier')
-                            <div class="col-md-1 text-center border border-primary rounded"><h4>{{ $job->id }}</h4></div>
+                            <div class="col-md-1 text-center border border-primary rounded"><h4>NJ{{ $job->id }}</h4></div>
                             @else
-                            <div class="col-md-1">{{ $job->id }}</div>
+                            <div class="col-md-1">NJ{{ $job->id }}</div>
                             @endrole    
                             <div class="col-md-3 ">Sender: {{ $job->sender->name }}</div>
                             @role('courier')
                             @else
+                            
+                            @if($job->courier == null)
+                            <div class="col-md-2 ">Courier: UNASSSIGNED</div>
+                        @else
                             <div class="col-md-2 ">Courier: {{ $job->courier->name }}</div>
+                        @endif 
                             @endrole
                             <div class="col-md-1 ">Pickup time begin: {{ $job->pickup_time_begin }}</div>
                             <div class="col-md-1 ">Pickup time end: {{ $job->pickup_time_end }}</div>

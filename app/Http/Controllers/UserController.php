@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Workload;
+use App\Models\Bike;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+
+use Carbon\Carbon;
 
 
 
@@ -138,5 +142,28 @@ class UserController extends Controller
     }
     public function delete(User $user ){
         return view('user.delete', ['user' => $user]);
+    }
+    public function workload(Request $request,User $user)
+    {
+        $currentYear = $request->year ?? $currentYear ?? Carbon::now()->year;
+        $currentMonth = $request->month ?? $currentMonth ?? Carbon::now()->month;
+        // Fetch workloads for the specified user for the current month
+        $workloads = Workload::where('user_id', $user->id)
+        ->join('days', 'workloads.day_id', '=', 'days.id')
+        ->whereYear('days.date', $currentYear)
+        ->whereMonth('days.date', $currentMonth)
+        ->get();
+        // Organize workload data for the calendar view
+        $workloadData = [];
+        foreach ($workloads as $workload) {
+            $day = Carbon::parse($workload->day->date)->format('j');
+            $workloadData[$day][] = $workload;
+        }
+        //$currentMonth = Carbon::now()->month;
+        //$currentYear = Carbon::now()->year;
+        $daysInMonth = Carbon::create($currentYear, $currentMonth)->daysInMonth;
+        $bikes = Bike::all();
+
+        return view('user.workload', compact('workloadData', 'daysInMonth', 'currentYear', 'currentMonth','user','bikes'));
     }
 }

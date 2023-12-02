@@ -18,6 +18,8 @@
 
     <!-- Include your custom CSS -->
     <link href="your-custom-css-file.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
 
     <!-- Include additional stylesheets or scripts you might need -->
 
@@ -94,6 +96,20 @@
                             </div>
                         </li>
                         @endif
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Workloads
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <!-- <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li> -->
+                                    <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li>
+                                    <!-- <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li> -->
+                                    <!-- <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li> -->
+                                    
+                                </ul>
+                            </div>
+                        </li>
                     </ul>
                     @endauth
 

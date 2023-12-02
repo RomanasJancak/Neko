@@ -31,6 +31,7 @@ return new class extends Migration
             $table->unsignedBigInteger('manager_id');
             $table->string('receiverContacts');
             $table->string('notes')->nullable();
+            $table->unsignedBigInteger('price')->nullable();
             $table->foreign('sender_id')->references('id')->on('clients');
             $table->foreign('receiver_id')->references('id')->on('clients');
             $table->foreign('manager_id')->references('id')->on('users');

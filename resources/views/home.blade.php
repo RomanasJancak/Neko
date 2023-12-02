@@ -19,5 +19,10 @@
             </div>
         </div>
     </div>
+    <form action="{{ route('parseCSV') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="file" name="csv_file" accept=".csv">
+        <button type="submit">Upload CSV</button>
+    </form>
 </div>
 @endsection

@@ -33,6 +33,7 @@ class Job extends Model
     }
     public function receiver()
     {
+        
         return $this->belongsTo(Client::class, 'receiver_id');
     }
 
@@ -60,4 +61,5 @@ class Job extends Model
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
+
 }

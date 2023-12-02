@@ -8,7 +8,7 @@
             @foreach ($jobs as $job)
                 <li class="list-group-item draggable-item" draggable="true" data-job-id="{{ $job->id }}" listType="job-list">
                 <div class="row border-bottom border-4">
-                        <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >{{ $job->id }}</div>
+                        <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
                         <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
                         <div class="col" style="background-color: {{$job->status->color}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
                     </div>
@@ -35,23 +35,22 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col"><button data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
-                        <div class="col"><button data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
+                        <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
+                        <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
                     </div>
                 </li>
             @endforeach
         </ul>
     </div>
     @foreach ($users as $user)
+    {{-- dd($user->workload($day)) --}}
     <div class="col-md-3">
-        <div class="card-header" >{{ $user->name }} 50% capacity bike_type</div>
+        <div class="card-header" ><div class="row">{{ $user->name }} {{$user->workload($day)->capacity}}</div><div class="row border"> {{$user->workload($day)->bike->name}}</div></div>
         <ul class="list-group droppable-list" ullistType="user-list-{{$user->id }}">
             @foreach ($user->jobs as $job)
                 <li class="list-group-item draggable-item border border-5" draggable="true" data-job-id="{{ $job->id }}" listType="user-list-{{$user->id }}">
-                <!-- <li class="list-group-item draggable-item" draggable="true" data-job-id="{{ $job->id }}"> -->
-                    <!-- <div   div class="card" id="job-item-{{ $job->id }}"> -->
                     <div class="row border-bottom border-4">
-                        <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >{{ $job->id }}</div>
+                        <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
                         <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
                         <div class="col" style="background-color: {{$job->status->color}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
                     </div>
@@ -78,8 +77,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col"><button data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
-                        <div class="col"><button data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
+                        <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
+                        <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
                     </div>
                         <!-- </div> -->
                 </li>
@@ -202,12 +201,13 @@
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 //žžžžžžžžžžžžžžžžžžžžžžžžžžžžžžž MODAL žžžžžžžžžžžžžžžžžžžžžžžžžž
-$('.job-details').on('click', function (event) {
+/*$('.job-details').on('click', function (event) {
     var button = $(event.currentTarget);
+    var editUrl = button.data('show-url');
     var jobId = button.data('job-id');
     var modal = $('#jobModal');
-
-    fetch(`/jobs/show/${jobId}`)
+    fetch(editUrl)
+    //const url = '{{ asset("jobs/show/") }}'; 
         .then(response => response.text())
         .then(data => {
             modal.find('.modal-body').html(data);
@@ -216,13 +216,35 @@ $('.job-details').on('click', function (event) {
             console.error('Error:', error);
         });
 });
-
-$('.job-edit').on('click', function (event) {
+*/
+document.querySelectorAll('.job-details').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        var button = event.currentTarget;
+        var editUrl = button.getAttribute('data-show-url');
+        var jobId = button.getAttribute('data-job-id');
+        var modal = document.getElementById('jobModal');
+        console.log("button "+button);
+        console.log(editUrl);       
+        fetch(editUrl)
+            .then(function(response) {
+                return response.text();
+            })
+            .then(function(data) {
+                console.log(data);
+                modal.querySelector('.modal-body').innerHTML = data;
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+            });
+    });
+});
+/*$('.job-edit').on('click', function (event) {
     var button = $(event.currentTarget);
+    var editUrl = button.data('edit-url');
     var jobId = button.data('job-id');
     var modal = $('#jobModal');
 
-    fetch(`/jobs/edit/${jobId}`)
+    fetch(editUrl)
         .then(response => response.text())
         .then(data => {
             modal.find('.modal-body').html(data); // Assuming the same body for editing
@@ -230,6 +252,27 @@ $('.job-edit').on('click', function (event) {
         .catch(error => {
             console.error('Error:', error);
         });
+});
+*/
+document.querySelectorAll('.job-edit').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        var button = event.currentTarget;
+        var editUrl = button.getAttribute('data-edit-url');
+        var jobId = button.getAttribute('data-job-id');
+        var modal = document.getElementById('jobModal');
+
+        fetch(editUrl)
+            .then(function(response) {
+                return response.text();
+            })
+            .then(function(data) {
+                
+                modal.querySelector('.modal-body').innerHTML = data;
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+            });
+    });
 });
 </script>
 @endsection

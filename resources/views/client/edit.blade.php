@@ -49,7 +49,30 @@
                     <label for="note">Note:</label>
                     <textarea class="form-control" id="note" name="note">{{ old('note', $client->note) }}</textarea>
                 </div>
-
+                <div class="form-group">
+                    <label for="street">Street:</label>
+                    <input type="text" class="form-control" id="street" name="street" value="{{ old('street', $client->street) }}">
+                </div>
+                <div class="form-group">
+                    <label for="street">Apt/suite:</label>
+                    <input type="text" class="form-control" id="apt_suite" name="apt_suite" value="{{ old('apt_suite', $client->apt_suite) }}">
+                </div>
+                <div class="form-group">
+                    <label for="street">City:</label>
+                    <input type="text" class="form-control" id="city" name="city" value="{{ old('city', $client->city) }}">
+                </div>
+                <div class="form-group">
+                    <label for="street">State/Province:</label>
+                    <input type="text" class="form-control" id="state_province" name="state_province" value="{{ old('state_province', $client->state_province) }}">
+                </div>
+                <div class="form-group">
+                    <label for="street">Postal_code:</label>
+                    <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ old('postal_code', $client->postal_code) }}">
+                </div>
+                <div class="form-group">
+                    <label for="street">Country:</label>
+                    <input type="text" class="form-control" id="country" name="country" value="{{ old('country', $client->country) }}">
+                </div>
                 <button type="submit" class="btn btn-primary">Update Client</button>
             </form>
         </div>

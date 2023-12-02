@@ -23,5 +23,31 @@ class Day extends Model
         })
         ->get();
     }
-
+    public function workloads()
+    {
+        return $this->hasMany(Workload::class,'day_id'); 
+    }
+    public function usedBike()
+    {
+        return Bike::whereHas('workloads', function ($query) {
+            $query->where('day_id', $this->id);
+        })
+        ->get();
+    }
+    public function freeBikes()
+    {
+        return Bike::whereDoesntHave('workloads', function ($query) {
+            $query->where('day_id', $this->id);
+        })->get();
+    }
+    public function freeCouriers()
+    {
+        return User::whereDoesntHave('workloads', function ($query) {
+            $query->where('day_id', $this->id);
+        })
+        ->whereHas('roles', function ($query) {
+            $query->where('name', 'courier');
+        })
+        ->get();
+    }
 }

@@ -25,17 +25,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email:</label>
+                    <label for="email">Contact Email:</label>
                     <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}">
                 </div>
-
+                <div class="form-group">
+                    <label for="email">Invoice Emails:</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}">
+                </div>
                 <div class="form-group">
                     <label for="vat">VAT:</label>
                     <input type="text" class="form-control" id="vat" name="vat" value="{{ old('vat') }}">
                 </div>
 
                 <div class="form-group">
-                    <label for="regNumber">Registration Number:</label>
+                    <label for="regNumber">Company Registration Number:</label>
                     <input type="text" class="form-control" id="regNumber" name="regNumber" value="{{ old('regNumber') }}">
                 </div>
 
@@ -43,7 +46,14 @@
                     <label for="address">Address:</label>
                     <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}">
                 </div>
-
+                <div class="form-group">
+                    <label for="address">Website:</label>
+                    <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}">
+                </div>
+                <div class="form-group">
+                    <label for="address">Phone number:</label>
+                    <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}">
+                </div>
                 <div class="form-group">
                     <label for="note">Note:</label>
                     <textarea class="form-control" id="note" name="note">{{ old('note') }}</textarea>
