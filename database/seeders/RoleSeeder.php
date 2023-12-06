@@ -16,11 +16,11 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        $superAdmin     = Role::create([  'name'      =>  'superadmin']);
+        $superAdmin     = Role::create([  'name'      =>  'superadmin','display_name' => 'superadmin']);
         $superAdmin->syncPermissions(Permission::all());
-        $admin      = Role::create([  'name'      =>  'admin']);
+        $admin      = Role::create([  'name'      =>  'admin','display_name' => 'admin']);
         $admin->syncPermissions(Permission::all());
-        $manager  = Role::create([  'name'      =>  'manager']);
+        $manager  = Role::create([  'name'      =>  'manager','display_name' => 'manager']);
         $manager->givePermissionTo([
             'user-view',
             'client-view',
@@ -32,7 +32,7 @@ class RoleSeeder extends Seeder
             'job-edit',
             'job-delete',
         ]);
-        $client     = Role::create([  'name'      =>  'client']);
+        $client     = Role::create([  'name'      =>  'client_admin','display_name' => 'admin']);
         $client->givePermissionTo([
             'user-view',
             'client-view',
@@ -42,12 +42,13 @@ class RoleSeeder extends Seeder
             'job-edit',
             'job-delete',
         ]);
-        $courier    = Role::create([  'name'      =>  'courier']);
+        $courier    = Role::create([  'name'      =>  'courier','display_name' => 'courier']);
         $courier->givePermissionTo([
             'user-view',
             'client-view',
             'job-view',
             'job-edit',
         ]);
+        
     }
 }

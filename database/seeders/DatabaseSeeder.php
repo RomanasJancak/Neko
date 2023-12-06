@@ -25,7 +25,8 @@ class DatabaseSeeder extends Seeder
             JobSeeder::class,
             BikeSeeder::class,
             WorkloadSeeder::class,
+            AddOnRuleSeeder::class,
         ]);
-        \App\Models\User::factory(100)->create();
+        //\App\Models\User::factory(100)->create();
     }
 }

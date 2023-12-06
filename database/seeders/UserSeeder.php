@@ -31,7 +31,7 @@ class UserSeeder extends Seeder
 
          $user = User::create([
             'name' => 'Thomas',
-            'email' => 'thomas@neko.co.uk',
+            'email' => 'thcuenot@gmail.com',
             'password' => Hash::make('password')
          ]);
          $role = Role::find(2);
@@ -39,31 +39,47 @@ class UserSeeder extends Seeder
                   
          $user = User::create([
             'name' => 'Aurelija',
-            'email' => 'aurelija@neko.co.uk',
+            'email' => 'aurelija.jancak@gmail.com',
             'password' => Hash::make('password')
          ]);
          $role = Role::find(3);
          $user->assignRole($role);
                            
          $user = User::create([
-            'name' => 'Romanas',
-            'email' => 'romanas@neko.co.uk',
+            'name' => 'Andrew New Cat',
+            'email' => 'Activisuals@gmail.com',
             'password' => Hash::make('password')
          ]);
          $role = Role::find(5);
          $user->assignRole($role);
 
          $user = User::create([
-            'name' => 'courier_1',
-            'email' => 'courier_1@neko.co.uk',
+            'name' => 'Gabriel Turner',
+            'email' => 'gt.xpress98@gmail.com',
             'password' => Hash::make('password')
          ]);
          $role = Role::find(5);
          $user->assignRole($role);
 
          $user = User::create([
-            'name' => 'courier_2',
-            'email' => 'courier_2@neko.co.uk',
+            'name' => 'Gil Neko',
+            'email' => 'gilyehezkel1995@gmail.com',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(5);
+         $user->assignRole($role);
+         
+         $user = User::create([
+            'name' => 'Josh Hartmann',
+            'email' => 'joshua.hartmann4@gmail.com',
+            'password' => Hash::make('password')
+         ]);
+         $role = Role::find(5);
+         $user->assignRole($role);
+
+         $user = User::create([
+            'name' => 'Jules Neko Cat',
+            'email' => 'Juliabicknell6@gmail.com',
             'password' => Hash::make('password')
          ]);
          $role = Role::find(5);

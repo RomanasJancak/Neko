@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use League\Csv\Reader;
-
+use Illuminate\Support\Facades\Schema;
 use App\Models\Client;
 
 class ClientSeeder extends Seeder
@@ -46,13 +46,18 @@ class ClientSeeder extends Seeder
                 //dd($column1);
                 // Process the data here...
             }
-
+            $tableName = with(new Client)->getTable();
             // Optionally, you can convert the records to an array for further manipulation
             $parsedData = iterator_to_array($records);
             for($i=1;$i < count($parsedData);$i++){
                 $array = [];
                 for($j=0;$j < count($column_names);$j++){
-                    $array[$column_names[$j]] = $parsedData[$i][$j];
+                    if (Schema::hasColumn($tableName, $column_names[$j])) {
+                        $array[$column_names[$j]] = $parsedData[$i][$j];
+                    }else{
+                        
+                    }
+                    
                 }
                 Client::create($array);
             }

@@ -6,6 +6,9 @@ use App\Models\Client;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+
 class ClientController extends Controller
 {
     /**
@@ -51,8 +54,24 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        //
-        return view('client.show', ['client' => $client]);
+        $allClients = Client::all()->pluck('id')->toArray();
+        $currentIndex = array_search($client->id, $allClients);
+    
+        $totalClients = count($allClients);
+        $previousIndex = ($currentIndex - 1 + $totalClients) % $totalClients;
+        $nextIndex = ($currentIndex + 1) % $totalClients;
+    
+        $previousClientId = $allClients[$previousIndex];
+        $nextClientId = $allClients[$nextIndex];
+    
+        $previousClient = Client::find($previousClientId);
+        $nextClient = Client::find($nextClientId);
+    
+        return view('client.show', [
+            'client' => $client,
+            'previousClient' => $previousClient,
+            'nextClient' => $nextClient,
+        ]);
     }
 
     /**
@@ -96,6 +115,25 @@ class ClientController extends Controller
         $client->delete();
 
         return redirect()->route('client.index')->with('success', 'Client deleted successfully');
+    }
+    public function createBackup()
+    {
+        $clients = Client::all();        
+        $columns = Schema::getColumnListing('clients'); 
+
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($clients as $client) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $client->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = resource_path('files/backups/Client/client.backup_'.$timestamp.'.csv');
+
+        file_put_contents($file_path, $csvData);
+        return redirect()->back()->with('succeses', 'Client backup created successfully.');
     }
     public function getClientInfo($clientId)
     {

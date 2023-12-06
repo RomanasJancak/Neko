@@ -1,11 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12">
             <h1>Clients</h1>
-
+            <div class="mt-3">
+        <form method="POST" action="{{ route('client.createBackup') }}">
+            @csrf
+            <button type="submit" class="btn btn-primary">Create Backup</button>
+        </form>
+    </div>
             <ul class="list-group">
                 @foreach($clients as $client)
                     <li class="list-group-item">

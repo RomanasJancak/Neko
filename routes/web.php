@@ -56,7 +56,7 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
     Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
     Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
-    
+    Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
@@ -103,4 +103,15 @@ Route::group(['prefix' => 'workloads'], function(){
     ->where(['year' => '\d{4}', 'month' => '\d{1,2}'])
     ->name('workload.calendar')
     ->middleware('auth');
+});
+Route::group(['prefix' => 'addonrules'], function(){
+    Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
+    //Route::get('create',            [ClientController::class, 'create'])->name('client.create')->middleware('auth');
+    //Route::post('store',            [ClientController::class, 'store'])->name('client.store')->middleware('auth');
+    //Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
+    //Route::put('update/{client}',   [ClientController::class, 'update'])->name('client.update')->middleware('auth');
+    //Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
+    //Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
+    //Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
+    //Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
 });
