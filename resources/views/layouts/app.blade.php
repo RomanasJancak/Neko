@@ -149,6 +149,9 @@
                                     <li>
                                     <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
                                     </li>
+                                    <li>
+                                    <a class="dropdown-item " href="{{route('status.index')}}">Statuses</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>

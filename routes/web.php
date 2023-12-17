@@ -9,6 +9,7 @@ use App\Http\Controllers\DayController;
 use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\AddOnRuleController;
 use App\Http\Controllers\BikeController;
+use App\Http\Controllers\StatusController;
 
 
 /*
@@ -138,7 +139,13 @@ Route::group(['prefix' => 'distances'], function(){
 });
 Route::group(['prefix'  =>  'bikes'],function(){
     Route::get('',                  [BikeController::class, 'index'])->name('bike.index')->middleware('auth');
-    Route::post('update',            [BikeController::class, 'update'])->name('bike.update')->middleware('auth');
-    Route::post('delete',            [BikeController::class, 'destroy'])->name('bike.delete')->middleware('auth');
+    Route::post('update',           [BikeController::class, 'update'])->name('bike.update')->middleware('auth');
+    Route::post('delete',           [BikeController::class, 'destroy'])->name('bike.delete')->middleware('auth');
     Route::post('store',            [BikeController::class, 'store'])->name('bike.store')->middleware('auth');
+});
+Route::group(['prefix'  => 'statuses'],function(){
+    Route::get('',                  [StatusController::class, 'index'])->name('status.index')->middleware('auth');
+    Route::post('update',           [StatusController::class, 'update'])->name('status.update')->middleware('auth');
+    Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware('auth');
+    Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware('auth');
 });

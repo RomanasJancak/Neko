@@ -322,6 +322,16 @@
                 // Perform actions when checkbox is unchecked
             }
         });
+        rule_4_value.addEventListener('change', function() {
+            if (this.checked) {
+                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)+parseInt(rule_4_value.value);
+                // Perform actions when checkbox is checked
+            } else {
+                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)-parseInt(rule_4_value.value);
+                // Perform actions when checkbox is unchecked
+            }
+        });
+
     }
     //===============================MODAL FORM BEGIN
     document.querySelectorAll('.work-button').forEach(button => {
