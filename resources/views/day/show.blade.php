@@ -66,9 +66,9 @@
                     <div class="row border-bottom border-4">
                         <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
                         <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
-                        <div class="col" style="background-color: {{$job->status->color}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
+                        <div class="col" style="background-color: {{$job->status->color_main}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
                     </div>
-                    <div class="row border-bottom border-4">
+                    <div class="row border-bottom border-4" >
                         <div class="row">
                             <div class="col" style="">{{$job->sender->name}}</div>
                         </div>

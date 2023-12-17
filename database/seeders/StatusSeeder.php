@@ -37,7 +37,9 @@ class StatusSeeder extends Seeder
         foreach ($statuses as $index => $status) {
             Status::create([
                 'name' => $status,
-                'color' => $colors[$index], // Use the corresponding color from the $colors array
+                'color_main' => $colors[$index], // Use the corresponding color from the $colors array
+                'color_pickup' => $colors[$index],
+                'color_dropoff' => $colors[$index],
             ]);
         }
     }

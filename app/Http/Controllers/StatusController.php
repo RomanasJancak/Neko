@@ -6,6 +6,8 @@ use App\Models\Status;
 use App\Http\Requests\StoreStatusRequest;
 use App\Http\Requests\UpdateStatusRequest;
 
+use Illuminate\Http\Request;
+
 class StatusController extends Controller
 {
     /**
@@ -13,7 +15,9 @@ class StatusController extends Controller
      */
     public function index()
     {
-        //
+        $statuses = Status::orderBy('id', 'asc')->paginate(10);
+
+        return view('status.index', compact('statuses'));
     }
 
     /**
@@ -29,7 +33,16 @@ class StatusController extends Controller
      */
     public function store(StoreStatusRequest $request)
     {
-        //
+        $status = new Status();
+        $status->name = $request->name;
+        $status->color_main =   $request->input('color-main');
+        $status->color_pickup =   $request->input('color-pickup');
+        $status->color_dropoff =   $request->input('color-dropoff');
+        $status->save();
+        return response()->json([
+            'message' => 'Status created successfully.',
+            'status' => $status
+        ]);
     }
 
     /**
@@ -53,14 +66,28 @@ class StatusController extends Controller
      */
     public function update(UpdateStatusRequest $request, Status $status)
     {
-        //
+        $status = Status::findOrFail($request->statusid);
+        $status->name = $request->name;
+        $status->color_main =   $request->input('color-main');
+        $status->color_pickup =   $request->input('color-pickup');
+        $status->color_dropoff =   $request->input('color-dropoff');
+        $status->save();
+
+        return response()->json([
+            'message' => 'Status updated successfully. '.$status,
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Status $status)
+    public function destroy(Request $request,Status $status)
     {
-        //
+        $status = Status::findOrFail($request->statusid);
+        $status->delete();
+
+        return response()->json([
+            'message' => 'Status deleted successfully.'
+        ]);
     }
 }

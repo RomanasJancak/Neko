@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
-            $table->string('color')->nullable();
+            $table->string('color_main')->nullable();
+            $table->string('color_pickup')->nullable();
+            $table->string('color_dropoff')->nullable();
         });
     }
 
