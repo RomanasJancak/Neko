@@ -9,20 +9,18 @@ class Job extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'client_id',
+        'eilesNumeris'.
         'courrier_id',
-        'creation_time',
-        'completion_time',
+        'sender_id',
+        'receiver_id',
+        'pickup_time_begin',
+        'pickup_time_end',
+        'dropoff_time_begin',
+        'dropoff_time_end',
         'status_id',
         'collection_details',
-        'pickup_adress',
-        'delivery_adress',
-        'senderContacts',
-        'manager_id',
-        'receiverContacts',
-        'group_id',
-        'notes',
-        'invoice_id',
+        'dropoff_details',
+
     ];
     public function status(){
         return $this->belongsTo(Status::class);
@@ -61,5 +59,4 @@ class Job extends Model
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
-
 }

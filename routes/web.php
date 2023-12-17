@@ -7,6 +7,9 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\DayController;
 use App\Http\Controllers\WorkloadController;
+use App\Http\Controllers\AddOnRuleController;
+use App\Http\Controllers\BikeController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +49,8 @@ Route::group(['prefix' => 'users'], function(){
     ->where(['year' => '\d{4}', 'month' => '\d{1,2}'])
     ->name('user.workload')
     ->middleware('auth');
+    Route::post('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole')->middleware('auth');
+
 });
 Route::group(['prefix' => 'clients'], function(){
     Route::get('',                  [ClientController::class, 'index'])->name('client.index')->middleware('auth');
@@ -82,6 +87,7 @@ Route::group(['prefix' => 'days'], function(){
     // Route::get('delete/{job}',   [JobController::class, 'delete'])->name('job.delete')->middleware('auth');
     // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
     Route::get('show/{day}',        [DayController::class, 'show'])->name('day.show')->middleware('auth');
+    Route::get('showdashboard/{date}',        [DayController::class, 'showdashboard'])->name('day.showdashboard')->middleware('auth');
     // Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
     Route::get('/get-free-bikes', [DayController::class, 'getFreeBikes'])->name('day.getFreeBikes')->middleware('auth');
     Route::get('/get-free-couriers', [DayController::class, 'getFreeCouriers'])->name('day.getFreeCouriers')->middleware('auth');
@@ -106,12 +112,33 @@ Route::group(['prefix' => 'workloads'], function(){
 });
 Route::group(['prefix' => 'addonrules'], function(){
     Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
-    //Route::get('create',            [ClientController::class, 'create'])->name('client.create')->middleware('auth');
-    //Route::post('store',            [ClientController::class, 'store'])->name('client.store')->middleware('auth');
+    Route::get('create',            [AddOnRuleController::class, 'create'])->name('addonrule.create')->middleware('auth');
+    Route::post('store',            [AddOnRuleController::class, 'store'])->name('addonrule.store')->middleware('auth');
     //Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
     //Route::put('update/{client}',   [ClientController::class, 'update'])->name('client.update')->middleware('auth');
     //Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
     //Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
     //Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
+    Route::get('findAddOnRule',     [AddOnRuleController::class, 'findAddOnRule'])->name('addonrule.findAddOnRule')->middleware('auth');
     //Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
+
+});
+Route::group(['prefix' => 'distances'], function(){
+    //Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
+    //Route::get('create',            [AddOnRuleController::class, 'create'])->name('addonrule.create')->middleware('auth');
+    //Route::post('store',            [AddOnRuleController::class, 'store'])->name('addonrule.store')->middleware('auth');
+    //Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
+    //Route::put('update/{client}',   [ClientController::class, 'update'])->name('client.update')->middleware('auth');
+    //Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
+    //Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
+    //Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
+    //Route::get('findAddOnRule',     [AddOnRuleController::class, 'findAddOnRule'])->name('addonrule.findAddOnRule')->middleware('auth');
+    //Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
+    Route::get('getDistance', [ClientController::class, 'getDistance'])->name('client.getDistancewha')->middleware('auth'); 
+});
+Route::group(['prefix'  =>  'bikes'],function(){
+    Route::get('',                  [BikeController::class, 'index'])->name('bike.index')->middleware('auth');
+    Route::post('update',            [BikeController::class, 'update'])->name('bike.update')->middleware('auth');
+    Route::post('delete',            [BikeController::class, 'destroy'])->name('bike.delete')->middleware('auth');
+    Route::post('store',            [BikeController::class, 'store'])->name('bike.store')->middleware('auth');
 });

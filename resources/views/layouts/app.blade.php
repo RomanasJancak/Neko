@@ -25,7 +25,7 @@
 
 </head>
 <body>
-
+    {{-- dd(auth()->user()->role()) --}}
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
             <div class="container">
@@ -110,6 +110,48 @@
                                 </ul>
                             </div>
                         </li>
+                        <li>
+                            <div class="btn-group">
+                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                AddOnRules
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{route('addonrule.index')}}">List</a></li>
+                                    <!-- <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li> -->
+                                    <li><a class="dropdown-item" href="{{route('addonrule.create')}}">Create</a></li>
+                                    <!-- <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li> -->
+                                    
+                                </ul>
+                            </div>
+                        </li>
+                        <li>
+                            <div>
+                                <form method="POST" action="{{ route('user.updateRole', ['user' => auth()->user()]) }}" id="rolechangeForm">
+                                    @csrf
+                                    <select id="role" name="role" class="form-control" >
+                                        @foreach(auth()->user()->getAllRoles() as $role)
+                                            @if ($role->id === auth()->user()->role()->id)
+                                            <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
+                                            @else
+                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </form>
+                            </div>
+                        </li>
+                        <li>
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                Other
+                            </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <li>
+                                    <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
                     </ul>
                     @endauth
 
@@ -164,5 +206,13 @@
 
     <!-- Include additional JavaScript libraries or your custom scripts -->
     @yield('scripts')
+    <script>
+           var roleSelect = document.getElementById('role');
+
+// Add an event listener to submit the form when the select element changes
+roleSelect.addEventListener('change', function() {
+    document.getElementById('rolechangeForm').submit(); // Submit the form
+}); 
+    </script>
 </body>
 </html>

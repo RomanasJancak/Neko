@@ -69,4 +69,13 @@ class User extends Authenticatable
         return $this->hasOne(Workload::class)
         ->where('day_id', $day->id)->first();
     }
+    
+    public function getAllRoles(){
+        return Role::all();
+    }
+    public function role()
+    {
+        // Assuming a user has only one role at a time
+        return $this->roles()->first();
+    }
 }

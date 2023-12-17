@@ -9,6 +9,16 @@ class Day extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'date' => 'datetime',
+    ];
+
+    public function month(){
+        return $this->date->format('m');
+    }
+    public function year(){
+        return $this->date->format('Y');
+    }
     public function jobs()
     {
         $date = $this->date;

@@ -31,6 +31,7 @@ class RoleSeeder extends Seeder
             'job-create',
             'job-edit',
             'job-delete',
+            'job-create-chooseAnyPostalCode'
         ]);
         $client     = Role::create([  'name'      =>  'client_admin','display_name' => 'admin']);
         $client->givePermissionTo([

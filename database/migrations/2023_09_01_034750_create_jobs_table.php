@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('eilesNumeris')->nullable();
-            $table->unsignedBigInteger('sender_id');
-            $table->unsignedBigInteger('receiver_id');
             $table->unsignedBigInteger('courrier_id')->nullable();
+            $table->unsignedBigInteger('sender_id');
+            $table->unsignedBigInteger('receiver_id');            
             $table->dateTime('pickup_time_begin');
             $table->dateTime('pickup_time_end');
             $table->dateTime('dropoff_time_begin');
@@ -25,8 +25,12 @@ return new class extends Migration
             $table->unsignedBigInteger('status_id');
             $table->string('collection_details')->nullable();
             $table->string('dropoff_details')->nullable();
-            $table->string('pickup_address');
+            $table->string('pickup_address')->nullable();
+            $table->unsignedBigInteger('pickup_adress_postalCode_id')->nullable();
+            $table->unsignedBigInteger('pickup_adress_street')->nullable();
+            $table->unsignedBigInteger('pickup_adress_apt_suite')->nullable();
             $table->string('delivery_address');
+            $table->unsignedBigInteger('delivery_adress_postalCode_id')->nullable();
             $table->string('senderContacts');
             $table->unsignedBigInteger('manager_id');
             $table->string('receiverContacts');

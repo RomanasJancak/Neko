@@ -9,6 +9,10 @@ use App\Models\Client;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Status;
+use App\Models\PostalCode;
+
+use Illuminate\Validation\Rule;
+
 class JobController extends Controller
 {
     /**
@@ -34,14 +38,16 @@ class JobController extends Controller
         {
             $clients = Client::all();
             $couriers = User::all();
-             $statuses = Status::all();
+            $statuses = Status::all();
             $managers = User::all();
+            $postalCodes    =   PostalCode::all();
 
     
             return view('job.create', compact('clients'
             , 'couriers', 
              'statuses',
-             'managers'
+             'managers',
+             'postalCodes'
         ));
         }
     }
@@ -51,44 +57,21 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
-        $request->validate([
-            // Add validation rules for the job fields
-            // 'client_id' => 'required',
+        //dd($request);
+        $receiverIdRule = Rule::exists(Client::class, 'id');
+        $validatedData = $request->validate([
              'courrier_id' => 'required',
-            // 'creation_time' => 'required',
-            // 'completion_time' => 'required',
-            // 'status_id' => 'required',
-            // 'collection_details' => 'required',
-            // 'pickup_address' => 'required',
-            // 'delivery_address' => 'required',
-            // 'senderContacts' => 'required',
-            // 'manager_id' => 'required',
-            // 'receiverContacts' => 'required',
-            // 'group_id' => 'required',
-            // 'notes' => 'required',
-            // 'invoice_id' => 'required',
+             'sender_id' => 'required',
+             'receiver_id' => ['required', $receiverIdRule],
+             'pickup_time_begin'    =>  'required',
+             'pickup_time_end'      =>  'required',
         ]);
-        $job    =   new Job();
-        $job->sender_id =   $request->sender_id;
-        $job->pickup_time_begin =   $request->pickup_time_begin;
-        $job->pickup_time_end =   $request->pickup_time_end;
-        $job->dropoff_time_begin =   $request->dropoff_time_begin;
-        $job->dropoff_time_end =   $request->dropoff_time_end;
-        $job->receiver_id =   $request->receiver_id;
-        $job->courrier_id   =   $request->courrier_id;
-        $job->status_id =   $request->status_id;
-        $job->collection_details    =   $request->collection_details;
-        $job->pickup_address    =   $request->pickup_address;
-        $job->delivery_address  =   $request->delivery_address;
-        $job->senderContacts    =   $request->senderContacts;
-        $job->manager_id    =   $request->manager_id;
-        $job->receiverContacts  =   $request->receiverContacts;
-        $job->notes =   $request->notes;
-        $job->save();
+        //dd($validatedData);
+        Job::create($validatedData);
         
         //Job::create($request->all());
-        return redirect()->route('job.index')
-            ->with('success', 'Job created successfully');
+        //return redirect()->route('job.index')->with('success', 'Job created successfully');
+        return redirect()->back()->with('succses', 'Addon Rule created successfully.');
     }
 
     /**

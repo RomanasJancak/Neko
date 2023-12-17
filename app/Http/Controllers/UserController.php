@@ -122,11 +122,28 @@ class UserController extends Controller
     {
         //
         //dd();
-        $user->name = $request->user_name;
-        $user->email = $request->user_email;
+
+
+            $user->name = $request->user_name;
+
+
+            $user->email = $request->user_email;
+
         $user->syncRoles(Role::find($request->role));
+        //dd(Role::find($request->role));
         $user->save();
         return redirect()->route('user.show',['user' => $user])->with('success_message', 'Sėkmingai pakeistas.');
+    }
+    public function updateRole(UpdateUserRequest $request,User $user){
+        //dd($request->input('role_id'));
+        //$user->roles()->detach();
+        //$newRoleId = $request->input('role_id');
+        //$newRole = Role::find($newRoleId);
+        //dd($newRole);
+        //$user->roles()->attach($newRole);
+        $user->syncRoles(Role::find($request->role));
+        $user->save();
+        return redirect()->back()->with('success', 'Role updated successfully');
     }
 
     /**

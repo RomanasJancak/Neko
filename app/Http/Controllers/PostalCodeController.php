@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Distance;
-use App\Http\Requests\StoreDistanceRequest;
-use App\Http\Requests\UpdateDistanceRequest;
+use App\Models\PostalCode;
+use App\Http\Requests\StorePostalCodeRequest;
+use App\Http\Requests\UpdatePostalCodeRequest;
 
-class DistanceController extends Controller
+class PostalCodeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -27,7 +27,7 @@ class DistanceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDistanceRequest $request)
+    public function store(StorePostalCodeRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class DistanceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Distance $distance)
+    public function show(PostalCode $postalCode)
     {
         //
     }
@@ -43,7 +43,7 @@ class DistanceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Distance $distance)
+    public function edit(PostalCode $postalCode)
     {
         //
     }
@@ -51,7 +51,7 @@ class DistanceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDistanceRequest $request, Distance $distance)
+    public function update(UpdatePostalCodeRequest $request, PostalCode $postalCode)
     {
         //
     }
@@ -59,12 +59,8 @@ class DistanceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Distance $distance)
+    public function destroy(PostalCode $postalCode)
     {
         //
-    }
-    public function getDistance(Request $request)
-    {
-        return response()->json(Distance::getDistance($request->$origin, $request->$destination, $mode = 'walking'));
     }
 }

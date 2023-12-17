@@ -33,14 +33,20 @@ return new class extends Migration
             $table->string('shipping_state_province')->nullable();//CSV
             $table->string('shipping_postal_code')->nullable();//CSV
             $table->string('shipping_country')->nullable();//CSV
+            $table->string('dropoff_street')->nullable();//CSV
+            $table->string('dropoff_apt_suite')->nullable();//CSV
+            $table->string('dropoff_city')->nullable();//CSV
+            $table->string('dropoff_state_province')->nullable();//CSV
+            $table->string('dropoff_postal_code')->nullable();//CSV
+            $table->string('dropoff_country')->nullable();//CSV
             $table->string('public_notes')->nullable();//CSV
             $table->string('contact_phone')->nullable();//CSV
             $table->string('first_name')->nullable();//CSV
             $table->string('last_name')->nullable();//CSV
-            $table->string('email')->unique();
+            $table->string('email')->unique()->nullable();
             $table->string('Credit_Balance')->nullable();//CSV
             //==================================
-            $table->string('vat');
+            $table->string('vat')->nullable();
             $table->string('address')->default('Default Address');
             $table->string('note')->nullable()->default('');
             $table->unsignedBigInteger('contactPersonForPickup')->nullable();

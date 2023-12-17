@@ -2,6 +2,16 @@
 @section('content')
 <div class="container">
     <div class="row">
+        <div class="col">{{$day->name}}</div>
+        <div class="col">
+            <form method="GET" action="{{ route('workload.calendar') }}">
+            <input type="hidden" name="month" id="monthField" value="{{$day->month()}}">
+            <input type="hidden" name="year" id="yearField" value="{{$day->year()}}">
+    <button type="submit">Workload view</button>
+</form>
+        </div>
+    </div>
+    <div class="row">
     <div class="col-md-2">
         <div class="card-header" id="job-list-header" >Jobs</div>
         <ul class="list-group droppable-list" ullistType="job-list">
@@ -43,8 +53,12 @@
         </ul>
     </div>
     @foreach ($users as $user)
-    {{-- dd($user->workload($day)) --}}
+    @if ($users->count() <= 3)
     <div class="col-md-3">
+    @else
+    <div class="col-md-2">
+    @endif
+    
         <div class="card-header" ><div class="row">{{ $user->name }} {{$user->workload($day)->capacity}}</div><div class="row border"> {{$user->workload($day)->bike->name}}</div></div>
         <ul class="list-group droppable-list" ullistType="user-list-{{$user->id }}">
             @foreach ($user->jobs as $job)

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+
 use App\Models\Bike;
 use App\Http\Requests\StoreBikeRequest;
 use App\Http\Requests\UpdateBikeRequest;
@@ -13,7 +15,9 @@ class BikeController extends Controller
      */
     public function index()
     {
-        //
+        $bikes = Bike::latest()->paginate(10);
+
+        return view('bike.index', compact('bikes'));
     }
 
     /**
@@ -29,7 +33,17 @@ class BikeController extends Controller
      */
     public function store(StoreBikeRequest $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+        $bike = new Bike();
+        $bike->name = $request->name;
+        $bike->save();
+
+        return response()->json([
+            'message' => 'Bike created successfully.',
+            'bike' => $bike
+        ]);
     }
 
     /**
@@ -53,14 +67,30 @@ class BikeController extends Controller
      */
     public function update(UpdateBikeRequest $request, Bike $bike)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+        //return response()->json(['message' => $request->bikeid]);
+        $bike = Bike::findOrFail($request->bikeid);
+        $bike->name = $request->name;
+        $bike->save();
+
+        return response()->json([
+            'message' => 'Bike updated successfully.',
+            'bike' => $bike
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Bike $bike)
+    public function destroy(Request $request,Bike $bike)
     {
-        //
+        $bike = Bike::findOrFail($request->bikeid);
+        $bike->delete();
+
+        return response()->json([
+            'message' => 'Bike deleted successfully.'
+        ]);
     }
 }

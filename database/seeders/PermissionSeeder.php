@@ -35,6 +35,7 @@ class PermissionSeeder extends Seeder
             'job-create',
             'job-edit',
             'job-delete',
+            'job-create-chooseAnyPostalCode'
         ];
         foreach($permissions as $permission){
             Permission::create(['name'=> $permission]);

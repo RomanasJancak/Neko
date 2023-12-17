@@ -19,6 +19,10 @@ class ClientSeeder extends Seeder
         $filePath = resource_path('files\client.csv');
         $fileContents = File::get($filePath);
         $this->seed($filePath);
+        Client::create([
+            'name' => '<<==One time client==>>',
+
+        ]);
     }
     private function seed($file):void
     {

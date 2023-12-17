@@ -49,13 +49,21 @@ class DayController extends Controller
         $usersWithCourierRole = User::whereHas('roles', function ($query) {
             $query->where('name', 'courier');
         })->get();
+        $usersWithCourierRoleAndWorkload = $usersWithCourierRole->filter(function ($user) use ($day) {
+            return $user->workload($day) !== null;
+        });
         $jobs   =   $day->jobs();
         $filteredJobs = $jobs->filter(function ($job) {
             return $job->status_id === 1;
         });
-        return view('day.show', ['day' => $day,'users' => $usersWithCourierRole,'jobs' => $filteredJobs]);
+        //dd($usersWithCourierRoleAndWorkload);
+        return view('day.show', ['day' => $day,'users' => $usersWithCourierRoleAndWorkload,'jobs' => $filteredJobs]);
     }
-
+    public function showdashboard($date){
+        
+        $day = Day::whereDate('name', '=', $date)->first();
+        return $this->show($day);
+    }
     /**
      * Show the form for editing the specified resource.
      */
