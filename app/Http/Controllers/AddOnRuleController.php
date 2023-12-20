@@ -27,7 +27,7 @@ class AddOnRuleController extends Controller
      */
     public function create()
     {
-        $lastCreated = AddOnRule::latest()->first();
+        $lastCreated = AddOnRule::latest()->last();
 
         return view('addonrule.create', compact('lastCreated'));
     }

@@ -148,4 +148,5 @@ Route::group(['prefix'  => 'statuses'],function(){
     Route::post('update',           [StatusController::class, 'update'])->name('status.update')->middleware('auth');
     Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware('auth');
     Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware('auth');
+    Route::post('createBackup',     [StatusController::class, 'createBackup'])->name('status.createBackup')->middleware('auth');
 });

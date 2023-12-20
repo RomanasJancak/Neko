@@ -73,7 +73,7 @@ class User extends Authenticatable
     public function getAllRoles(){
         return Role::all();
     }
-    public function role()
+    public function currentrole()
     {
         // Assuming a user has only one role at a time
         return $this->roles()->first();

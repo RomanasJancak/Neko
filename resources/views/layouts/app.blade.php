@@ -130,7 +130,7 @@
                                     @csrf
                                     <select id="role" name="role" class="form-control" >
                                         @foreach(auth()->user()->getAllRoles() as $role)
-                                            @if ($role->id === auth()->user()->role()->id)
+                                            @if ($role->id === auth()->user()->currentrole()->id)
                                             <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
                                             @else
                                             <option value="{{ $role->id }}">{{ $role->name }}</option>

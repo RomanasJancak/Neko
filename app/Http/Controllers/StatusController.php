@@ -8,6 +8,9 @@ use App\Http\Requests\UpdateStatusRequest;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+
 class StatusController extends Controller
 {
     /**
@@ -89,5 +92,24 @@ class StatusController extends Controller
         return response()->json([
             'message' => 'Status deleted successfully.'
         ]);
+    }
+    public function createBackup()
+    {
+        $clients = Status::all();        
+        $columns = Schema::getColumnListing('statuses'); 
+
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($clients as $client) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $client->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = resource_path('files/backups/Status/status.backup_'.$timestamp.'.csv');
+
+        file_put_contents($file_path, $csvData);
+        return redirect()->back()->with('succeses', 'Status backup created successfully.');
     }
 }
