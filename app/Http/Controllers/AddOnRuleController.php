@@ -82,7 +82,8 @@ class AddOnRuleController extends Controller
             ->where('end_date', '>=', $formattedDatetime)
             ->first();
     
-        return response()->json($rule);
+        //return response()->json($rule);
+        return response()->json($formattedDatetime);
     }
 
     /**
