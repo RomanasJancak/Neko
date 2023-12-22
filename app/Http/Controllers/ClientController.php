@@ -6,6 +6,8 @@ use App\Models\Client;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
+use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 
@@ -86,20 +88,39 @@ class ClientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateClientRequest $request, Client $client)
+    public function update(UpdateClientRequest $request)
     {
+        try {
+        $client = Client::find($request->clientid);
+        
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:clients,email,' . $client->id,
-            'vat' => 'required|string|max:255',
-            'regNumber' => 'nullable|string|max:255',
-            'address' => 'required|string',
-            'note' => 'nullable|string',
+            // 'email' => 'required|email|unique:clients,email,' . $client->id,
+            // 'vat' => 'required|string|max:255',
+            // 'regNumber' => 'nullable|string|max:255',
+            // 'address' => 'required|string',
+            // 'note' => 'nullable|string',
+
+            
+            'country' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'postal_code' => 'required|string|max:255',
+            'address_line' => 'required|string|max:255',
+
+            'pickup_country' => 'max:255',
+            'pickup_city' => 'max:255',
+            'pickup_postal_code' => 'max:255',
+            'pickup_adress_line' => 'max:255',
         ]);
 
         $client->update($validatedData);
 
-        return redirect()->route('client.show', $client)->with('success', 'Client updated successfully');
+        //return response()->json(['message' => $request->name]);
+        return response()->json(['message' => $client]);
+        } catch (\Exception $e) {
+        // Handle other types of exceptions as needed
+            return response()->json(['errors' => $e->errors()], 422);
+        }
     
     }
     public function delete(Client $client)
@@ -144,17 +165,28 @@ class ClientController extends Controller
             return response()->json([
                 'name'                  => $client->name,
                 'email'                 => $client->email,
-                'vat'                   => $client->vat,
-                'regNumber'             => $client->regNumber,
-                'address'               => $client->address,
-                'note'                  => $client->note,
-                'senderContacts'        => $client->senderContacts,
-                'receiverContacts'      => $client->receiverContacts,
-                'collection_details'    => $client->collection_details,
-                'dropoff_details'       => $client->dropoff_details,
+                'country'               => $client->country,
+                'city'                  => $client->city,
+                'postal_code'                  => $client->postal_code,
+                'address_line'                  => $client->address_line,
+                'pickup_country'                  => $client->pickup_country,
+                'pickup_city'                  => $client->pickup_city,
+                'pickup_postal_code'                  => $client->pickup_postal_code,
+                'pickup_adress_line'                  => $client->pickup_adress_line,
                 ]);
         }
 
         return response()->json(['error' => 'Client not found'], 404);
+    }
+    public function searchClients(Request $request)
+    {
+        $query = $request->input('query');
+
+        // Perform a search query to retrieve client data based on the user's input
+        $clients = Client::where('name', 'like', '%' . $query . '%')
+            ->select('id', 'name') // Add the fields you want to include
+            ->get();
+
+        return response()->json($clients);
     }
 }

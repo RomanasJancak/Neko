@@ -99,6 +99,7 @@
 
 @section('scripts')
 <script>
+    
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-btn').forEach(button => {
 

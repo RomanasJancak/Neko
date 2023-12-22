@@ -16,8 +16,9 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('eilesNumeris')->nullable();
             $table->unsignedBigInteger('courrier_id')->nullable();
-            $table->unsignedBigInteger('sender_id');
-            $table->unsignedBigInteger('receiver_id');            
+            $table->unsignedBigInteger('clientToBill_id')->nullable();
+            $table->unsignedBigInteger('sender_id')->nullable();
+            $table->unsignedBigInteger('receiver_id')->nullable();            
             $table->dateTime('pickup_time_begin');
             $table->dateTime('pickup_time_end');
             $table->dateTime('dropoff_time_begin');
@@ -36,6 +37,8 @@ return new class extends Migration
             $table->string('receiverContacts');
             $table->string('notes')->nullable();
             $table->unsignedBigInteger('price')->nullable();
+            $table->unsignedBigInteger('invoice_id')->nullable();
+            $table->foreign('clientToBill_id')->references('id')->on('clients');
             $table->foreign('sender_id')->references('id')->on('clients');
             $table->foreign('receiver_id')->references('id')->on('clients');
             $table->foreign('manager_id')->references('id')->on('users');

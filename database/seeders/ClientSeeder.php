@@ -16,13 +16,22 @@ class ClientSeeder extends Seeder
      */
     public function run(): void
     {
-        $filePath = resource_path('files\client.csv');
-        $fileContents = File::get($filePath);
+        // $filePath = resource_path('files\client.csv');
+        // $fileContents = File::get($filePath);
+        // $this->seed($filePath);
+        $folderPath = resource_path('files\backups\client');
+        $filePath = $this->getLatestBackup($folderPath);
         $this->seed($filePath);
-        Client::create([
-            'name' => '<<==One time client==>>',
-
-        ]);
+    }
+    private function getLatestBackup($directory){
+        $files = scandir($directory);
+        $files = array_diff($files, array('.', '..'));
+        $files = array_filter($files, function ($file) use ($directory) {
+            return is_file($directory . '/' . $file);
+        });
+        sort($files);
+        $filepath = $directory.'/'.end($files);
+        return $filepath;
     }
     private function seed($file):void
     {
@@ -41,12 +50,11 @@ class ClientSeeder extends Seeder
             // Process the CSV data
             $column_names = $reader->first();
             foreach ($records as $record) {
+                //dd($record);
                 // Each $record is an associative array representing a row in the CSV file
                 // You can access individual columns using array keys
                 // For example:
                 //dd($record);
-                $column1 = $record[0];
-                $column2 = $record[1];
                 //dd($column1);
                 // Process the data here...
             }

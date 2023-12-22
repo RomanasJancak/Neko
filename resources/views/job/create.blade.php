@@ -15,8 +15,12 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-auto">
-            <h1>Create Job</h1>
-            <button class="button button-primary work-button">AddOns</button>
+            <div class="row justify-content-md-center">
+                <div class="col-md-4">
+                    <h1>Job creation page</h1>
+                </div>
+            </div>
+            
             <form method="POST" action="{{ route('job.store') }}" class="row g-3">
                 @csrf
                 <div class="modal fade" id="workloadModal" tabindex="-1"  aria-hidden="true">
@@ -57,12 +61,20 @@
                         </select>
                     </div>
                     <div class="form-group col-md-2">
-                    <label for="status_id">Status</label>
-                    <select id="status_id" name="status_id" class="form-control">
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->id }}">{{ $status->name }}</option>
-                        @endforeach
-                    </select>
+                        <label for="status_id">Status</label>
+                        <select id="status_id" name="status_id" class="form-control">
+                            @foreach($statuses as $status)
+                                <option value="{{ $status->id }}">{{ $status->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="common_date">Date</label>
+                            <input type="date" id="common_date" name="common_date" class="form-control">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="common_date">Whom to bill</label>
+                        <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
                     </div>
                 </div>
                 <div class="row justify-content-md-center" id='sender-receiver-columns'>
@@ -71,7 +83,7 @@
                             <div class="col"><h2>Sender</h2></div>
                         </div>
                         <div class="row" id="sender-select">
-                            <div class="col-auto">
+                            <div class="col-auto d-none">
                                     <input type="text" id="client_search" class="form-control" placeholder="Search for a client">
                                     <select id="sender_id" name="sender_id" class="form-control"  size="3">
                                         @foreach($clients as $client)
@@ -83,15 +95,32 @@
                                         @endforeach
                                     </select>
                             </div>
+                            <div class="col">
+                                <label for="common_date">Pickup client search</label>
+                                <input type="text" id="pickupclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
+                            </div>
+                        </div>
+                        <div class="row justify-content-md-center" id="sender-pickup-name-select">
+                            <div class="col-md-12">
+                                <label for="pickup_time" class="mb-0">Name of sender</label>
+                                <input type="text" id="sender_namefield" name="sender_namefield" class="form-control">
+                            </div>
                         </div>                        
                         <div class="row" id="sender-pickup-time-select">
-                            <div class="col form-group">
-                                <label for="pickup_time_begin">Pickup time begin:</label>
-                                <input type="datetime-local" id="pickup_time_begin" name="pickup_time_begin" class="form-control">
+                            <div class="col-12 text-center mb-2">
+                                <label for="pickup_time" class="mb-0">Time window</label>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <input type="time" id="pickup_time_begin" name="pickup_time_begin" class="form-control">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <input type="time" id="pickup_time_end" name="pickup_time_end" class="form-control">
                             </div>
                             <div class="col form-group">
-                                <label for="pickup_time_end">Pickup time end:</label>
-                                <input type="datetime-local" id="pickup_time_end" name="pickup_time_end" class="form-control">
+                                <input type="datetime-local" id="pickup_time_begin_old" name="pickup_time_begin" class="form-control">                                
+                            </div>
+                            <div class="col form-group">
+                                <input type="datetime-local" id="pickup_time_end_old" name="pickup_time_end" class="form-control">
                             </div>
                         </div>
                         <div class="row" id="sender-pickup-address-postalcode-select">
@@ -249,6 +278,7 @@
                         @endforeach
                     </select>
                 </div>
+                <button class="btn btn-secondary work-button">AddOns</button>
                 <button type="submit" class="btn btn-primary">Create Job</button>
             </form>
         </div>
@@ -260,9 +290,9 @@
 @endsection
 @section('scripts')
 <script>
-    const pickupTimeBegin = document.getElementById('pickup_time_begin');
+    const commonDate = document.getElementById('common_date');
     const finalpriceElement = document.getElementById('finalprice');
-    pickupTimeBegin.addEventListener('change', function() {
+    commonDate.addEventListener('change', function() {
         var baseprice = document.getElementById('baseprice');
         var rule_2_name = document.getElementById('rule_2_name');var rule_2_value = document.getElementById('rule_2_value');
         var rule_3_name = document.getElementById('rule_3_name');var rule_3_value = document.getElementById('rule_3_value');
@@ -277,7 +307,7 @@
         var rule_12_name = document.getElementById('rule_12_name');var rule_12_value = document.getElementById('rule_12_value');
         var rule_13_name = document.getElementById('rule_13_name');var rule_13_value = document.getElementById('rule_13_value');
         var rule_14_name = document.getElementById('rule_14_name');var rule_14_value = document.getElementById('rule_14_value');
-        getAddOnRule(pickupTimeBegin.value)
+        getAddOnRule(commonDate.value)
         .then(data => {
             baseprice.textContent  =data.baseprice;
             rule_2_name.textContent = data.rule_2_name+": "+data.rule_2_value+"£";
@@ -338,7 +368,7 @@
             button.addEventListener('click', () => {
                 var pickupTimeBegin = document.getElementById('pickup_time_begin');
                 var pickupTimeEnd = document.getElementById('pickup_time_end');
-                if ((pickupTimeBegin.value !== '')&&(pickupTimeBegin.value !== '')) {
+                if ((pickupTimeBegin.value !== '')&&(pickupTimeEnd.value !== '')) {
                     document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
                     $('#workloadModal').modal('show');
                 } else {
@@ -383,7 +413,54 @@ function getDistance(origin,destination){
     const collection_detailsInput   = document.getElementById('collection_details');
     const deliveryAddressInput      = document.getElementById('delivery_address');
     const dropoff_detailsInput      = document.getElementById('dropoff_details');
-    document.addEventListener('DOMContentLoaded', function() {
+
+
+document.addEventListener('DOMContentLoaded', function() {
+            // Define the data source (your $clients variable)
+            var billingClientSearchInput = $('#billingclientsearch');
+            var  pickupClientSearchInput =  $('#pickupclientsearch');
+            // Get the search input element
+            if (billingClientSearchInput.length > 0) {
+                billingClientSearchInput.typeahead({
+                    source: function(query, process) {
+                        var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+                        // Perform a fetch request to get client data from a remote source
+                        fetch(apiUrl)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Process the fetched data and pass it to the typeahead
+                                process(data);
+                            })
+                            .catch(error => {
+                                console.error('Error fetching client data:', error);
+                            });
+                    },
+                    autoSelect: true,
+                    minLength: 2, // Minimum characters required before searching
+                    displayText: function(item) {
+                        return item.name; // Adjust this based on your client data structure
+                    },
+                    afterSelect: function(item) {
+                        // Handle the selection here (e.g., redirect to client details page)
+                        fetch(`/get-client-info/${item.id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data) {
+                                console.log(data.name);
+                                populateFields('sender',data);    
+                            }
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+                    }
+                });
+            }
+        function populateFields(clientType,data){
+            nameField = document.getElementById(clientType+'_namefield');
+            nameField.value =data.name;
+            //sender_namefield
+        }
         document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
             // This code will run when the page is fully loaded
             // You can set the default pickup address here
@@ -397,7 +474,8 @@ function getDistance(origin,destination){
                     .then(response => response.json())
                     .then(data => {
                         if (data) {
-                            pickupAddressInput.value = data.address;
+                            //console.log(data);
+                            //pickupAddressInput.value = data.address;
                             senderContactsInput.value = data.senderContacts;
                             collection_detailsInput.value = data.collection_details;
                         }
@@ -412,7 +490,7 @@ function getDistance(origin,destination){
                     .then(response => response.json())
                     .then(data => {
                         if (data) {
-                            deliveryAddressInput.value = data.address;
+                            //deliveryAddressInput.value = data.address;
                             receiverContactsInput.value = data.receiverContacts;
                             dropoff_detailsInput.value  = data.dropoff_details;
                         }
