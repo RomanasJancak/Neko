@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class PackageType extends Model
 {
     use HasFactory;
+
+    public function clients()
+    {
+        return $this->belongsToMany(Client::class, 'client__package_types')->withPivot('price');
+    }
+    public function packages(){
+        
+        return $this->hasMany(Package::class);
+    }
 }

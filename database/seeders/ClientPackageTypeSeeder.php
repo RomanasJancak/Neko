@@ -5,16 +5,13 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-
-use App\Models\Status;
-
+use App\Models\Client_PackageType;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use League\Csv\Reader;
 
-
-class StatusSeeder extends Seeder
+class ClientPackageTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -22,7 +19,7 @@ class StatusSeeder extends Seeder
     public function run(): void
     {
 
-        $folderPath = resource_path('files\backups\status');
+        $folderPath = resource_path('files\backups\ClientPackageType');
         $filePath = $this->getLatestBackup($folderPath);
         $this->seed($filePath);
     }
@@ -62,7 +59,7 @@ class StatusSeeder extends Seeder
                 //dd($column1);
                 // Process the data here...
             }
-            $tableName = with(new Status)->getTable();
+            $tableName = with(new Client_PackageType)->getTable();
             // Optionally, you can convert the records to an array for further manipulation
             $parsedData = iterator_to_array($records);
             for($i=1;$i < count($parsedData);$i++){
@@ -75,7 +72,7 @@ class StatusSeeder extends Seeder
                     }
                     
                 }
-                Status::create($array);
+                Client_PackageType::create($array);
                 
             }
             // Return or do something with the parsed data
@@ -86,3 +83,34 @@ class StatusSeeder extends Seeder
         //return response()->json(['error' => 'No valid file uploaded.'], 400);
     }
 }
+
+
+
+
+// {
+//     /**
+//      * Run the database seeds.
+//      */
+//     public function run(): void
+//     {
+//         $packageTypes = [
+//             ['client_id' => 1,'package_type_id' => 2,'price' => 111],
+//             ['client_id' => 1,'package_type_id' => 4,'price' => 222],
+//             ['client_id' => 1,'package_type_id' => 6,'price' => 333],
+//             ['client_id' => 1,'package_type_id' => 8,'price' => 444],
+//             ['client_id' => 1,'package_type_id' => 10,'price' => 555],
+//             ['client_id' => 2,'package_type_id' => 1,'price' => 666],
+//             ['client_id' => 2,'package_type_id' => 3,'price' => 777],
+//             ['client_id' => 2,'package_type_id' => 5,'price' => 888],
+//             ['client_id' => 2,'package_type_id' => 7,'price' => 999],
+//             ['client_id' => 2,'package_type_id' => 9,'price' => 1010],
+//         ];
+//         foreach($packageTypes as $packageType){
+//             Client_PackageType::create([
+//                 'client_id'=> $packageType['client_id'],
+//                 'package_type_id' => $packageType['package_type_id'],
+//                 'price' => $packageType['price'],
+//             ]);
+//         }
+//     }
+// }

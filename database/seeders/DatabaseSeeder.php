@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             StatusSeeder::class,
             DaySeeder::class,
             PostalCodeSeeder::class,
+            PackageTypeSeeder::class,
+            ClientPackageTypeSeeder::class,
             JobSeeder::class,
             BikeSeeder::class,
             WorkloadSeeder::class,

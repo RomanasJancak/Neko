@@ -16,10 +16,7 @@ class ClientSeeder extends Seeder
      */
     public function run(): void
     {
-        // $filePath = resource_path('files\client.csv');
-        // $fileContents = File::get($filePath);
-        // $this->seed($filePath);
-        $folderPath = resource_path('files\backups\client');
+        $folderPath = resource_path('files\backups\Client');
         $filePath = $this->getLatestBackup($folderPath);
         $this->seed($filePath);
     }

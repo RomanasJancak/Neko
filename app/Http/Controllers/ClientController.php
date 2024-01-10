@@ -163,6 +163,7 @@ class ClientController extends Controller
 
         if ($client) {
             return response()->json([
+                'id'                    => $client->id,
                 'name'                  => $client->name,
                 'email'                 => $client->email,
                 'country'               => $client->country,

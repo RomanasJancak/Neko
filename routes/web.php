@@ -10,6 +10,7 @@ use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\AddOnRuleController;
 use App\Http\Controllers\BikeController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\PackageTypeController;
 
 
 /*
@@ -150,4 +151,12 @@ Route::group(['prefix'  => 'statuses'],function(){
     Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware('auth');
     Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware('auth');
     Route::post('createBackup',     [StatusController::class, 'createBackup'])->name('status.createBackup')->middleware('auth');
+});
+Route::group(['prefix'  => 'packageTypes'],function(){
+    Route::get('',                  [PackageTypeController::class, 'index'])->name('packageType.index')->middleware('auth');
+    Route::post('update',           [PackageTypeController::class, 'update'])->name('packageType.update')->middleware('auth');
+    Route::post('delete',           [PackageTypeController::class, 'destroy'])->name('packageType.delete')->middleware('auth');
+    Route::post('store',            [PackageTypeController::class, 'store'])->name('packageType.store')->middleware('auth');
+    Route::post('createBackup',     [PackageTypeController::class, 'createBackup'])->name('packageType.createBackup')->middleware('auth');
+    Route::get('getPackageTypeInfo/{id}',     [PackageTypeController::class, 'getPackageTypeInfo'])->name('packageType.getPackageTypeInfo')->middleware('auth');
 });

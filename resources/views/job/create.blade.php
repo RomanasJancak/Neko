@@ -19,8 +19,7 @@
                 <div class="col-md-4">
                     <h1>Job creation page</h1>
                 </div>
-            </div>
-            
+            </div>            
             <form method="POST" action="{{ route('job.store') }}" class="row g-3">
                 @csrf
                 <div class="modal fade" id="workloadModal" tabindex="-1"  aria-hidden="true">
@@ -55,9 +54,11 @@
                     <div class="form-group col-md-2">
                         <label for="courrier_id">Courier</label>
                         <select id="courrier_id" name="courrier_id" class="form-control" >
+                            
                             @foreach($couriers as $courier)
                                 <option value="{{ $courier->id }}">{{ $courier->name }}</option>
                             @endforeach
+                            <option value="0" selected>none</option>    
                         </select>
                     </div>
                     <div class="form-group col-md-2">
@@ -73,7 +74,7 @@
                             <input type="date" id="common_date" name="common_date" class="form-control">
                     </div>
                     <div class="form-group col-md-2">
-                        <label for="common_date">Whom to bill</label>
+                        <label for="billingclientId">Whom to bill</label>
                         <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
                     </div>
                 </div>
@@ -418,7 +419,7 @@ function getDistance(origin,destination){
 document.addEventListener('DOMContentLoaded', function() {
             // Define the data source (your $clients variable)
             var billingClientSearchInput = $('#billingclientsearch');
-            var  pickupClientSearchInput =  $('#pickupclientsearch');
+            var pickupClientSearchInput =  $('#pickupclientsearch');
             // Get the search input element
             if (billingClientSearchInput.length > 0) {
                 billingClientSearchInput.typeahead({

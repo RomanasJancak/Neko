@@ -5,7 +5,8 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Statuses</h1><button class="btn btn-secondary create-btn" >Add new Status</i></button>        <form method="POST" action="{{ route('status.createBackup') }}">
+            <h1>Statuses</h1><button class="btn btn-secondary create-btn" >Add new Status</i></button>        
+            <form method="POST" action="{{ route('status.createBackup') }}">
             @csrf
             <button type="submit" class="btn btn-primary">Create Backup</button>
         </form>

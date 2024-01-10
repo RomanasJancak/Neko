@@ -11,16 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('packages', function (Blueprint $table) {
+        Schema::create('client__package_types', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->unsignedBigInteger('job_id'); 
-            $table->unsignedBigInteger('packageType_id'); 
-            $table->string('weight');
-            $table->string('dimensions');
-            $table->string('size');
-            $table->string('quantity');
-            $table->string('fragility');
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('package_type_id');
+            $table->unsignedBigInteger('price');
         });
     }
 
@@ -29,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('packages');
+        Schema::dropIfExists('client__package_types');
     }
 };

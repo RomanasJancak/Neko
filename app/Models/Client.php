@@ -29,6 +29,13 @@ class Client extends Model
                             'pickup_country',
                             'email',
                             'vat','regNumber','address','note'];
+    public function packageTypes()
+    {
+        return $this->belongsToMany(PackageType::class,'client__package_types'); 
+    }
+    public function jobs(){
+        return $this->hasmany(Job::class,'clientToBill_id');
+    }
 }
        
 // $table->string('dropoff_adress_line')->nullable();//CSV
