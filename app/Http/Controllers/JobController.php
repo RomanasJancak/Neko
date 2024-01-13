@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Status;
 use App\Models\PostalCode;
+use App\Models\PackageType;
 
 use Illuminate\Validation\Rule;
 

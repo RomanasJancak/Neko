@@ -78,6 +78,89 @@
                         <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
                     </div>
                 </div>
+                <div class="row">
+                    <div class="row justify-content-md-center">
+                        <div class="col-auto">
+                            <div class="row justify-content-md-center">
+                                <div class="col"><h2>Pickup</h2></div>
+                            </div>
+                            <div class="col-auto">
+                                <label for="total-price"><h6>Total price : </h6></label>
+                                <span id="total-price"></span><span>&#163;</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center">
+                        <div class="col-auto">
+                            <div class="row justify-content-md-center">
+                                <div class="col-auto">
+                                    <label for="pickup_name_search">Name of the pickup adress</label>
+                                    <input type="text" id="pickup_name_search" name="pickupclientname"class="form-control" placeholder="Pickup name">
+                                </div>
+                                <div class="col-auto">
+                                    <label for="pickupadress_adressline">Address line</label>
+                                    <input type="text" class="form-control" name="pickupclientaddressline" id="pickupaddress_addressline" placeholder="Pickup address line">
+                                </div>
+                                <div class="col-auto">
+                                    <label for="pickupadress_postalcode">Postal code</label>
+                                    <input type="text" class="form-control" name="pickupclientpostalcode" id="pickupaddress_postalcode" placeholder="Pickup postal code">
+                                    <input hidden type="text"   name="pickupclientcity" id="pickupaddress_city" class="form-control" placeholder="City">
+                                    <input hidden type="text"   name="pickupclientcountry" id="pickupaddress_country" class="form-control" placeholder="Country">
+                                </div>
+                                <div class="col-auto">
+                                    <label for="total-distance">Total distance</label>
+                                    <div id="total-distance"></div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 text-center mb-2">
+                                    <label for="pickup_time" class="mb-0">Time window</label>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <input type="time" id="pickup_time_begin" name="pickup_time_begin" class="form-control">
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <input type="time" id="pickup_time_end" name="pickup_time_end" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-md-center">
+                            <div class="col-auto">
+                                <h4>Packages</h4>
+                            </div>
+                        </div>
+                <div class="row justify-content-md-center" id="area-packages">
+                        <div class="row justify-content-md-center" id="package-0">
+                            <div class="col-auto">
+                                <label for="packagetype">Package</label>
+                                <select class="select-ClientPackageType form-select" id="packagetypeselect-0" name="packageType[]" class="form-control">
+                                </select>
+                                <input type="number" id="packageQuantity[]" class="form-control" placeholder="Quantity">
+                            </div>
+                            <div class="col-auto">
+                                <label for="packagequantiny">Drop off</label>
+                                <div class="row">
+                                    <input type="text"          name="packagedropoffname[]" id="package_name_search-0" class="form-control" placeholder="Name">
+                                    <input type="text"          name="packagedropooffaddressline[]" id="package_addressline-0" class="form-control" placeholder="Addressline">
+                                    <input type="text"          name="packagedropoffpostalcode[]" id="package_postalcode-0" class="form-control" placeholder="Postal Code">
+                                    <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City">
+                                    <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country">
+                                    <label for="package_distance-0">Distance : <span id="package_distance-0">0</span> meters</label>
+                                    
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <label for="packagequantiny">Add Ons</label>
+                            </div>
+                        </div>
+                        <div class="row" id='addPackageRow'>
+                            <div class="col">
+                                <button class="btn btn-secondary" id='addPackageButton'>Add package</button>
+                            </div>
+                        </div>
+                </div>
                 <div class="row justify-content-md-center" id='sender-receiver-columns'>
                     <div class="col-auto" id="column-for-sender">
                         <div class="row justify-content-md-center">
@@ -108,15 +191,7 @@
                             </div>
                         </div>                        
                         <div class="row" id="sender-pickup-time-select">
-                            <div class="col-12 text-center mb-2">
-                                <label for="pickup_time" class="mb-0">Time window</label>
-                            </div>
-                            <div class="col-md-6 form-group">
-                                <input type="time" id="pickup_time_begin" name="pickup_time_begin" class="form-control">
-                            </div>
-                            <div class="col-md-6 form-group">
-                                <input type="time" id="pickup_time_end" name="pickup_time_end" class="form-control">
-                            </div>
+
                             <div class="col form-group">
                                 <input type="datetime-local" id="pickup_time_begin_old" name="pickup_time_begin" class="form-control">                                
                             </div>
@@ -291,8 +366,25 @@
 @endsection
 @section('scripts')
 <script>
+    let totalPriceOfTheJob = 0;
+    let totalDistanceOfTheJob = 0;
+    const totalPriceOfTheJobElement =  document.getElementById('total-price');
+    const totalDistanceOfTheJobElement =  document.getElementById('total-distance');
+    //let arrayOfSelectedOptionsForPackageTypeSelect = [];
     const commonDate = document.getElementById('common_date');
     const finalpriceElement = document.getElementById('finalprice');
+
+    const senderSelect = document.getElementById('sender_id');
+    const receiverSelect = document.getElementById('receiver_id');
+
+    const senderContactsInput       = document.getElementById('senderContacts');
+    const receiverContactsInput       = document.getElementById('receiverContacts');
+
+    const pickupAddressInput        = document.getElementById('pickup_address');
+    const collection_detailsInput   = document.getElementById('collection_details');
+    const deliveryAddressInput      = document.getElementById('delivery_address');
+    const dropoff_detailsInput      = document.getElementById('dropoff_details');
+
     commonDate.addEventListener('change', function() {
         var baseprice = document.getElementById('baseprice');
         var rule_2_name = document.getElementById('rule_2_name');var rule_2_value = document.getElementById('rule_2_value');
@@ -404,65 +496,293 @@ function getDistance(origin,destination){
 }
     //===============================CONNECT TO ADDONRULES BASED ON SELECTED DATE
     //
-    const senderSelect = document.getElementById('sender_id');
-    const receiverSelect = document.getElementById('receiver_id');
-
-    const senderContactsInput       = document.getElementById('senderContacts');
-    const receiverContactsInput       = document.getElementById('receiverContacts');
-
-    const pickupAddressInput        = document.getElementById('pickup_address');
-    const collection_detailsInput   = document.getElementById('collection_details');
-    const deliveryAddressInput      = document.getElementById('delivery_address');
-    const dropoff_detailsInput      = document.getElementById('dropoff_details');
-
+    
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
+//============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
-            // Define the data source (your $clients variable)
-            var billingClientSearchInput = $('#billingclientsearch');
-            var pickupClientSearchInput =  $('#pickupclientsearch');
-            // Get the search input element
-            if (billingClientSearchInput.length > 0) {
-                billingClientSearchInput.typeahead({
-                    source: function(query, process) {
-                        var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
-                        // Perform a fetch request to get client data from a remote source
-                        fetch(apiUrl)
-                            .then(response => response.json())
-                            .then(data => {
-                                // Process the fetched data and pass it to the typeahead
-                                process(data);
-                            })
-                            .catch(error => {
-                                console.error('Error fetching client data:', error);
-                            });
-                    },
-                    autoSelect: true,
-                    minLength: 2, // Minimum characters required before searching
-                    displayText: function(item) {
-                        return item.name; // Adjust this based on your client data structure
-                    },
-                    afterSelect: function(item) {
-                        // Handle the selection here (e.g., redirect to client details page)
-                        fetch(`/get-client-info/${item.id}`)
+    var firstPackageClientSearchId = 'package_name_search-0';
+    const enviroment_country = 'Lietuva';
+    const enviroment_city = 'Vilnius';
+    var highestPackageId = 0;
+    //========================================================
+    const addPackageButtonElement = document.getElementById('addPackageButton');
+    addPackageButtonElement.addEventListener('click', function(event) {
+        event.preventDefault();
+        highestPackageId++;
+        //=========================================================
+        var packageCount = document.querySelectorAll('[id^="package-"]').length;
+        var packageElement = document.getElementById('package-0').cloneNode(true);
+        packageElement.id = 'package-' + packageCount;
+        packageElement.querySelector('[id^="package_name_search"]').id = 'package_name_search-' + packageCount;
+        packageElement.querySelector('[id^="packagetypeselect"]').id = 'packagetypeselect-' + packageCount;
+        packageElement.querySelector('[id^="package_addressline"]').id = 'package_addressline-' + packageCount;
+        packageElement.querySelector('[id^="package_postalcode"]').id = 'package_postalcode-' + packageCount;
+        packageElement.querySelector('[id^="package_city"]').id = 'package_city-' + packageCount;
+        packageElement.querySelector('[id^="package_country"]').id = 'package_country-' + packageCount;
+        packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
+        
+        //=========================================================
+
+        var addPackageRowDiv = document.getElementById('addPackageRow');
+        addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
+        addSearchability(packageElement.querySelector('[id^="package_name_search"]').id);
+    });
+    //============================================================
+    addSearchability('package_name_search-0');
+
+    var clientsPacakgeTypes;
+    var billingClientSearchInput = $('#billingclientsearch');
+    var pickupClientSearchInput =  $('#pickup_name_search');
+    if (billingClientSearchInput.length > 0) {
+        billingClientSearchInput.typeahead({
+            source: function(query, process) {
+                var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+                // Perform a fetch request to get client data from a remote source
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Process the fetched data and pass it to the typeahead
+                        process(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching client data:', error);
+                    });
+            },
+            autoSelect: true,
+            minLength: 2, // Minimum characters required before searching
+            displayText: function(item) {
+                return item.name; // Adjust this based on your client data structure
+            },
+            afterSelect: function(item) {
+                // Handle the selection here (e.g., redirect to client details page)
+                fetch(`/get-client-info/${item.id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        //console.log(data.packageTypes);
+                        clientsPacakgeTypes = data.packageTypes;
+                        //console.log(clientsPacakgeTypes);
+                        populateFields('sender',data,clientsPacakgeTypes,true);    
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            }
+        });
+    }
+    if (pickupClientSearchInput.length > 0) {
+        pickupClientSearchInput.typeahead({
+            source: function(query, process) {
+                var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+                // Perform a fetch request to get client data from a remote source
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Process the fetched data and pass it to the typeahead
+                        process(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching client data:', error);
+                    });
+            },
+            autoSelect: true,
+            minLength: 2, // Minimum characters required before searching
+            displayText: function(item) {
+                return item.name; // Adjust this based on your client data structure
+            },
+            afterSelect: function(item) {
+                // Handle the selection here (e.g., redirect to client details page)
+                fetch(`/get-client-info/${item.id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        //console.log(data.packageTypes);
+                        clientsPacakgeTypes = data.packageTypes;
+                        populateFields('sender',data,clientsPacakgeTypes,false);    
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            }
+        });
+    }
+    function addSearchability(searchElementId) {
+        var searchInput = $('#' + searchElementId);
+        var splitId = searchElementId.split('-');
+        var number = splitId[splitId.length - 1];
+        var package_Element_Addressline = document.getElementById('package_addressline-'+number);
+        var package_postalcode = document.getElementById('package_postalcode-'+number);
+        var package_city = document.getElementById('package_city-'+number);
+        var package_country = document.getElementById('package_country-'+number);
+        var package_distance = document.getElementById('package_distance-'+number);
+        var address_origin;
+        var address_destiny;
+        if (searchInput.length > 0) {
+            searchInput.typeahead({
+                source: function(query, process) {
+                    var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+                    fetch(apiUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            process(data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching client data:', error);
+                        });
+                },
+                autoSelect: true,
+                minLength: 2, // Minimum characters required before searching
+                displayText: function(item) {
+                    return item.name; // Adjust based on your data structure
+                },
+                afterSelect: function(item) {
+                    fetch(`/get-client-info/${item.id}`)
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
-                                console.log(data.name);
-                                populateFields('sender',data);    
+                                package_Element_Addressline.value = data.pickup_adress_line;
+                                package_postalcode.value = data.pickup_postal_code;
+                                package_city.value = data.pickup_city;
+                                package_country.value = data.pickup_country;
+                                address_destiny = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
+                                updateOriginAddress();
+
+                                updatePackageDistance(package_distance,address_origin,address_destiny);
+                                //console.log(package_distance.innerHTML);
+                                //totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
+                                //totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
+                                package_Element_Addressline.addEventListener('change', function(event) {
+                                    if(parseInt(totalDistanceOfTheJob) != 0){
+                                        //console.log('totalDistanceOfTheJob not equal to 0 is equal to ',totalDistanceOfTheJob);
+                                        totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob) - parseInt(package_distance.innerHTML);
+                                    } 
+                                    updateOriginAddress();
+                                    updateDestinationAddress();
+                                    //console.log('totalDistanceOfTheJob before change is equal to : ',totalDistanceOfTheJob);
+                                    
+                                    totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
+                                    //package_distance                                           
+                                    updatePackageDistance(package_distance,address_origin,address_destiny);
+                                    //console.log('package_distance after update is ',package_distance.innerHTML);
+                                    
+                                    //console.log('Package :'+number+'change event activated');
+                                });
+                                package_postalcode.addEventListener('change', function(event) { 
+                                    updateOriginAddress();
+                                    updateDestinationAddress();
+                                    if(parseInt(totalDistanceOfTheJob) != 0){
+                                        totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob) - parseInt(package_distance.innerHTML);
+                                    }
+                                    totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;                                           
+                                    updatePackageDistance(package_distance,address_origin,address_destiny);
+                                    //totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
+                                    console.log('Package :'+number+'change event activated');
+                                });
                             }
                         })
                         .catch(error => {
                             console.error(error);
                         });
-                    }
-                });
+                }
+            });
+        }
+        function updateOriginAddress(){
+            if(number == 0 ){
+                address_origin = document.getElementById('pickupaddress_addressline').value+' '+
+                document.getElementById('pickupaddress_postalcode').value+' '+
+                document.getElementById('pickupaddress_city').value+' '+
+                document.getElementById('pickupaddress_country').value;
+                }else{
+                address_origin = document.getElementById('package_addressline-'+parseInt(number-1)).value+' '+
+                document.getElementById('package_postalcode-'+parseInt(number-1)).value+' '+
+                document.getElementById('package_city-'+parseInt(number-1)).value+' '+
+                document.getElementById('package_country-'+parseInt(number-1)).value;
+                }
+        }
+        function updateDestinationAddress(){
+            address_destiny = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
+        }
+        function updatePackageDistance(package_distance_innerVariable,address_origin,address_destiny){
+        console.log(address_origin);
+        var baseUrl = "{{ route('distance.getDistance') }}";
+        var fullUrl = `${baseUrl}?origin=${encodeURIComponent(address_origin)}&destination=${encodeURIComponent(address_destiny)}`;
+        fetch(fullUrl)
+            .then(response => response.json())
+            .then(data => {
+                //console.log('data is ',data);
+                package_distance_innerVariable.innerHTML = data;
+                totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
+                totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
+                //console.log('package_distance_innerVariable.innerHTML is ',package_distance_innerVariable.innerHTML);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+            //console.log(package_distance_innerVariable.innerHTML);
+    }
+    }
+       
+    function onPackageTypeChange(event) {
+        // You can access the selected value using event.target.value
+        //console.log('Selected package type:', event.target);
+        //console.log('Selected package price:',event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+        totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+        totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
+    } 
+    function populateFields(clientType,data,clientsPacakgeTypes,isItFromBillingInput){
+            if(isItFromBillingInput){
+                document.getElementById('pickup_name_search').value = data.name;
             }
-        function populateFields(clientType,data){
-            nameField = document.getElementById(clientType+'_namefield');
-            nameField.value =data.name;
-            //sender_namefield
+            totalPriceOfTheJobElement.textContent=0;
+            totalPriceOfTheJob=0;
+            document.getElementById('pickupaddress_addressline').value = data.pickup_adress_line;
+            document.getElementById('pickupaddress_postalcode').value = data.pickup_postal_code;
+            document.getElementById('pickupaddress_city').value = data.pickup_city;
+            document.getElementById('pickupaddress_country').value = data.pickup_country;
+            var selects = document.querySelectorAll('.select-ClientPackageType');
+            selects.forEach(function(select) {
+                while (select.options.length > 0) {
+                    select.remove(0);
+                }
+                clientsPacakgeTypes.forEach(function(pkg) {
+                    //console.log(pkg.price);
+                    var option = document.createElement('option');
+                        option.value = pkg.id;
+                        option.text = pkg.name;
+                        option.setAttribute('data-price', pkg.price);
+                        select.appendChild(option);
+                });
+                if (select.options.length > 0) {
+                    select.selectedIndex = 0;
+                    // parseInt(totalPriceOfTheJobElement.textContent)
+                    totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(select.options[select.selectedIndex].getAttribute('data-price'));
+                    totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
+                }
+                select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
+                
+                select.addEventListener('change', function(event) {
+                    totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
+                    onPackageTypeChange(event);
+                    select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+                });
+            });
         }
         document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
+
+
             // This code will run when the page is fully loaded
             // You can set the default pickup address here
             const senderSelectedOption = senderSelect.options[senderSelect.selectedIndex];

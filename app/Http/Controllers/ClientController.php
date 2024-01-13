@@ -174,6 +174,14 @@ class ClientController extends Controller
                 'pickup_city'                  => $client->pickup_city,
                 'pickup_postal_code'                  => $client->pickup_postal_code,
                 'pickup_adress_line'                  => $client->pickup_adress_line,
+                // 'packageTypes'          => $client->packageTypes->toArray(),
+                'packageTypes' => $client->packageTypes->map(function ($packageType) {
+                    return [
+                        'id' => $packageType->id,
+                        'name' => $packageType->name,
+                        'price' => $packageType->pivot->price, // Accessing the pivot data
+                    ];
+                }),
                 ]);
         }
 

@@ -39,13 +39,12 @@ class PackageTypeController extends Controller
     {
         $packageType = new PackageType();
         $packageType->name = $request->name;
-        $packageType->color_main =   $request->input('color-main');
-        $packageType->color_pickup =   $request->input('color-pickup');
-        $packageType->color_dropoff =   $request->input('color-dropoff');
+        
         $packageType->save();
+        $packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
         return response()->json([
-            'message' => 'Status created successfully.',
-            'status' => $status
+            'message' => 'Package type created successfully.',
+            'packageType' => $packageType
         ]);
     }
 

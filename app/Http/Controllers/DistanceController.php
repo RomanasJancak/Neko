@@ -6,6 +6,8 @@ use App\Models\Distance;
 use App\Http\Requests\StoreDistanceRequest;
 use App\Http\Requests\UpdateDistanceRequest;
 
+use Illuminate\Http\Request;
+
 class DistanceController extends Controller
 {
     /**
@@ -65,6 +67,6 @@ class DistanceController extends Controller
     }
     public function getDistance(Request $request)
     {
-        return response()->json(Distance::getDistance($request->$origin, $request->$destination, $mode = 'walking'));
+        return response()->json(Distance::getDistance($request->origin, $request->destination, $mode = 'walking'));
     }
 }

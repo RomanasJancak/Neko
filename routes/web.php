@@ -11,6 +11,7 @@ use App\Http\Controllers\AddOnRuleController;
 use App\Http\Controllers\BikeController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\PackageTypeController;
+use App\Http\Controllers\DistanceController;
 
 
 /*
@@ -137,7 +138,7 @@ Route::group(['prefix' => 'distances'], function(){
     //Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
     //Route::get('findAddOnRule',     [AddOnRuleController::class, 'findAddOnRule'])->name('addonrule.findAddOnRule')->middleware('auth');
     //Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
-    Route::get('getDistance', [ClientController::class, 'getDistance'])->name('client.getDistancewha')->middleware('auth'); 
+    Route::get('getDistance', [DistanceController::class, 'getDistance'])->name('distance.getDistance')->middleware('auth'); 
 });
 Route::group(['prefix'  =>  'bikes'],function(){
     Route::get('',                  [BikeController::class, 'index'])->name('bike.index')->middleware('auth');
