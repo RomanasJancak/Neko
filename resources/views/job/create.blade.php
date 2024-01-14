@@ -25,27 +25,9 @@
                 <div class="modal fade" id="workloadModal" tabindex="-1"  aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <!-- This part will be populated with detailed job information fetched via JavaScript -->
-                            <div class="modal-body" >
-                            <div class="row">
-                                <div class="form-group col-md-2">
-                                    <label for="baseprice">Base price</label>
-                                    <span id="baseprice" class="form-control">8</span>
-                                </div>
-                                <div class="form-group col-md-2">
-                                    <label for="baseprice">Final price</label>
-                                    <span id="finalprice" class="form-control">8</span>
-                                </div>
-                            </div>
-                                @for ($i = 2; $i <= 14; $i++)
-                                    <div class="form-group col-md">
-                                        <label for="rule_{{ $i }}_value" id="rule_{{ $i }}_name">Base price</label>
-                                        <input type="checkbox" id="rule_{{ $i }}_value" name="fields[]" value="rule_{{ $i }}_value">
-                                    </div>
-                                @endfor                     
+                            <div class="modal-body" >                    
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -74,7 +56,7 @@
                             <input type="date" id="common_date" name="common_date" class="form-control">
                     </div>
                     <div class="form-group col-md-2">
-                        <label for="billingclientId">Whom to bill</label>
+                        <label for="billingclientsearch">Whom to bill</label>
                         <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
                     </div>
                 </div>
@@ -85,8 +67,7 @@
                                 <div class="col"><h2>Pickup</h2></div>
                             </div>
                             <div class="col-auto">
-                                <label for="total-price"><h6>Total price : </h6></label>
-                                <span id="total-price"></span><span>&#163;</span>
+                                <h6>Total price : <span id="total-price"></span><span>&#163;</span></h6>                                
                             </div>
                         </div>
                     </div>
@@ -98,23 +79,22 @@
                                     <input type="text" id="pickup_name_search" name="pickupclientname"class="form-control" placeholder="Pickup name">
                                 </div>
                                 <div class="col-auto">
-                                    <label for="pickupadress_adressline">Address line</label>
+                                    <label for="pickupaddress_addressline">Address line</label>
                                     <input type="text" class="form-control" name="pickupclientaddressline" id="pickupaddress_addressline" placeholder="Pickup address line">
                                 </div>
                                 <div class="col-auto">
-                                    <label for="pickupadress_postalcode">Postal code</label>
+                                    <label for="pickupaddress_postalcode">Postal code</label>
                                     <input type="text" class="form-control" name="pickupclientpostalcode" id="pickupaddress_postalcode" placeholder="Pickup postal code">
                                     <input hidden type="text"   name="pickupclientcity" id="pickupaddress_city" class="form-control" placeholder="City">
                                     <input hidden type="text"   name="pickupclientcountry" id="pickupaddress_country" class="form-control" placeholder="Country">
                                 </div>
                                 <div class="col-auto">
-                                    <label for="total-distance">Total distance</label>
-                                    <div id="total-distance"></div>
+                                    <div><h6>Total distance :</h6><span id="total-distance"></span></div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12 text-center mb-2">
-                                    <label for="pickup_time" class="mb-0">Time window</label>
+                                    <h5 class="mb-0">Time window</h5>
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <input type="time" id="pickup_time_begin" name="pickup_time_begin" class="form-control">
@@ -134,25 +114,25 @@
                 <div class="row justify-content-md-center" id="area-packages">
                         <div class="row justify-content-md-center" id="package-0">
                             <div class="col-auto">
-                                <label for="packagetype">Package</label>
+                                <label id="labelpackagetypeselect-0" for="packagetypeselect-0">Package</label>
                                 <select class="select-ClientPackageType form-select" id="packagetypeselect-0" name="packageType[]" class="form-control">
                                 </select>
-                                <input type="number" id="packageQuantity[]" class="form-control" placeholder="Quantity">
+                                <input type="number" id="packageQuantity-0" class="form-control" placeholder="Quantity">
                             </div>
                             <div class="col-auto">
-                                <label for="packagequantiny">Drop off</label>
+                                <span>Drop off</span>
                                 <div class="row">
                                     <input type="text"          name="packagedropoffname[]" id="package_name_search-0" class="form-control" placeholder="Name">
                                     <input type="text"          name="packagedropooffaddressline[]" id="package_addressline-0" class="form-control" placeholder="Addressline">
                                     <input type="text"          name="packagedropoffpostalcode[]" id="package_postalcode-0" class="form-control" placeholder="Postal Code">
                                     <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City">
                                     <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country">
-                                    <label for="package_distance-0">Distance : <span id="package_distance-0">0</span> meters</label>
-                                    
+                                    <div>Distance : <span id="package_distance-0">0</span> meters</div>
+                                    <div>Price : <span id="package_price-0">0</span><span>&#163;</span></div>                         
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <label for="packagequantiny">Add Ons</label>
+                                <div><h6>Add Ons</h6></div>
                             </div>
                         </div>
                         <div class="row" id='addPackageRow'>
@@ -160,177 +140,6 @@
                                 <button class="btn btn-secondary" id='addPackageButton'>Add package</button>
                             </div>
                         </div>
-                </div>
-                <div class="row justify-content-md-center" id='sender-receiver-columns'>
-                    <div class="col-auto" id="column-for-sender">
-                        <div class="row justify-content-md-center">
-                            <div class="col"><h2>Sender</h2></div>
-                        </div>
-                        <div class="row" id="sender-select">
-                            <div class="col-auto d-none">
-                                    <input type="text" id="client_search" class="form-control" placeholder="Search for a client">
-                                    <select id="sender_id" name="sender_id" class="form-control"  size="3">
-                                        @foreach($clients as $client)
-                                            @if ($loop->first)
-                                                <option value="{{ $client->id }}" selected>{{ $client->name }}</option>
-                                            @else
-                                                <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                            @endif  
-                                        @endforeach
-                                    </select>
-                            </div>
-                            <div class="col">
-                                <label for="common_date">Pickup client search</label>
-                                <input type="text" id="pickupclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
-                            </div>
-                        </div>
-                        <div class="row justify-content-md-center" id="sender-pickup-name-select">
-                            <div class="col-md-12">
-                                <label for="pickup_time" class="mb-0">Name of sender</label>
-                                <input type="text" id="sender_namefield" name="sender_namefield" class="form-control">
-                            </div>
-                        </div>                        
-                        <div class="row" id="sender-pickup-time-select">
-
-                            <div class="col form-group">
-                                <input type="datetime-local" id="pickup_time_begin_old" name="pickup_time_begin" class="form-control">                                
-                            </div>
-                            <div class="col form-group">
-                                <input type="datetime-local" id="pickup_time_end_old" name="pickup_time_end" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="sender-pickup-address-postalcode-select">
-                            <div class="col form-group">
-                                <label for="pickup_adress_postalCode_id">Outer postal code</label>
-                                    @can('job-create-chooseAnyPostalCode')
-                                        <input type="text" id="pickup_adress_postalCode_id" name="pickup_adress_postalCode_id" class="form-control">
-                                        
-                                    @else
-                                        <select id="pickup_adress_postalCode_id" name="pickup_adress_postalCode_id" class="form-control"  size="3">
-                                        @foreach($postalCodes as $postalCode)
-                                            @if ($loop->first)
-                                                <option value="{{ $postalCode->id }}" selected>{{ $postalCode->name }}</option>
-                                            @else
-                                                <option value="{{ $postalCode->id }}">{{ $postalCode->name }}</option>
-                                            @endif
-                                        @endforeach
-                                        </select>
-                                    @endcan                                    
-                            </div>
-                            <div class="col form-group">
-                                <label for="pickup_inner_postalCode">Inner Postal Code</label>
-                                <input type="text" id="pickup_inner_postalCode" name="pickup_inner_postalCode" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="sender-pickup-address-streetaptsuite-select">
-                            <div class="col form-group">
-                                <label for="shipping_street">Street</label>
-                                <input type="text" id="shipping_street" name="shipping_street" class="form-control">
-                            </div>
-                            <div class="col form-group">
-                                <label for="shipping_apt_suite">Apt/Suite</label>
-                                <input type="text" id="shipping_apt_suite" name="shipping_apt_suite" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="sender-pickup-address-collectiondetails-select">
-                            <div class="col form-group">
-                                <label for="collection_details">Collection Details</label>
-                                <textarea id="collection_details" name="collection_details" class="form-control" placeholder="Information about delivery to courier" ></textarea>
-                            </div>
-                        </div>
-                        <div class="row" id="sender-pickup-address-sendercontact-select">
-                            <div class="col form-group">
-                                <label for="senderContacts">Sender Contacts</label>
-                                <input type="text" id="senderContacts" name="senderContacts" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="note-about-dropoff">
-                            <div class="col form-group">
-                                <label for="noteaboutdropoff">Note about pickup</label>
-                                <input type="text" id="noteaboutdropoff" name="noteaboutdropoff" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-auto" id="column-for-receiver">
-                        <div class="row justify-content-md-center">
-                            <div class="col"><h2>Receiver</h2></div>
-                        </div>
-                        <div class="row" id="receiver-select">
-                            <div class="col">
-                                    <input type="text" id="receiver_search" class="form-control" placeholder="Search for a client">
-                                    <select id="receiver_id" name="receiver_id" class="form-control"  size="3">
-                                        @foreach($clients as $client)
-                                            @if ($loop->first)
-                                                <option value="{{ $client->id }}" selected>{{ $client->name }}</option>
-                                            @else
-                                                <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                            @endif  
-                                        @endforeach
-                                    </select>
-                            </div>
-                        </div>
-                        <div class="row" id="receiver-dropoff-time-select">
-                            <div class="form-group col">
-                                <label for="dropoff_time_begin">Drop off begin:</label>
-                                <input type="datetime-local" id="dropoff_time_begin" name="dropoff_time_begin" class="form-control">
-                            </div>
-                            <div class="form-group col">
-                                <label for="dropoff_time_end">Drop off end:</label>
-                                <input type="datetime-local" id="dropoff_time_end" name="dropoff_time_end" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="receiver-dropoff-address-postalcode-select">
-                            <div class="col form-group">
-                                <label for="dropoff_adress_postalCode_id">Outer postal code</label>
-                                    @can('job-create-chooseAnyPostalCode')
-                                        <input type="text" id="dropoff_adress_postalCode_id" name="dropoff_adress_postalCode_id" class="form-control">
-                                        
-                                    @else
-                                        <select id="dropoff_adress_postalCode_id" name="dropoff_adress_postalCode_id" class="form-control"  size="3">
-                                        @foreach($postalCodes as $postalCode)
-                                            @if ($loop->first)
-                                                <option value="{{ $postalCode->id }}" selected>{{ $postalCode->name }}</option>
-                                            @else
-                                                <option value="{{ $postalCode->id }}">{{ $postalCode->name }}</option>
-                                            @endif
-                                        @endforeach
-                                        </select>
-                                    @endcan                                    
-                            </div>
-                            <div class="col form-group">
-                                <label for="dropoff_inner_postalCode">Inner Postal Code</label>
-                                <input type="text" id="dropoff_inner_postalCode" name="dropoff_inner_postalCode" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="receiver-dropoff-address-streetaptsuite-select">
-                            <div class="col form-group">
-                                <label for="dropoff_street">Street</label>
-                                <input type="text" id="dropoff_street" name="dropoff_street" class="form-control">
-                            </div>
-                            <div class="col form-group">
-                                <label for="dropoff_apt_suite">Apt/Suite</label>
-                                <input type="text" id="dropoff_apt_suite" name="dropoff_apt_suite" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="receiver-dropoff-address-collectiondetails-select">
-                            <div class="col form-group">
-                                <label for="dropoff_details">Dropoff Details</label>
-                                <textarea id="dropoff_details" name="dropoff_details" class="form-control" placeholder="Information about delivery to courier" ></textarea>
-                            </div>
-                        </div>
-                        <div class="row" id="receiver-dropoff-address-sendercontact-select">
-                            <div class="col form-group">
-                                <label for="receiverContacts">Receiver Contacts</label>
-                                <input type="text" id="receiverContacts" name="receiverContacts" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row" id="note-about-pickup">
-                            <div class="col form-group">
-                                <label for="noteaboutpickup">Note about pickup</label>
-                                <input type="text" id="noteaboutpickup" name="noteaboutpickup" class="form-control">
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="row justify-content-md-center" id='general-notes-column'>
                     <div class="col form-group" id="general-notes">
@@ -361,107 +170,21 @@
     </div>
 </div>
 
-<!-- ????????????????????????????? -->
-
 @endsection
 @section('scripts')
 <script>
-    let totalPriceOfTheJob = 0;
-    let totalDistanceOfTheJob = 0;
-    const totalPriceOfTheJobElement =  document.getElementById('total-price');
-    const totalDistanceOfTheJobElement =  document.getElementById('total-distance');
+    //let totalPriceOfTheJob = 0;
+    //let totalDistanceOfTheJob = 0;
+    //const totalPriceOfTheJobElement =  document.getElementById('total-price');
+    //const totalDistanceOfTheJobElement =  document.getElementById('total-distance');
     //let arrayOfSelectedOptionsForPackageTypeSelect = [];
     const commonDate = document.getElementById('common_date');
-    const finalpriceElement = document.getElementById('finalprice');
-
-    const senderSelect = document.getElementById('sender_id');
-    const receiverSelect = document.getElementById('receiver_id');
-
-    const senderContactsInput       = document.getElementById('senderContacts');
-    const receiverContactsInput       = document.getElementById('receiverContacts');
-
-    const pickupAddressInput        = document.getElementById('pickup_address');
-    const collection_detailsInput   = document.getElementById('collection_details');
-    const deliveryAddressInput      = document.getElementById('delivery_address');
-    const dropoff_detailsInput      = document.getElementById('dropoff_details');
-
-    commonDate.addEventListener('change', function() {
-        var baseprice = document.getElementById('baseprice');
-        var rule_2_name = document.getElementById('rule_2_name');var rule_2_value = document.getElementById('rule_2_value');
-        var rule_3_name = document.getElementById('rule_3_name');var rule_3_value = document.getElementById('rule_3_value');
-        var rule_4_name = document.getElementById('rule_4_name');var rule_4_value = document.getElementById('rule_4_value');
-        var rule_5_name = document.getElementById('rule_5_name');var rule_5_value = document.getElementById('rule_5_value');
-        var rule_6_name = document.getElementById('rule_6_name');var rule_6_value = document.getElementById('rule_6_value');
-        var rule_7_name = document.getElementById('rule_7_name');var rule_7_value = document.getElementById('rule_7_value');
-        var rule_8_name = document.getElementById('rule_8_name');var rule_8_value = document.getElementById('rule_8_value');
-        var rule_9_name = document.getElementById('rule_9_name');var rule_9_value = document.getElementById('rule_9_value');
-        var rule_10_name = document.getElementById('rule_10_name');var rule_10_value = document.getElementById('rule_10_value');
-        var rule_11_name = document.getElementById('rule_11_name');var rule_11_value = document.getElementById('rule_11_value');
-        var rule_12_name = document.getElementById('rule_12_name');var rule_12_value = document.getElementById('rule_12_value');
-        var rule_13_name = document.getElementById('rule_13_name');var rule_13_value = document.getElementById('rule_13_value');
-        var rule_14_name = document.getElementById('rule_14_name');var rule_14_value = document.getElementById('rule_14_value');
-        getAddOnRule(commonDate.value)
-        .then(data => {
-            baseprice.textContent  =data.baseprice;
-            rule_2_name.textContent = data.rule_2_name+": "+data.rule_2_value+"£";
-            rule_3_name.textContent = data.rule_3_name+": "+data.rule_3_value+"£";
-            rule_4_name.textContent = data.rule_4_name+": "+data.rule_4_value+"£";
-            rule_5_name.textContent = data.rule_5_name+": "+data.rule_5_value+"£";
-            rule_6_name.textContent = data.rule_6_name+": "+data.rule_6_value+"£";
-            rule_7_name.textContent = data.rule_7_name+": "+data.rule_7_value+"£";
-            rule_8_name.textContent = data.rule_8_name+": "+data.rule_8_value+"£";
-            rule_9_name.textContent = data.rule_9_name+": "+data.rule_9_value+"£";
-            rule_10_name.textContent = data.rule_10_name+": "+data.rule_10_value+"£";
-            rule_11_name.textContent = data.rule_11_name+": "+data.rule_11_value+"£";
-            rule_12_name.textContent = data.rule_12_name+": "+data.rule_12_value+"£";
-            rule_13_name.textContent = data.rule_13_name+": "+data.rule_13_value+"£";
-            rule_14_name.textContent = data.rule_14_name+": "+data.rule_14_value+"£";
-            @for ($i = 2; $i <= 14; $i++)
-            rule_{{$i}}_value.value = data.rule_{{$i}}_value;
-            @endfor
-            addListenersToCheckboxes();
-        });
-        baseprice = document.getElementById('baseprice');
-    });
-    function addListenersToCheckboxes(){
-        @for ($i = 2; $i <= 14; $i++)
-        rule_{{$i}}_value = document.getElementById('rule_{{$i}}_value');        
-        @endfor
-        rule_2_value.addEventListener('change', function() {
-            if (this.checked) {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)+parseInt(rule_2_value.value);
-                // Perform actions when checkbox is checked
-            } else {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)-parseInt(rule_2_value.value);
-                // Perform actions when checkbox is unchecked
-            }
-        });
-        rule_3_value.addEventListener('change', function() {
-            if (this.checked) {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)+parseInt(rule_3_value.value);
-                // Perform actions when checkbox is checked
-            } else {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)-parseInt(rule_3_value.value);
-                // Perform actions when checkbox is unchecked
-            }
-        });
-        rule_4_value.addEventListener('change', function() {
-            if (this.checked) {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)+parseInt(rule_4_value.value);
-                // Perform actions when checkbox is checked
-            } else {
-                finalpriceElement.textContent=parseInt(finalpriceElement.textContent)-parseInt(rule_4_value.value);
-                // Perform actions when checkbox is unchecked
-            }
-        });
-
-    }
+    //const finalpriceElement = document.getElementById('finalprice');
     //===============================MODAL FORM BEGIN
     document.querySelectorAll('.work-button').forEach(button => {
-            button.addEventListener('click', () => {
-                var pickupTimeBegin = document.getElementById('pickup_time_begin');
-                var pickupTimeEnd = document.getElementById('pickup_time_end');
-                if ((pickupTimeBegin.value !== '')&&(pickupTimeEnd.value !== '')) {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (true) {
                     document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
                     $('#workloadModal').modal('show');
                 } else {
@@ -494,33 +217,84 @@ function getDistance(origin,destination){
                         console.error(error);
                     });
 }
-    //===============================CONNECT TO ADDONRULES BASED ON SELECTED DATE
-    //
-    
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
-//============================================================
+
 
 document.addEventListener('DOMContentLoaded', function() {
-    var firstPackageClientSearchId = 'package_name_search-0';
-    const enviroment_country = 'Lietuva';
-    const enviroment_city = 'Vilnius';
-    var highestPackageId = 0;
+    function updateDistances(){
+        var finalDistance=0;
+        document.querySelectorAll('[id^="package_distance-"]').forEach(packageDistanceElement => {
+            var id = packageDistanceElement.id.split('-')[packageDistanceElement.id.split('-').length - 1];
+            var origin_addressLine; var destination_addressLine;
+            var origin_postalcode;var destination_postalcode;
+            var origin_city;var destination_city;
+            var origin_country;var destination_country;
+            var origin_fullAddress;var destination_fullAddress;
+            var distance=0;
+            if( id == 0){
+                origin_addressLine = document.getElementById('pickupaddress_addressline').value;
+                origin_postalcode = document.getElementById('pickupaddress_postalcode').value;
+                origin_city = document.getElementById('pickupaddress_city').value;
+                origin_country = document.getElementById('pickupaddress_country').value;
+                origin_fullAddress = origin_country+' '+origin_city+' '+origin_postalcode+' '+origin_addressLine;      
+            }else{
+                origin_addressLine = document.getElementById('package_addressline-'+(id-1)).value;
+                origin_postalcode = document.getElementById('package_postalcode-'+(id-1)).value;
+                origin_city = document.getElementById('package_city-'+(id-1)).value;
+                origin_country = document.getElementById('package_country-'+(id-1)).value;
+                origin_fullAddress = origin_country+' '+origin_city+' '+origin_postalcode+' '+origin_addressLine;
+            }
+            destination_addressLine = document.getElementById('package_addressline-'+id).value;
+            destination_postalcode = document.getElementById('package_postalcode-'+id).value;
+            destination_city = document.getElementById('package_city-'+id).value;
+            destination_country = document.getElementById('package_country-'+id).value;
+            destination_fullAddress = destination_country+' '+destination_city+' '+destination_postalcode+' '+destination_addressLine;
+            console.log(origin_fullAddress);
+            console.log(destination_fullAddress);
+
+            if(origin_fullAddress && destination_fullAddress){
+                var baseUrl = "{{ route('distance.getDistance') }}";
+                var fullUrl = `${baseUrl}?origin=${encodeURIComponent(origin_fullAddress)}&destination=${encodeURIComponent(destination_fullAddress)}`;
+                fetch(fullUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        //console.log('data is ',data);
+                        distance = data;
+                        finalDistance+=distance;
+                        document.getElementById('package_distance-'+id).innerHTML = distance; 
+                        document.getElementById('total-distance').innerHTML = finalDistance; 
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            }
+
+                  
+        });
+    }
+    function updatePrices(){
+        var finalPrice = 0;
+        document.querySelectorAll('[id^="packagetypeselect-"]').forEach(packageSelectElement => {
+            var id = packageSelectElement.id.split('-')[packageSelectElement.id.split('-').length - 1];
+            //console.log(packageSelectElement.selectedIndex);
+            //console.log(packageSelectElement.options[packageSelectElement.selectedIndex]);
+            //console.log(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
+            var price=parseInt(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
+            finalPrice+=price;
+            //console.log(finalPrice);
+            //console.log(id);
+            document.getElementById('package_price-'+id).innerHTML = price; 
+            document.getElementById('total-price').innerHTML = finalPrice;
+        });
+
+    }
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
+    var clientsPacakgeTypes;
+    var billingClientSearchInput = $('#billingclientsearch');
+    addTypeHeadSearch(billingClientSearchInput);
+    var pickupClientSearchInput =  $('#pickup_name_search');
     addPackageButtonElement.addEventListener('click', function(event) {
         event.preventDefault();
-        highestPackageId++;
-        //=========================================================
         var packageCount = document.querySelectorAll('[id^="package-"]').length;
         var packageElement = document.getElementById('package-0').cloneNode(true);
         packageElement.id = 'package-' + packageCount;
@@ -531,24 +305,40 @@ document.addEventListener('DOMContentLoaded', function() {
         packageElement.querySelector('[id^="package_city"]').id = 'package_city-' + packageCount;
         packageElement.querySelector('[id^="package_country"]').id = 'package_country-' + packageCount;
         packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
-        
-        //=========================================================
-
+        packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
+        packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
+        packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
         var addPackageRowDiv = document.getElementById('addPackageRow');
         addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
-        addSearchability(packageElement.querySelector('[id^="package_name_search"]').id);
+        document.getElementById('package_addressline-'+packageCount).addEventListener('change', function(event) {
+            updateDistances();
+        });
+        document.getElementById('package_postalcode-'+packageCount).addEventListener('change', function(event) { 
+            updateDistances();
+        });
+        document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
+            updatePrices();
+        });
+
+        addSearchAbilityToPackageDropOffNameField(packageElement.querySelector('[id^="package_name_search"]').id);
+        updateDistances();
+        updatePrices();
     });
     //============================================================
-    addSearchability('package_name_search-0');
+    addSearchAbilityToPackageDropOffNameField('package_name_search-0');
+    
+    document.getElementById('package_addressline-0').addEventListener('change', function(event) {
+                                    updateDistances();
+    });
+    document.getElementById('package_postalcode-0').addEventListener('change', function(event) { 
+                                    updateDistances();
+    });
 
-    var clientsPacakgeTypes;
-    var billingClientSearchInput = $('#billingclientsearch');
-    var pickupClientSearchInput =  $('#pickup_name_search');
-    if (billingClientSearchInput.length > 0) {
-        billingClientSearchInput.typeahead({
+    function addTypeHeadSearch(searchInput){
+        if (searchInput.length > 0) {
+            searchInput.typeahead({
             source: function(query, process) {
                 var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
-                // Perform a fetch request to get client data from a remote source
                 fetch(apiUrl)
                     .then(response => response.json())
                     .then(data => {
@@ -573,7 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         //console.log(data.packageTypes);
                         clientsPacakgeTypes = data.packageTypes;
                         //console.log(clientsPacakgeTypes);
-                        populateFields('sender',data,clientsPacakgeTypes,true);    
+                        populateFields('sender',data,clientsPacakgeTypes,true);
+                        updatePrices();    
                     }
                 })
                 .catch(error => {
@@ -581,7 +372,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
+        }
     }
+
     if (pickupClientSearchInput.length > 0) {
         pickupClientSearchInput.typeahead({
             source: function(query, process) {
@@ -619,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    function addSearchability(searchElementId) {
+    function addSearchAbilityToPackageDropOffNameField(searchElementId) {
         var searchInput = $('#' + searchElementId);
         var splitId = searchElementId.split('-');
         var number = splitId[splitId.length - 1];
@@ -629,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var package_country = document.getElementById('package_country-'+number);
         var package_distance = document.getElementById('package_distance-'+number);
         var address_origin;
-        var address_destiny;
+        var address_destination;
         if (searchInput.length > 0) {
             searchInput.typeahead({
                 source: function(query, process) {
@@ -657,40 +450,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 package_postalcode.value = data.pickup_postal_code;
                                 package_city.value = data.pickup_city;
                                 package_country.value = data.pickup_country;
-                                address_destiny = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
-                                updateOriginAddress();
+                                address_destination = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
+                                updateDistances();
 
-                                updatePackageDistance(package_distance,address_origin,address_destiny);
-                                //console.log(package_distance.innerHTML);
-                                //totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
-                                //totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
-                                package_Element_Addressline.addEventListener('change', function(event) {
-                                    if(parseInt(totalDistanceOfTheJob) != 0){
-                                        //console.log('totalDistanceOfTheJob not equal to 0 is equal to ',totalDistanceOfTheJob);
-                                        totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob) - parseInt(package_distance.innerHTML);
-                                    } 
-                                    updateOriginAddress();
-                                    updateDestinationAddress();
-                                    //console.log('totalDistanceOfTheJob before change is equal to : ',totalDistanceOfTheJob);
-                                    
-                                    totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
-                                    //package_distance                                           
-                                    updatePackageDistance(package_distance,address_origin,address_destiny);
-                                    //console.log('package_distance after update is ',package_distance.innerHTML);
-                                    
-                                    //console.log('Package :'+number+'change event activated');
-                                });
-                                package_postalcode.addEventListener('change', function(event) { 
-                                    updateOriginAddress();
-                                    updateDestinationAddress();
-                                    if(parseInt(totalDistanceOfTheJob) != 0){
-                                        totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob) - parseInt(package_distance.innerHTML);
-                                    }
-                                    totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;                                           
-                                    updatePackageDistance(package_distance,address_origin,address_destiny);
-                                    //totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
-                                    console.log('Package :'+number+'change event activated');
-                                });
                             }
                         })
                         .catch(error => {
@@ -700,25 +462,30 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         function updateOriginAddress(){
+            
             if(number == 0 ){
+                console.log('Upadating origin address "number ==0" WAS : ',address_origin);
                 address_origin = document.getElementById('pickupaddress_addressline').value+' '+
                 document.getElementById('pickupaddress_postalcode').value+' '+
                 document.getElementById('pickupaddress_city').value+' '+
                 document.getElementById('pickupaddress_country').value;
-                }else{
+                console.log('Upadating origin address "number !=0" NOW : ',address_origin);
+            }else{
+                console.log('Upadating origin address "number ==0" WAS : ',address_origin);
                 address_origin = document.getElementById('package_addressline-'+parseInt(number-1)).value+' '+
                 document.getElementById('package_postalcode-'+parseInt(number-1)).value+' '+
                 document.getElementById('package_city-'+parseInt(number-1)).value+' '+
                 document.getElementById('package_country-'+parseInt(number-1)).value;
-                }
+                console.log('Upadating origin address "number !=0" NOW : ',address_origin);
+            }
         }
         function updateDestinationAddress(){
-            address_destiny = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
+            address_destination = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
         }
-        function updatePackageDistance(package_distance_innerVariable,address_origin,address_destiny){
-        console.log(address_origin);
+
+        function updatePackageDistance(package_distance_innerVariable,address_origin,address_destination){
         var baseUrl = "{{ route('distance.getDistance') }}";
-        var fullUrl = `${baseUrl}?origin=${encodeURIComponent(address_origin)}&destination=${encodeURIComponent(address_destiny)}`;
+        var fullUrl = `${baseUrl}?origin=${encodeURIComponent(address_origin)}&destination=${encodeURIComponent(address_destination)}`;
         fetch(fullUrl)
             .then(response => response.json())
             .then(data => {
@@ -732,22 +499,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error(error);
             });
             //console.log(package_distance_innerVariable.innerHTML);
-    }
+        }
     }
        
-    function onPackageTypeChange(event) {
-        // You can access the selected value using event.target.value
-        //console.log('Selected package type:', event.target);
-        //console.log('Selected package price:',event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-        totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-        totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
-    } 
+    // function onPackageTypeChange(event) {
+    //     // You can access the selected value using event.target.value
+    //     //console.log('Selected package type:', event.target);
+    //     //console.log('Selected package price:',event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+    //     totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+    //     totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
+    // } 
     function populateFields(clientType,data,clientsPacakgeTypes,isItFromBillingInput){
             if(isItFromBillingInput){
                 document.getElementById('pickup_name_search').value = data.name;
             }
-            totalPriceOfTheJobElement.textContent=0;
-            totalPriceOfTheJob=0;
+            //totalPriceOfTheJobElement.textContent=0;
+            //totalPriceOfTheJob=0;
             document.getElementById('pickupaddress_addressline').value = data.pickup_adress_line;
             document.getElementById('pickupaddress_postalcode').value = data.pickup_postal_code;
             document.getElementById('pickupaddress_city').value = data.pickup_city;
@@ -767,16 +534,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (select.options.length > 0) {
                     select.selectedIndex = 0;
-                    // parseInt(totalPriceOfTheJobElement.textContent)
-                    totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(select.options[select.selectedIndex].getAttribute('data-price'));
-                    totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
+                    
+                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(select.options[select.selectedIndex].getAttribute('data-price'));
+                    //totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
+                    
                 }
                 select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
                 
                 select.addEventListener('change', function(event) {
-                    totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
-                    onPackageTypeChange(event);
-                    select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+                    updatePrices();
+                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
+                    //onPackageTypeChange(event);
+                    //select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+                
                 });
             });
         }
@@ -785,132 +555,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // This code will run when the page is fully loaded
             // You can set the default pickup address here
-            const senderSelectedOption = senderSelect.options[senderSelect.selectedIndex];
-            const senderId = senderSelectedOption.getAttribute('value');
-            const receiverSelectedOption = receiverSelect.options[senderSelect.selectedIndex];
-            const recieverId = receiverSelectedOption.getAttribute('value');
-            if (senderId) {                
-                // Perform an AJAX request to the server to fetch the address based on the client ID
-                fetch(`/get-client-info/${senderId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data) {
-                            //console.log(data);
-                            //pickupAddressInput.value = data.address;
-                            senderContactsInput.value = data.senderContacts;
-                            collection_detailsInput.value = data.collection_details;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-            }
-            if (recieverId) {                
-                // Perform an AJAX request to the server to fetch the address based on the client ID
-                fetch(`/get-client-info/${recieverId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data) {
-                            //deliveryAddressInput.value = data.address;
-                            receiverContactsInput.value = data.receiverContacts;
-                            dropoff_detailsInput.value  = data.dropoff_details;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-            }
+            
+
+            
         });
-    senderSelect.addEventListener('change', function() {
-        
-            const selectedOption = senderSelect.options[senderSelect.selectedIndex];
-            const clientId = selectedOption.getAttribute('value');
-            if (clientId) {
-                
-                // Perform an AJAX request to the server to fetch the address based on the client ID
-                fetch(`/get-client-info/${clientId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data) {
-                            pickupAddressInput.value = data.address;
-                            senderContactsInput.value = data.senderContacts;
-                            collection_detailsInput.value = data.collection_details;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-            }
-        });
-    receiverSelect.addEventListener('change', function() {
-        const selectedOption = receiverSelect.options[receiverSelect.selectedIndex];
-        const clientId = selectedOption.getAttribute('value');
-        if (clientId) {
-            // Perform an AJAX request to the server to fetch client information based on the client ID
-            fetch(`/get-client-info/${clientId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                            deliveryAddressInput.value = data.address;
-                            receiverContactsInput.value = data.receiverContacts;
-                            dropoff_detailsInput.value  = data.dropoff_details;
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        }
-    });
+
     
-    const clientSearchInput = document.getElementById('client_search');
-    const receiverSearchInput = document.getElementById('receiver_search');
-    const senderIdSelect = document.getElementById('sender_id');
-    const receiverIdSelect = document.getElementById('receiver_id');
-
-        clientSearchInput.addEventListener('input', function() {
-            const searchValue = clientSearchInput.value.toLowerCase();
-            const options = senderIdSelect.getElementsByTagName('option');
-
-            // Show/hide options based on the search input
-            for (let i = 0; i < options.length; i++) {
-                const optionText = options[i].textContent.toLowerCase();
-                if (optionText.includes(searchValue)) {
-                    options[i].style.display = '';
-                } else {
-                    options[i].style.display = 'none';
-                }
-            }
-
-            // Show the select dropdown if there are matching results, otherwise hide it
-            senderIdSelect.style.display = Array.from(options).some(option => option.style.display !== 'none') ? '' : 'none';
-        });
-        receiverSearchInput.addEventListener('input', function() {
-            const searchValue = receiverSearchInput.value.toLowerCase();
-            const options = receiverIdSelect.getElementsByTagName('option');
-
-            // Show/hide options based on the search input
-            for (let i = 0; i < options.length; i++) {
-                const optionText = options[i].textContent.toLowerCase();
-                if (optionText.includes(searchValue)) {
-                    options[i].style.display = '';
-                } else {
-                    options[i].style.display = 'none';
-                }
-            }
-
-            // Show the select dropdown if there are matching results, otherwise hide it
-            receiverIdSelect.style.display = Array.from(options).some(option => option.style.display !== 'none') ? '' : 'none';
-        });
 
 
-        // Handle option selection and populate the search input
-        senderIdSelect.addEventListener('change', function() {
-            clientSearchInput.value = senderIdSelect.options[senderIdSelect.selectedIndex].textContent;
-        });
-        receiverIdSelect.addEventListener('change', function() {
-            receiverSearchInput.value = receiverIdSelect.options[receiverIdSelect.selectedIndex].textContent;
-        });
-//=================================================================
+
+
+
+
+
+
+
 
 </script>
 @endsection
