@@ -107,17 +107,19 @@
                     </div>
                 </div>
                 <div class="row justify-content-md-center">
-                            <div class="col-auto">
+                            <div class="col-12 text-center mb-2">
                                 <h4>Packages</h4>
                             </div>
-                        </div>
+                </div>
                 <div class="row justify-content-md-center" id="area-packages">
-                        <div class="row justify-content-md-center" id="package-0">
+                        <div class="row justify-content-md-center border border-dark packageclass" id="package-0">
                             <div class="col-auto">
                                 <label id="labelpackagetypeselect-0" for="packagetypeselect-0">Package</label>
                                 <select class="select-ClientPackageType form-select" id="packagetypeselect-0" name="packageType[]" class="form-control">
                                 </select>
                                 <input type="number" id="packageQuantity-0" class="form-control" placeholder="Quantity">
+                                <button class="btn btn-secondary" data-direction="up" id="package_button_up-0"><i class="bi bi-arrow-up-circle-fill"></i></button>
+                                <button class="btn btn-secondary" data-direction="down" id="package_button_down-0"><i class="bi bi-arrow-down-circle-fill"></i></button>
                             </div>
                             <div class="col-auto">
                                 <span>Drop off</span>
@@ -188,7 +190,6 @@
                     document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
                     $('#workloadModal').modal('show');
                 } else {
-                    console.log('No date and time selected');
                     document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'block';
                     document.querySelector('.alert.alert-danger.custom-class-job-create').innerHTML = 'No date and time selected<br> To select addons, choose date and time of delivery pickup';
                 }
@@ -248,8 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
             destination_city = document.getElementById('package_city-'+id).value;
             destination_country = document.getElementById('package_country-'+id).value;
             destination_fullAddress = destination_country+' '+destination_city+' '+destination_postalcode+' '+destination_addressLine;
-            console.log(origin_fullAddress);
-            console.log(destination_fullAddress);
 
             if(origin_fullAddress && destination_fullAddress){
                 var baseUrl = "{{ route('distance.getDistance') }}";
@@ -268,24 +267,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
             }
 
-                  
+                    
         });
     }
     function updatePrices(){
         var finalPrice = 0;
         document.querySelectorAll('[id^="packagetypeselect-"]').forEach(packageSelectElement => {
             var id = packageSelectElement.id.split('-')[packageSelectElement.id.split('-').length - 1];
-            //console.log(packageSelectElement.selectedIndex);
-            //console.log(packageSelectElement.options[packageSelectElement.selectedIndex]);
-            //console.log(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
             var price=parseInt(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
             finalPrice+=price;
-            //console.log(finalPrice);
-            //console.log(id);
+
             document.getElementById('package_price-'+id).innerHTML = price; 
             document.getElementById('total-price').innerHTML = finalPrice;
         });
-
+    }
+    function adjustPackagesId(){
+        var packageCount=0;
+        var listOfPackagesElements = document.querySelectorAll('[id^="package-"]');
+        listOfPackagesElements.forEach(packageElement =>{
+            packageElement.id = 'package-' + packageCount;
+            packageElement.querySelector('[id^="package_name_search"]').id = 'package_name_search-' + packageCount;
+            packageElement.querySelector('[id^="packagetypeselect"]').id = 'packagetypeselect-' + packageCount;
+            packageElement.querySelector('[id^="package_addressline"]').id = 'package_addressline-' + packageCount;
+            packageElement.querySelector('[id^="package_postalcode"]').id = 'package_postalcode-' + packageCount;
+            packageElement.querySelector('[id^="package_city"]').id = 'package_city-' + packageCount;
+            packageElement.querySelector('[id^="package_country"]').id = 'package_country-' + packageCount;
+            packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
+            packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
+            packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
+            packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
+            packageElement.querySelector('[id^="package_button_up"]').id = 'package_button_up-' + packageCount;
+            packageElement.querySelector('[id^="package_button_down"]').id = 'package_button_down-' + packageCount;
+            packageCount++;
+        });
+        updateDistances();
+        updatePrices();
     }
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
@@ -293,6 +309,35 @@ document.addEventListener('DOMContentLoaded', function() {
     var billingClientSearchInput = $('#billingclientsearch');
     addTypeHeadSearch(billingClientSearchInput);
     var pickupClientSearchInput =  $('#pickup_name_search');
+
+    function movePackage(ButtonElement) {
+        direction = ButtonElement.getAttribute('data-direction');
+        var id = ButtonElement.id.split('-')[ButtonElement.id.split('-').length - 1];
+        var packageElement = document.getElementById('package-'+id);
+        var swapElement;
+        if(direction == 'up'){
+            swapElement = document.getElementById('package-'+(parseInt(id)-1));
+            packageElement.parentNode.insertBefore(packageElement,swapElement);
+        }else{
+            swapElement = document.getElementById('package-'+(parseInt(id)+1));
+            packageElement.parentNode.insertBefore(swapElement,packageElement);
+        }
+        adjustPackagesId();
+    }
+
+    const moveupPackageButtonElement = document.getElementById('package_button_up-0');
+    const movedownPackageButtonElement = document.getElementById('package_button_down-0');
+
+    moveupPackageButtonElement.addEventListener('click', function (event) {
+        event.preventDefault();
+        movePackage(moveupPackageButtonElement);
+    });
+
+    movedownPackageButtonElement.addEventListener('click', function (event) {
+        event.preventDefault();
+        movePackage(movedownPackageButtonElement);
+    });
+
     addPackageButtonElement.addEventListener('click', function(event) {
         event.preventDefault();
         var packageCount = document.querySelectorAll('[id^="package-"]').length;
@@ -308,6 +353,9 @@ document.addEventListener('DOMContentLoaded', function() {
         packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
         packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
         packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
+        packageElement.querySelector('[id^="package_button_up"]').id = 'package_button_up-' + packageCount;
+        packageElement.querySelector('[id^="package_button_down"]').id = 'package_button_down-' + packageCount;
+
         var addPackageRowDiv = document.getElementById('addPackageRow');
         addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
         document.getElementById('package_addressline-'+packageCount).addEventListener('change', function(event) {
@@ -318,6 +366,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
             updatePrices();
+        });
+        movedownPackageButtonElement_local = document.getElementById('package_button_down-'+packageCount)
+        movedownPackageButtonElement_local.addEventListener('click', function (event) {
+            event.preventDefault();
+            movePackage(movedownPackageButtonElement_local);
+        });
+        moveupPackageButtonElement_local = document.getElementById('package_button_up-'+packageCount)
+        moveupPackageButtonElement_local.addEventListener('click', function (event) {
+            event.preventDefault();
+            movePackage(moveupPackageButtonElement_local);
         });
 
         addSearchAbilityToPackageDropOffNameField(packageElement.querySelector('[id^="package_name_search"]').id);
@@ -360,9 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
-                        //console.log(data.packageTypes);
                         clientsPacakgeTypes = data.packageTypes;
-                        //console.log(clientsPacakgeTypes);
                         populateFields('sender',data,clientsPacakgeTypes,true);
                         updatePrices();    
                     }
@@ -557,11 +613,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // You can set the default pickup address here
             
 
-            
-        });
+//--------------------------
+});
 
     
-
 
 
 
