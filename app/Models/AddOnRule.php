@@ -11,6 +11,7 @@ class AddOnRule extends Model
 {
     use HasFactory;
     protected $fillable = [];
+    public $timestamps = true;
 
     public function __construct(array $attributes = [])
     {
