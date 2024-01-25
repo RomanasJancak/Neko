@@ -135,7 +135,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error(error);
                         });
                 
+                document.getElementById('nameField').readOnly = false;
+                document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
+                document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
+                document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
+                document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
                 
+                document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
+                document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
+                document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
+                document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "Update";
             }
@@ -146,23 +155,47 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const clientid = button.dataset.clientid;
             const statusName = button.dataset.name;
-            const statusColorMain   =   button.dataset.colormain;
-            const statusColorPickup   =   button.dataset.colorpickup;
-            const statusColorDropoff   =   button.dataset.colordropoff;
+            const clientId          =   button.dataset.clientid;
             const form = document.querySelector(`#statusForm`);
             if (form) {
-                form.setAttribute('action', "{{ route('status.delete') }}");
-                document.getElementById('clientid').value = clientid;
-                document.getElementById('nameField').value = statusName;
+                form.setAttribute('action', "{{ route('client.delete') }}");
+                const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
+                //fetch(`/get-client-info/${clientId}`)
+                fetch(routeUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data) {
+                                document.getElementById('clientid').value = clientId;
+                                document.getElementById('nameField').value = data.name;
+
+                                document.getElementById('reg-adress-section-adress-country-field').value = data.country;
+                                document.getElementById('reg-adress-section-adress-city-field').value = data.city;
+                                document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
+                                document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
+                                
+                                document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
+                                document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
+                                document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
+                                document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
+                                
+                            }
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+                
                 document.getElementById('nameField').readOnly = true;
-                document.getElementById('colorPicker-main').value = statusColorMain;
-                document.getElementById('colorPicker-pickup').value = statusColorPickup;
-                document.getElementById('colorPicker-dropoff').value = statusColorDropoff;
-                document.getElementById('colorPicker-main').disabled = true;
-                document.getElementById('colorPicker-pickup').disabled = true;
-                document.getElementById('colorPicker-dropoff').disabled = true;
+                document.getElementById('reg-adress-section-adress-country-field').readOnly = true;
+                document.getElementById('reg-adress-section-adress-city-field').readOnly = true;
+                document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = true;
+                document.getElementById('reg-adress-section-adress-addressline-field').readOnly = true;  
+                
+                document.getElementById('pu-adress-section-adress-country-field').readOnly = true;
+                document.getElementById('pu-adress-section-adress-city-field').readOnly = true;
+                document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = true;
+                document.getElementById('pu-adress-section-adress-addressline-field').readOnly = true;
                 submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+                submitButton.innerHTML = "Delete";
             }
             $('#modalWindow').modal('show');
         });
@@ -172,9 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector(`#statusForm`);
             if (form) {
                 document.getElementById('nameField').readOnly = false;
-                document.getElementById('colorPicker-main').disabled = false;
-                document.getElementById('colorPicker-pickup').disabled = false;
-                document.getElementById('colorPicker-dropoff').disabled = false;
                 form.setAttribute('action', "{{ route('status.store') }}");
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";

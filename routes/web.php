@@ -61,8 +61,8 @@ Route::group(['prefix' => 'clients'], function(){
     Route::post('store',            [ClientController::class, 'store'])->name('client.store')->middleware('auth');
     //Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
     Route::post('update',           [ClientController::class, 'update'])->name('client.update')->middleware('auth');
-    Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
-    Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
+    Route::post('delete',   [ClientController::class, 'destroy'])->name('client.delete')->middleware('auth');
+    Route::delete('destroy',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
     Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
     Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
     Route::get('searchClients',    [ClientController::class, 'searchClients'])->name('client.searchClients')->middleware('auth');

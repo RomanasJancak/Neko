@@ -13,7 +13,7 @@ class AddOnRuleSeeder extends Seeder
      */
     public function run(): void
     {
-        AddonRule::create([
+            AddonRule::create([
                 'begin_date'                =>  '2023-12-01 00:00:00','end_date' => '2023-12-06 23:59:59',
                 'baseprice'                 =>  8,
                 'distancerule_1_name'       =>  'Up to 3 miles',                'distancerule_1_value'  =>  2,
@@ -76,6 +76,13 @@ class AddOnRuleSeeder extends Seeder
                 'rule_13_name'              =>  'Sunday/Bank holiday','rule_13_value'    =>  2,
                 'rule_14_name'              =>  'out of hours ','rule_14_value'    =>  4,
             ]);
+        AddonRule::create([
+                'begin_date'                =>  '2024-01-22 00:00:00','end_date' => '2024-01-28 23:59:59',
+                'name'                      =>  'job-distance-lessthan-3',
+                'display_name'              =>  'Up to 3 miles',
+                'price'                     =>  100,
+                'client_id'                 =>  1,
+        ]);
     }
 }
 // $tabel->string('rule_1_name');

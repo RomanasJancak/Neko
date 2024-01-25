@@ -16,6 +16,9 @@ class ClientSeeder extends Seeder
      */
     public function run(): void
     {
+        Client::create([
+            'name'  =>  'Neko home Delivery LLP',
+        ]);
         $folderPath = resource_path('files\backups\Client');
         $filePath = $this->getLatestBackup($folderPath);
         $this->seed($filePath);
