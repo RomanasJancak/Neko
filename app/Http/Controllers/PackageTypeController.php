@@ -42,6 +42,7 @@ class PackageTypeController extends Controller
         
         $packageType->save();
         $packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
+        $packageType->save();
         return response()->json([
             'message' => 'Package type created successfully.',
             'packageType' => $packageType

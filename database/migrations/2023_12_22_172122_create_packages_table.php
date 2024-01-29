@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('job_id'); 
-            $table->unsignedBigInteger('packageType_id'); 
+            $table->unsignedBigInteger('packageType_id');
+            $table->unsignedBigInteger('orderNumber');
             $table->string('weight');
             $table->string('dimensions');
             $table->string('size');
