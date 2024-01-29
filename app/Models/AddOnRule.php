@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,5 +22,18 @@ class AddOnRule extends Model
             Schema::getColumnListing($this->getTable()),
             ['id', 'created_at', 'updated_at']
         );
+    }
+    public static function getAllThatAreApplicableToThisDate($date)
+    {
+        
+        $formattedDatetime = Carbon::parse($date);
+        
+        $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
+            ->where('end_date', '>=', $formattedDatetime)->get();
+        return $rules;
+    }
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
     }
 }

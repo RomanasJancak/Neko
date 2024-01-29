@@ -116,16 +116,12 @@ Route::group(['prefix' => 'workloads'], function(){
 });
 Route::group(['prefix' => 'addonrules'], function(){
     Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
-    Route::get('create',            [AddOnRuleController::class, 'create'])->name('addonrule.create')->middleware('auth');
     Route::post('store',            [AddOnRuleController::class, 'store'])->name('addonrule.store')->middleware('auth');
-    //Route::get('edit/{client}',     [ClientController::class, 'edit'])->name('client.edit')->middleware('auth');
-    //Route::put('update/{client}',   [ClientController::class, 'update'])->name('client.update')->middleware('auth');
-    //Route::get('delete/{client}',   [ClientController::class, 'delete'])->name('client.delete')->middleware('auth');
-    //Route::delete('destroy/{client}',  [ClientController::class, 'destroy'])->name('client.destroy')->middleware('auth');
-    //Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
-    Route::get('findAddOnRule',     [AddOnRuleController::class, 'findAddOnRule'])->name('addonrule.findAddOnRule')->middleware('auth');
-    //Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
-
+    Route::post('update',   [AddOnRuleController::class, 'update'])->name('addonrule.update')->middleware('auth');
+    Route::post('delete',   [AddOnRuleController::class, 'destroy'])->name('addonrule.delete')->middleware('auth');
+    Route::post('createBackup',     [AddOnRuleController::class, 'createBackup'])->name('addonrule.createBackup')->middleware('auth');
+    Route::get('getAddOnRuleInfo/{id}',     [AddOnRuleController::class, 'getAddOnRuleInfo'])->name('addonrule.getAddOnRuleInfo')->middleware('auth');
+    Route::get('getRulesForDate/{date}',     [AddOnRuleController::class, 'getRulesForDate'])->name('addonrule.getRulesForDate')->middleware('auth');
 });
 Route::group(['prefix' => 'distances'], function(){
     //Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');

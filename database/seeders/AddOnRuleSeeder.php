@@ -6,6 +6,11 @@ use App\Models\AddonRule;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+use Illuminate\Support\Facades\File;
+use League\Csv\Reader;
+use Illuminate\Support\Facades\Schema;
+
+
 class AddOnRuleSeeder extends Seeder
 {
     /**
@@ -13,103 +18,66 @@ class AddOnRuleSeeder extends Seeder
      */
     public function run(): void
     {
-            AddonRule::create([
-                'begin_date'                =>  '2023-12-01 00:00:00','end_date' => '2023-12-06 23:59:59',
-                'baseprice'                 =>  8,
-                'distancerule_1_name'       =>  'Up to 3 miles',                'distancerule_1_value'  =>  2,
-                'distancerule_2_name'       =>  'Up to 5 miles',                'distancerule_2_value'  =>  6,
-                'extradistancerule_name'    =>  'Over 5 miles',                 'extradistancerule_value'    =>  3,
-                'rule_1_name'               =>  'Outside post code list/zone',  'rule_1_value'    =>  6,
-                'rule_2_name'               =>  'Food (hot or cold)',           'rule_2_value'    =>  2,
-                'rule_3_name'               =>  'Oversize',                     'rule_3_value'    =>  2,
-                'rule_4_name'               =>  'Fragile Items',                'rule_4_value'    =>  2,
-                'rule_5_name'               =>  'Timed',                        'rule_5_value'    =>  3,
-                'rule_6_name'               =>  'Same-Day',                     'rule_6_value'    =>  4,
-                'rule_7_name'               =>  'Rush job',                     'rule_7_value'    =>  6,
-                'rule_8_name'               =>  'Waiting time over 10 mins',    'rule_8_value'    =>  2,
-                'rule_9_name'               =>  'Return trip to p/u same day ', 'rule_9_value'    =>  4,
-                'rule_10_name'              =>  'Cancelations up to 2h',        'rule_10_value'    =>  8,
-                'rule_11_name'              =>  'Cancelations when courier is in P/U','rule_11_value'    =>  'Full delivery price',
-                'rule_12_name'              =>  'Cancelations when courier is in DROP','rule_12_value'    =>  'Full delivery price + return to P/U',
-                'rule_13_name'              =>  'Sunday/Bank holiday','rule_13_value'    =>  2,
-                'rule_14_name'              =>  'out of hours ','rule_14_value'    =>  4,
-            ]);
-            AddonRule::create([
-                'begin_date'                =>  '2023-12-07 00:00:00','end_date' => '2023-12-14 23:59:59',
-                'baseprice'                 =>  8,
-                'distancerule_1_name'       =>  'Up to 3 miles',                'distancerule_1_value'  =>  2,
-                'distancerule_2_name'       =>  'Up to 5 miles',                'distancerule_2_value'  =>  6,
-                'extradistancerule_name'    =>  'Over 5 miles',                 'extradistancerule_value'    =>  3,
-                'rule_1_name'               =>  'Outside post code list/zone',  'rule_1_value'    =>  6,
-                'rule_2_name'               =>  'Food (hot or cold)',           'rule_2_value'    =>  2,
-                'rule_3_name'               =>  'Oversize',                     'rule_3_value'    =>  2,
-                'rule_4_name'               =>  'Fragile Items',                'rule_4_value'    =>  2,
-                'rule_5_name'               =>  'Timed',                        'rule_5_value'    =>  3,
-                'rule_6_name'               =>  'Same-Day',                     'rule_6_value'    =>  4,
-                'rule_7_name'               =>  'Rush job',                     'rule_7_value'    =>  6,
-                'rule_8_name'               =>  'Waiting time over 10 mins',    'rule_8_value'    =>  2,
-                'rule_9_name'               =>  'Return trip to p/u same day ', 'rule_9_value'    =>  4,
-                'rule_10_name'              =>  'Cancelations up to 2h',        'rule_10_value'    =>  8,
-                'rule_11_name'              =>  'Cancelations when courier is in P/U','rule_11_value'    =>  'Full delivery price',
-                'rule_12_name'              =>  'Cancelations when courier is in DROP','rule_12_value'    =>  'Full delivery price + return to P/U',
-                'rule_13_name'              =>  'Sunday/Bank holiday','rule_13_value'    =>  2,
-                'rule_14_name'              =>  'out of hours ','rule_14_value'    =>  4,
-            ]);
-            AddonRule::create([
-                'begin_date'                =>  '2023-12-14 00:00:00','end_date' => '2023-12-21 23:59:59',
-                'baseprice'                 =>  8,
-                'distancerule_1_name'       =>  'Up to 3 miles',                'distancerule_1_value'  =>  2,
-                'distancerule_2_name'       =>  'Up to 5 miles',                'distancerule_2_value'  =>  6,
-                'extradistancerule_name'    =>  'Over 5 miles',                 'extradistancerule_value'    =>  3,
-                'rule_1_name'               =>  'Outside post code list/zone',  'rule_1_value'    =>  6,
-                'rule_2_name'               =>  'Food (hot or cold)',           'rule_2_value'    =>  2,
-                'rule_3_name'               =>  'Oversize',                     'rule_3_value'    =>  2,
-                'rule_4_name'               =>  'Fragile Items',                'rule_4_value'    =>  2,
-                'rule_5_name'               =>  'Timed',                        'rule_5_value'    =>  3,
-                'rule_6_name'               =>  'Same-Day',                     'rule_6_value'    =>  4,
-                'rule_7_name'               =>  'Rush job',                     'rule_7_value'    =>  6,
-                'rule_8_name'               =>  'Waiting time over 10 mins',    'rule_8_value'    =>  2,
-                'rule_9_name'               =>  'Return trip to p/u same day ', 'rule_9_value'    =>  4,
-                'rule_10_name'              =>  'Cancelations up to 2h',        'rule_10_value'    =>  8,
-                'rule_11_name'              =>  'Cancelations when courier is in P/U','rule_11_value'    =>  'Full delivery price',
-                'rule_12_name'              =>  'Cancelations when courier is in DROP','rule_12_value'    =>  'Full delivery price + return to P/U',
-                'rule_13_name'              =>  'Sunday/Bank holiday','rule_13_value'    =>  2,
-                'rule_14_name'              =>  'out of hours ','rule_14_value'    =>  4,
-            ]);
-        AddonRule::create([
-                'begin_date'                =>  '2024-01-22 00:00:00','end_date' => '2024-01-28 23:59:59',
-                'name'                      =>  'job-distance-lessthan-3',
-                'display_name'              =>  'Up to 3 miles',
-                'price'                     =>  100,
-                'client_id'                 =>  1,
-        ]);
+        $folderPath = resource_path('files\backups\AddOnRule');
+        $filePath = $this->getLatestBackup($folderPath);
+        $this->seed($filePath);
     }
+    private function getLatestBackup($directory){
+        $files = scandir($directory);
+        $files = array_diff($files, array('.', '..'));
+        $files = array_filter($files, function ($file) use ($directory) {
+            return is_file($directory . '/' . $file);
+        });
+        sort($files);
+        $filepath = $directory.'/'.end($files);
+        return $filepath;
+    }
+    private function seed($file):void
+    {
+        //$file = $request->file('csv_file');
+
+        // Check if a file was uploaded
+        if ($file !== null) {
+            // Create a new Reader object
+            //$reader = Reader::createFromPath($file->getPathname(), 'r');
+            $reader = Reader::createFromPath($file, 'r');
+            $reader->setDelimiter(',');
+
+            // Read and parse the CSV file
+            $records = $reader->getRecords();
+            //dd($records);
+            // Process the CSV data
+            $column_names = $reader->first();
+            foreach ($records as $record) {
+                //dd($record);
+                // Each $record is an associative array representing a row in the CSV file
+                // You can access individual columns using array keys
+                // For example:
+                //dd($record);
+                //dd($column1);
+                // Process the data here...
+            }
+            $tableName = with(new AddOnRule)->getTable();
+            // Optionally, you can convert the records to an array for further manipulation
+            $parsedData = iterator_to_array($records);
+            for($i=1;$i < count($parsedData);$i++){
+                $array = [];
+                for($j=0;$j < count($column_names);$j++){
+                    if (Schema::hasColumn($tableName, $column_names[$j])) {
+                        $array[$column_names[$j]] = $parsedData[$i][$j];
+                    }else{
+                        
+                    }
+                    
+                }
+                AddOnRule::create($array);
+            }
+            // Return or do something with the parsed data
+            //return response()->json(['data' => $parsedData], 200);
+        }
+
+        // Handle cases where no valid file was uploaded
+        //return response()->json(['error' => 'No valid file uploaded.'], 400);
+    }
+    
 }
-// $tabel->string('rule_1_name');
-// $tabel->string('rule_1_value');
-// $tabel->string('rule_2_name');
-// $tabel->string('rule_2_value');
-// $tabel->string('rule_3_name');
-// $tabel->string('rule_3_value');
-// $tabel->string('rule_4_name');
-// $tabel->string('rule_4_value');
-// $tabel->string('rule_5_name');
-// $tabel->string('rule_5_value');
-// $tabel->string('rule_6_name');
-// $tabel->string('rule_6_value');
-// $tabel->string('rule_7_name');
-// $tabel->string('rule_7_value');
-// $tabel->string('rule_8_name');
-// $tabel->string('rule_8_value');
-// $tabel->string('rule_9_name');
-// $tabel->string('rule_9_value');
-// $tabel->string('rule_10_name');
-// $tabel->string('rule_10_value');
-// $tabel->string('rule_11_name');
-// $tabel->string('rule_11_value');
-// $tabel->string('rule_12_name');
-// $tabel->string('rule_12_value');
-// $tabel->string('rule_13_name');
-// $tabel->string('rule_13_value');
-// $tabel->string('rule_14_name');
-// $tabel->string('rule_14_value');

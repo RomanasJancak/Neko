@@ -10,6 +10,11 @@ use App\Http\Requests\UpdateAddOnRuleRequest;
 
 use Carbon\Carbon;
 
+
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
+
 class AddOnRuleController extends Controller
 {
     /**
@@ -37,34 +42,33 @@ class AddOnRuleController extends Controller
      */
     public function store(StoreAddOnRuleRequest $request)
     {
-        //dd($request->distancerule_1_name);
-        $validatedData = $request->validate([
-            'begin_date' => 'required|date',
+        $validator = Validator::make($request->all(), [
+            'begin_date' => 'required|date|before:end_date',
             'end_date' => 'required|date|after:begin_date',
-            'baseprice' => ['required', 'regex:/^\d+(\.\d{1,2})?$/', 'numeric'],
-            'distancerule_1_name' => 'required','distancerule_1_value' => 'required',
-            'distancerule_2_name' => 'required','distancerule_2_value' => 'required',
-            'extradistancerule_name' => 'required','extradistancerule_value' => 'required',
-            'rule_1_name' => 'required','rule_1_value' => 'required',
-            'rule_2_name' => 'required','rule_2_value' => 'required',
-            'rule_3_name' => 'required','rule_3_value' => 'required',
-            'rule_4_name' => 'required','rule_4_value' => 'required',
-            'rule_5_name' => 'required','rule_5_value' => 'required',
-            'rule_6_name' => 'required','rule_6_value' => 'required',
-            'rule_7_name' => 'required','rule_7_value' => 'required',
-            'rule_8_name' => 'required','rule_8_value' => 'required',
-            'rule_9_name' => 'required','rule_9_value' => 'required',
-            'rule_10_name' => 'required','rule_10_value' => 'required',
-            'rule_11_name' => 'required','rule_11_value' => 'required',
-            'rule_12_name' => 'required','rule_12_value' => 'required',
-            'rule_13_name' => 'required','rule_13_value' => 'required',
-            'rule_14_name' => 'required','rule_14_value' => 'required',      
-        ],[
+            'name' => 'required',
+            'display_name' => 'required',
+            'price' => 'required',
+            'client_id' => 'required',
+        ], [
             'end_date.after' => 'The End Date must be a date after the Begin Date.',
-            'baseprice.regex' => 'The Base Price must be a valid number with up to 2 decimal places.',
         ]);
-        AddOnRule::create($validatedData);
-        return redirect()->back()->with('Succses', 'Addon Rule created successfully.');
+        //return response()->json($validator->errors());
+        //return response()->json($validator->fails());
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ]);
+        }else{
+            $validatedData = $validator->validated();
+            $addOnRule = AddOnRule::create($validatedData);
+            return response()->json($addOnRule);
+        }
+    
+
+    
+        
     }
 
     /**
@@ -74,16 +78,24 @@ class AddOnRuleController extends Controller
     {
         //
     }
-    public function findAddOnRule(Request $request)
+    public function getAddOnRuleInfo($addOnRuleId)
     {
-        $formattedDatetime = Carbon::parse($day = $request->input('datetime'));
+        
+        // Fetch the client's information based on the $clientId
+        $addonrule = AddOnRule::find($addOnRuleId);
+        if ($addonrule) {
+            return response()->json([
+                'begin_date'    => $addonrule->begin_date,
+                'end_date'      => $addonrule->end_date,
+                'name'                  => $addonrule->name,
+                'display_name'  => $addonrule->display_name,
+                'price'         => $addonrule->price,
+                'clientName'    => $addonrule->client->name,
+                'clientId'    => $addonrule->client->id,
+                ]);
+        }
 
-        $rule = AddOnRule::where('begin_date', '<=', $formattedDatetime)
-            ->where('end_date', '>=', $formattedDatetime)
-            ->first();
-    
-        //return response()->json($rule);
-        return response()->json($formattedDatetime);
+        return response()->json(['error' => 'Client not found'], 404);
     }
 
     /**
@@ -99,14 +111,48 @@ class AddOnRuleController extends Controller
      */
     public function update(UpdateAddOnRuleRequest $request, AddOnRule $addOnRule)
     {
-        //
+        //return response()->json($request);
+        $addOnRule = AddOnRule::findOrFail($request->addonruleid);
+        $addOnRule->begin_date = $request->begin_date;
+        $addOnRule->end_date= $request->end_date;
+        $addOnRule->price= $request->price;
+        $addOnRule->client_id = $request->client_id;
+        $addOnRule->name= $request->name;
+        $addOnRule->display_name= $request->display_name;
+        $addOnRule->save();
+        return response()->json($addOnRule);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(AddOnRule $addOnRule)
+    public function destroy(Request $request,AddOnRule $addOnRule)
     {
-        //
+        //return response()->json($request);
+        $addOnRule = AddOnRule::findOrFail($request->addonruleid);
+        $addOnRule->delete();
+        return response()->json($addOnRule);
+    }
+    public function createBackup()
+    {
+        $addOnRules = AddOnRule::all();        
+        $columns = Schema::getColumnListing('add_on_rules'); 
+
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($addOnRules as $client) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $client->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = resource_path('files/backups/AddOnRule/addonrule.backup_'.$timestamp.'.csv');
+
+        file_put_contents($file_path, $csvData);
+        return redirect()->back()->with('succeses', 'Pricing Rule backup created successfully.');
+    }
+    public function getRulesForDate($date){
+        return response()->json(AddOnRule::getAllThatAreApplicableToThisDate($date));
     }
 }

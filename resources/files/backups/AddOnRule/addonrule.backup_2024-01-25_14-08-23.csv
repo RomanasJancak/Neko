@@ -1,0 +1,2 @@
+begin_date,client_id,created_at,display_name,end_date,id,name,price,updated_at
+2024-01-22 00:00:00,1,2024-01-25 10:41:26,Up to 3 miles,2024-01-28 23:59:59,1,job-distance-lessthan-3,100,2024-01-25 10:41:26

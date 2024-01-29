@@ -118,20 +118,6 @@
                             </div>
                         </li>
                         <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                AddOnRules
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{route('addonrule.index')}}">List</a></li>
-                                    <!-- <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li> -->
-                                    <li><a class="dropdown-item" href="{{route('addonrule.create')}}">Create</a></li>
-                                    <!-- <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li> -->
-                                    
-                                </ul>
-                            </div>
-                        </li>
-                        <li>
                             <div>
                                 <form method="POST" action="{{ route('user.updateRole', ['user' => auth()->user()]) }}" id="rolechangeForm">
                                     @csrf
@@ -155,6 +141,9 @@
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     <li>
                                     <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
+                                    </li>
+                                    <li>
+                                    <a class="dropdown-item " href="{{route('addonrule.index')}}">AddOnRules</a>
                                     </li>
                                     <li>
                                     <a class="dropdown-item " href="{{route('status.index')}}">Statuses</a>
