@@ -122,6 +122,7 @@ Route::group(['prefix' => 'addonrules'], function(){
     Route::post('createBackup',     [AddOnRuleController::class, 'createBackup'])->name('addonrule.createBackup')->middleware('auth');
     Route::get('getAddOnRuleInfo/{id}',     [AddOnRuleController::class, 'getAddOnRuleInfo'])->name('addonrule.getAddOnRuleInfo')->middleware('auth');
     Route::get('getRulesForDate/{date}',     [AddOnRuleController::class, 'getRulesForDate'])->name('addonrule.getRulesForDate')->middleware('auth');
+    Route::get('getRulesForDateAndClient/{date}/{client}',     [AddOnRuleController::class, 'getRulesForDateAndClient'])->name('addonrule.getRulesForDateAndClient')->middleware('auth');
 });
 Route::group(['prefix' => 'distances'], function(){
     //Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');

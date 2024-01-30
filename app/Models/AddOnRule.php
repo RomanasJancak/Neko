@@ -32,6 +32,17 @@ class AddOnRule extends Model
             ->where('end_date', '>=', $formattedDatetime)->get();
         return $rules;
     }
+    public static function getAllThatAreApplicableToThisDateForSpecificClient($date,$clientId)
+    {
+        
+        $formattedDatetime = Carbon::parse($date);
+        
+        $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
+            ->where('end_date', '>=', $formattedDatetime)
+            ->where('client_id','=',$clientId)
+            ->get();
+        return $rules;
+    }
     public function client()
     {
         return $this->belongsTo(Client::class);

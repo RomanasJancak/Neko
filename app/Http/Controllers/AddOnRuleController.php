@@ -155,4 +155,7 @@ class AddOnRuleController extends Controller
     public function getRulesForDate($date){
         return response()->json(AddOnRule::getAllThatAreApplicableToThisDate($date));
     }
+    public function getRulesForDateAndClient($date,$clientId){
+        return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($date,$clientId));
+    }
 }

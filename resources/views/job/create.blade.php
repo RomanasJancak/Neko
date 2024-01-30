@@ -33,31 +33,37 @@
                     </div>
                 </div>
                 <div class="row justify-content-md-center" id='courier-status-selection'>
-                    <div class="form-group col-md-2">
-                        <label for="courrier_id">Courier</label>
-                        <select id="courrier_id" name="courrier_id" class="form-control" >
-                            
-                            @foreach($couriers as $courier)
-                                <option value="{{ $courier->id }}">{{ $courier->name }}</option>
-                            @endforeach
-                            <option value="0" selected>none</option>    
-                        </select>
+                    <div class="row justify-content-md-center">
+                        <div class="form-group col-md-2">
+                            <label for="courrier_id">Courier</label>
+                            <select id="courrier_id" name="courrier_id" class="form-control" >
+                                
+                                @foreach($couriers as $courier)
+                                    <option value="{{ $courier->id }}">{{ $courier->name }}</option>
+                                @endforeach
+                                <option value="0" selected>none</option>    
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="status_id">Status</label>
+                            <select id="status_id" name="status_id" class="form-control">
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status->id }}">{{ $status->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="common_date">Date</label>
+                                <input type="date" id="common_date" name="common_date" class="form-control">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="billingclientsearch">Whom to bill</label>
+                            <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
+                            <input type="hidden" name="billingClient_id" id="billingClientIdField" value="">
+                        </div>
+                        
                     </div>
-                    <div class="form-group col-md-2">
-                        <label for="status_id">Status</label>
-                        <select id="status_id" name="status_id" class="form-control">
-                            @foreach($statuses as $status)
-                                <option value="{{ $status->id }}">{{ $status->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="form-group col-md-2">
-                        <label for="common_date">Date</label>
-                            <input type="date" id="common_date" name="common_date" class="form-control">
-                    </div>
-                    <div class="form-group col-md-2">
-                        <label for="billingclientsearch">Whom to bill</label>
-                        <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
+                    <div class="row justify-content-md-center" id="job-addon-container">
                     </div>
                 </div>
                 <div class="row">
@@ -303,6 +309,49 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDistances();
         updatePrices();
     }
+    function addInputCheckBox(container,rule){
+        const divElement = document.createElement('div');
+        divElement.classList.add('form-group');
+        divElement.classList.add('col-1');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'this'; // Set the id attribute to a unique identifier, e.g., rule name
+        checkbox.name = 'checkboxName'; // Set the name attribute if needed
+
+        // Create a label element associated with the checkbox (optional)
+        const label = document.createElement('label');
+        label.textContent = rule.display_name; // Label text, you can customize it as needed
+        label.setAttribute('for', checkbox.id); // Set 'for' attribute to match the checkbox's id
+
+        container.appendChild(divElement);
+        divElement.appendChild(label);
+        divElement.appendChild(checkbox);
+        
+    }
+    function updateJobAddons(){
+        jobAddonContainer    =   document.getElementById('job-addon-container');
+        date                =   document.getElementById('common_date').value;
+        billingClientId       =   document.getElementById('billingClientIdField').value;
+        console.log(date+' '+billingClientId);
+        if(date && billingClientId){
+            jobAddonContainer.innerHTML = '';
+        const routeUrl = "{{ route('addonrule.getRulesForDateAndClient', ['date' => ':date','client' =>':clientId']) }}".replace(':date', date).replace(':clientId',billingClientId);
+
+                fetch(routeUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(function (element){
+                            if(element.name.split('-')[0] === 'job'){
+                                addInputCheckBox(jobAddonContainer,element);
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+        }
+
+    }
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
     var clientsPacakgeTypes;
@@ -327,7 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const moveupPackageButtonElement = document.getElementById('package_button_up-0');
     const movedownPackageButtonElement = document.getElementById('package_button_down-0');
-
+    const jobCreationDatePicker = document.getElementById('common_date');
+    jobCreationDatePicker.addEventListener('change', function (event) {
+        updateJobAddons();
+    });
     moveupPackageButtonElement.addEventListener('click', function (event) {
         event.preventDefault();
         movePackage(moveupPackageButtonElement);
@@ -418,9 +470,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
+                        document.getElementById('billingClientIdField').value = data.id;
                         clientsPacakgeTypes = data.packageTypes;
                         populateFields('sender',data,clientsPacakgeTypes,true);
-                        updatePrices();    
+                        updateJobAddons(); 
+                        updatePrices();
+                           
                     }
                 })
                 .catch(error => {

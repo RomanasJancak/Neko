@@ -3,7 +3,7 @@
 @section('content')
 <?php
 
-//  dd(App\Models\AddOnRule::getAllThatAreApplicableToThisDate('2024-01-26'));
+//   dd(App\Models\AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient('2024-01-26','81'));
 ?>
 <div class="container">
     <div class="row">
