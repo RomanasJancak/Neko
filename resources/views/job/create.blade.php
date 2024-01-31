@@ -284,8 +284,9 @@ document.addEventListener('DOMContentLoaded', function() {
             finalPrice+=price;
 
             document.getElementById('package_price-'+id).innerHTML = price; 
-            document.getElementById('total-price').innerHTML = finalPrice;
+            
         });
+        document.getElementById('total-price').innerHTML = finalPrice;
     }
     function adjustPackagesId(){
         var packageCount=0;

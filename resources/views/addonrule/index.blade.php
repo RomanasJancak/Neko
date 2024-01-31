@@ -4,6 +4,7 @@
 <?php
 
 //   dd(App\Models\AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient('2024-01-26','81'));
+// dd(App\Models\AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern('2024-01-26','1','job-distance'));
 ?>
 <div class="container">
     <div class="row">

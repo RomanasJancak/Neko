@@ -23,6 +23,7 @@ class AddOnRule extends Model
             ['id', 'created_at', 'updated_at']
         );
     }
+    
     public static function getAllThatAreApplicableToThisDate($date)
     {
         
@@ -40,6 +41,18 @@ class AddOnRule extends Model
         $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
             ->where('end_date', '>=', $formattedDatetime)
             ->where('client_id','=',$clientId)
+            ->get();
+        return $rules;
+    }
+    public static function getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$prefix)
+    {
+        
+        $formattedDatetime = Carbon::parse($date);
+        
+        $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
+            ->where('end_date', '>=', $formattedDatetime)
+            ->where('client_id','=',$clientId)
+            ->where('name', 'like', $prefix . '%')
             ->get();
         return $rules;
     }

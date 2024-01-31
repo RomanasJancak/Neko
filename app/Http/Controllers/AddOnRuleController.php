@@ -97,15 +97,6 @@ class AddOnRuleController extends Controller
 
         return response()->json(['error' => 'Client not found'], 404);
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AddOnRule $addOnRule)
-    {
-        //
-    }
-
     /**
      * Update the specified resource in storage.
      */
@@ -157,5 +148,8 @@ class AddOnRuleController extends Controller
     }
     public function getRulesForDateAndClient($date,$clientId){
         return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($date,$clientId));
+    }
+    public function getDistancePriceForDateAndClient($date,$clientId){
+        return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$rulePattern));
     }
 }
