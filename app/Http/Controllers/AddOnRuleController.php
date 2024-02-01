@@ -150,6 +150,32 @@ class AddOnRuleController extends Controller
         return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($date,$clientId));
     }
     public function getDistancePriceForDateAndClient($date,$clientId){
+        $rulePattern = 'job-distance';
         return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$rulePattern));
+    }
+    public function getPriceForDistance($date,$clientId,$distance){
+        $rulePattern = 'job-distance';
+        $rules = AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$rulePattern);
+        $highestTresholdDistance    =   0;
+        $highestTresholdPrice       =   0;
+        $extraDistancePrice          =   0;
+        foreach($rules as $rule){
+            $parts = explode("-", $rule->name);
+            if($parts[2] == 'lessthan' ){
+                $value = $parts[3];
+                if($distance < $value*1000){
+                    return $rule->price;
+                }
+                if($highestTresholdDistance < $value){
+                    $highestTresholdDistance = $value;
+                    $highestTresholdPrice = $rule->price;
+                }
+            }elseif($parts[2] == 'eachafter' ){
+                $extraDistancePrice = $rule->price;
+            }
+        }
+        $extraDistance = $distance - $highestTresholdDistance*1000;
+        $price = $highestTresholdPrice + ceil($extraDistance/1000)*$extraDistancePrice;
+        return $price;
     }
 }

@@ -266,7 +266,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         distance = data;
                         finalDistance+=distance;
                         document.getElementById('package_distance-'+id).innerHTML = distance; 
-                        document.getElementById('total-distance').innerHTML = finalDistance; 
+                        document.getElementById('total-distance').innerHTML = finalDistance;
+                        updatePrices(); 
                     })
                     .catch(error => {
                         console.error(error);
@@ -275,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     
         });
+        
     }
     function updatePrices(){
         var finalPrice = 0;
@@ -287,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         });
         document.getElementById('total-price').innerHTML = finalPrice;
+        updatePriceForDistance(finalPrice);
     }
     function adjustPackagesId(){
         var packageCount=0;
@@ -333,7 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
         jobAddonContainer    =   document.getElementById('job-addon-container');
         date                =   document.getElementById('common_date').value;
         billingClientId       =   document.getElementById('billingClientIdField').value;
-        console.log(date+' '+billingClientId);
+        //console.log(date+' '+billingClientId);
         if(date && billingClientId){
             jobAddonContainer.innerHTML = '';
         const routeUrl = "{{ route('addonrule.getRulesForDateAndClient', ['date' => ':date','client' =>':clientId']) }}".replace(':date', date).replace(':clientId',billingClientId);
@@ -352,6 +355,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
         }
 
+    }
+    function updatePriceForDistance(finalPrice){
+        billingClientId       =   document.getElementById('billingClientIdField').value;
+        date                =   document.getElementById('common_date').value;
+        distance            =   document.getElementById('total-distance').innerHTML;
+        const routeUrl = "{{ route('addonrule.getPriceForDistance', ['date' => ':date','client' =>':clientId','distance' =>':distance']) }}"
+            .replace(':date', date).replace(':clientId',billingClientId).replace(':distance',distance);
+            //console.log(routeUrl);
+        if(date && billingClientId && distance){
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-price').innerHTML = finalPrice+data;
+                console.log();
+            })
+            .catch(error => {
+                console.error(error);
+        });
+        }
     }
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
