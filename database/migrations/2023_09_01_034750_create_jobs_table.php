@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->unsignedBigInteger('eilesNumeris')->nullable();
+            $table->unsignedBigInteger('eilesNumeris');
             $table->unsignedBigInteger('courrier_id')->nullable();
             $table->unsignedBigInteger('status_id');
             $table->unsignedBigInteger('clientToBill_id');         
