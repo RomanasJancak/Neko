@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreJobRequest extends FormRequest
 {
@@ -21,8 +22,50 @@ class StoreJobRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
+        $rules = [
+            // 'courrier_id' is done below.
+            'status_id'                     =>  'required',
+            'common_date'                   =>  'required',
+            'billingClientId'               =>  'required',
+
+            'pickup_time_begin'             =>  'required',
+            'pickup_time_end'               =>  'required',
+
+            'pickupclientname'              =>  'required',
+            'pickupclientaddressline'       =>  'required',
+            'pickupclientpostalcode'        =>  'required',
+            'pickupclientcity'              =>  'required',
+            'pickupclientcountry'           =>  'required',
+
+            'packagedropoffname.*'          =>  'required',
+            'packagedropooffaddressline.*'  =>  'required',
+            'packagedropoffpostalcode.*'    =>  'required',
+            'packagedropoffcity.*'          =>  'required',
+            'packagedropoffcountry.*'       =>  'required',
+            'packageType.*'                 =>  'required',
+            'packageType'                   =>  'required',
+
+            'generalnotes'                  =>  'required',
         ];
+        $courierId = $this->input('courrier_id');
+
+        // Check if 'courier_id' is equal to 0 and remove the field from the input data
+        if ($courierId == 0) {
+            unset($this->request->all()['courrier_id']);
+        } else {
+            $rules['courrier_id'] = [
+                'required', 
+                'integer',
+                Rule::exists('model_has_roles', 'model_id')->where(function ($query) use ($courierId) {
+                    $query->where('model_id', $courierId)->where('model_type','App\Models\User')
+                        ->where('role_id', function ($subquery) {
+                            $subquery->select('id')
+                                ->from('roles')
+                                ->where('name', 'courier');
+                        });
+                }),
+            ];
+        }
+        return $rules;
     }
 }

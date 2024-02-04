@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
+
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Role;
@@ -12,6 +13,7 @@ use App\Models\Status;
 use App\Models\PostalCode;
 use App\Models\PackageType;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
 
 class JobController extends Controller
@@ -58,21 +60,34 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
-        //dd($request);
-        $receiverIdRule = Rule::exists(Client::class, 'id');
-        $validatedData = $request->validate([
-             'courrier_id' => 'required',
-             'sender_id' => 'required',
-             'receiver_id' => ['required', $receiverIdRule],
-             'pickup_time_begin'    =>  'required',
-             'pickup_time_end'      =>  'required',
-        ]);
-        //dd($validatedData);
-        Job::create($validatedData);
+        $request->validated();
+        try{
+            $job = new Job();
+            $job->eilesNumeris      =   0;
+            $job->courrier_id       =   $request->courrier_id;
+            $job->status_id         =   $request->status_id; 
+            $job->clientToBill_id   =   $request->billingClientId;
+            $job->pickupClientName  =   $request->pickupclientname;
+            
+
+
+
+
+            return response()->json(['success'  => true,
+            'message'   => 'Validation succes.',
+            'inputs'    => $request->input(),
+            'validated inputs'    =>  $request->validated(),                       
+            ], 200);
+        } catch (QueryException $e){
+            return response()->json(['error' => $e->getMessage()], 500);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
         
+
         //Job::create($request->all());
         //return redirect()->route('job.index')->with('success', 'Job created successfully');
-        return redirect()->back()->with('succses', 'Addon Rule created successfully.');
+        //return redirect()->back()->with('succses', 'Addon Rule created successfully.');
     }
 
     /**

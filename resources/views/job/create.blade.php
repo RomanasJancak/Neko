@@ -10,7 +10,7 @@
                     </ul>
                 </div>
 @endif
-<div class="alert alert-danger custom-class-job-create">↩
+<div class="alert alert-danger custom-class-job-create">
 </div>
 <div class="container mt-5">
     <div class="row">
@@ -20,7 +20,7 @@
                     <h1>Job creation page</h1>
                 </div>
             </div>            
-            <form method="POST" action="{{ route('job.store') }}" class="row g-3">
+            <form method="POST" action="{{ route('job.store') }}" class="row g-3" id="jobCreateForm">
                 @csrf
                 <div class="modal fade" id="workloadModal" tabindex="-1"  aria-hidden="true">
                     <div class="modal-dialog modal-lg">
@@ -36,8 +36,7 @@
                     <div class="row justify-content-md-center">
                         <div class="form-group col-md-2">
                             <label for="courrier_id">Courier</label>
-                            <select id="courrier_id" name="courrier_id" class="form-control" >
-                                
+                            <select id="courrier_id" name="courrier_id" class="form-control" >                               
                                 @foreach($couriers as $courier)
                                     <option value="{{ $courier->id }}">{{ $courier->name }}</option>
                                 @endforeach
@@ -49,7 +48,7 @@
                             <select id="status_id" name="status_id" class="form-control">
                                 @foreach($statuses as $status)
                                     <option value="{{ $status->id }}">{{ $status->name }}</option>
-                                @endforeach
+                                @endforeach 
                             </select>
                         </div>
                         <div class="form-group col-md-2">
@@ -58,8 +57,8 @@
                         </div>
                         <div class="form-group col-md-2">
                             <label for="billingclientsearch">Whom to bill</label>
-                            <input type="text" id="billingclientsearch" name="billingclientId" class="form-control" placeholder="Search for clients">
-                            <input type="hidden" name="billingClient_id" id="billingClientIdField" value="">
+                            <input type="text" id="billingclientsearch" name="billingclientName" class="form-control" placeholder="Search for clients">
+                            <input type="hidden" name="billingClientId" id="billingClientIdField" value="">
                         </div>
                         
                     </div>
@@ -123,7 +122,7 @@
                                 <label id="labelpackagetypeselect-0" for="packagetypeselect-0">Package</label>
                                 <select class="select-ClientPackageType form-select" id="packagetypeselect-0" name="packageType[]" class="form-control">
                                 </select>
-                                <input type="number" id="packageQuantity-0" class="form-control" placeholder="Quantity">
+                                <input type="number" name="packagedropoffquantity[]" id="packageQuantity-0" class="form-control" placeholder="Quantity">
                                 <button class="btn btn-secondary" data-direction="up" id="package_button_up-0"><i class="bi bi-arrow-up-circle-fill"></i></button>
                                 <button class="btn btn-secondary" data-direction="down" id="package_button_down-0"><i class="bi bi-arrow-down-circle-fill"></i></button>
                             </div>
@@ -133,8 +132,8 @@
                                     <input type="text"          name="packagedropoffname[]" id="package_name_search-0" class="form-control" placeholder="Name">
                                     <input type="text"          name="packagedropooffaddressline[]" id="package_addressline-0" class="form-control" placeholder="Addressline">
                                     <input type="text"          name="packagedropoffpostalcode[]" id="package_postalcode-0" class="form-control" placeholder="Postal Code">
-                                    <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City">
-                                    <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country">
+                                    <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City" value="London">
+                                    <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country" value="UK">
                                     <div>Distance : <span id="package_distance-0">0</span> meters</div>
                                     <div>Price : <span id="package_price-0">0</span><span>&#163;</span></div>                         
                                 </div>
@@ -172,7 +171,7 @@
                     </select>
                 </div>
                 <button class="btn btn-secondary work-button">AddOns</button>
-                <button type="submit" class="btn btn-primary">Create Job</button>
+                <button type="submit" class="btn btn-primary" id="submitform">Create Job</button>
             </form>
         </div>
     </div>
@@ -227,6 +226,83 @@ function getDistance(origin,destination){
 
 
 document.addEventListener('DOMContentLoaded', function() {
+    autoFillForm();
+    function autoFillForm() {
+        // Example values to fill the form
+        var formData = {
+            courrier_id: 8, // Assuming 1 is a valid courier ID
+            status_id: 10,   // Assuming 1 is a valid status ID
+            common_date: '2023-01-01',
+            billingclientName: 'Neko home Delivery LLP',
+            
+            billingclientId: 1,
+            pickupclientname: 'Neko home Delivery LLP',pickupclientaddressline: 'FLAT 22 BAKERSFIELD',pickupclientpostalcode: 'N7 0LT',pickupclientcity: 'London',pickupclientcountry: 'Uk',
+            package_dropOff_address_name : 'Athlyn Flower',package_dropOff_addressLine : 'Unit 10',package_dropOff_postalCode: 'N15 4QN',package_dropOff_city: 'London',package_dropOff_Country:'Uk',
+            pickup_time_begin: '09:00',
+            pickup_time_end: '17:00',
+            generalnotes: 'Some notes here'
+        };
+
+        // Set the values for each form field
+        document.getElementById('courrier_id').value = formData.courrier_id;
+        document.getElementById('status_id').value = formData.status_id;
+        document.getElementById('common_date').value = formData.common_date;
+        document.getElementById('billingclientsearch').value = formData.billingclientName;
+        document.getElementById('billingClientIdField').value = formData.billingclientId;
+
+        document.getElementById('pickup_name_search').value = formData.pickupclientname;
+        document.getElementById('pickupaddress_addressline').value = formData.pickupclientaddressline;
+        document.getElementById('pickupaddress_postalcode').value = formData.pickupclientpostalcode;
+        document.getElementById('pickupaddress_city').value = formData.pickupclientcity;
+        document.getElementById('pickupaddress_country').value = formData.pickupclientcountry;
+
+        document.getElementById('pickup_time_begin').value = formData.pickup_time_begin;
+        document.getElementById('pickup_time_end').value = formData.pickup_time_end;
+
+        document.getElementById('package_name_search-0').value = formData.package_dropOff_address_name;
+        document.getElementById('package_addressline-0').value = formData.package_dropOff_addressLine;
+        document.getElementById('package_postalcode-0').value = formData.package_dropOff_postalCode;
+        document.getElementById('package_city-0').value = formData.package_dropOff_city;
+        document.getElementById('package_country-0').value = formData.package_dropOff_Country;
+
+        document.getElementById('generalnotes').value = formData.generalnotes;
+
+        // Add any additional fields or logic as necessary
+    }
+    function populateFields(data,clientsPacakgeTypes,isItFromBillingInput){
+            if(isItFromBillingInput){
+                document.getElementById('pickup_name_search').value = data.name;
+            }
+            document.getElementById('pickupaddress_addressline').value = data.pickup_adress_line;
+            document.getElementById('pickupaddress_postalcode').value = data.pickup_postal_code;
+            document.getElementById('pickupaddress_city').value = data.pickup_city;
+            document.getElementById('pickupaddress_country').value = data.pickup_country;
+            var selects = document.querySelectorAll('.select-ClientPackageType');
+            selects.forEach(function(select) {
+                while (select.options.length > 0) {
+                    select.remove(0);
+                }
+                clientsPacakgeTypes.forEach(function(pkg) {
+                    var option = document.createElement('option');
+                        option.value = pkg.id;
+                        option.text = pkg.name;
+                        option.setAttribute('data-price', pkg.price);
+                        select.appendChild(option);
+                });
+                if (select.options.length > 0) {
+                    select.selectedIndex = 0;                    
+                }
+                select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
+                
+                select.addEventListener('change', function(event) {
+                    updatePrices();
+                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
+                    //onPackageTypeChange(event);
+                    //select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
+                
+                });
+            });
+    }
     function updateDistances(){
         var finalDistance=0;
         document.querySelectorAll('[id^="package_distance-"]').forEach(packageDistanceElement => {
@@ -495,7 +571,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data) {
                         document.getElementById('billingClientIdField').value = data.id;
                         clientsPacakgeTypes = data.packageTypes;
-                        populateFields('sender',data,clientsPacakgeTypes,true);
+                        populateFields(data,clientsPacakgeTypes,true);
                         updateJobAddons(); 
                         updatePrices();
                            
@@ -537,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data) {
                         //console.log(data.packageTypes);
                         clientsPacakgeTypes = data.packageTypes;
-                        populateFields('sender',data,clientsPacakgeTypes,false);    
+                        populateFields(data,clientsPacakgeTypes,false);    
                     }
                 })
                 .catch(error => {
@@ -643,47 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //     totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
     //     totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
     // } 
-    function populateFields(clientType,data,clientsPacakgeTypes,isItFromBillingInput){
-            if(isItFromBillingInput){
-                document.getElementById('pickup_name_search').value = data.name;
-            }
-            //totalPriceOfTheJobElement.textContent=0;
-            //totalPriceOfTheJob=0;
-            document.getElementById('pickupaddress_addressline').value = data.pickup_adress_line;
-            document.getElementById('pickupaddress_postalcode').value = data.pickup_postal_code;
-            document.getElementById('pickupaddress_city').value = data.pickup_city;
-            document.getElementById('pickupaddress_country').value = data.pickup_country;
-            var selects = document.querySelectorAll('.select-ClientPackageType');
-            selects.forEach(function(select) {
-                while (select.options.length > 0) {
-                    select.remove(0);
-                }
-                clientsPacakgeTypes.forEach(function(pkg) {
-                    //console.log(pkg.price);
-                    var option = document.createElement('option');
-                        option.value = pkg.id;
-                        option.text = pkg.name;
-                        option.setAttribute('data-price', pkg.price);
-                        select.appendChild(option);
-                });
-                if (select.options.length > 0) {
-                    select.selectedIndex = 0;
-                    
-                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(select.options[select.selectedIndex].getAttribute('data-price'));
-                    //totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
-                    
-                }
-                select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
-                
-                select.addEventListener('change', function(event) {
-                    updatePrices();
-                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
-                    //onPackageTypeChange(event);
-                    //select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-                
-                });
-            });
-        }
+    
         document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
 
 
@@ -692,6 +728,51 @@ document.addEventListener('DOMContentLoaded', function() {
             
 
 //--------------------------
+    document.getElementById('submitform').addEventListener('click', function() {
+        event.preventDefault();
+        // Get form data
+        const form = document.getElementById('jobCreateForm');
+        const formData = new FormData(form);
+        //console.log(formData.get('addonruleid'));
+        //console.log(formData.get('workloadid'));
+
+        // Create a new XMLHttpRequest object
+        const xhr = new XMLHttpRequest();
+
+        // Define the request type, URL, and set up the request
+        xhr.open('POST', form.action, true);
+        xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
+        xhr.setRequestHeader('Accept', 'application/json');
+        // Handle the response
+        xhr.onload = function() {
+            if(xhr.status === 422) {
+                const errors = JSON.parse(xhr.responseText).errors;
+                let errorDisplayDiv = document.querySelector('.alert.alert-danger.custom-class-job-create');
+                errorDisplayDiv.innerHTML = "";                
+                const divElement = document.createElement('div');
+                const ulElement = document.createElement('ul');
+                Object.keys(errors).forEach((field) => {
+                    errors[field].forEach((error) => {
+                        const liElement = document.createElement("li");
+                        liElement.textContent = `${field}: ${error}`;
+                        ulElement.appendChild(liElement);
+                    });
+                });
+                divElement.appendChild(ulElement);
+                errorDisplayDiv.appendChild(divElement);
+                errorDisplayDiv.style.display = 'inline-block';
+                errorDisplayDiv.scrollIntoView({ behavior: "smooth" });
+            }else{
+                document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
+                console.log(JSON.parse(xhr.responseText));
+            }
+        };
+        xhr.onerror = function () {
+            // Handle network errors or other unexpected issues here
+        };
+        // Send the request
+        xhr.send(formData);
+    });
 });
 
     

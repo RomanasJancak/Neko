@@ -16,20 +16,16 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('eilesNumeris')->nullable();
             $table->unsignedBigInteger('courrier_id')->nullable();
-            $table->unsignedBigInteger('clientToBill_id')->nullable();
-            $table->unsignedBigInteger('sender_id')->nullable();
-            $table->unsignedBigInteger('receiver_id')->nullable();            
+            $table->unsignedBigInteger('status_id');
+            $table->unsignedBigInteger('clientToBill_id');         
             $table->dateTime('pickup_time_begin');
             $table->dateTime('pickup_time_end');
-            $table->dateTime('dropoff_time_begin');
-            $table->dateTime('dropoff_time_end');
-            $table->unsignedBigInteger('status_id');
+            $table->string('pickupClientName');
+            $table->string('pickupclientaddressline')->nullable();
             $table->string('collection_details')->nullable();
-            $table->string('dropoff_details')->nullable();
-            $table->string('pickup_address')->nullable();
-            $table->unsignedBigInteger('pickup_adress_postalCode_id')->nullable();
+            
+            $table->unsignedBigInteger('pickup_adress_postalCode')->nullable();
             $table->unsignedBigInteger('pickup_adress_street')->nullable();
-            $table->unsignedBigInteger('pickup_adress_apt_suite')->nullable();
             $table->string('delivery_address');
             $table->unsignedBigInteger('delivery_adress_postalCode_id')->nullable();
             $table->string('senderContacts');
