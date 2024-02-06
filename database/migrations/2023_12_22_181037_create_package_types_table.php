@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
-            
+            $table->bigInteger('price');
+            $table->unsignedBigInteger('baseQuantityThreshold');
+            $table->unsignedBigInteger('maxQuantityThreshold');            
         });
     }
 

@@ -19,9 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('orderNumber');
             $table->string('weight');
             $table->string('dimensions');
-            $table->string('size');
             $table->string('quantity');
-            $table->string('fragility');
             $table->string('dropoff_adress_line')->nullable();//CSV
             $table->string('dropoff_postal_code')->nullable();//CSV
             $table->string('dropoff_city')->nullable();//CSV

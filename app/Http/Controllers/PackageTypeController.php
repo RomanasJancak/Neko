@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PackageType;
+use App\Models\Client;
 use App\Models\Client_PackageType;
 use App\Http\Requests\StorePackageTypeRequest;
 use App\Http\Requests\UpdatePackageTypeRequest;
@@ -19,9 +20,10 @@ class PackageTypeController extends Controller
      */
     public function index()
     {
+        $clients = Client::orderBy('name', 'asc')->get();
         $packageTypes = PackageType::orderBy('id', 'asc')->paginate(10);
 
-        return view('packageType.index', compact('packageTypes'));
+        return view('packageType.index', compact('packageTypes','clients'));
     }
 
     /**
@@ -37,11 +39,22 @@ class PackageTypeController extends Controller
      */
     public function store(StorePackageTypeRequest $request)
     {
+        // return response()->json([
+        //     'message' => 'Package type created successfully.',
+        //     'packageType' => $request->input()
+        // ]);
         $packageType = new PackageType();
         $packageType->name = $request->name;
-        
+        $packageType->baseQuantityThreshold =   $request->baseQuantityThreshold;
+        $packageType->maxQuantityThreshold =   $request->maxQuantityThreshold;
+        $packageType->price                 =   intval(str_replace('.', '', $request->input('priceField')));
         $packageType->save();
-        $packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
+        foreach($request->selected_clients as $selected_client ){
+            $packageType->clients()->attach($selected_client);
+        }
+        
+
+        //$packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
         $packageType->save();
         return response()->json([
             'message' => 'Package type created successfully.',
@@ -71,12 +84,17 @@ class PackageTypeController extends Controller
     public function update(UpdatePackageTypeRequest $request, PackageType $packageType)
     {
         // return response()->json([
-        //     'message' => 'Status updated successfully. '.PackageType::findOrFail($request->packageTypeId)->clients[0]->pivot->price,
+        //     $request->input()
         // ]);
         $packageType = PackageType::findOrFail($request->packageTypeId);
         $packageType->name = $request->name;
-        $packageType->clients()->detach($request->packageTypeClientIdOld);
-        $packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
+        $packageType->baseQuantityThreshold =   $request->baseQuantityThreshold;
+        $packageType->maxQuantityThreshold =   $request->maxQuantityThreshold;
+        $packageType->price                 =   intval(str_replace('.', '', $request->input('priceField')));
+        $packageType->clients()->detach();
+        foreach($request->selected_clients as $selected_client ){
+            $packageType->clients()->attach($selected_client);
+        }
         $packageType->save();
 
         return response()->json([
@@ -91,6 +109,7 @@ class PackageTypeController extends Controller
     {
 
         $packageType = PackageType::findOrFail($request->packageTypeId);
+        $packageType->clients()->detach();
         $packageType->delete();
         return response()->json([
             'message' => 'PackageType deleted successfully.'.$request->packageTypeId.' '.$request->name
@@ -105,12 +124,13 @@ class PackageTypeController extends Controller
         if ($packageType) {
             return response()->json([
                 'name'                  => $packageType->name,
+                'price'                 => $packageType->price,
+                'baseQuantityThreshold' => $packageType->baseQuantityThreshold,
+                'maxQuantityThreshold'  => $packageType->maxQuantityThreshold,
                 'clients' => $packageType->clients->map(function ($client) {
                     return [
                         'id'    => $client->id,
                         'name' => $client->name,
-                        'price' => $client->pivot->price,
-                        // Add more attributes as needed
                     ];
                 }),  
                 ]);

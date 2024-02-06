@@ -53,16 +53,16 @@ protected $fillable = [
 
         return $newDistance;
     }
-    private static function calculateDistance($origin, $destination, $mode = 'driving') {
+    private static function calculateDistance($origin, $destination, $mode = 'walking') {
         $distance = \GoogleMaps::load('distancematrix')                    
         ->setParamByKey('origins', $origin)
         ->setParamByKey('destinations', $destination)   
         ->setParamByKey('mode', $mode)
-        ->setParamByKey('language', 'LT')                     
+        ->setParamByKey('language', 'LT')
+        //->setParamByKey('units','imperial' )                    
         ->getResponseByKey('rows.elements')['rows'][0]['elements'][0]['distance']['value'];
     
         // Calculate distance between addresses for specified travel mode
-    
         return $distance;
         //$drivingDistance = calculateDistance($originAddress, $destinationAddress, 'driving');
         //$walkingDistance = calculateDistance($originAddress, $destinationAddress, 'walking');

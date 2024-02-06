@@ -31,7 +31,7 @@ class Client extends Model
                             'vat','regNumber','address','note'];
     public function packageTypes()
     {
-        return $this->belongsToMany(PackageType::class,'client__package_types')->withPivot('price');
+        return $this->belongsToMany(PackageType::class,'client__package_types');
     }
     public function jobs(){
         return $this->hasmany(Job::class,'clientToBill_id');

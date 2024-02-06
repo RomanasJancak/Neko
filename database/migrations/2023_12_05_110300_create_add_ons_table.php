@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('add_ons', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('model_type');// either app/models/Job or app/models/Package
+            $table->string('model_type');// either app/models/Job or app/models/Package or app/models/PackageType
             $table->unsignedBigInteger('model_id');
             $table->dateTime('begin_date');
             $table->dateTime('end_date');

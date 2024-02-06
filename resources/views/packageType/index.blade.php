@@ -15,7 +15,10 @@
                     <tr>
                         <th data-column="id">ID</th>
                         <th data-column="name">Name</th>
-                        <th data-column="name">Used by & value</th>
+                        <th data-column="value">Value</th>
+                        <th data-column="clients">Used</th>
+                        <th data-column="baseQuantityThreshold">Base price qnt.</th>
+                        <th data-column="maxQuantityThreshold">Warning qnt.</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -24,23 +27,27 @@
                     <tr>
                         <td>{{ $packageType->id }}</td>
                         <td>{{ $packageType->name }}</td>
-                        <td>
+                        <td>{{ number_format($packageType->price / 100, 2) }}</td>
+                        <td>{{ $packageType->baseQuantityThreshold }}</td>
+                        <td>{{ $packageType->maxQuantityThreshold }}</td>
+                        <td class="client-list" data-package-type-id="{{ $packageType->id }}">
                         @foreach ($packageType->clients as $client)
                             <div class="row">
                                 <div class="col">{{$client->name}}</div>
-                                <div class="col">{{$client->pivot->price}}</div>
                             </div>
                         @endforeach
+                        <button id="expandButton-{{ $packageType->id }}" class="btn btn-primary expand-button" style="display: none;">Expand</button>
+                        <button id="collapseButton-{{ $packageType->id }}" class="btn btn-primary collapse-button" style="display: none;">Collapse</button>
                         </td>
                         <td>
                             <button class="btn btn-primary edit-btn" 
                                 data-packagetypeid="{{ $packageType->id }}"
-                                data-oldclientid="{{ $packageType->clients[0]->id }}"
+                                
                                 data-name="{{ $packageType->name }}"
                             ><i class="bi bi-pen"></i></button>
                             <button class="btn btn-danger delete-btn" 
                                 data-packagetypeid="{{ $packageType->id }}"
-                                data-oldclientid="{{ $packageType->clients[0]->id }}"
+                                
                                 data-name="{{ $packageType->name }}"
                             ><i class="bi bi-trash"></i></button>
                         </td>
@@ -68,13 +75,40 @@
                         <input type="hidden" name="packageTypeClientIdOld" id="packageTypeClientIdOld" value="">
                         <input type="hidden" name="packageTypeClientId" id="packageTypeClientId" value="">
                         <label for="nameField">Name : </label>
-                        <input type="text" name="name" id="nameField" value="">
+                        <input type="text" name="name" id="nameField" value="" placeholder="Package type name">
                     </div>
                     <div class="row">
-                        <label for="clientNameField">Used by : </label>
-                        <input type="text" name="clientNameField" id="clientNameField" value="" placeholder="Search for client">
-                        <label for="priceField">Price : </label>
-                        <input type="text" name="priceField" id="priceField" value="">
+                        <div class="col-md-3">
+                            <label for="priceField"> Base price add : </label>
+                            <input type="text" name="priceField" id="priceField" value="1.11"><i class="bi bi-info-circle-fill" data-toggle="tooltip" data-placement="right" title="Use period instead of comma"></i>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="baseQuantityThresholdField">Quantity before oversize : </label>
+                            <input type="number" name="baseQuantityThreshold" id="baseQuantityThresholdField" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="maxQuantityThresholdField">Max allowable : </label>
+                            <input type="number" name="maxQuantityThreshold" id="maxQuantityThresholdField" value="1">
+                        </div>
+                    </div>
+                    <hr class="my-divider">
+                    <div class="row">
+                        <div class="col-md-6"><button type="button" id="checkAllClientsButton" class="btn btn-primary">Check All</button></div>
+                        <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
+                    </div>
+                    <hr class="my-divider">
+                    <div class="row">
+                        <!-- <label for="clientNameField">Used by : </label> -->
+                        <input hidden type="text" name="clientNameField" id="clientNameField" value="" placeholder="Search for client">
+                        @foreach ($clients as $client)
+                            <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
+                                <label>
+                                    <input type="checkbox" name="selected_clients[]" value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} {{ $client->id == 1 ? 'disabled' : '' }}>
+                                        {{ $client->name }}
+                                </label>
+                            </div>
+                         @endforeach
+
                     </div>
                     <div class="row">
                         <div class="form-group">
@@ -95,6 +129,45 @@
 <script>
     
 document.addEventListener('DOMContentLoaded', function() {
+//===========================================================================================
+var clientLists = document.querySelectorAll('.client-list');
+
+clientLists.forEach(function(clientList) {
+    var packageTypeId = clientList.getAttribute('data-package-type-id');
+        var expandButton = document.getElementById('expandButton-' + packageTypeId);
+        var collapseButton = document.getElementById('collapseButton-' + packageTypeId);
+        var rows = clientList.querySelectorAll('.row');
+
+    if (rows.length > 3) {
+        expandButton.style.display = 'block';
+        rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'none';
+                }
+        });
+
+        expandButton.addEventListener('click', function() {
+            rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'block';
+                }
+            });
+            expandButton.style.display = 'none';
+            collapseButton.style.display = 'block';
+        });
+
+        collapseButton.addEventListener('click', function() {
+            rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'none';
+                }
+            });
+            collapseButton.style.display = 'none';
+            expandButton.style.display = 'block';
+        });
+    }
+});
+//===========================================================================================
     var clientSearchInput = $('#clientNameField');
     if (clientSearchInput.length > 0) {
         clientSearchInput.typeahead({
@@ -133,6 +206,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
+    document.getElementById('checkAllClientsButton').addEventListener('click', (event) => {
+        event.preventDefault();
+        var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+        checkboxes.forEach(function(checkBox){
+            checkBox.checked = true; 
+        });
+        }
+    );
+    document.getElementById('unCheckAllClientsButton').addEventListener('click', (event) => {
+        event.preventDefault();
+        var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+        checkboxes.forEach(function(checkBox){
+            checkBox.checked = false; 
+        });
+        }
+    );
     document.querySelectorAll('.edit-btn').forEach(button => {
 
         button.addEventListener('click', () => {
@@ -150,9 +239,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         .then(data => {
                             if (data) {
                                 document.getElementById('clientNameField').value = data.clients[0].name;
-                                document.getElementById('priceField').value = data.clients[0].price;
+                                document.getElementById('priceField').value = (data.price / 100).toFixed(2);
+                                document.getElementById('baseQuantityThresholdField').value = data.baseQuantityThreshold;
+                                document.getElementById('maxQuantityThresholdField').value = data.maxQuantityThreshold;
                                 document.getElementById('packageTypeClientId').value = data.clients[0].id;
-                                document.getElementById('packageTypeClientIdOld').value = packageTypeOldClientId; 
+                                document.getElementById('packageTypeClientIdOld').value = packageTypeOldClientId;
+                                data.clients.forEach(function(client) {
+                                    var checkbox = document.querySelector('input[name="selected_clients[]"][value="' + client.id + '"]');
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                    }
+                                    var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+                                    checkboxes.forEach(function(checkBox){      
+                                        checkbox.removeAttribute('disabled');  
+                                    });
+                                });
+                                var clientDivs = document.querySelectorAll('.client-item');
+                                clientDivs.forEach(function(clientDiv){
+                                    clientDiv.style.display = '';     
+                                });
+                                document.getElementById('checkAllClientsButton').style.display = '';
+                                document.getElementById('unCheckAllClientsButton').style.display = '';
+                                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').checked;
+                                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').setAttribute('disabled', 'disabled');
                             }
                         })
                         .catch(error => {
@@ -164,6 +273,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('nameField').readOnly = false;
             document.getElementById('clientNameField').readOnly = false;
             document.getElementById('priceField').readOnly = false;
+            document.getElementById('baseQuantityThresholdField').readOnly = false;
+            document.getElementById('maxQuantityThresholdField').readOnly = false;
             $('#modalWindow').modal('show');
         });
     });
@@ -183,12 +294,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         .then(data => {
                             if (data) {
                                 document.getElementById('clientNameField').value = data.clients[0].name;
-                                document.getElementById('priceField').value = data.clients[0].price;
+                                document.getElementById('priceField').value = (data.price / 100).toFixed(2);
+                                document.getElementById('baseQuantityThresholdField').value = data.baseQuantityThreshold;
+                                document.getElementById('maxQuantityThresholdField').value = data.maxQuantityThreshold;
                                 document.getElementById('packageTypeClientId').value = data.clients[0].id;
                                 document.getElementById('packageTypeClientIdOld').value = packageTypeOldClientId;
                                 document.getElementById('nameField').readOnly = true;
+                                
                                 document.getElementById('clientNameField').readOnly = true;
-                                document.getElementById('priceField').readOnly = true; 
+                                document.getElementById('priceField').readOnly = true;
+                                document.getElementById('baseQuantityThresholdField').readOnly = true;
+                                document.getElementById('maxQuantityThresholdField').readOnly = true;
+                                
+                                data.clients.forEach(function(client) {
+                                    var checkbox = document.querySelector('input[name="selected_clients[]"][value="' + client.id + '"]');
+                                    
+                                    
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                        checkbox.setAttribute('disabled', 'disabled');
+                                    }
+                                });
+                                $('input[type="checkbox"][name="selected_clients[]"]').each(function() {
+                                    var clientId = $(this).val();
+                                    var clientItem = $('.client-item[data-client-id="' + clientId + '"]');
+                                    
+                                    if ($(this).prop('checked')) {
+                                        clientItem.show(); // Show the client element if the checkbox is checked
+                                    } else {
+                                        clientItem.hide(); // Hide the client element if the checkbox is unchecked
+                                    }
+                                });
+                                document.getElementById('checkAllClientsButton').style.display = 'none';
+                                document.getElementById('unCheckAllClientsButton').style.display = 'none'; 
                             }
                         })
                         .catch(error => {
@@ -210,6 +348,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.setAttribute('action', "{{ route('packageType.store') }}");
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                document.getElementById('checkAllClientsButton').style.display = '';
+                document.getElementById('unCheckAllClientsButton').style.display = '';
             }
             $('#modalWindow').modal('show');
         });

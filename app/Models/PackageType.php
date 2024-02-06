@@ -11,7 +11,7 @@ class PackageType extends Model
 
     public function clients()
     {
-        return $this->belongsToMany(Client::class, 'client__package_types')->withPivot('price');
+        return $this->belongsToMany(Client::class, 'client__package_types')->withTimestamps();
     }
     public function packages(){
         

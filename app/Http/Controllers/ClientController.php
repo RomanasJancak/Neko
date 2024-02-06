@@ -182,7 +182,7 @@ class ClientController extends Controller
                     return [
                         'id' => $packageType->id,
                         'name' => $packageType->name,
-                        'price' => $packageType->pivot->price, // Accessing the pivot data
+                        'price' => $packageType->price, // Accessing the pivot data
                     ];
                 }),
                 ]);

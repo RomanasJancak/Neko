@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var formData = {
             courrier_id: 8, // Assuming 1 is a valid courier ID
             status_id: 10,   // Assuming 1 is a valid status ID
-            common_date: '2023-01-01',
+            common_date: '2024-01-27',
             billingclientName: 'Neko home Delivery LLP',
             
             billingclientId: 1,
@@ -439,12 +439,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const routeUrl = "{{ route('addonrule.getPriceForDistance', ['date' => ':date','client' =>':clientId','distance' =>':distance']) }}"
             .replace(':date', date).replace(':clientId',billingClientId).replace(':distance',distance);
             //console.log(routeUrl);
+        console.log(routeUrl);
         if(date && billingClientId && distance){
         fetch(routeUrl)
             .then(response => response.json())
             .then(data => {
                 document.getElementById('total-price').innerHTML = finalPrice+data;
-                console.log();
+                console.log(data);
             })
             .catch(error => {
                 console.error(error);

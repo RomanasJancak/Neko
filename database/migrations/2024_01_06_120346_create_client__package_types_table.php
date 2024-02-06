@@ -16,7 +16,6 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('package_type_id');
-            $table->bigInteger('price');
         });
     }
 
