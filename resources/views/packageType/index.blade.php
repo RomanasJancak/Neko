@@ -103,7 +103,7 @@
                         @foreach ($clients as $client)
                             <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
                                 <label>
-                                    <input type="checkbox" name="selected_clients[]" value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} {{ $client->id == 1 ? 'disabled' : '' }}>
+                                    <input type="checkbox" name="selected_clients[]"  value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
                                         {{ $client->name }}
                                 </label>
                             </div>
@@ -261,7 +261,8 @@ clientLists.forEach(function(clientList) {
                                 document.getElementById('checkAllClientsButton').style.display = '';
                                 document.getElementById('unCheckAllClientsButton').style.display = '';
                                 document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').checked;
-                                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').setAttribute('disabled', 'disabled');
+                                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').setAttribute('readonly', true);
+
                             }
                         })
                         .catch(error => {
@@ -312,7 +313,7 @@ clientLists.forEach(function(clientList) {
                                     
                                     if (checkbox) {
                                         checkbox.checked = true;
-                                        checkbox.setAttribute('disabled', 'disabled');
+                                        checkbox.setAttribute('readonly', 'true');
                                     }
                                 });
                                 $('input[type="checkbox"][name="selected_clients[]"]').each(function() {

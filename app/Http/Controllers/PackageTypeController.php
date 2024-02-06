@@ -41,7 +41,7 @@ class PackageTypeController extends Controller
     {
         // return response()->json([
         //     'message' => 'Package type created successfully.',
-        //     'packageType' => $request->input()
+        //     'packageType' => $request->input('selected_clients')
         // ]);
         $packageType = new PackageType();
         $packageType->name = $request->name;

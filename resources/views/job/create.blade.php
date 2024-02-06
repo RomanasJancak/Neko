@@ -224,8 +224,9 @@ function getDistance(origin,destination){
                     });
 }
 
-
 document.addEventListener('DOMContentLoaded', function() {
+    var billingClientSearchInput = $('#billingclientsearch');
+    
     autoFillForm();
     function autoFillForm() {
         // Example values to fill the form
@@ -233,9 +234,10 @@ document.addEventListener('DOMContentLoaded', function() {
             courrier_id: 8, // Assuming 1 is a valid courier ID
             status_id: 10,   // Assuming 1 is a valid status ID
             common_date: '2024-01-27',
+
             billingclientName: 'Neko home Delivery LLP',
-            
             billingclientId: 1,
+
             pickupclientname: 'Neko home Delivery LLP',pickupclientaddressline: 'FLAT 22 BAKERSFIELD',pickupclientpostalcode: 'N7 0LT',pickupclientcity: 'London',pickupclientcountry: 'Uk',
             package_dropOff_address_name : 'Athlyn Flower',package_dropOff_addressLine : 'Unit 10',package_dropOff_postalCode: 'N15 4QN',package_dropOff_city: 'London',package_dropOff_Country:'Uk',
             pickup_time_begin: '09:00',
@@ -247,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('courrier_id').value = formData.courrier_id;
         document.getElementById('status_id').value = formData.status_id;
         document.getElementById('common_date').value = formData.common_date;
-        document.getElementById('billingclientsearch').value = formData.billingclientName;
+        //document.getElementById('billingclientsearch').value = formData.billingclientName;
         document.getElementById('billingClientIdField').value = formData.billingclientId;
 
         document.getElementById('pickup_name_search').value = formData.pickupclientname;
@@ -266,8 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('package_country-0').value = formData.package_dropOff_Country;
 
         document.getElementById('generalnotes').value = formData.generalnotes;
-
-        // Add any additional fields or logic as necessary
     }
     function populateFields(data,clientsPacakgeTypes,isItFromBillingInput){
             if(isItFromBillingInput){
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
     var clientsPacakgeTypes;
-    var billingClientSearchInput = $('#billingclientsearch');
+    
     addTypeHeadSearch(billingClientSearchInput);
     var pickupClientSearchInput =  $('#pickup_name_search');
 
@@ -480,6 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
     jobCreationDatePicker.addEventListener('change', function (event) {
         updateJobAddons();
     });
+
+// Dispatch the event on the jobCreationDatePicker element
     moveupPackageButtonElement.addEventListener('click', function (event) {
         event.preventDefault();
         movePackage(moveupPackageButtonElement);
