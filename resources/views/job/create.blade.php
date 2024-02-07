@@ -94,7 +94,7 @@
                                     <input hidden type="text"   name="pickupclientcountry" id="pickupaddress_country" class="form-control" placeholder="Country">
                                 </div>
                                 <div class="col-auto">
-                                    <div><h6>Total distance :</h6><span id="total-distance"></span></div>
+                                    <div><h6>Total distance :</h6><span id="total-distance"></span><span> miles</span></div>
                                 </div>
                             </div>
                             <div class="row">
@@ -134,7 +134,7 @@
                                     <input type="text"          name="packagedropoffpostalcode[]" id="package_postalcode-0" class="form-control" placeholder="Postal Code">
                                     <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City" value="London">
                                     <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country" value="UK">
-                                    <div>Distance : <span id="package_distance-0">0</span> meters</div>
+                                    <div>Distance : <span id="package_distance-0">0</span> miles</div>
                                     <div>Price : <span id="package_price-0">0</span><span>&#163;</span></div>                         
                                 </div>
                             </div>
@@ -180,13 +180,7 @@
 @endsection
 @section('scripts')
 <script>
-    //let totalPriceOfTheJob = 0;
-    //let totalDistanceOfTheJob = 0;
-    //const totalPriceOfTheJobElement =  document.getElementById('total-price');
-    //const totalDistanceOfTheJobElement =  document.getElementById('total-distance');
-    //let arrayOfSelectedOptionsForPackageTypeSelect = [];
     const commonDate = document.getElementById('common_date');
-    //const finalpriceElement = document.getElementById('finalprice');
     //===============================MODAL FORM BEGIN
     document.querySelectorAll('.work-button').forEach(button => {
             button.addEventListener('click', (event) => {
@@ -214,16 +208,6 @@ function getAddOnRule(datetime){
                         console.error(error);
                     });
 }
-function getDistance(origin,destination){
-    return fetch(`{{ asset('distances/getDistance') }}?origin=${origin}&destination=${destination}`)
-                    .then(response => response.json())
-                    .then(data => {
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     var billingClientSearchInput = $('#billingclientsearch');
     
@@ -286,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     var option = document.createElement('option');
                         option.value = pkg.id;
                         option.text = pkg.name;
-                        option.setAttribute('data-price', pkg.price);
+                        option.setAttribute('data-price', parseFloat(pkg.price/100));
                         select.appendChild(option);
                 });
                 if (select.options.length > 0) {
@@ -295,11 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
                 
                 select.addEventListener('change', function(event) {
-                    updatePrices();
-                    //totalPriceOfTheJob=parseInt(totalPriceOfTheJob)-parseInt(select.previousPrice);
-                    //onPackageTypeChange(event);
-                    //select.previousPrice = parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-                
+                    updatePrices();                
                 });
             });
     }
@@ -339,10 +319,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(response => response.json())
                     .then(data => {
                         //console.log('data is ',data);
-                        distance = data;
+                        distance = data*0.000621371192;
                         finalDistance+=distance;
-                        document.getElementById('package_distance-'+id).innerHTML = distance; 
-                        document.getElementById('total-distance').innerHTML = finalDistance;
+                        document.getElementById('package_distance-'+id).innerHTML = parseFloat(distance).toFixed(3); 
+                        document.getElementById('total-distance').innerHTML = parseFloat(finalDistance).toFixed(3);
                         updatePrices(); 
                     })
                     .catch(error => {
@@ -358,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var finalPrice = 0;
         document.querySelectorAll('[id^="packagetypeselect-"]').forEach(packageSelectElement => {
             var id = packageSelectElement.id.split('-')[packageSelectElement.id.split('-').length - 1];
-            var price=parseInt(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
+            var price=parseFloat(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
             finalPrice+=price;
 
             document.getElementById('package_price-'+id).innerHTML = price; 
@@ -439,12 +419,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const routeUrl = "{{ route('addonrule.getPriceForDistance', ['date' => ':date','client' =>':clientId','distance' =>':distance']) }}"
             .replace(':date', date).replace(':clientId',billingClientId).replace(':distance',distance);
             //console.log(routeUrl);
-        console.log(routeUrl);
         if(date && billingClientId && distance){
         fetch(routeUrl)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('total-price').innerHTML = finalPrice+data;
+                console.log(data);
+                console.log(parseFloat(data/100));
+                console.log(parseFloat(data/100).toFixed(2));
+                document.getElementById('total-price').innerHTML = parseFloat(parseFloat(finalPrice)+parseFloat(data/100)).toFixed(2);
                 console.log(data);
             })
             .catch(error => {
@@ -703,32 +685,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 //console.log('data is ',data);
-                package_distance_innerVariable.innerHTML = data;
-                totalDistanceOfTheJob = parseInt(totalDistanceOfTheJob)+parseInt(package_distance.innerHTML);
+                package_distance_innerVariable.innerHTML = data*0.000621371192;
+                totalDistanceOfTheJob = parseFloat(totalDistanceOfTheJob)+parseFloat(package_distance.innerHTML);
                 totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
-                //console.log('package_distance_innerVariable.innerHTML is ',package_distance_innerVariable.innerHTML);
             })
             .catch(error => {
                 console.error(error);
             });
-            //console.log(package_distance_innerVariable.innerHTML);
         }
-    }
-       
-    // function onPackageTypeChange(event) {
-    //     // You can access the selected value using event.target.value
-    //     //console.log('Selected package type:', event.target);
-    //     //console.log('Selected package price:',event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-    //     totalPriceOfTheJob=parseInt(totalPriceOfTheJob)+parseInt(event.target.options[event.target.selectedIndex].getAttribute('data-price'));
-    //     totalPriceOfTheJobElement.textContent=totalPriceOfTheJob;
-    // } 
-    
-        document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
-
-
-            // This code will run when the page is fully loaded
-            // You can set the default pickup address here
-            
+    }   
+        document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';           
 
 //--------------------------
     document.getElementById('submitform').addEventListener('click', function() {

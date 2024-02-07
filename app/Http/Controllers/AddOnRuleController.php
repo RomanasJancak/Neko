@@ -154,7 +154,7 @@ class AddOnRuleController extends Controller
         return response()->json(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$rulePattern));
     }
     public function getPriceForDistance($date,$clientId,$distanceMeters,$unitOfMeasurment = 'mile'){
-        $distance = $distanceMeters*0.000621371192;
+        $distance = $distanceMeters;
         $rulePattern = 'job-distance';
         $rules = AddOnRule::getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$rulePattern);
         $highestTresholdDistance    =   0;
