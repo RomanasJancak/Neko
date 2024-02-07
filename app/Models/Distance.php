@@ -58,8 +58,7 @@ protected $fillable = [
         ->setParamByKey('origins', $origin)
         ->setParamByKey('destinations', $destination)   
         ->setParamByKey('mode', $mode)
-        ->setParamByKey('language', 'LT')
-        //->setParamByKey('units','imperial' )                    
+        ->setParamByKey('language', 'LT')                   
         ->getResponseByKey('rows.elements')['rows'][0]['elements'][0]['distance']['value'];
     
         // Calculate distance between addresses for specified travel mode
