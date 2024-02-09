@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('client_add_on_rules', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('add_on_rule_id');
         });
     }
 

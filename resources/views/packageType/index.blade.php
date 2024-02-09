@@ -15,10 +15,10 @@
                     <tr>
                         <th data-column="id">ID</th>
                         <th data-column="name">Name</th>
-                        <th data-column="value">Value</th>
-                        <th data-column="clients">Used</th>
+                        <th data-column="value">Base price add </th>
                         <th data-column="baseQuantityThreshold">Base price qnt.</th>
                         <th data-column="maxQuantityThreshold">Warning qnt.</th>
+                        <th data-column="clients">Used by</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -104,10 +104,18 @@
                             <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
                                 <label>
                                     <input type="checkbox" name="selected_clients[]"  value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
+                                    <?php $maxLengthOfCLientName = 21;?>
+                                    @if(strlen($client->name) > $maxLengthOfCLientName)
+                                        <span data-toggle="tooltip" data-placement="top" title="{{ $client->name }}">
+                                            {{ substr($client->name, 0, $maxLengthOfCLientName) }}...
+                                        </span>
+                                    @else
                                         {{ $client->name }}
+                                    @endif
                                 </label>
                             </div>
                          @endforeach
+
 
                     </div>
                     <div class="row">
@@ -218,7 +226,12 @@ clientLists.forEach(function(clientList) {
         event.preventDefault();
         var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
         checkboxes.forEach(function(checkBox){
-            checkBox.checked = false; 
+            if(checkBox.value == '1'){
+                
+            }
+            else{
+                checkBox.checked = false;
+            }
         });
         }
     );

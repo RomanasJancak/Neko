@@ -18,12 +18,12 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Client name</th>
                         <th>Begin date</th>
                         <th>End date</th>
                         <th>Display name</th>
                         <th>Code</th>
                         <th>Price</th>
+                        <th data-column="clients">Used by</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -31,12 +31,21 @@
                     @foreach($addOnRules as $addonrule)
                     <tr>
                         <td>{{ $addonrule->id }}</td>
-                        <td>{{ $addonrule->client->name }}</td>
                         <td>{{ $addonrule->begin_date }}</td>
                         <td>{{ $addonrule->end_date }}</td>
                         <td>{{ $addonrule->display_name }}</td>
                         <td>{{ $addonrule->name }}</td>
                         <td>{{ $addonrule->price }}</td>
+                        <td class="client-list" data-package-type-id="{{ $addonrule->id }}">
+                        @foreach ($addonrule->clients as $client)
+                            <div class="row">
+                                <div class="col">{{$client->name}}</div>
+                            </div>
+                        @endforeach
+                        <button id="expandButton-{{ $addonrule->id }}" class="btn btn-primary expand-button" style="display: none;">Expand</button>
+                        <button id="collapseButton-{{ $addonrule->id }}" class="btn btn-primary collapse-button" style="display: none;">Collapse</button>
+                        </td>
+                        
                         <td>
                             <button class="btn btn-primary edit-btn" 
                                 data-addonruleid="{{ $addonrule->id }}"
@@ -86,9 +95,30 @@
                         <div class="col">        
                             <label for="nameField">Price : </label>
                             <input type="text" name="price" id="priceField" value="">
-                            <label for="nameField">Client : </label>
-                            <input type="text" name="clientName" id="clientNameField" value="">
                         </div>
+                    </div>
+                    <hr class="my-divider">
+                    <div class="row">
+                        <div class="col-md-6"><button type="button" id="checkAllClientsButton" class="btn btn-primary">Check All</button></div>
+                        <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
+                    </div>
+                    <hr class="my-divider">
+                    <div class="row">
+                    @foreach ($clients as $client)
+                            <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
+                                <label>
+                                    <input type="checkbox" name="selected_clients[]"  value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
+                                    <?php $maxLengthOfCLientName = 21;?>
+                                    @if(strlen($client->name) > $maxLengthOfCLientName)
+                                        <span data-toggle="tooltip" data-placement="top" title="{{ $client->name }}">
+                                            {{ substr($client->name, 0, $maxLengthOfCLientName) }}...
+                                        </span>
+                                    @else
+                                        {{ $client->name }}
+                                    @endif
+                                </label>
+                            </div>
+                         @endforeach
                     </div>
                     <div class="row">
                         <div class="form-group">
@@ -113,6 +143,45 @@
 <script>
     
 document.addEventListener('DOMContentLoaded', function() {
+//===========================================================================================
+var clientLists = document.querySelectorAll('.client-list');
+
+clientLists.forEach(function(clientList) {
+    var packageTypeId = clientList.getAttribute('data-package-type-id');
+        var expandButton = document.getElementById('expandButton-' + packageTypeId);
+        var collapseButton = document.getElementById('collapseButton-' + packageTypeId);
+        var rows = clientList.querySelectorAll('.row');
+
+    if (rows.length > 3) {
+        expandButton.style.display = 'block';
+        rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'none';
+                }
+        });
+
+        expandButton.addEventListener('click', function() {
+            rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'block';
+                }
+            });
+            expandButton.style.display = 'none';
+            collapseButton.style.display = 'block';
+        });
+
+        collapseButton.addEventListener('click', function() {
+            rows.forEach(function(row, index) {
+                if (index >= 3) {
+                    row.style.display = 'none';
+                }
+            });
+            collapseButton.style.display = 'none';
+            expandButton.style.display = 'block';
+        });
+    }
+});
+//===========================================================================================
     addSearchAbilityForClientsToField('clientNameField');
     document.querySelectorAll('.edit-btn').forEach(button => {
 
@@ -134,20 +203,33 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('beginDateField').readOnly = false;
                                 document.getElementById('endDateField').readOnly = false;
                                 document.getElementById('priceField').readOnly = false;
-                                document.getElementById('clientNameField').readOnly = false;
                                 
                                 document.getElementById('displaynameField').value = data.display_name;
                                 document.getElementById('nameField').value = data.name;
                                 document.getElementById('beginDateField').value = data.begin_date.split(' ')[0];
                                 document.getElementById('endDateField').value = data.end_date.split(' ')[0];
                                 document.getElementById('priceField').value = data.price;
-                                document.getElementById('clientNameField').value = data.clientName;
-                                document.getElementById('clientIdField').value = data.clientId;
+                                data.clients.forEach(function(client) {
+                                    var checkbox = document.querySelector('input[name="selected_clients[]"][value="' + client.id + '"]');
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                    }
+
+                                });
+                                var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+                                    checkboxes.forEach(function(checkBox){      
+                                        checkBox.removeAttribute('disabled');  
+                                });
+                                
                             }
                         })
                         .catch(error => {
                             console.error(error);
                 });
+                document.getElementById('checkAllClientsButton').style.display = '';
+                document.getElementById('unCheckAllClientsButton').style.display = '';
+                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').checked;
+                document.querySelector('input[name="selected_clients[]"][value="' + 1 + '"]').setAttribute('readonly', true);
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
@@ -172,15 +254,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('beginDateField').readOnly = true;
                                 document.getElementById('endDateField').readOnly = true;
                                 document.getElementById('priceField').readOnly = true;
-                                document.getElementById('clientNameField').readOnly = true;
 
                                 document.getElementById('displaynameField').value = data.display_name;
                                 document.getElementById('nameField').value = data.name;
                                 document.getElementById('beginDateField').value = data.begin_date.split(' ')[0];
                                 document.getElementById('endDateField').value = data.end_date.split(' ')[0];
                                 document.getElementById('priceField').value = data.price;
-                                document.getElementById('clientNameField').value = data.clientName;
-                                document.getElementById('clientIdField').value = data.clientId;
                             }
                         })
                         .catch(error => {
@@ -237,6 +316,27 @@ document.addEventListener('DOMContentLoaded', function() {
         // Send the request
         xhr.send(formData);
     });
+    document.getElementById('checkAllClientsButton').addEventListener('click', (event) => {
+        event.preventDefault();
+        var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+        checkboxes.forEach(function(checkBox){
+            checkBox.checked = true; 
+        });
+        }
+    );
+    document.getElementById('unCheckAllClientsButton').addEventListener('click', (event) => {
+        event.preventDefault();
+        var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+        checkboxes.forEach(function(checkBox){
+            if(checkBox.value == '1'){
+
+            }
+            else{
+                checkBox.checked = false;
+            }
+        });
+        }
+    );
 
 });
 //==========================FUNCTIONS =================================

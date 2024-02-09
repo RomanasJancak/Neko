@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\AddOnRule;
+use App\Models\ClientAddOnRule;
+use App\Models\Client;
+
 use App\Http\Requests\StoreAddOnRuleRequest;
 use App\Http\Requests\UpdateAddOnRuleRequest;
 
@@ -23,8 +26,9 @@ class AddOnRuleController extends Controller
     public function index()
     {
         $addOnRules = AddOnRule::latest()->paginate(10);
+        $clients = Client::orderBy('name', 'asc')->get();
 
-        return view('addonrule.index', compact('addOnRules'));
+        return view('addonrule.index', compact('addOnRules','clients'));
     }
 
     /**
@@ -42,29 +46,45 @@ class AddOnRuleController extends Controller
      */
     public function store(StoreAddOnRuleRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'begin_date' => 'required|date|before:end_date',
-            'end_date' => 'required|date|after:begin_date',
-            'name' => 'required',
-            'display_name' => 'required',
-            'price' => 'required',
-            'client_id' => 'required',
-        ], [
-            'end_date.after' => 'The End Date must be a date after the Begin Date.',
-        ]);
-        //return response()->json($validator->errors());
-        //return response()->json($validator->fails());
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors(),
-            ]);
-        }else{
-            $validatedData = $validator->validated();
-            $addOnRule = AddOnRule::create($validatedData);
+        // $validator = Validator::make($request->all(), [
+        //     'begin_date' => 'required|date|before:end_date',
+        //     'end_date' => 'required|date|after:begin_date',
+        //     'name' => 'required',
+        //     'display_name' => 'required',
+        //     'price' => 'required',
+        //     // 'client_id' => 'required',
+        //     'selected_clients' => 'required',
+        //     'selected_clients.*' => 'required',
+        // ], [
+        //     'end_date.after' => 'The End Date must be a date after the Begin Date.',
+        // ]);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Validation errors',
+        //         'errors' => $validator->errors(),
+        //     ]);
+        // }else{
+           //$validatedData = $validator->validated();
+            //$addOnRule = AddOnRule::create($validatedData);
+            $addOnRule = new AddOnRule();
+            $addOnRule->begin_date = $request->input('begin_date');
+            $addOnRule->end_date = $request->input('end_date');
+            $addOnRule->name = $request->input('name');
+            $addOnRule->display_name = $request->input('display_name');
+            //return response()->json($request->input('price'));
+            $addOnRule->price = intval(str_replace('.', '', $request->input('price')));
+            //return response()->json($request->selected_clients);
+            $addOnRule->save();
+            foreach($request->selected_clients as $selected_client ){
+                $addOnRule->clients()->attach($selected_client
+                //, ['column_name' => $value]
+            );
+            }
+            $addOnRule->save();
             return response()->json($addOnRule);
-        }
+            return response()->json($request->input('priceField'));
+        // }
     
 
     
@@ -90,8 +110,12 @@ class AddOnRuleController extends Controller
                 'name'                  => $addonrule->name,
                 'display_name'  => $addonrule->display_name,
                 'price'         => $addonrule->price,
-                'clientName'    => $addonrule->client->name,
-                'clientId'    => $addonrule->client->id,
+                'clients' => $addonrule->clients->map(function ($client) {
+                    return [
+                        'id'    => $client->id,
+                        'name' => $client->name,
+                    ];
+                }), 
                 ]);
         }
 
@@ -107,9 +131,12 @@ class AddOnRuleController extends Controller
         $addOnRule->begin_date = $request->begin_date;
         $addOnRule->end_date= $request->end_date;
         $addOnRule->price= $request->price;
-        $addOnRule->client_id = $request->client_id;
         $addOnRule->name= $request->name;
         $addOnRule->display_name= $request->display_name;
+        $addOnRule->clients()->detach();
+        foreach($request->selected_clients as $selected_client ){
+            $addOnRule->clients()->attach($selected_client);
+        }
         $addOnRule->save();
         return response()->json($addOnRule);
     }
@@ -121,8 +148,10 @@ class AddOnRuleController extends Controller
     {
         //return response()->json($request);
         $addOnRule = AddOnRule::findOrFail($request->addonruleid);
+        //return response()->json($addOnRule);
+        $addOnRule->clients()->detach();
         $addOnRule->delete();
-        return response()->json($addOnRule);
+        return response()->json('Worked');
     }
     public function createBackup()
     {
@@ -141,6 +170,23 @@ class AddOnRuleController extends Controller
         $file_path = resource_path('files/backups/AddOnRule/addonrule.backup_'.$timestamp.'.csv');
 
         file_put_contents($file_path, $csvData);
+        //======================================================================================
+        $clientAddOnRules = ClientAddOnRule::all();
+        $columns = Schema::getColumnListing('client_add_on_rules'); 
+
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($clientAddOnRules as $clientAddOnRule) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $clientAddOnRule->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = resource_path('files/backups/ClientAddOnRule/clientaddonrule.backup_'.$timestamp.'.csv');
+
+        file_put_contents($file_path, $csvData);
+        //======================================================================================
         return redirect()->back()->with('succeses', 'Pricing Rule backup created successfully.');
     }
     public function getRulesForDate($date){
