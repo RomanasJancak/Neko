@@ -181,7 +181,9 @@ class ClientController extends Controller
                     return [
                         'id' => $packageType->id,
                         'name' => $packageType->name,
-                        'price' => $packageType->price, 
+                        'price' => $packageType->price,
+                        'baseQuantityThreshold' => $packageType->baseQuantityThreshold, 
+                        'maxQuantityThreshold' => $packageType->maxQuantityThreshold,  
                     ];
                 }),
                 ]);

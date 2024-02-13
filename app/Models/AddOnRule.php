@@ -38,10 +38,17 @@ class AddOnRule extends Model
         
         $formattedDatetime = Carbon::parse($date);
         
+        // $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
+        //     ->where('end_date', '>=', $formattedDatetime)
+        //     ->where('client_id','=',$clientId)
+        //     ->get();
+        // return $rules;
         $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
-            ->where('end_date', '>=', $formattedDatetime)
-            ->where('client_id','=',$clientId)
-            ->get();
+        ->where('end_date', '>=', $formattedDatetime)
+        ->whereHas('clients', function ($query) use ($clientId) {
+            $query->where('client_id', $clientId);
+        })
+        ->get();
         return $rules;
     }
     public static function getAllThatAreApplicableToThisDateForSpecificClientByPatern($date,$clientId,$prefix)
@@ -51,7 +58,9 @@ class AddOnRule extends Model
         
         $rules = AddOnRule::where('begin_date', '<=', $formattedDatetime)
             ->where('end_date', '>=', $formattedDatetime)
-            ->where('client_id','=',$clientId)
+            ->whereHas('clients', function ($query) use ($clientId) {
+                $query->where('client_id', $clientId);
+            })
             ->where('name', 'like', $prefix . '%')
             ->get();
         return $rules;

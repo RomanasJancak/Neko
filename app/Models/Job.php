@@ -43,7 +43,9 @@ class Job extends Model
     {
         return $this->belongsTo(User::class, 'courrier_id');
     }
-
+    public function packages(){
+        return $this->hasMany(Package::class); 
+    }
     public function manager()
     {
         return $this->belongsTo(User::class, 'manager_id');
@@ -62,5 +64,31 @@ class Job extends Model
     public function invoice()
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
+    }
+    public function addOns()
+    {
+        return $this->hasMany(AddOn::class, 'model_id')
+                    ->where('model_type', '=', 'app/models/Job');
+    }
+    public function price(){
+        $price = 0;
+        $distance = 0;
+        $originAddress = $this->pickupclientcountry.' '.$this->pickupclientcity.' '.$this->pickupclientpostalcode.' '.$this->pickupclientaddressline;
+        foreach($this->packages as $key => $package){
+            foreach($package->addOns as $addOn){
+                $price+=$addOn->price;
+            }
+            $address= $package->dropoff_country.' '.$package->dropoff_city.' '.$package->dropoff_postal_code.' '.$package->dropoff_adress_line;
+            if($key === 0){
+                $distance+=Distance::getDistance($originAddress,$address);
+                $originAddress = $address;
+            }else{
+                $distance+=Distance::getDistance($originAddress,$address);
+            }
+        }
+        foreach($this->addOns as $addon){
+            $price+=$addOn->price;
+        }
+        return $price;
     }
 }

@@ -20,20 +20,17 @@ return new class extends Migration
             $table->unsignedBigInteger('clientToBill_id');         
             $table->dateTime('pickup_time_begin');
             $table->dateTime('pickup_time_end');
-            $table->string('pickupClientName');
-            $table->string('pickupclientaddressline')->nullable();
-            $table->string('collection_details')->nullable();
-            
-            $table->unsignedBigInteger('pickup_adress_postalCode')->nullable();
-            $table->unsignedBigInteger('pickup_adress_street')->nullable();
-            $table->string('delivery_address');
-            $table->unsignedBigInteger('delivery_adress_postalCode_id')->nullable();
-            $table->string('senderContacts');
+            $table->string('pickupclientname');
+            $table->string('pickupclientaddressline');                        
+            $table->string('pickupclientcity');
+            $table->string('pickupclientcountry');
+            $table->string('pickupclientpostalcode');
             $table->unsignedBigInteger('manager_id');
-            $table->string('receiverContacts');
             $table->string('notes')->nullable();
             $table->unsignedBigInteger('price')->nullable();
+            $table->unsignedBigInteger('distance')->nullable();
             $table->unsignedBigInteger('invoice_id')->nullable();
+            $table->bigInteger('price_adjustment_number')->default(0);
             $table->foreign('clientToBill_id')->references('id')->on('clients');
             $table->foreign('manager_id')->references('id')->on('users');
             $table->foreign('courrier_id')->references('id')->on('users');

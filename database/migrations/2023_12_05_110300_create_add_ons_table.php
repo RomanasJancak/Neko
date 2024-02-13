@@ -21,8 +21,6 @@ return new class extends Migration
             $table->string('name');//temp
             $table->string('display_name');
             $table->unsignedBigInteger('price');//temp
-            $table->unsignedBigInteger('client_id');
-
         });
     }
 

@@ -12,6 +12,9 @@ use App\Models\Role;
 use App\Models\Status;
 use App\Models\PostalCode;
 use App\Models\PackageType;
+use App\Models\Package;
+use App\Models\AddOn;
+use App\Models\AddOnRule;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -60,23 +63,75 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
+
         $request->validated();
+
         try{
             $job = new Job();
             $job->eilesNumeris      =   0;
-            $job->courrier_id       =   $request->courrier_id;
-            $job->status_id         =   $request->status_id; 
-            $job->clientToBill_id   =   $request->billingClientId;
-            $job->pickupClientName  =   $request->pickupclientname;
-            
-
-
-
-
+            $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
+            $job->status_id         =   $request->input('status_id'); 
+            $job->clientToBill_id   =   $request->input('billingClientId');
+            $job->pickupClientName  =   $request->input('pickupclientname');
+            $job->pickup_time_begin =   $request->input('common_date').' '.$request->input('pickup_time_begin');
+            $job->pickup_time_end =   $request->input('common_date').' '.$request->input('pickup_time_end');
+            $job->pickupclientaddressline   =   $request->input('pickupclientaddressline');
+            $job->pickupclientcity          =   $request->input('pickupclientcity');
+            $job->pickupclientcountry       =   $request->input('pickupclientcountry');
+            $job->pickupclientpostalcode    =   $request->input('pickupclientpostalcode');
+            $job->manager_id                =   $request->input('manager_id');
+            $job->save();
+            if(isset($request->jobcheckboxaddon)){
+                foreach($request->input('jobcheckboxaddon') as $key => $addOnRuleId){
+                    $addOn = new Addon();
+                    $addOn->model_type = 'app/models/Job';
+                    $addOn->model_id = $job->id;
+                    $addOnRule = AddOnRule::find($addOnRuleId);
+                    $addOn->begin_date = $addOnRule->begin_date;
+                    $addOn->end_date = $addOnRule->end_date;
+                    $addOn->name = $addOnRule->name;
+                    $addOn->display_name = $addOnRule->display_name;
+                    $addOn->price = $addOnRule->price;
+                    $addOn->save();
+                }
+            }
+            foreach( $request->input('packageType') as $key => $packageType){
+                $package    = new Package();
+                $package->job_id    =   $job->id;
+                $package->packageType_id    =   $packageType; 
+                $package->orderNumber    =   $key; 
+                $package->weight    =   $key; 
+                $package->dimensions    =   $key; 
+                $package->quantity    =   $request->input('packagedropoffquantity')[$key]; 
+                $package->dropoff_adress_line    =   $request->input('packagedropooffaddressline')[$key]; 
+                $package->dropoff_postal_code    =   $request->input('packagedropoffpostalcode')[$key]; 
+                $package->dropoff_city    =   $request->input('packagedropoffcity')[$key]; 
+                $package->dropoff_country    =   $request->input('packagedropoffcountry')[$key]; 
+                $package->dropoff_name    =   $request->input('packagedropoffname')[$key];
+                $package->save();
+                if(isset($request->packagecheckboxaddon[$key])){
+                    foreach($request->input('packagecheckboxaddon')[$key] as $keyB => $addOnRuleId){
+                        $addOn = new Addon();
+                        $addOn->model_type = 'app/models/Package';
+                        $addOn->model_id = $package->id;
+                        $addOnRule = AddOnRule::find($addOnRuleId);
+                        $addOn->begin_date = $addOnRule->begin_date;
+                        $addOn->end_date = $addOnRule->end_date;
+                        $addOn->name = $addOnRule->name;
+                        $addOn->display_name = $addOnRule->display_name;
+                        $addOn->price = $addOnRule->price;
+                        $addOn->save();
+                    }
+                }     
+            }
+            $job->save();          
             return response()->json(['success'  => true,
-            'message'   => 'Validation succes.',
-            'inputs'    => $request->input(),
-            'validated inputs'    =>  $request->validated(),                       
+            'message'           =>  'Validation succes.',
+            'inputs'            =>  $request->input(),
+            'validated inputs'  =>  $request->validated(),
+            'testValue'         =>  isset($request->packagecheckboxaddon[0]),
+            'jobPrice'          =>  $job->price(),
+            'job'               =>  $job,                        
             ], 200);
         } catch (QueryException $e){
             return response()->json(['error' => $e->getMessage()], 500);

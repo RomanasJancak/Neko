@@ -44,8 +44,14 @@ class StoreJobRequest extends FormRequest
             'packagedropoffcountry.*'       =>  'required',
             'packageType.*'                 =>  'required',
             'packageType'                   =>  'required',
-
+            'packagedropofftimebegin.*'     =>  'required',
+            'packagedropofftimebegin'       =>  'required',
+            'packagedropofftimeend.*'       =>  'required',
+            'packagedropofftimeend'         =>  'required',
+            'jobcheckboxaddon'              =>  'nullable|array',
+            'packagecheckboxaddon'          =>  'nullable|array',
             'generalnotes'                  =>  'required',
+            'manager_id'                     =>  'required',
         ];
         $courierId = $this->input('courrier_id');
 

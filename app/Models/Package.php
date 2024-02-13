@@ -11,10 +11,15 @@ class Package extends Model
 
     public function job()
     {
-        return $this->belongsTo(Job::class, 'sender_id');
+        return $this->belongsTo(Job::class);
     }
     public function packageType()
     {
         return $this->belongsTo(PackageType::class);
+    }
+    public function addOns()
+    {
+        return $this->hasMany(AddOn::class, 'model_id')
+                    ->where('model_type', '=', 'app/models/Package');
     }
 }

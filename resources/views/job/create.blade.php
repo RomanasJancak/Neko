@@ -122,7 +122,10 @@
                                 <label id="labelpackagetypeselect-0" for="packagetypeselect-0">Package</label>
                                 <select class="select-ClientPackageType form-select" id="packagetypeselect-0" name="packageType[]" class="form-control">
                                 </select>
-                                <input type="number" name="packagedropoffquantity[]" id="packageQuantity-0" class="form-control" placeholder="Quantity">
+                                <div>
+                                    <input type="number" name="packagedropoffquantity[]" id="packageQuantity-0" class="form-control" placeholder="Quantity">
+                                    <i class="bi bi-exclamation-triangle" style="display: none;"></i>
+                                </div>
                                 <button class="btn btn-secondary" data-direction="up" id="package_button_up-0"><i class="bi bi-arrow-up-circle-fill"></i></button>
                                 <button class="btn btn-secondary" data-direction="down" id="package_button_down-0"><i class="bi bi-arrow-down-circle-fill"></i></button>
                             </div>
@@ -134,12 +137,17 @@
                                     <input type="text"          name="packagedropoffpostalcode[]" id="package_postalcode-0" class="form-control" placeholder="Postal Code">
                                     <input hidden type="text"   name="packagedropoffcity[]" id="package_city-0" class="form-control" placeholder="City" value="London">
                                     <input hidden type="text"   name="packagedropoffcountry[]" id="package_country-0" class="form-control" placeholder="Country" value="UK">
+                                    <input type="time" id="package_timebegin-0" name="packagedropofftimebegin[]" class="form-control" value="09:00">
+                                    <input type="time" id="package_timeend-0" name="packagedropofftimeend[]" class="form-control" value="16:00">
                                     <div>Distance : <span id="package_distance-0">0</span> miles</div>
                                     <div>Price : <span id="package_price-0">0</span><span>&#163;</span></div>                         
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <div><h6>Add Ons</h6></div>
+                                <div class="row"><div><h6>Add Ons</h6></div></div>
+                                <div class="row" id='packageaddoncontainer-0'>
+
+                                </div>
                             </div>
                         </div>
                         <div class="row" id='addPackageRow'>
@@ -171,7 +179,7 @@
                     </select>
                 </div>
                 <button class="btn btn-secondary work-button">AddOns</button>
-                <button type="submit" class="btn btn-primary" id="submitform">Create Job</button>
+                <button type="submit" class="btn btn-primary" id="submitform">Create Job<br><span id="job-creation-button-extra-text"></span></button>
             </form>
         </div>
     </div>
@@ -196,26 +204,27 @@
             });
         });
     //===============================MODAL FORM END
-function getAddOnRule(datetime){
-    return fetch(`{{ asset('addonrules/findAddOnRule') }}?datetime=${datetime}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data) {
-                            return data;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-}
+// function getAddOnRule(datetime){
+//     return fetch(`{{ asset('addonrules/findAddOnRule') }}?datetime=${datetime}`)
+//                     .then(response => response.json())
+//                     .then(data => {
+//                         if (data) {
+//                             return data;
+//                         }
+//                     })
+//                     .catch(error => {
+//                         console.error(error);
+//                     });
+// }
 document.addEventListener('DOMContentLoaded', function() {
     var billingClientSearchInput = $('#billingclientsearch');
     
     autoFillForm();
+    packageAddonContainer    =   document.getElementById("packageaddoncontainer-0");
+    updatePackageAddons(packageAddonContainer);
     function autoFillForm() {
         // Example values to fill the form
         var formData = {
-            courrier_id: 8, // Assuming 1 is a valid courier ID
             status_id: 10,   // Assuming 1 is a valid status ID
             common_date: '2024-01-27',
 
@@ -224,13 +233,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             pickupclientname: 'Neko home Delivery LLP',pickupclientaddressline: 'FLAT 22 BAKERSFIELD',pickupclientpostalcode: 'N7 0LT',pickupclientcity: 'London',pickupclientcountry: 'Uk',
             package_dropOff_address_name : 'Athlyn Flower',package_dropOff_addressLine : 'Unit 10',package_dropOff_postalCode: 'N15 4QN',package_dropOff_city: 'London',package_dropOff_Country:'Uk',
-            pickup_time_begin: '09:00',
+            pickup_time_begin: '08:00',
             pickup_time_end: '17:00',
             generalnotes: 'Some notes here'
         };
 
         // Set the values for each form field
-        document.getElementById('courrier_id').value = formData.courrier_id;
         document.getElementById('status_id').value = formData.status_id;
         document.getElementById('common_date').value = formData.common_date;
         //document.getElementById('billingclientsearch').value = formData.billingclientName;
@@ -271,6 +279,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         option.value = pkg.id;
                         option.text = pkg.name;
                         option.setAttribute('data-price', parseFloat(pkg.price/100));
+                        option.setAttribute('data-baseQuantityThreshold', pkg.baseQuantityThreshold);
+                        option.setAttribute('data-maxQuantityThreshold', pkg.maxQuantityThreshold);
                         select.appendChild(option);
                 });
                 if (select.options.length > 0) {
@@ -279,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 select.previousPrice = select.options[select.selectedIndex].getAttribute('data-price');
                 
                 select.addEventListener('change', function(event) {
+                    updateQuantityRelatedThings();
                     updatePrices();                
                 });
             });
@@ -328,25 +339,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     .catch(error => {
                         console.error(error);
                     });
-            }
-
-                    
-        });
-        
+            }                    
+        });        
     }
     function updatePrices(){
         var finalPrice = 0;
+        let totalValueOfCheckedAddOns = 0;
+        document.querySelectorAll('[id^="packageaddoncontainer-"]').forEach(packageaddoncontainerElement => {
+            const checkboxes = packageaddoncontainerElement.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) { 
+                    totalValueOfCheckedAddOns += parseFloat(checkbox.getAttribute('data-value')).toFixed(2);
+                }
+            });
+        });
+        finalPrice+=totalValueOfCheckedAddOns;
         document.querySelectorAll('[id^="packagetypeselect-"]').forEach(packageSelectElement => {
+            if(packageSelectElement.options[packageSelectElement.selectedIndex]){
             var id = packageSelectElement.id.split('-')[packageSelectElement.id.split('-').length - 1];
             var price=parseFloat(packageSelectElement.options[packageSelectElement.selectedIndex].getAttribute('data-price'));
             finalPrice+=price;
 
-            document.getElementById('package_price-'+id).innerHTML = price; 
-            
+            document.getElementById('package_price-'+id).innerHTML = parseFloat(parseFloat(price).toFixed(2)+parseFloat(totalValueOfCheckedAddOns).toFixed(2)).toFixed(2); 
+            }
         });
-        document.getElementById('total-price').innerHTML = finalPrice;
+        
+
+
+        //document.getElementById('total-price').innerHTML = finalPrice;
         updatePriceForDistance(finalPrice);
+        //updatePriceForAddOns(finalPrice)
+        document.getElementById('total-price').innerHTML = parseFloat(parseFloat(finalPrice)+parseFloat(updatePriceForAddOns(finalPrice))).toFixed(2);
     }
+
     function adjustPackagesId(){
         var packageCount=0;
         var listOfPackagesElements = document.querySelectorAll('[id^="package-"]');
@@ -369,24 +394,37 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDistances();
         updatePrices();
     }
-    function addInputCheckBox(container,rule){
+    function addInputCheckBox(container,rule,visibilityStatus = 'none',checkedStatus = false){
         const divElement = document.createElement('div');
         divElement.classList.add('form-group');
         divElement.classList.add('col-1');
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = 'this'; // Set the id attribute to a unique identifier, e.g., rule name
-        checkbox.name = 'checkboxName'; // Set the name attribute if needed
-
+        checkbox.id = container.id+'-'+rule.id // Set the id attribute to a unique identifier, e.g., rule name
+        if (container.id.split('-')[0] === 'job') {
+            checkbox.name = 'jobcheckboxaddon[]'; // Set the name attribute if needed
+        }else{
+            var id = container.id.split('-')[container.id.split('-').length - 1];
+            checkbox.name = 'packagecheckboxaddon['+id+'][]';
+        }
+        checkbox.setAttribute('data-codename', rule.name);
+        checkbox.setAttribute('data-value', parseFloat(rule.price/100).toFixed(2));
+        checkbox.value = rule.id;
+        checkbox.checked = checkedStatus;
         // Create a label element associated with the checkbox (optional)
         const label = document.createElement('label');
         label.textContent = rule.display_name; // Label text, you can customize it as needed
         label.setAttribute('for', checkbox.id); // Set 'for' attribute to match the checkbox's id
-
+        label.classList.add('btn');
+        label.classList.add('btn-primary');
+        checkbox.style.display = visibilityStatus;
+        label.style.display = visibilityStatus;
+        label.style.backgroundColor = '#ffcc00';
+        label.style.color = '#000000';
         container.appendChild(divElement);
         divElement.appendChild(label);
         divElement.appendChild(checkbox);
-        
+        return checkbox;
     }
     function updateJobAddons(){
         jobAddonContainer    =   document.getElementById('job-addon-container');
@@ -402,7 +440,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     .then(data => {
                         data.forEach(function (element){
                             if(element.name.split('-')[0] === 'job'){
-                                addInputCheckBox(jobAddonContainer,element);
+                                if(element.name.split('-')[1] === 'distance'){
+                                    addInputCheckBox(jobAddonContainer,element,'none',true).addEventListener('change', function (event) {
+
+                                    });
+                                }else{
+                                    addInputCheckBox(jobAddonContainer,element,'',false).addEventListener('change', function (event) {
+                                        console.log('Checked :',element);
+                                    });
+                                }
+
                             }
                         });
                     })
@@ -410,7 +457,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.error(error);
                     });
         }
+    }
+    function updatePackageAddons(packageAddonContainer){
+        date                =   document.getElementById('common_date').value;
+        billingClientId       =   document.getElementById('billingClientIdField').value;
+        //console.log(date+' '+billingClientId);
+        if(date && billingClientId){
+            packageAddonContainer.innerHTML = '';
+        const routeUrl = "{{ route('addonrule.getRulesForDateAndClient', ['date' => ':date','client' =>':clientId']) }}".replace(':date', date).replace(':clientId',billingClientId);
 
+                fetch(routeUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(function (element){
+                            if(element.name.split('-')[0] === 'package'){
+                                addInputCheckBox(packageAddonContainer,element).addEventListener('change', function (event) {
+                                    updatePrices();
+                                });
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+        }
     }
     function updatePriceForDistance(finalPrice){
         billingClientId       =   document.getElementById('billingClientIdField').value;
@@ -423,16 +493,22 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(routeUrl)
             .then(response => response.json())
             .then(data => {
-                console.log(data);
-                console.log(parseFloat(data/100));
-                console.log(parseFloat(data/100).toFixed(2));
                 document.getElementById('total-price').innerHTML = parseFloat(parseFloat(finalPrice)+parseFloat(data/100)).toFixed(2);
-                console.log(data);
             })
             .catch(error => {
                 console.error(error);
         });
         }
+    }
+    function updatePriceForAddOns(finalPrice){
+        let totalValueOfCheckedAddOns = 0;
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="checkboxaddon[]"]');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) { 
+                totalValueOfCheckedAddOns += parseFloat(checkbox.value);
+            }
+        });
+        return parseFloat(totalValueOfCheckedAddOns).toFixed(2);
     }
     //========================================================
     const addPackageButtonElement = document.getElementById('addPackageButton');
@@ -488,10 +564,16 @@ document.addEventListener('DOMContentLoaded', function() {
         packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
         packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
         packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
+        packageElement.querySelector('[id^="labelpackagetypeselect"]').setAttribute('for', 'packagetypeselect-' + packageCount);
         packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
         packageElement.querySelector('[id^="package_button_up"]').id = 'package_button_up-' + packageCount;
         packageElement.querySelector('[id^="package_button_down"]').id = 'package_button_down-' + packageCount;
 
+        packageElement.querySelector('[id^="package_timebegin"]').id = 'package_timebegin-' + packageCount;
+        packageElement.querySelector('[id^="package_timeend"]').id = 'package_timeend-' + packageCount;
+
+        packageElement.querySelector('[id^="packageaddoncontainer"]').id = 'packageaddoncontainer-' + packageCount;
+        updatePackageAddons(packageElement.querySelector('[id^="packageaddoncontainer"]'));
         var addPackageRowDiv = document.getElementById('addPackageRow');
         addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
         document.getElementById('package_addressline-'+packageCount).addEventListener('change', function(event) {
@@ -501,6 +583,10 @@ document.addEventListener('DOMContentLoaded', function() {
             updateDistances();
         });
         document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
+            updatePrices();
+        });
+        document.getElementById('packageQuantity-'+packageCount).addEventListener('change', function(event) { 
+            updateQuantityRelatedThings();
             updatePrices();
         });
         movedownPackageButtonElement_local = document.getElementById('package_button_down-'+packageCount)
@@ -527,7 +613,48 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('package_postalcode-0').addEventListener('change', function(event) { 
                                     updateDistances();
     });
-
+    document.getElementById('packageQuantity-0').addEventListener('change', function(event) {
+        updateQuantityRelatedThings();
+        updatePrices();
+    });
+    function updateQuantityRelatedThings(){
+        let thereIsAQuantityOverMaxQuantityThreshold = false;
+        document.querySelectorAll('[id^="package-"]').forEach(packageElement => {
+            const id = packageElement.id.split('-')[packageElement.id.split('-').length - 1];
+            const checkbox = document.getElementById('packageaddoncontainer-'+id+'-6');
+            const label = document.querySelector(`label[for="`+checkbox.id+`"]`);   
+            const quantity = parseInt(document.getElementById('packageQuantity-'+id).value);
+            const selectElement = document.getElementById('packagetypeselect-'+id);
+            const selectedIndex = selectElement.selectedIndex;
+            const selectedOption = selectElement.options[selectedIndex];
+            const baseQuantityThreshold = parseInt(selectedOption.getAttribute('data-baseQuantityThreshold'));
+            const maxQuantityThreshold = parseInt(selectedOption.getAttribute('data-maxQuantityThreshold'));
+            const extraTextElement = document.getElementById("job-creation-button-extra-text");
+            if(quantity >= baseQuantityThreshold){
+                checkbox.checked = true;
+                label.style.display = '';
+            }else{
+                checkbox.checked = false;
+                label.style.display = 'none';
+            }
+            if(quantity >= maxQuantityThreshold){
+                thereIsAQuantityOverMaxQuantityThreshold = true;
+                packageElement.style.backgroundColor = '#f5e4d0';
+            }else{
+                packageElement.style.backgroundColor = '';
+            }
+            if(thereIsAQuantityOverMaxQuantityThreshold){
+                extraTextElement.innerHTML = " Warning : will need confirmation ";
+                extraTextElement.style.backgroundColor = 'rgb(217 124 14)';
+                extraTextElement.style.color = '#000000';
+                extraTextElement.style.borderRadius = '5px';
+                extraTextElement.style.border = '1px solid black';
+            }else{
+                extraTextElement.innerHTML = "";
+                extraTextElement.style.border = '';
+            }
+        });
+    }
     function addTypeHeadSearch(searchInput){
         if (searchInput.length > 0) {
             searchInput.typeahead({
@@ -654,43 +781,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error(error);
                         });
                 }
-            });
-        }
-        function updateOriginAddress(){
-            
-            if(number == 0 ){
-                console.log('Upadating origin address "number ==0" WAS : ',address_origin);
-                address_origin = document.getElementById('pickupaddress_addressline').value+' '+
-                document.getElementById('pickupaddress_postalcode').value+' '+
-                document.getElementById('pickupaddress_city').value+' '+
-                document.getElementById('pickupaddress_country').value;
-                console.log('Upadating origin address "number !=0" NOW : ',address_origin);
-            }else{
-                console.log('Upadating origin address "number ==0" WAS : ',address_origin);
-                address_origin = document.getElementById('package_addressline-'+parseInt(number-1)).value+' '+
-                document.getElementById('package_postalcode-'+parseInt(number-1)).value+' '+
-                document.getElementById('package_city-'+parseInt(number-1)).value+' '+
-                document.getElementById('package_country-'+parseInt(number-1)).value;
-                console.log('Upadating origin address "number !=0" NOW : ',address_origin);
-            }
-        }
-        function updateDestinationAddress(){
-            address_destination = package_Element_Addressline.value+' '+package_postalcode.value+' '+package_city.value+' '+package_country.value;
-        }
-
-        function updatePackageDistance(package_distance_innerVariable,address_origin,address_destination){
-        var baseUrl = "{{ route('distance.getDistance') }}";
-        var fullUrl = `${baseUrl}?origin=${encodeURIComponent(address_origin)}&destination=${encodeURIComponent(address_destination)}`;
-        fetch(fullUrl)
-            .then(response => response.json())
-            .then(data => {
-                //console.log('data is ',data);
-                package_distance_innerVariable.innerHTML = data*0.000621371192;
-                totalDistanceOfTheJob = parseFloat(totalDistanceOfTheJob)+parseFloat(package_distance.innerHTML);
-                totalDistanceOfTheJobElement.innerHTML = totalDistanceOfTheJob;
-            })
-            .catch(error => {
-                console.error(error);
             });
         }
     }   
