@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Day extends Model
 {
@@ -11,6 +12,10 @@ class Day extends Model
 
     protected $casts = [
         'date' => 'datetime',
+    ];
+    protected $fillable = [
+        'name','date',
+        // Add other attributes to the $fillable array as needed
     ];
 
     public function month(){
@@ -27,10 +32,10 @@ class Day extends Model
             $query->where('pickup_time_begin', '>=', \Carbon\Carbon::parse($date)->startOfDay())
                   ->where('pickup_time_end', '<=', \Carbon\Carbon::parse($date)->endOfDay());
         })
-        ->orWhere(function ($query) use ($date) {
-            $query->where('dropoff_time_begin', '<=', \Carbon\Carbon::parse($date)->startOfDay())
-                  ->where('dropoff_time_end', '>=', \Carbon\Carbon::parse($date)->endOfDay());
-        })
+        // ->orWhere(function ($query) use ($date) {
+        //     $query->where('dropoff_time_begin', '<=', \Carbon\Carbon::parse($date)->startOfDay())
+        //           ->where('dropoff_time_end', '>=', \Carbon\Carbon::parse($date)->endOfDay());
+        // })
         ->get();
     }
     public function workloads()

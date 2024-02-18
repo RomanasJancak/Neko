@@ -1,0 +1,4 @@
+id,created_at,updated_at,name,price,baseQuantityThreshold,maxQuantityThreshold
+2,2024-02-11 18:36:41,2024-02-11 18:36:41,E1,111,2,4
+3,2024-02-11 18:36:53,2024-02-11 18:36:53,E2,111,3,6
+4,2024-02-18 08:10:20,2024-02-18 08:10:20,Return,111,1,1

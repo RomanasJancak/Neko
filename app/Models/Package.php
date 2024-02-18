@@ -22,4 +22,7 @@ class Package extends Model
         return $this->hasMany(AddOn::class, 'model_id')
                     ->where('model_type', '=', 'app/models/Package');
     }
+    public function pickupAddressShort(){
+        return $this->dropoff_postal_code.' '.$this->dropoff_adress_line;
+    }
 }

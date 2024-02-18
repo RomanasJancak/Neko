@@ -39,7 +39,9 @@ class DayController extends Controller
     {
         //
     }
-
+    public function showByDate($date){
+        
+    }
     /**
      * Display the specified resource.
      */
@@ -53,16 +55,35 @@ class DayController extends Controller
             return $user->workload($day) !== null;
         });
         $jobs   =   $day->jobs();
+        //$jobs = Job::with('status')->get();
+        //dd($jobs[0]->status);
         $filteredJobs = $jobs->filter(function ($job) {
-            return $job->status_id === 1;
+            return $job->status->name === 'unfinishedss';
         });
         //dd($usersWithCourierRoleAndWorkload);
         return view('day.show', ['day' => $day,'users' => $usersWithCourierRoleAndWorkload,'jobs' => $filteredJobs]);
     }
     public function showdashboard($date){
-        
-        $day = Day::whereDate('name', '=', $date)->first();
-        return $this->show($day);
+        $day    =   Day::where('date', $date)->first();
+        if(!$day){
+            $day = Day::create([
+                'name' => $date,
+                'date' => $date,
+            ]);
+        }
+        $usersWithCourierRole = User::whereHas('roles', function ($query) {
+            $query->where('name', 'courier');
+        })->get();
+        $users = $usersWithCourierRole->filter(function ($user) use ($day) {
+            return $user->workload($day) !== null;
+        });
+        $carbobn = new Carbon();
+        $jobsUnassigned = Job::whereHas('status', function($query) {
+            $query->where('name', 'unassigned');
+        })
+        ->whereBetween('pickup_time_begin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()])
+                ->get();
+        return view('day.dashboard', compact('date','jobsUnassigned','users','day'));
     }
     /**
      * Show the form for editing the specified resource.

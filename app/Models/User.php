@@ -47,18 +47,17 @@ class User extends Authenticatable
     public function jobs(){
         return $this->hasMany(Job::class,'courrier_id')->orderBy('eilesNumeris');
     }
+    public function tasksForTHeDay($date){
+        $date = \Carbon\Carbon::parse($date);
+    }
     public function jobsWithDate($date)
     {
+        
         $date = \Carbon\Carbon::parse($date);
-        return $this->hasMany(Job::class, 'courrier_id')
-            ->where(function ($query) use ($date) {
-                $query->where('pickup_time_begin', '>', $date->startOfDay())
-                    ->where('pickup_time_end', '<', $date->endOfDay());
-            })
-            ->orWhere(function ($query) use ($date) {
-                $query->where('dropoff_time_begin', '>', $date->startOfDay())
-                    ->where('dropoff_time_end', '<', $date->endOfDay());
-            }) ->orderBy('eilesNumeris');
+        return $this->hasMany(Job::class,'courrier_id')
+        ->whereBetween('pickup_time_begin', [$date->toDateString(), $date->addDay()->toDateString()])
+        ->orderBy('eilesNumeris')
+        ->get();
     }
     public function workloads()
     {

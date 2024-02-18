@@ -25,6 +25,12 @@ return new class extends Migration
             $table->string('dropoff_city')->nullable();//CSV
             $table->string('dropoff_country')->nullable();//CSV
             $table->string('dropoff_name')->nullable();
+            $table->dateTime('packagedropofftimebegin');
+            $table->dateTime('packagedropofftimeend');
+            $table->string('name')->nullable();
+            $table->bigInteger('price')->nullable();
+            $table->unsignedBigInteger('baseQuantityThreshold')->nullable();
+            $table->unsignedBigInteger('maxQuantityThreshold')->nullable(); 
         });
     }
 

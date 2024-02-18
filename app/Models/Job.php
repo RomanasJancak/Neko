@@ -23,7 +23,7 @@ class Job extends Model
 
     ];
     public function status(){
-        return $this->belongsTo(Status::class);
+        return $this->belongsTo(Status::class,'status_id');
     }
     public function clientToBill()
     {
@@ -49,6 +49,9 @@ class Job extends Model
     public function manager()
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+    public function pickupAddressShort(){
+        return $this->pickupclientpostalcode.' '.$this->pickupclientaddressline;
     }
 
     // public function status()

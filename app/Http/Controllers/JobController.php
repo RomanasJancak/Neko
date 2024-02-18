@@ -95,19 +95,26 @@ class JobController extends Controller
                     $addOn->save();
                 }
             }
-            foreach( $request->input('packageType') as $key => $packageType){
-                $package    = new Package();
-                $package->job_id    =   $job->id;
-                $package->packageType_id    =   $packageType; 
-                $package->orderNumber    =   $key; 
-                $package->weight    =   $key; 
-                $package->dimensions    =   $key; 
-                $package->quantity    =   $request->input('packagedropoffquantity')[$key]; 
-                $package->dropoff_adress_line    =   $request->input('packagedropooffaddressline')[$key]; 
-                $package->dropoff_postal_code    =   $request->input('packagedropoffpostalcode')[$key]; 
-                $package->dropoff_city    =   $request->input('packagedropoffcity')[$key]; 
-                $package->dropoff_country    =   $request->input('packagedropoffcountry')[$key]; 
-                $package->dropoff_name    =   $request->input('packagedropoffname')[$key];
+            foreach( $request->input('packageType') as $key => $packageTypeId){
+                $package                            =   new Package();
+                $packageType                        =   PackageType::find($packageTypeId);
+                $package->job_id                    =   $job->id;
+                $package->packageType_id            =   $packageTypeId; 
+                $package->orderNumber               =   $key; 
+                $package->weight                    =   $key; 
+                $package->dimensions                =   $key; 
+                $package->quantity                  =   $request->input('packagedropoffquantity')[$key]; 
+                $package->dropoff_adress_line       =   $request->input('packagedropooffaddressline')[$key]; 
+                $package->dropoff_postal_code       =   $request->input('packagedropoffpostalcode')[$key]; 
+                $package->dropoff_city              =   $request->input('packagedropoffcity')[$key]; 
+                $package->dropoff_country           =   $request->input('packagedropoffcountry')[$key]; 
+                $package->dropoff_name              =   $request->input('packagedropoffname')[$key];
+                $package->packagedropofftimebegin   =   $request->input('common_date').' '.$request->input('packagedropofftimebegin')[$key];
+                $package->packagedropofftimeend     =   $request->input('common_date').' '.$request->input('packagedropofftimeend')[$key];
+                $package->name                      =   $packageType->name;
+                $package->price                     =   $packageType->price;
+                $package->baseQuantityThreshold     =   $packageType->baseQuantityThreshold;
+                $package->maxQuantityThreshold      =   $packageType->maxQuantityThreshold;
                 $package->save();
                 if(isset($request->packagecheckboxaddon[$key])){
                     foreach($request->input('packagecheckboxaddon')[$key] as $keyB => $addOnRuleId){
@@ -205,34 +212,53 @@ class JobController extends Controller
     {
         //
     }
-    public function updateJobAjax(UpdateJobRequest $request)
+    public function getJobInfo($jobId)
     {
-        $jobId = $request->input('jobId');
-        $targetListId = $request->input('targetListId');
-        $eilesNumeris = $request->input('eilesNumeris');
-        // Find the job by its ID
+        // Fetch the client's information based on the $clientId
         $job = Job::find($jobId);
 
-        if (!$job) {
-            return response()->json(['error' => 'Job not found'], 404);
+        if ($job) {
+            return response()->json([
+                'id'                => $job->id,
+                'pickupclientname'  => $job->pickupclientname,
+                'pickupAddress'     => $job->pickupclientpostalcode.' '.$job->pickupclientaddressline,
+                'timeFrame'         => $job->pickup_time_begin.' '.$job->pickup_time_end,
+                'packages' => $job->packages->map(function ($package) {
+                    return [
+                        'package_id'    => $package->id,
+                    ];
+                }),  
+                ]);
         }
 
-        // Update job data based on the target list
-        if ($targetListId === 'job-list') {
-            $job->status_id = 1; //;
-            $job->courrier_id = null;
-            $job->eilesNumeris = $eilesNumeris;
-        } else {
-            // Extract the user ID from the targetListId
-            $userId = substr($targetListId, strrpos($targetListId, '-') + 1);
-            $job->status_id = 2;//'assigned';
-            $job->courrier_id = $userId;
-            $job->eilesNumeris = $eilesNumeris;
+        return response()->json(['error' => 'Job not found'], 404);
+    }
+    public function updateJobAjax(UpdateJobRequest $request)
+    {
+        try{
+            // Find the job by its ID
+            $job = Job::findOrFail($request->id);
+            
+            // Update only the values that are present in the request
+            $job->fill($request->only([
+                'courrier_id','status_id','eilesNumeris', // Add all the fields you want to update here
+            ]));
+
+            // Alternatively, you can use intersect() to update only the values that exist in the request
+            // $job->fill($request->intersect([
+            //     'field1', 'field2', // Add all the fields you want to update here
+            // ]));
+
+            // Save the changes to the database
+            $job->save();
+
+            // Return a response
+            return response()->json(['message' => 'Job updated successfully']);
+        } catch (QueryException $e){
+        return response()->json(['error' => $e->getMessage()], 500);
+        } catch (\Exception $e){
+        return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $job->save();
-
-        return response()->json(['message' => 'Job updated successfully']);
     }
     public function assign(){
         {

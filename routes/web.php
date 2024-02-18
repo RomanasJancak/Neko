@@ -79,7 +79,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
     Route::post('/update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
-
+    Route::get('getJobInfo/{id}',     [JobController::class, 'getJobInfo'])->name('job.getJobInfo')->middleware('auth');
 });
 Route::group(['prefix' => 'days'], function(){
     Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');

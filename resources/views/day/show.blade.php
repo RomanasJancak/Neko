@@ -16,16 +16,13 @@
         <div class="card-header" id="job-list-header" >Jobs</div>
         <ul class="list-group droppable-list" ullistType="job-list">
             @foreach ($jobs as $job)
-                <li class="list-group-item draggable-item" draggable="true" data-job-id="{{ $job->id }}" listType="job-list">
+                <li class="list-group-item draggable-item" draggable="true" data-job-id="{{ $job->id }}" listType="job-list" id="jobtestid-{{$job->id}}">
                 <div class="row border-bottom border-4">
                         <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
                         <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
                         <div class="col" style="background-color: {{$job->status->color_main}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
                     </div>
                     <div class="row border-bottom border-4" style="background-color: {{$job->status->color_pickup}};">
-                        <div class="row">
-                            <div class="col" style="">{{$job->sender->name}}</div>
-                        </div>
                         <div class="row">                        
                             <div class="col" style="">{{ date('H:i', strtotime($job->pickup_time_begin)) }} - {{ date('H:i', strtotime($job->pickup_time_end)) }}</div>
                         </div>
@@ -34,15 +31,9 @@
                         </div>
                     </div>
                     <div class="row border-bottom border-4" style="background-color: {{$job->status->color_dropoff}};">
-                        <div class="row">
-                            <div class="col" style="">{{$job->receiver->name}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col" style="">{{ date('H:i', strtotime($job->dropoff_time_begin)) }} - {{ date('H:i', strtotime($job->dropoff_time_end)) }}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col" style="">{{$job->delivery_address}}</div>
-                        </div>
+                        @foreach ($job->packages as $package)
+                            <div class="col">{{$package->dropoff_name}}</div>
+                        @endforeach
                     </div>
                     <div class="row">
                         <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
@@ -53,52 +44,46 @@
         </ul>
     </div>
     @foreach ($users as $user)
-    @if ($users->count() <= 3)
-    <div class="col-md-3">
-    @else
-    <div class="col-md-2">
-    @endif
-    
-        <div class="card-header" ><div class="row">{{ $user->name }} {{$user->workload($day)->capacity}}</div><div class="row border"> {{$user->workload($day)->bike->name}}</div></div>
-        <ul class="list-group droppable-list" ullistType="user-list-{{$user->id }}">
-            @foreach ($user->jobs as $job)
-                <li class="list-group-item draggable-item border border-5" draggable="true" data-job-id="{{ $job->id }}" listType="user-list-{{$user->id }}">
-                    <div class="row border-bottom border-4">
-                        <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
-                        <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
-                        <div class="col" style="background-color: {{$job->status->color_main}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
-                    </div>
-                    <div class="row border-bottom border-4"style="background-color: {{$job->status->color_pickup}};">
-                        <div class="row">
-                            <div class="col" style="">{{$job->sender->name}}</div>
+        @if ($users->count() <= 3)
+        <div class="col-md-3">
+        @else
+        <div class="col-md-2">
+        @endif
+        
+            <div class="card-header" ><div class="row">{{ $user->name }} {{$user->workload($day)->capacity}}</div><div class="row border"> {{$user->workload($day)->bike->name}}</div></div>
+            <ul class="list-group droppable-list" ullistType="user-list-{{$user->id }}">
+                @foreach ($user->jobs as $job)
+                    <li class="list-group-item draggable-item border border-5" draggable="true" data-job-id="{{ $job->id }}" listType="user-list-{{$user->id }}" id="jobtestid-{{$job->id}}">
+                        <div class="row border-bottom border-4">
+                            <div class="col" style="color: green;"id="job-id-{{$job->id}}-display" >NJ{{ $job->id }}</div>
+                            <div class="col" style="color: red;" id="job-no-{{$job->id}}-display"  hidden>{{ $job->eilesNumeris }}</div>
+                            <div class="col" style="background-color: {{$job->status->color_main}};" id="job-no-{{$job->id}}-display"  >{{ $job->status->name }}</div>
                         </div>
-                        <div class="row">                        
-                            <div class="col" style="">{{ date('H:i', strtotime($job->pickup_time_begin)) }} - {{ date('H:i', strtotime($job->pickup_time_end)) }}</div>
+                        <div class="row border-bottom border-4"style="background-color: {{$job->status->color_pickup}};">
+                            <div class="row">                        
+                                <div class="col" style="">{{ date('H:i', strtotime($job->pickup_time_begin)) }} - {{ date('H:i', strtotime($job->pickup_time_end)) }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="">{{$job->pickup_address}}</div>
+                            </div>
                         </div>
-                        <div class="row">
-                            <div class="col" style="">{{$job->pickup_address}}</div>
-                        </div>
-                    </div>
-                    <div class="row border-bottom border-4" style="background-color: {{$job->status->color_dropoff}};">
-                        <div class="row">
-                            <div class="col" style="">{{$job->receiver->name}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col" style="">{{ date('H:i', strtotime($job->dropoff_time_begin)) }} - {{ date('H:i', strtotime($job->dropoff_time_end)) }}</div>
+                        <div class="row border-bottom border-4" style="background-color: {{$job->status->color_dropoff}};">
+                            <div class="row">
+                                <div class="col" style="">{{ date('H:i', strtotime($job->dropoff_time_begin)) }} - {{ date('H:i', strtotime($job->dropoff_time_end)) }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="">{{$job->delivery_address}}</div>
+                            </div>
                         </div>
                         <div class="row">
-                            <div class="col" style="">{{$job->delivery_address}}</div>
+                            <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
+                            <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
-                        <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
-                    </div>
-                        <!-- </div> -->
-                </li>
-            @endforeach
-        </ul>
-    </div>    
+                            <!-- </div> -->
+                    </li>
+                @endforeach
+            </ul>
+        </div>    
     @endforeach
     </div>
 </div>
@@ -120,12 +105,20 @@
 
 @section('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    dItem = document.getElementById('jobtestid-5');
+    console.log(dItem.innerHTML);
+});
+/*
     let draggedItem = null;
     const droppableLists = document.querySelectorAll('.droppable-list');
+    console.log(droppableLists);
     const userCards = document.querySelectorAll('.card-header');
+
     droppableLists.forEach(item => {
         item.addEventListener('dragstart', (e) => {
             draggedItem = e.target;
+            console.log(draggedItem);
         });
         item.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -203,34 +196,17 @@
         });
     }
     function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
-//žžžžžžžžžžžžžžžžžžžžžžžžžžžžžžž MODAL žžžžžžžžžžžžžžžžžžžžžžžžžž
-/*$('.job-details').on('click', function (event) {
-    var button = $(event.currentTarget);
-    var editUrl = button.data('show-url');
-    var jobId = button.data('job-id');
-    var modal = $('#jobModal');
-    fetch(editUrl)
-    //const url = '{{ asset("jobs/show/") }}'; 
-        .then(response => response.text())
-        .then(data => {
-            modal.find('.modal-body').html(data);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-});
-*/
+        const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
 document.querySelectorAll('.job-details').forEach(function(element) {
     element.addEventListener('click', function(event) {
         var button = event.currentTarget;
@@ -252,22 +228,6 @@ document.querySelectorAll('.job-details').forEach(function(element) {
             });
     });
 });
-/*$('.job-edit').on('click', function (event) {
-    var button = $(event.currentTarget);
-    var editUrl = button.data('edit-url');
-    var jobId = button.data('job-id');
-    var modal = $('#jobModal');
-
-    fetch(editUrl)
-        .then(response => response.text())
-        .then(data => {
-            modal.find('.modal-body').html(data); // Assuming the same body for editing
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-});
-*/
 document.querySelectorAll('.job-edit').forEach(function(element) {
     element.addEventListener('click', function(event) {
         var button = event.currentTarget;
@@ -288,5 +248,7 @@ document.querySelectorAll('.job-edit').forEach(function(element) {
             });
     });
 });
+*/
+
 </script>
 @endsection

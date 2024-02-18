@@ -53,7 +53,7 @@
                                 Dashboard
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('day.show',1) }}">Today</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d')) }}">Today</a></li>
                                 </ul>
                             </div>
                         </li>
