@@ -93,6 +93,22 @@ class StatusController extends Controller
             'message' => 'Status deleted successfully.'
         ]);
     }
+    public function getStatusInfo($statusId)
+    {
+        // Fetch the client's information based on the $clientId
+        $status = Status::find($statusId);
+
+        if ($status) {
+            return response()->json([
+                'id'                =>  $status->id,
+                'color_main'        =>   $status->color_main,
+                'color_pickup'        =>   $status->color_pickup,
+                'color_dropoff'        =>   $status->color_dropoff,
+                ]);
+        }
+
+        return response()->json(['error' => 'Job not found'], 404);
+    }
     public function createBackup()
     {
         $clients = Status::all();        

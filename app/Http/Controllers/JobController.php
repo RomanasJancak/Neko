@@ -6,6 +6,8 @@ use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 
+use Illuminate\Http\Request;
+
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Role;
@@ -15,6 +17,8 @@ use App\Models\PackageType;
 use App\Models\Package;
 use App\Models\AddOn;
 use App\Models\AddOnRule;
+use App\Models\Task;
+use App\Models\Pickuptask;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -27,11 +31,9 @@ class JobController extends Controller
     public function index()
     {
 
-        if(auth()->user()->hasRole('courier')){
-            $jobs = Job::where('courrier_id',auth()->user()->id)->latest()->paginate(10);
-        }else{
-            $jobs = Job::latest()->paginate(10);
-        }
+
+            $jobs = Job::paginate(10);
+
 
         return view('job.index', compact('jobs'));
     }
@@ -81,6 +83,26 @@ class JobController extends Controller
             $job->pickupclientpostalcode    =   $request->input('pickupclientpostalcode');
             $job->manager_id                =   $request->input('manager_id');
             $job->save();
+
+            $task               =   new Task();
+            $task->date         =   $request->input('common_date');
+            $task->order_number =   0;
+            $task->job_id       =   $job->id;
+            $task->save();
+            $pickuptask         =   new Pickuptask();
+            $pickuptask->task_id       =  $task->id;
+            $pickuptask->status_id       =   $request->input('status_id');
+            $pickuptask->pickup_time_begin       =   $request->input('common_date').' '.$request->input('pickup_time_begin');
+            $pickuptask->pickup_time_end       =   $request->input('common_date').' '.$request->input('pickup_time_end');
+            $pickuptask->pickupclientname       =   $request->input('pickupclientname');
+            $pickuptask->pickupclientaddressline       =   $request->input('pickupclientaddressline');
+            $pickuptask->pickupclientcity       =   $request->input('pickupclientcity');
+            $pickuptask->pickupclientcountry       =   $request->input('pickupclientcountry');
+            $pickuptask->pickupclientpostalcode       =   $request->input('pickupclientpostalcode');
+            $pickuptask->notes       =   null;
+            $pickuptask->price       =   null;
+            $pickuptask->save();
+
             if(isset($request->jobcheckboxaddon)){
                 foreach($request->input('jobcheckboxaddon') as $key => $addOnRuleId){
                     $addOn = new Addon();
@@ -96,11 +118,17 @@ class JobController extends Controller
                 }
             }
             foreach( $request->input('packageType') as $key => $packageTypeId){
+                $task                               =   new Task();
+                $task->date         =   $request->input('common_date');
+                $task->order_number =   $key+1;
+                $task->job_id       =   $job->id;
+                $task->save();
                 $package                            =   new Package();
                 $packageType                        =   PackageType::find($packageTypeId);
                 $package->job_id                    =   $job->id;
+                $package->task_id                    =  $task->id;
                 $package->packageType_id            =   $packageTypeId; 
-                $package->orderNumber               =   $key; 
+                $package->orderNumber               =   $key+1; 
                 $package->weight                    =   $key; 
                 $package->dimensions                =   $key; 
                 $package->quantity                  =   $request->input('packagedropoffquantity')[$key]; 
@@ -131,7 +159,6 @@ class JobController extends Controller
                     }
                 }     
             }
-            $job->save();          
             return response()->json(['success'  => true,
             'message'           =>  'Validation succes.',
             'inputs'            =>  $request->input(),
@@ -141,9 +168,13 @@ class JobController extends Controller
             'job'               =>  $job,                        
             ], 200);
         } catch (QueryException $e){
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
         } catch (\Exception $e){
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
         }
         
 
@@ -236,24 +267,23 @@ class JobController extends Controller
     public function updateJobAjax(UpdateJobRequest $request)
     {
         try{
-            // Find the job by its ID
-            $job = Job::findOrFail($request->id);
-            
-            // Update only the values that are present in the request
-            $job->fill($request->only([
-                'courrier_id','status_id','eilesNumeris', // Add all the fields you want to update here
-            ]));
-
-            // Alternatively, you can use intersect() to update only the values that exist in the request
-            // $job->fill($request->intersect([
-            //     'field1', 'field2', // Add all the fields you want to update here
-            // ]));
-
-            // Save the changes to the database
+            $job = Job::findOrFail($request->id);            
+            if($request->input('courrier_id')){
+                if($request->input('courrier_id') === 'none'){
+                    $job->courrier_id = null;
+                }else{
+                    $job->courrier_id = $request->input('courrier_id');
+                }
+            }
+            if($request->input('status_id')){
+                $job->status_id = $request->input('status_id');
+                
+            }
             $job->save();
-
-            // Return a response
-            return response()->json(['message' => 'Job updated successfully']);
+            return response()->json([
+                'message' => 'Job updated successfully',
+                'job' => $job,
+            ]);
         } catch (QueryException $e){
         return response()->json(['error' => $e->getMessage()], 500);
         } catch (\Exception $e){

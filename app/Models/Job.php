@@ -51,14 +51,8 @@ class Job extends Model
         return $this->belongsTo(User::class, 'manager_id');
     }
     public function pickupAddressShort(){
-        return $this->pickupclientpostalcode.' '.$this->pickupclientaddressline;
+        return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode;
     }
-
-    // public function status()
-    // {
-    //     return $this->belongsTo(Status::class, 'status_id');
-    // }
-
     public function group()
     {
         return $this->belongsTo(Group::class, 'group_id');
@@ -67,6 +61,9 @@ class Job extends Model
     public function invoice()
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
+    }
+    public function tasks(){
+        return $this->hasMany(Task::class)->orderBy('order_number');
     }
     public function addOns()
     {
@@ -90,7 +87,7 @@ class Job extends Model
             }
         }
         foreach($this->addOns as $addon){
-            $price+=$addOn->price;
+            $price+=$addon->price;
         }
         return $price;
     }

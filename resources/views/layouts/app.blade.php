@@ -29,7 +29,7 @@
 
 
     <!-- Include additional stylesheets or scripts you might need -->
-
+    @yield('style')
 </head>
 <body>
     {{-- dd(auth()->user()->role()) --}}

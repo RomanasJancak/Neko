@@ -12,6 +12,7 @@ use App\Http\Controllers\BikeController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\PackageTypeController;
 use App\Http\Controllers\DistanceController;
+use App\Http\Controllers\TaskController;
 
 
 /*
@@ -78,7 +79,7 @@ Route::group(['prefix' => 'jobs'], function(){
     // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
-    Route::post('/update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
+    Route::post('update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
     Route::get('getJobInfo/{id}',     [JobController::class, 'getJobInfo'])->name('job.getJobInfo')->middleware('auth');
 });
 Route::group(['prefix' => 'days'], function(){
@@ -151,6 +152,7 @@ Route::group(['prefix'  => 'statuses'],function(){
     Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware('auth');
     Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware('auth');
     Route::post('createBackup',     [StatusController::class, 'createBackup'])->name('status.createBackup')->middleware('auth');
+    Route::get('getStatusInfo/{id}',     [StatusController::class, 'getStatusInfo'])->name('status.getStatusInfo')->middleware('auth');
 });
 Route::group(['prefix'  => 'packageTypes'],function(){
     Route::get('',                  [PackageTypeController::class, 'index'])->name('packageType.index')->middleware('auth');
@@ -159,4 +161,12 @@ Route::group(['prefix'  => 'packageTypes'],function(){
     Route::post('store',            [PackageTypeController::class, 'store'])->name('packageType.store')->middleware('auth');
     Route::post('createBackup',     [PackageTypeController::class, 'createBackup'])->name('packageType.createBackup')->middleware('auth');
     Route::get('getPackageTypeInfo/{id}',     [PackageTypeController::class, 'getPackageTypeInfo'])->name('packageType.getPackageTypeInfo')->middleware('auth');
+});
+Route::group(['prefix'  => 'tasks'],function(){
+    Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
+    Route::post('update',           [TaskController::class, 'update'])->name('task.update')->middleware('auth');
+    Route::post('delete',           [TaskController::class, 'destroy'])->name('task.delete')->middleware('auth');
+    Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
+    Route::post('createBackup',     [TaskController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
+    Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 });

@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('packages', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->unsignedBigInteger('job_id'); 
+            $table->unsignedBigInteger('job_id')->nullable();
+            $table->unsignedBigInteger('task_id')->nullable();  
             $table->unsignedBigInteger('packageType_id');
             $table->unsignedBigInteger('orderNumber');
+            $table->unsignedBigInteger('status_id')->nullable();
             $table->string('weight');
             $table->string('dimensions');
             $table->string('quantity');

@@ -45,7 +45,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
     public function jobs(){
-        return $this->hasMany(Job::class,'courrier_id')->orderBy('eilesNumeris');
+        return $this->hasMany(Job::class,'courrier_id');
     }
     public function tasksForTHeDay($date){
         $date = \Carbon\Carbon::parse($date);

@@ -173,7 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var splitButtons = document.querySelectorAll('.button-split');
   var copyButtons = document.querySelectorAll('.button-copy-user-jobs'); 
   var dragedElement;
-  const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', '1');
   assignJobInformationToCopyButtons();
   function assignJobInformationToCopyButtons(){
     copyButtons.forEach(function(button){
@@ -257,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
   jobdropableListAreas2.forEach(function(element) {
     element.addEventListener('drop', function(event) {
       event.preventDefault();
-      var data = event.dataTransfer.getData("id");
+      var dropedElementId = event.dataTransfer.getData("id");
       var targetList;
       if(event.target.closest('.job-header')){
         var column  = event.target.closest('.job-columenToGetDropEvent');
@@ -267,21 +266,115 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if(targetList){
         if(event.target.closest('.job-header')){
-          targetList.insertBefore(document.getElementById(data), targetList.firstChild);
+          targetList.insertBefore(document.getElementById(dropedElementId), targetList.firstChild);
         }else{
-          targetList.appendChild(document.getElementById(data));
+          targetList.appendChild(document.getElementById(dropedElementId));
         }
       }else{
         targetList  = event.target.closest('.job-dropableListArea');
         targetJob   = event.target.closest('.draggable');
-        targetList.insertBefore(document.getElementById(data), targetJob.nextSibling);
+        targetList.insertBefore(document.getElementById(dropedElementId), targetJob.nextSibling);
       }
-      assignJobInformationToCopyButtons();           
+      if(event.target.closest('.job-columenToGetDropEvent').id === 'job-column-unassigned'){
+        dropedElement = document.getElementById(dropedElementId);
+        jobId = dropedElementId.replace("jobElement-", "");
+        userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
+        statusId  = 10;
+        console.log(userId+' '+jobId);
+        updateJobCourierAndStatus(jobId,'none',statusId);
+        const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', 10);
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {
+              dropedElement.style.backgroundColor = data.color_main;
+              dropedElement.querySelectorAll('.pickup-row').forEach(function(element) {
+                if(element){
+                  element.style.backgroundColor = data.color_pickup;
+                }
+              });
+              dropedElement.querySelectorAll('.package-row').forEach(function(element) {
+                if(element){
+                  element.style.backgroundColor = data.color_dropoff;
+                }
+              });
+            })
+            .catch(error => {
+                console.error(error);
+        });
+
+      }else if(/^job-column-usercolumn-\d+$/.test(event.target.closest('.job-columenToGetDropEvent').id)){
+        dropedElement = document.getElementById(dropedElementId);
+        jobId = dropedElementId.replace("jobElement-", "");
+        userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
+        statusId  = 13;
+        console.log(userId+' '+jobId);
+        updateJobCourierAndStatus(jobId,userId,statusId);
+        const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {              
+              dropedElement.style.backgroundColor = data.color_main;
+              dropedElement.querySelectorAll('.pickup-row').forEach(function(element) {
+                if(element){
+                  element.style.backgroundColor = data.color_pickup;
+                }
+              });
+              dropedElement.querySelectorAll('.package-row').forEach(function(element) {
+                if(element){
+                  element.style.backgroundColor = data.color_dropoff;
+                }
+              });
+            })
+            .catch(error => {
+                console.error(error);
+        });
+
+      }
+      //assignJobInformationToCopyButtons();
+      //updateJobCourierAndStatus(jobId,UserId,statusId);           
     });
   });
 });
-function updateJobCourierAndStatus(job){
+function updateJobElementColors(jobId){
 
+}
+function updateJobCourierAndStatus(jobId,userId,statusId){
+  console.log(jobId);
+  console.log(userId);
+  console.log(statusId);
+        // Prepare the data to send in the request body
+        const data = {
+            id: jobId,
+            courrier_id: userId,
+            status_id: statusId
+        };
+        console.log(data);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Send a POST request to the server using the generated route
+        fetch('{{ route("job.updateajax") }}', { // Blade syntax to generate the route URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', // Set Accept header
+                // Add any additional headers if needed
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            // if (!response.ok) {
+            //     throw new Error('Failed to update job');
+            // }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // Log the success message
+            // Optionally handle the response data, e.g., update UI
+        })
+        .catch(error => {
+            console.error('Error:', error.message); // Log any errors
+            // Optionally handle errors, e.g., display an error message
+        });
 }   
 </script>
 @endsection

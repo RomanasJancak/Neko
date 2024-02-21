@@ -13,6 +13,13 @@ class Package extends Model
     {
         return $this->belongsTo(Job::class);
     }
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+    public function status(){
+        return $this->belongsTo(Status::class,'status_id');
+    }
     public function packageType()
     {
         return $this->belongsTo(PackageType::class);
@@ -23,6 +30,6 @@ class Package extends Model
                     ->where('model_type', '=', 'app/models/Package');
     }
     public function pickupAddressShort(){
-        return $this->dropoff_postal_code.' '.$this->dropoff_adress_line;
+        return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
     }
 }
