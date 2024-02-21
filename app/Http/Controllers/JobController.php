@@ -19,6 +19,7 @@ use App\Models\AddOn;
 use App\Models\AddOnRule;
 use App\Models\Task;
 use App\Models\Pickuptask;
+use App\Models\Returntask;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -65,7 +66,10 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
-
+        // return response()->json(['success'  => true,
+        // 'message'           =>  'Validation succes.',
+        // 'inputs'            =>  $request->input(),                      
+        // ], 200);
         $request->validated();
 
         try{
@@ -102,7 +106,6 @@ class JobController extends Controller
             $pickuptask->notes       =   null;
             $pickuptask->price       =   null;
             $pickuptask->save();
-
             if(isset($request->jobcheckboxaddon)){
                 foreach($request->input('jobcheckboxaddon') as $key => $addOnRuleId){
                     $addOn = new Addon();
@@ -159,11 +162,30 @@ class JobController extends Controller
                     }
                 }     
             }
+            if(isset($request->isreturncreates)){           
+                $task               =   new Task();
+                $task->date         =   $request->input('common_date');
+                $task->order_number =   count($request->input('packageType'));
+                $task->job_id       =   $job->id;
+                $task->save();
+                $returntask         =   new Returntask();
+                $returntask->task_id       =  $task->id;
+                $returntask->status_id       =   $request->input('status_id');
+                $returntask->time_begin       =   $request->input('common_date').' '.$request->input('return_time_begin');
+                $returntask->time_end       =   $request->input('common_date').' '.$request->input('return_time_end');
+                $returntask->name       =   $request->input('returnclientname');
+                $returntask->adress_line       =   $request->input('returnclientaddressline');
+                $returntask->city       =   $request->input('returnclientcity');
+                $returntask->country       =   $request->input('returnclientcountry');
+                $returntask->postal_code       =   $request->input('returnclientpostalcode');
+                $returntask->notes       =   null;
+                $returntask->save();
+            }
             return response()->json(['success'  => true,
             'message'           =>  'Validation succes.',
             'inputs'            =>  $request->input(),
             'validated inputs'  =>  $request->validated(),
-            'testValue'         =>  isset($request->packagecheckboxaddon[0]),
+            'isReturn'          =>  isset($request->isreturncreates),
             'jobPrice'          =>  $job->price(),
             'job'               =>  $job,                        
             ], 200);

@@ -32,7 +32,8 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->bigInteger('price')->nullable();
             $table->unsignedBigInteger('baseQuantityThreshold')->nullable();
-            $table->unsignedBigInteger('maxQuantityThreshold')->nullable(); 
+            $table->unsignedBigInteger('maxQuantityThreshold')->nullable();
+            $table->string('notes')->nullable(); 
         });
     }
 

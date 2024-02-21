@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('task_id');
+            $table->unsignedBigInteger('status_id');
             $table->string('name')->nullable();
             $table->string('adress_line')->nullable();//CSV
             $table->string('postal_code')->nullable();//CSV
@@ -22,6 +23,8 @@ return new class extends Migration
             $table->string('country')->nullable();//CSV         
             $table->dateTime('time_begin');
             $table->dateTime('time_end');
+            $table->bigInteger('price')->nullable();
+            $table->string('notes')->nullable();
         });
     }
 

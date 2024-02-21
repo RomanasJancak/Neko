@@ -60,7 +60,10 @@
                             <input type="text" id="billingclientsearch" name="billingclientName" class="form-control" placeholder="Search for clients">
                             <input type="hidden" name="billingClientId" id="billingClientIdField" value="">
                         </div>
-                        
+                        <div class="form-group col-md-2">
+                            <label for="checkButton-return_of_crates">Return of crates ? </label>
+                            <input type="checkbox" id="checkButton-return_of_crates" name="isreturncreates">
+                        </div>
                     </div>
                     <div class="row justify-content-md-center" id="job-addon-container">
                     </div>
@@ -156,6 +159,44 @@
                             </div>
                         </div>
                 </div>
+                <div class="row justify-content-md-center" id='area-return' style="display: none;">
+                    <div class="col-12 text-center mb-2">
+                        <div class="row justify-content-md-center">
+                            <div class="col-12 text-center mb-2">
+                                <h4>Return</h4>
+                            </div>
+                        </div>
+                        <div class="row justify-content-md-center">
+                            <div class="col-md-3 form-group">
+                                <label for="return_name_search">Name of the return adress</label>
+                                <input type="text"          class="form-control" name="returnclientname"        id="return_name_search"         placeholder="Adress name">
+                            </div>
+                            <div class="col-md-3 form-group">
+                                <label for="returnaddress_addressline">Address line</label>
+                                <input type="text"          class="form-control" name="returnclientaddressline" id="returnaddress_addressline"  placeholder="Address line">     
+                            </div>
+                            <div class="col-md-3 form-group">
+                                <label for="returnaddress_postalcode">Postal code</label>
+                                <input type="text"          class="form-control" name="returnclientpostalcode"  id="returnaddress_postalcode"   placeholder="Postal code">
+                                <input hidden type="text"   class="form-control" name="returnclientcity"        id="returnaddress_city"         placeholder="City" value="London">
+                                <input hidden type="text"   class="form-control" name="returnclientcountry"     id="returnaddress_country"      placeholder="Country" value="UK">     
+                            </div>
+                            <div class="col-md-9 form-group">
+                                <div class="row justify-content-md-center">
+                                    <div class="col-12 text-center mb-2">
+                                        <h5 class="mb-0">Time window</h5>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <input type="time" id="return_time_begin" name="return_time_begin" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <input type="time" id="return_time_end" name="return_time_end" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row justify-content-md-center" id='general-notes-column'>
                     <div class="col form-group" id="general-notes">
                         <label for="generalnotes">General notes</label>
@@ -204,21 +245,64 @@
             });
         });
     //===============================MODAL FORM END
-// function getAddOnRule(datetime){
-//     return fetch(`{{ asset('addonrules/findAddOnRule') }}?datetime=${datetime}`)
-//                     .then(response => response.json())
-//                     .then(data => {
-//                         if (data) {
-//                             return data;
-//                         }
-//                     })
-//                     .catch(error => {
-//                         console.error(error);
-//                     });
-// }
 document.addEventListener('DOMContentLoaded', function() {
-    var billingClientSearchInput = $('#billingclientsearch');
-    
+    const pickupClientSearchInput =  $('#pickup_name_search');
+    const billingClientSearchInput = $('#billingclientsearch');
+    const returnClientSearchInput  =   $('#return_name_search');
+    addTypeHeadSearchToReturn(returnClientSearchInput);
+    const checkInputElementForReturn    =   document.getElementById("checkButton-return_of_crates");
+    checkInputElementForReturn.addEventListener('change', function (event) {
+        const areaForReturn    =   document.getElementById("area-return");
+        if(checkInputElementForReturn.checked){
+            areaForReturn.style.display = "";
+        }else{
+            areaForReturn.style.display = "none";
+        }   
+    });
+    function populateReturnAddressValues(data){
+        document.getElementById('return_name_search').value = data.name;
+        document.getElementById('returnaddress_addressline').value = data.pickup_adress_line;
+        document.getElementById('returnaddress_postalcode').value = data.pickup_postal_code;
+        document.getElementById('returnaddress_city').value = data.pickup_city;
+        document.getElementById('returnaddress_country').value = data.pickup_country;
+    }
+    function addTypeHeadSearchToReturn(searchInput){
+        if (searchInput.length > 0) {
+            searchInput.typeahead({
+            source: function(query, process) {
+                var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Process the fetched data and pass it to the typeahead
+                        process(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching client data:', error);
+                    });
+            },
+            autoSelect: true,
+            minLength: 2, // Minimum characters required before searching
+            displayText: function(item) {
+                return item.name; // Adjust this based on your client data structure
+            },
+            afterSelect: function(item) {
+                // Handle the selection here (e.g., redirect to client details page)
+                const routeUrl = "{{ route('getClientInfo', ['clientId' => ':id']) }}".replace(':id', item.id);
+                fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        populateReturnAddressValues(data);
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+            }
+        });
+        }
+    }
     autoFillForm();
     packageAddonContainer    =   document.getElementById("packageaddoncontainer-0");
     updatePackageAddons(packageAddonContainer);
@@ -515,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var clientsPacakgeTypes;
     
     addTypeHeadSearch(billingClientSearchInput);
-    var pickupClientSearchInput =  $('#pickup_name_search');
+    
 
     function movePackage(ButtonElement) {
         direction = ButtonElement.getAttribute('data-direction');
@@ -684,9 +768,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('billingClientIdField').value = data.id;
                         clientsPacakgeTypes = data.packageTypes;
                         populateFields(data,clientsPacakgeTypes,true);
+                        populateReturnAddressValues(data);
                         updateJobAddons(); 
-                        updatePrices();
-                           
+                        updatePrices();       
                     }
                 })
                 .catch(error => {
