@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('job_id')->nullable();
-            $table->unsignedBigInteger('task_id')->nullable();  
+            $table->unsignedBigInteger('task_id')->nullable(); 
+            $table->unsignedBigInteger('status_id')->nullable(); 
             $table->unsignedBigInteger('packageType_id');
-            $table->unsignedBigInteger('orderNumber');
-            $table->unsignedBigInteger('status_id')->nullable();
+            $table->unsignedBigInteger('orderNumber')->nullable();     
             $table->string('weight');
             $table->string('dimensions');
             $table->string('quantity');
