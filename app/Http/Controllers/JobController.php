@@ -42,23 +42,24 @@ class JobController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create($customjob)
     {
-        {
-            $clients = Client::all();
-            $couriers = User::all();
-            $statuses = Status::all();
-            $managers = User::all();
-            $postalCodes    =   PostalCode::all();
+        $clients = Client::all();
+        $couriers = User::all();
+        $statuses = Status::all();
+        $managers = User::all();
+        $postalCodes    =   PostalCode::all();
 
-    
-            return view('job.create', compact('clients'
-            , 'couriers', 
-             'statuses',
-             'managers',
-             'postalCodes'
+
+        return view('job.create', compact(
+            'clients',
+            'couriers', 
+            'statuses',
+            'managers',
+            'postalCodes',
+            'customjob',
         ));
-        }
+        
     }
 
     /**

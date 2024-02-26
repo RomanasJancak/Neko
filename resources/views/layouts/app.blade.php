@@ -96,7 +96,8 @@
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li>
                                     @can('client-create')
-                                    <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li>
+                                    <li><a class="dropdown-item" href="{{route('job.create')}}">Create pickup</a></li>
+                                    <li><a class="dropdown-item" href="{{route('job.create', ['customjob' => true]) }}">Create custom</a></li>
                                     <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li>
                                     @endcan
                                 </ul>

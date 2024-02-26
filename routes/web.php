@@ -70,7 +70,7 @@ Route::group(['prefix' => 'clients'], function(){
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
-    Route::get('create',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
+    Route::get('create/{customjob?}',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
     Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
     Route::put('update/{job}',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
