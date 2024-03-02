@@ -60,15 +60,54 @@
                             <input type="text" id="billingclientsearch" name="billingclientName" class="form-control" placeholder="Search for clients">
                             <input type="hidden" name="billingClientId" id="billingClientIdField" value="">
                         </div>
+                        @if ($customjob)
+                        @else                        
                         <div class="form-group col-md-2">
                             <label for="checkButton-return_of_crates">Return of crates ? </label>
                             <input type="checkbox" id="checkButton-return_of_crates" name="isreturncreates">
                         </div>
+                        @endif
                     </div>
                     <div class="row justify-content-md-center" id="job-addon-container">
                     </div>
                 </div>
-                <div class="row">
+                @if ($customjob)
+                <div class="row justify-content-md-center" id="area-customjob">
+                    <div class="col">
+                        <div class="row">
+                            <div class="col">Custom Job information</div>
+                        </div>
+                        <div class="row justify-content-md-center">
+                                <div class="col-12 text-center mb-2">
+                                    <h5 class="mb-0">Time window</h5>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <input type="time" id="custom_time_begin" name="custom_time_begin" class="form-control">
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <input type="time" id="custom_time_begin" name="custom_time_end" class="form-control">
+                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 form-group">
+                                <label for="return_name_search">Name of the job adress</label>
+                                <input type="text"          class="form-control" name="returnclientname"        id="return_name_search"         placeholder="Adress name">
+                            </div>
+                            <div class="col-md-3 form-group">
+                                <label for="returnaddress_addressline">Address line</label>
+                                <input type="text"          class="form-control" name="returnclientaddressline" id="returnaddress_addressline"  placeholder="Address line">     
+                            </div>
+                            <div class="col-md-3 form-group">
+                                <label for="returnaddress_postalcode">Postal code</label>
+                                <input type="text"          class="form-control" name="returnclientpostalcode"  id="returnaddress_postalcode"   placeholder="Postal code">
+                                <input hidden type="text"   class="form-control" name="returnclientcity"        id="returnaddress_city"         placeholder="City" value="London">
+                                <input hidden type="text"   class="form-control" name="returnclientcountry"     id="returnaddress_country"      placeholder="Country" value="UK">     
+                            </div>
+                        </div>
+                    </div>
+                </div>    
+                @else                
+                <div class="row justify-content-md-center" id="area-pickup">
                     <div class="row justify-content-md-center">
                         <div class="col-auto">
                             <div class="row justify-content-md-center">
@@ -203,7 +242,7 @@
                         <textarea id="generalnotes" name="generalnotes" class="form-control"></textarea>
                     </div>
                 </div>
-                  
+                @endif  
 
                 </div>
                 <div class="form-group" hidden>
@@ -251,14 +290,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const returnClientSearchInput  =   $('#return_name_search');
     addTypeHeadSearchToReturn(returnClientSearchInput);
     const checkInputElementForReturn    =   document.getElementById("checkButton-return_of_crates");
-    checkInputElementForReturn.addEventListener('change', function (event) {
-        const areaForReturn    =   document.getElementById("area-return");
-        if(checkInputElementForReturn.checked){
-            areaForReturn.style.display = "";
-        }else{
-            areaForReturn.style.display = "none";
-        }   
-    });
+    if(checkInputElementForReturn){
+        checkInputElementForReturn.addEventListener('change', function (event) {
+            const areaForReturn    =   document.getElementById("area-return");
+            if(checkInputElementForReturn.checked){
+                areaForReturn.style.display = "";
+            }else{
+                areaForReturn.style.display = "none";
+            }   
+        });
+    }
     function populateReturnAddressValues(data){
         document.getElementById('return_name_search').value = data.name;
         document.getElementById('returnaddress_addressline').value = data.pickup_adress_line;
@@ -303,14 +344,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         }
     }
+    
     autoFillForm();
     packageAddonContainer    =   document.getElementById("packageaddoncontainer-0");
     updatePackageAddons(packageAddonContainer);
+    
     function autoFillForm() {
+        var today = new Date();
+        var month = (today.getMonth() + 1).toString().padStart(2, '0');
+        var day = today.getDate().toString().padStart(2, '0');
+        var formattedDate = today.getFullYear() + '-' + month + '-' + day;
         // Example values to fill the form
         var formData = {
             status_id: 10,   // Assuming 1 is a valid status ID
-            common_date: '2024-01-27',
+            common_date: formattedDate,
 
             billingclientName: 'Neko home Delivery LLP',
             billingclientId: 1,
@@ -543,6 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     function updatePackageAddons(packageAddonContainer){
+        console.log('0');
         date                =   document.getElementById('common_date').value;
         billingClientId       =   document.getElementById('billingClientIdField').value;
         //console.log(date+' '+billingClientId);
@@ -553,6 +601,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetch(routeUrl)
                     .then(response => response.json())
                     .then(data => {
+                        console.log('0');
+                        console.log(data);
                         data.forEach(function (element){
                             if(element.name.split('-')[0] === 'package'){
                                 addInputCheckBox(packageAddonContainer,element).addEventListener('change', function (event) {
@@ -706,6 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[id^="package-"]').forEach(packageElement => {
             const id = packageElement.id.split('-')[packageElement.id.split('-').length - 1];
             const checkbox = document.getElementById('packageaddoncontainer-'+id+'-6');
+            console.log(checkbox);
             const label = document.querySelector(`label[for="`+checkbox.id+`"]`);   
             const quantity = parseInt(document.getElementById('packageQuantity-'+id).value);
             const selectElement = document.getElementById('packagetypeselect-'+id);
