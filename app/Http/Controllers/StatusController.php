@@ -41,6 +41,8 @@ class StatusController extends Controller
         $status->color_main =   $request->input('color-main');
         $status->color_pickup =   $request->input('color-pickup');
         $status->color_dropoff =   $request->input('color-dropoff');
+        $status->color_return =   $request->input('color-return');
+        $status->color_custom =   $request->input('color-custom');
         $status->save();
         return response()->json([
             'message' => 'Status created successfully.',
@@ -74,6 +76,8 @@ class StatusController extends Controller
         $status->color_main =   $request->input('color-main');
         $status->color_pickup =   $request->input('color-pickup');
         $status->color_dropoff =   $request->input('color-dropoff');
+        $status->color_return =   $request->input('color-return');
+        $status->color_custom =   $request->input('color-custom');
         $status->save();
 
         return response()->json([
@@ -104,6 +108,8 @@ class StatusController extends Controller
                 'color_main'        =>   $status->color_main,
                 'color_pickup'        =>   $status->color_pickup,
                 'color_dropoff'        =>   $status->color_dropoff,
+                'color_return'        =>   $status->color_return,
+                'color_custom'        =>   $status->color_custom,
                 ]);
         }
 

@@ -18,6 +18,8 @@
                         <th data-column="name">Color main</th>
                         <th data-column="name">Color pickup</th>
                         <th data-column="name">Color dropoff</th>
+                        <th data-column="name">Color return</th>
+                        <th data-column="name">Color custom</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -29,6 +31,8 @@
                         <td style="background-color: {{$status->color_main}}">{{ $status->color_main }}</td>
                         <td style="background-color: {{$status->color_pickup}}">{{ $status->color_pickup }}</td>
                         <td style="background-color: {{$status->color_dropoff}}">{{ $status->color_dropoff }}</td>
+                        <td style="background-color: {{$status->color_return}}">{{ $status->color_return }}</td>
+                        <td style="background-color: {{$status->color_custom}}">{{ $status->color_custom }}</td>
                         <td>
                             <button class="btn btn-primary edit-btn" 
                                 data-statusid="{{ $status->id }}"
@@ -36,6 +40,8 @@
                                 data-colormain="{{ $status->color_main }}"
                                 data-colorpickup="{{ $status->color_pickup }}"
                                 data-colordropoff="{{ $status->color_dropoff }}"
+                                data-return="{{ $status->color_return }}"
+                                data-custom="{{ $status->color_custom }}"
                             ><i class="bi bi-pen"></i></button>
                             <button class="btn btn-danger delete-btn" 
                                 data-statusid="{{ $status->id }}"
@@ -43,6 +49,8 @@
                                 data-colormain="{{ $status->color_main }}"
                                 data-colorpickup="{{ $status->color_pickup }}"
                                 data-colordropoff="{{ $status->color_dropoff }}"
+                                data-return="{{ $status->color_return }}"
+                                data-custom="{{ $status->color_custom }}"
                             ><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -82,6 +90,14 @@
                             <label for="nameField">Color dropoff: </label>
                             <input type="color" id="colorPicker-dropoff" name="color-dropoff" value="#808080">
                         </div>
+                        <div class="col">
+                            <label for="nameField">Color return: </label>
+                            <input type="color" id="colorPicker-return" name="color-return" value="#808080">
+                        </div>
+                        <div class="col">
+                            <label for="nameField">Color custom: </label>
+                            <input type="color" id="colorPicker-custom" name="color-custom" value="#808080">
+                        </div>
                     </div>
                     <div class="row">
                         <div class="form-group">
@@ -110,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusColorMain   =   button.dataset.colormain;
             const statusColorPickup   =   button.dataset.colorpickup;
             const statusColorDropoff   =   button.dataset.colordropoff;
+            const statusColorReturn   =   button.dataset.return;
+            const statusColorCustom   =   button.dataset.custom;
             const form = document.querySelector(`#statusForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('status.update') }}");
@@ -119,9 +137,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-main').value = statusColorMain;
                 document.getElementById('colorPicker-pickup').value = statusColorPickup;
                 document.getElementById('colorPicker-dropoff').value = statusColorDropoff;
+                document.getElementById('colorPicker-return').value = statusColorReturn;
+                document.getElementById('colorPicker-custom').value = statusColorCustom;
                 document.getElementById('colorPicker-main').disabled = false;
                 document.getElementById('colorPicker-pickup').disabled = false;
                 document.getElementById('colorPicker-dropoff').disabled = false;
+                document.getElementById('colorPicker-return').disabled = false;
+                document.getElementById('colorPicker-custom').disabled = false;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
@@ -135,6 +157,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusColorMain   =   button.dataset.colormain;
             const statusColorPickup   =   button.dataset.colorpickup;
             const statusColorDropoff   =   button.dataset.colordropoff;
+            const statusColorReturn   =   button.dataset.return;
+            const statusColorCustom   =   button.dataset.custom;
             const form = document.querySelector(`#statusForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('status.delete') }}");
@@ -144,9 +168,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-main').value = statusColorMain;
                 document.getElementById('colorPicker-pickup').value = statusColorPickup;
                 document.getElementById('colorPicker-dropoff').value = statusColorDropoff;
+                document.getElementById('colorPicker-return').value = statusColorReturn;
+                document.getElementById('colorPicker-custom').value = statusColorCustom;
                 document.getElementById('colorPicker-main').disabled = true;
                 document.getElementById('colorPicker-pickup').disabled = true;
                 document.getElementById('colorPicker-dropoff').disabled = true;
+                document.getElementById('colorPicker-return').disabled = true;
+                document.getElementById('colorPicker-custom').disabled = true;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
             }
@@ -161,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-main').disabled = false;
                 document.getElementById('colorPicker-pickup').disabled = false;
                 document.getElementById('colorPicker-dropoff').disabled = false;
+                document.getElementById('colorPicker-return').disabled = false;
+                document.getElementById('colorPicker-custom').disabled = false;
                 form.setAttribute('action', "{{ route('status.store') }}");
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
