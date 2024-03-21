@@ -168,7 +168,7 @@ class JobController extends Controller
             if(isset($request->isreturncreates)){           
                 $task               =   new Task();
                 $task->date         =   $request->input('common_date');
-                $task->order_number =   count($request->input('packageType'));
+                $task->order_number =   count($request->input('packageType'))+1;
                 $task->job_id       =   $job->id;
                 $task->status_id       =   $request->input('status_id');
                 $task->save();
