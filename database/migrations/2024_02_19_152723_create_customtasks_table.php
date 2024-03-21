@@ -14,6 +14,17 @@ return new class extends Migration
         Schema::create('customtasks', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->unsignedBigInteger('task_id');
+            $table->unsignedBigInteger('status_id');
+            $table->string('name')->nullable();
+            $table->string('adress_line')->nullable();//CSV
+            $table->string('postal_code')->nullable();//CSV
+            $table->string('city')->nullable();//CSV
+            $table->string('country')->nullable();//CSV         
+            $table->dateTime('time_begin');
+            $table->dateTime('time_end');
+            $table->bigInteger('price')->nullable();
+            $table->string('notes')->nullable();
         });
     }
 

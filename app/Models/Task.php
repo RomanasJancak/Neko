@@ -21,4 +21,10 @@ class Task extends Model
     public function customTask(){
         return $this->hasOne(CustomTask::class);
     }
+    public function job(){
+        return $this->belongsTo(Job::class);
+    }
+    public function status(){
+        return $this->belongsTo(Status::class,'status_id');
+    }
 }

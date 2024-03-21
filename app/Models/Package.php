@@ -32,4 +32,7 @@ class Package extends Model
     public function pickupAddressShort(){
         return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
     }
+    public function addressShort(){
+        return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
+    }
 }

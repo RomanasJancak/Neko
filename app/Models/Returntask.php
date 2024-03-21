@@ -12,4 +12,7 @@ class Returntask extends Model
     {
         return $this->belongsTo(Task::class);
     }
+    public function addressShort(){
+        return $this->adress_line.' '.$this->postal_code;
+    }
 }

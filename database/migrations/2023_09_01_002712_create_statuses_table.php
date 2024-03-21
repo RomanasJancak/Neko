@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('color_main')->nullable();
             $table->string('color_pickup')->nullable();
             $table->string('color_dropoff')->nullable();
+            $table->string('color_return')->nullable();
+            $table->string('color_custom')->nullable();
         });
     }
 

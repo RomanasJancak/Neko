@@ -15,8 +15,10 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->dateTime('date');
+            $table->unsignedBigInteger('status_id');
             $table->unsignedBigInteger('job_id');
             $table->unsignedBigInteger('order_number');
+            
         });
     }
 

@@ -93,6 +93,7 @@ class JobController extends Controller
             $task->date         =   $request->input('common_date');
             $task->order_number =   0;
             $task->job_id       =   $job->id;
+            $task->status_id       =   $request->input('status_id');
             $task->save();
             $pickuptask         =   new Pickuptask();
             $pickuptask->task_id       =  $task->id;
@@ -126,6 +127,7 @@ class JobController extends Controller
                 $task->date         =   $request->input('common_date');
                 $task->order_number =   $key+1;
                 $task->job_id       =   $job->id;
+                $task->status_id       =   $request->input('status_id');
                 $task->save();
                 $package                            =   new Package();
                 $packageType                        =   PackageType::find($packageTypeId);
@@ -168,6 +170,7 @@ class JobController extends Controller
                 $task->date         =   $request->input('common_date');
                 $task->order_number =   count($request->input('packageType'));
                 $task->job_id       =   $job->id;
+                $task->status_id       =   $request->input('status_id');
                 $task->save();
                 $returntask         =   new Returntask();
                 $returntask->task_id       =  $task->id;

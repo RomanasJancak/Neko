@@ -26,14 +26,19 @@
                       text-align: center;
                       vertical-align: middle;"
               >PU</div>
-              <div class="col-10">
-                <div class="row"><div class="col">{{$job->pickupclientname}}</div></div>
-                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($job->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($job->pickup_time_end)->format('H:i') }}</div></div>
-                <div class="row"><div class="col">{{$job->pickupAddressShort()}}</div></div>
+              <div class="col-8">
+                @foreach ($job->tasks as $task)
+                  @isset($task->pickup)                    
+                    <div class="row">
+                    <div class="col">
+                      {{$task->pickup->pickupclientname}}
+                    </div>
+                    </div>
+                    <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
+                    <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
+                  @endisset
+                @endforeach
               </div>
-            </div>
-            @foreach ($job->packages as $package)
-            <div class="row package-row border" id="package-{{$package->id}}" style="background-color: {{$job->status->color_dropoff}};">
               <div  class="col-2" 
                     style="
                       writing-mode: vertical-lr;
@@ -41,34 +46,78 @@
                       text-align: center;
                       vertical-align: middle;"
               >
-              @if (strcasecmp($package->name, 'return') == 0)
-                RETURN
-              @else
-                DROP
-              @endif
+              <button class="button-completeTaskPickup" data-jobid="{{$job->id}}" id="button-completeTaskPickup-{{$job->id}}"><span class="bi bi-check"></span></button>
               </div>
-              <div class="col-10 package" >
-                <div class="row">
-                  <div class="col-auto">
-                    {{$package->dropoff_name}}
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-6">
-                    {{ \Illuminate\Support\Carbon::parse($package->packagedropofftimebegin)->format('H:i') }}
-                  </div>
-                  <div class="col-6">
-                    {{ \Illuminate\Support\Carbon::parse($package->packagedropofftimeend)->format('H:i') }}  
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    {{$package->pickupAddressShort()}}
-                  </div>
-                </div>
-              </div>
-              
             </div>
+            @foreach ($job->tasks as $task)
+              @isset($task->package)
+              <div class="row package-row border" id="package-{{$task->id}}" style="background-color: {{$job->status->color_dropoff}};">
+                <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+                  >
+                    DROP
+                </div>
+                <div class="col-10 package" >
+                  <div class="row">
+                    <div class="col-auto">
+                      {{$task->package->dropoff_name}}
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      {{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimebegin)->format('H:i') }}
+                    </div>
+                    <div class="col-6">
+                      {{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimeend)->format('H:i') }}  
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      {{$task->package->pickupAddressShort()}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              @endisset
+            @endforeach
+            @foreach ($job->tasks as $task)
+              @isset($task->return)
+              <div class="row package-row border" id="package-{{$task->id}}" style="background-color: {{$job->status->color_dropoff}};">
+                <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+                  >
+                    RETURN
+                </div>
+                <div class="col-10 package" >
+                  <div class="row">
+                    <div class="col-auto">
+                      {{$task->return->name}}
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      {{ \Illuminate\Support\Carbon::parse($task->return->time_begin)->format('H:i') }}
+                    </div>
+                    <div class="col-6">
+                      {{ \Illuminate\Support\Carbon::parse($task->return->time_end)->format('H:i') }}  
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      {{$task->return->addressShort()}}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              @endisset
             @endforeach
             <div class="row">
               <div class="col">
@@ -88,7 +137,103 @@
         <div class="col"><button class="btn btn-primary button-copy-user-jobs" id="button-copy-user-jobs-{{$user->id}}" data-jobs="">Copy</button></div>
       </div>
       <div class="row job-dropableListArea">
-        @foreach ($user->jobsWithDate($day->date) as $job)
+        @foreach ($user->tasks as $task)
+        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="jobElement-{{$task->job->id}}">
+          <div class="row job-header-div">
+            <div class="col job-id-div">
+              NJ{{$task->job->id}}
+            </div>
+            <div class="col job-status-div">
+                {{$task->status->name}}
+            </div>
+          </div>
+          @isset($task->pickup)  
+          <div class="row pickup-row border" style="background-color: {{$task->job->status->color_pickup}};">
+            <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+            >
+              PU
+            </div>          
+            <div class="col-8">
+                <div class="row"><div class="col">{{$task->pickup->pickupclientname}}</div></div>
+                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
+                <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
+            </div>
+            <div class="col-2">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+          </div>
+          @endisset
+          @isset($task->package)
+          <div class="row pickup-row border" style="background-color: {{$task->job->status->color_dropoff}};">
+            <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+            >
+              DROP
+            </div>          
+            <div class="col-8">
+                <div class="row"><div class="col">{{$task->package->dropoff_name}}</div></div>
+                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimebegin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimeend)->format('H:i') }}</div></div>
+                <div class="row"><div class="col">{{$task->package->addressShort()}}</div></div>
+            </div>
+            <div class="col-2">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+          </div>
+          @endisset
+          @isset($task->return)
+          <div class="row pickup-row border" style="background-color: {{$task->job->status->color_dropoff}};">
+            <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+            >
+              RETURN
+            </div>          
+            <div class="col-8">
+                <div class="row"><div class="col">{{$task->return->name}}</div></div>
+                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_end)->format('H:i') }}</div></div>
+                <div class="row"><div class="col">{{$task->return->addressShort()}}</div></div>
+            </div>
+            <div class="col-2">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+          </div>
+          @endisset
+          @isset($task->customTask)
+          <div class="row pickup-row border" style="background-color: {{$task->job->status->color_dropoff}};">
+            <div  class="col-2" 
+                    style="
+                      writing-mode: vertical-lr;
+                      transform: rotate(180deg);
+                      text-align: center;
+                      vertical-align: middle;"
+            >
+              RETURN
+            </div>          
+            <div class="col-8">
+                <div class="row"><div class="col">{{$task->customTask->name}}</div></div>
+                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_end)->format('H:i') }}</div></div>
+                <div class="row"><div class="col">{{$task->customTask->addressShort()}}</div></div>
+            </div>
+            <div class="col-2">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+          </div>
+          @endisset
+        </div> 
+        @endforeach
+        <!-- @foreach ($user->jobsWithDate($day->date) as $job)
         <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$job->status->color_main}};" draggable="true" id="jobElement-{{$job->id}}">
             <div class="row job-header-div">
               <div class="col job-id-div">
@@ -156,8 +301,8 @@
                 <button class="button-completeJob" data-jobid="{{$job->id}}" id="button-completeJob-{{$job->id}}">Complete</button>
               </div>
             </div>
-          </div>
-        @endforeach
+        </div>
+        @endforeach -->
       </div>
     </div>
     @endforeach
@@ -277,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if(event.target.closest('.job-columenToGetDropEvent').id === 'job-column-unassigned'){
         dropedElement = document.getElementById(dropedElementId);
-        jobId = dropedElementId.replace("jobElement-", "");
+        jobId = dropedElementId.replace("jobElement-", ""); // IMPORTANT
         userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
         statusId  = 10;
         console.log(userId+' '+jobId);

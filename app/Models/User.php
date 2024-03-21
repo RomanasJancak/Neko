@@ -77,4 +77,8 @@ class User extends Authenticatable
         // Assuming a user has only one role at a time
         return $this->roles()->first();
     }
+    public function tasks()
+    {
+        return $this->hasManyThrough(Task::class, Job::class, 'courrier_id', 'job_id')->orderBy('order_number');;
+    }
 }
