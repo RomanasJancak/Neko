@@ -22,6 +22,13 @@
             </div>            
             <form method="POST" action="{{ route('job.store') }}" class="row g-3" id="jobCreateForm">
                 @csrf
+                <input type="hidden" name="isItCustomJob" id="isItCustomJob"
+                @if ($customjob)
+                value="true"
+                @else
+                value="false"
+                @endif
+                >
                 <div class="modal fade" id="workloadModal" tabindex="-1"  aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
@@ -90,18 +97,28 @@
                         </div>
                         <div class="row">
                             <div class="col-md-3 form-group">
-                                <label for="return_name_search">Name of the job adress</label>
-                                <input type="text"          class="form-control" name="returnclientname"        id="return_name_search"         placeholder="Adress name">
+                                <label for="custom_name_search">Name of the job adress</label>
+                                <input type="text"          class="form-control" name="customclientname"        id="custom_name_search"         placeholder="Adress name">
                             </div>
                             <div class="col-md-3 form-group">
-                                <label for="returnaddress_addressline">Address line</label>
-                                <input type="text"          class="form-control" name="returnclientaddressline" id="returnaddress_addressline"  placeholder="Address line">     
+                                <label for="customaddress_addressline">Address line</label>
+                                <input type="text"          class="form-control" name="customclientaddressline" id="customaddress_addressline"  placeholder="Address line">     
                             </div>
                             <div class="col-md-3 form-group">
-                                <label for="returnaddress_postalcode">Postal code</label>
-                                <input type="text"          class="form-control" name="returnclientpostalcode"  id="returnaddress_postalcode"   placeholder="Postal code">
-                                <input hidden type="text"   class="form-control" name="returnclientcity"        id="returnaddress_city"         placeholder="City" value="London">
-                                <input hidden type="text"   class="form-control" name="returnclientcountry"     id="returnaddress_country"      placeholder="Country" value="UK">     
+                                <label for="customaddress_postalcode">Postal code</label>
+                                <input type="text"          class="form-control" name="customclientpostalcode"  id="customaddress_postalcode"   placeholder="Postal code">
+                                <input hidden type="text"   class="form-control" name="customclientcity"        id="customaddress_city"         placeholder="City" value="London">
+                                <input hidden type="text"   class="form-control" name="customclientcountry"     id="customaddress_country"      placeholder="Country" value="UK">     
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 form-group">
+                                <div class="row justify-content-md-center" id='general-notes-column'>
+                                    <div class="col form-group" id="general-notes">
+                                        <label for="generalnotes">General notes</label>
+                                        <textarea id="generalnotes" name="generalnotes" class="form-control"></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -285,9 +302,11 @@
         });
     //===============================MODAL FORM END
 document.addEventListener('DOMContentLoaded', function() {
+    const currentUrl = window.location.href;
     const pickupClientSearchInput =  $('#pickup_name_search');
     const billingClientSearchInput = $('#billingclientsearch');
     const returnClientSearchInput  =   $('#return_name_search');
+
     addTypeHeadSearchToReturn(returnClientSearchInput);
     const checkInputElementForReturn    =   document.getElementById("checkButton-return_of_crates");
     if(checkInputElementForReturn){
@@ -345,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    autoFillForm();
+    
     packageAddonContainer    =   document.getElementById("packageaddoncontainer-0");
     updatePackageAddons(packageAddonContainer);
     
@@ -590,7 +609,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     function updatePackageAddons(packageAddonContainer){
-        console.log('0');
         date                =   document.getElementById('common_date').value;
         billingClientId       =   document.getElementById('billingClientIdField').value;
         //console.log(date+' '+billingClientId);
@@ -674,83 +692,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 // Dispatch the event on the jobCreationDatePicker element
-    moveupPackageButtonElement.addEventListener('click', function (event) {
-        event.preventDefault();
-        movePackage(moveupPackageButtonElement);
-    });
 
-    movedownPackageButtonElement.addEventListener('click', function (event) {
-        event.preventDefault();
-        movePackage(movedownPackageButtonElement);
-    });
 
-    addPackageButtonElement.addEventListener('click', function(event) {
-        event.preventDefault();
-        var packageCount = document.querySelectorAll('[id^="package-"]').length;
-        var packageElement = document.getElementById('package-0').cloneNode(true);
-        packageElement.id = 'package-' + packageCount;
-        packageElement.querySelector('[id^="package_name_search"]').id = 'package_name_search-' + packageCount;
-        packageElement.querySelector('[id^="packagetypeselect"]').id = 'packagetypeselect-' + packageCount;
-        packageElement.querySelector('[id^="package_addressline"]').id = 'package_addressline-' + packageCount;
-        packageElement.querySelector('[id^="package_postalcode"]').id = 'package_postalcode-' + packageCount;
-        packageElement.querySelector('[id^="package_city"]').id = 'package_city-' + packageCount;
-        packageElement.querySelector('[id^="package_country"]').id = 'package_country-' + packageCount;
-        packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
-        packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
-        packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
-        packageElement.querySelector('[id^="labelpackagetypeselect"]').setAttribute('for', 'packagetypeselect-' + packageCount);
-        packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
-        packageElement.querySelector('[id^="package_button_up"]').id = 'package_button_up-' + packageCount;
-        packageElement.querySelector('[id^="package_button_down"]').id = 'package_button_down-' + packageCount;
 
-        packageElement.querySelector('[id^="package_timebegin"]').id = 'package_timebegin-' + packageCount;
-        packageElement.querySelector('[id^="package_timeend"]').id = 'package_timeend-' + packageCount;
-
-        packageElement.querySelector('[id^="packageaddoncontainer"]').id = 'packageaddoncontainer-' + packageCount;
-        updatePackageAddons(packageElement.querySelector('[id^="packageaddoncontainer"]'));
-        var addPackageRowDiv = document.getElementById('addPackageRow');
-        addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
-        document.getElementById('package_addressline-'+packageCount).addEventListener('change', function(event) {
-            updateDistances();
-        });
-        document.getElementById('package_postalcode-'+packageCount).addEventListener('change', function(event) { 
-            updateDistances();
-        });
-        document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
-            updatePrices();
-        });
-        document.getElementById('packageQuantity-'+packageCount).addEventListener('change', function(event) { 
-            updateQuantityRelatedThings();
-            updatePrices();
-        });
-        movedownPackageButtonElement_local = document.getElementById('package_button_down-'+packageCount)
-        movedownPackageButtonElement_local.addEventListener('click', function (event) {
-            event.preventDefault();
-            movePackage(movedownPackageButtonElement_local);
-        });
-        moveupPackageButtonElement_local = document.getElementById('package_button_up-'+packageCount)
-        moveupPackageButtonElement_local.addEventListener('click', function (event) {
-            event.preventDefault();
-            movePackage(moveupPackageButtonElement_local);
-        });
-
-        addSearchAbilityToPackageDropOffNameField(packageElement.querySelector('[id^="package_name_search"]').id);
-        updateDistances();
-        updatePrices();
-    });
     //============================================================
     addSearchAbilityToPackageDropOffNameField('package_name_search-0');
     
-    document.getElementById('package_addressline-0').addEventListener('change', function(event) {
-                                    updateDistances();
-    });
-    document.getElementById('package_postalcode-0').addEventListener('change', function(event) { 
-                                    updateDistances();
-    });
-    document.getElementById('packageQuantity-0').addEventListener('change', function(event) {
-        updateQuantityRelatedThings();
-        updatePrices();
-    });
+
     function updateQuantityRelatedThings(){
         let thereIsAQuantityOverMaxQuantityThreshold = false;
         document.querySelectorAll('[id^="package-"]').forEach(packageElement => {
@@ -790,6 +738,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    function populateCustomJobFields(data){
+        countryElement      =   document.getElementById('customaddress_country');
+        cityElement         =   document.getElementById('customaddress_city');
+        postalCodeElement   =   document.getElementById('customaddress_postalcode');
+        addressLineElement  =   document.getElementById('customaddress_addressline');
+        nameElement         =   document.getElementById('custom_name_search');
+        countryElement.value        =   data.pickup_country;
+        cityElement.value           =   data.pickup_city;
+        postalCodeElement.value     =   data.pickup_postal_code;
+        addressLineElement.value    =   data.pickup_adress_line;
+        nameElement.value           =   data.name;
+    }
     function addTypeHeadSearch(searchInput){
         if (searchInput.length > 0) {
             searchInput.typeahead({
@@ -818,10 +778,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data) {
                         document.getElementById('billingClientIdField').value = data.id;
                         clientsPacakgeTypes = data.packageTypes;
-                        populateFields(data,clientsPacakgeTypes,true);
-                        populateReturnAddressValues(data);
-                        updateJobAddons(); 
-                        updatePrices();       
+                        if (currentUrl.endsWith('/create')) {
+                            populateFields(data,clientsPacakgeTypes,true);
+                            populateReturnAddressValues(data);
+                            updateJobAddons(); 
+                            updatePrices();
+                        }else if(currentUrl.endsWith('/create/1')){
+                            populateCustomJobFields(data);
+                        }       
                     }
                 })
                 .catch(error => {
@@ -967,6 +931,82 @@ document.addEventListener('DOMContentLoaded', function() {
         // Send the request
         xhr.send(formData);
     });
+    if (currentUrl.endsWith('/create')) {
+        autoFillForm();
+        moveupPackageButtonElement.addEventListener('click', function (event) {
+            event.preventDefault();
+            movePackage(moveupPackageButtonElement);
+        });
+        movedownPackageButtonElement.addEventListener('click', function (event) {
+            event.preventDefault();
+            movePackage(movedownPackageButtonElement);
+        });
+        addPackageButtonElement.addEventListener('click', function(event) {
+            event.preventDefault();
+            var packageCount = document.querySelectorAll('[id^="package-"]').length;
+            var packageElement = document.getElementById('package-0').cloneNode(true);
+            packageElement.id = 'package-' + packageCount;
+            packageElement.querySelector('[id^="package_name_search"]').id = 'package_name_search-' + packageCount;
+            packageElement.querySelector('[id^="packagetypeselect"]').id = 'packagetypeselect-' + packageCount;
+            packageElement.querySelector('[id^="package_addressline"]').id = 'package_addressline-' + packageCount;
+            packageElement.querySelector('[id^="package_postalcode"]').id = 'package_postalcode-' + packageCount;
+            packageElement.querySelector('[id^="package_city"]').id = 'package_city-' + packageCount;
+            packageElement.querySelector('[id^="package_country"]').id = 'package_country-' + packageCount;
+            packageElement.querySelector('[id^="package_distance"]').id = 'package_distance-' + packageCount;
+            packageElement.querySelector('[id^="packageQuantity"]').id = 'packageQuantity-' + packageCount;
+            packageElement.querySelector('[id^="labelpackagetypeselect"]').id = 'labelpackagetypeselect-' + packageCount;
+            packageElement.querySelector('[id^="labelpackagetypeselect"]').setAttribute('for', 'packagetypeselect-' + packageCount);
+            packageElement.querySelector('[id^="package_price"]').id = 'package_price-' + packageCount;
+            packageElement.querySelector('[id^="package_button_up"]').id = 'package_button_up-' + packageCount;
+            packageElement.querySelector('[id^="package_button_down"]').id = 'package_button_down-' + packageCount;
+
+            packageElement.querySelector('[id^="package_timebegin"]').id = 'package_timebegin-' + packageCount;
+            packageElement.querySelector('[id^="package_timeend"]').id = 'package_timeend-' + packageCount;
+
+            packageElement.querySelector('[id^="packageaddoncontainer"]').id = 'packageaddoncontainer-' + packageCount;
+            updatePackageAddons(packageElement.querySelector('[id^="packageaddoncontainer"]'));
+            var addPackageRowDiv = document.getElementById('addPackageRow');
+            addPackageRowDiv.parentNode.insertBefore(packageElement, addPackageRowDiv);
+            document.getElementById('package_addressline-'+packageCount).addEventListener('change', function(event) {
+                updateDistances();
+            });
+            document.getElementById('package_postalcode-'+packageCount).addEventListener('change', function(event) { 
+                updateDistances();
+            });
+            document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
+                updatePrices();
+            });
+            document.getElementById('packageQuantity-'+packageCount).addEventListener('change', function(event) { 
+                updateQuantityRelatedThings();
+                updatePrices();
+            });
+            movedownPackageButtonElement_local = document.getElementById('package_button_down-'+packageCount)
+            movedownPackageButtonElement_local.addEventListener('click', function (event) {
+                event.preventDefault();
+                movePackage(movedownPackageButtonElement_local);
+            });
+            moveupPackageButtonElement_local = document.getElementById('package_button_up-'+packageCount)
+            moveupPackageButtonElement_local.addEventListener('click', function (event) {
+                event.preventDefault();
+                movePackage(moveupPackageButtonElement_local);
+            });
+
+            addSearchAbilityToPackageDropOffNameField(packageElement.querySelector('[id^="package_name_search"]').id);
+            updateDistances();
+            updatePrices();
+        });
+        document.getElementById('package_addressline-0').addEventListener('change', function(event) {
+                                    updateDistances();
+        });
+        document.getElementById('package_postalcode-0').addEventListener('change', function(event) { 
+                                    updateDistances();
+        });
+        document.getElementById('packageQuantity-0').addEventListener('change', function(event) {
+            updateQuantityRelatedThings();
+            updatePrices();
+        });
+    }else if(currentUrl.endsWith('/create/1')){
+    } 
 });
 
     

@@ -20,6 +20,7 @@ use App\Models\AddOnRule;
 use App\Models\Task;
 use App\Models\Pickuptask;
 use App\Models\Returntask;
+use App\Models\Customtask;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -67,12 +68,54 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
-        // return response()->json(['success'  => true,
-        // 'message'           =>  'Validation succes.',
-        // 'inputs'            =>  $request->input(),                      
-        // ], 200);
-        $request->validated();
-
+        if($request->input('isItCustomJob') === 'true'){
+            try{
+            $job                    =   new Job();
+            $job->eilesNumeris      =   0;
+            $job->manager_id        =   1;
+            $job->status_id         =   $request->input('status_id');
+            $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
+            $job->clientToBill_id   =   $request->input('billingClientId');
+            $job->save();
+            $task                   =   new Task();
+            $task->date             =   $request->input('common_date');
+            $task->order_number     =   0;
+            $task->job_id           =   $job->id;
+            $task->status_id        =   $request->input('status_id');
+            $task->save();
+            $customTask                 =   new Customtask();
+            $customTask->task_id        =   $task->id;
+            $customTask->status_id      =   $request->input('status_id');
+            $customTask->name           =   $request->input('customclientname');
+            $customTask->adress_line    =   $request->input('customclientaddressline');
+            $customTask->postal_code    =   $request->input('customclientpostalcode');
+            $customTask->city           =   $request->input('customclientcity');
+            $customTask->country        =   $request->input('customclientcountry'); 
+            $customTask->time_begin     =   $request->input('common_date').' '.$request->input('custom_time_begin');
+            $customTask->time_end       =   $request->input('common_date').' '.$request->input('custom_time_end');
+            $customTask->notes          =   $request->input('generalnotes');
+            $customTask->save();
+            return response()->json(['success'  => true,
+            'message'           =>  'Validation succes.',
+            'inputs'            =>  $request->input(),
+            'validated inputs'  =>  $request->validated(),
+            'customJob'         =>  $request->input('isItCustomJob'),
+            'isReturn'          =>  isset($request->isreturncreates),
+            'jobPrice'          =>  $job->price(),
+            'job'               =>  $job,                        
+            ], 200);
+            }catch (QueryException $e){
+                return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+            } catch (\Exception $e){
+                return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+            }
+        }else{
+            //$request->validated();
+        }
         try{
             $job = new Job();
             $job->eilesNumeris      =   0;
@@ -189,6 +232,7 @@ class JobController extends Controller
             'message'           =>  'Validation succes.',
             'inputs'            =>  $request->input(),
             'validated inputs'  =>  $request->validated(),
+            'customJob'         =>  $request->input('isItCustomJob'),
             'isReturn'          =>  isset($request->isreturncreates),
             'jobPrice'          =>  $job->price(),
             'job'               =>  $job,                        

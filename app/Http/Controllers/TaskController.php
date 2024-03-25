@@ -53,7 +53,18 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        //
+        $status = Task::findOrFail($request->statusid);
+        $status->name = $request->name;
+        $status->color_main =   $request->input('color-main');
+        $status->color_pickup =   $request->input('color-pickup');
+        $status->color_dropoff =   $request->input('color-dropoff');
+        $status->color_return =   $request->input('color-return');
+        $status->color_custom =   $request->input('color-custom');
+        $status->save();
+
+        return response()->json([
+            'message' => 'Status updated successfully. '.$status,
+        ]);
     }
 
     /**

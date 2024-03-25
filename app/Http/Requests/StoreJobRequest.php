@@ -44,6 +44,8 @@ class StoreJobRequest extends FormRequest
             'packagedropoffcountry.*'       =>  'required',
             'packageType.*'                 =>  'required',
             'packageType'                   =>  'required',
+            'packagedropoffquantity'        =>  'required|array',
+            'packagedropoffquantity.*'      =>  ['required', 'integer', 'min:1'],
             'packagedropofftimebegin.*'     =>  'required',
             'packagedropofftimebegin'       =>  'required',
             'packagedropofftimeend.*'       =>  'required',
@@ -72,6 +74,13 @@ class StoreJobRequest extends FormRequest
                 }),
             ];
         }
-        return $rules;
+        $rulesForCustom = [];
+        $isItCustomJob = $this->input('isItCustomJob');
+        if ($isItCustomJob === 'true') {
+            return $rulesForCustom;
+        }else{
+            return $rules;
+        }
+        
     }
 }

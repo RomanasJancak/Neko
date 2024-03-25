@@ -144,7 +144,7 @@
               NJ{{$task->job->id}}
             </div>
             <div class="col job-status-div">
-                {{$task->status->name}}
+                {{$task->status->name}} [{{$task->order_number}}]
             </div>
           </div>
           @isset($task->pickup)  
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
         jobId = dropedElementId.replace("jobElement-", ""); // IMPORTANT
         userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
         statusId  = 10;
-        console.log(userId+' '+jobId);
+        //console.log(userId+' '+jobId);
         updateJobCourierAndStatus(jobId,'none',statusId);
         const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', 10);
         fetch(routeUrl)
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
         jobId = dropedElementId.replace("jobElement-", "");
         userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
         statusId  = 13;
-        console.log(userId+' '+jobId);
+        //console.log(userId+' '+jobId);
         updateJobCourierAndStatus(jobId,userId,statusId);
         const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
         fetch(routeUrl)
