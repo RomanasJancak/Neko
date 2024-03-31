@@ -83,8 +83,12 @@ class User extends Authenticatable
     }
     public function tasksByDate($date)
     {
-        return $this->hasManyThrough(Task::class, Job::class, 'courrier_id', 'job_id')
-        ->whereDate('date', $pickedDate)
+        //dd($date);
+        $query = $this->hasManyThrough(Task::class, Job::class, 'courrier_id', 'job_id')
+        ->whereDate('date', $date.' 00:00:00')
         ->orderBy('order_number');
+        $sql = $query->toSql();
+        //dd($query);
+        return $query->get();
     }
 }
