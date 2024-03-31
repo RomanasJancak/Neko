@@ -309,9 +309,35 @@ class JobController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Job $job)
+    public function destroy(Request $request, Job $job)
     {
-        //
+        try{
+            $job = Job::findOrFail($request->jobid);
+            foreach($job->tasks as $task){
+                if(isset($task->pickup)){
+                    $task->pickup->delete();
+                }
+                if(isset($task->package)){
+                    $task->package->delete();
+                }
+                if(isset($task->return)){
+                    $task->return->delete();
+                }
+                if(isset($task->customTask)){
+                    $task->customTask->delete();
+                }
+                $task->delete();
+            }
+            $job->delete();
+
+            return response()->json([
+                'message' => 'Job deleted successfully.'
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
     public function getJobInfo($jobId)
     {
