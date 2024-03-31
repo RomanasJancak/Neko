@@ -73,9 +73,9 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('create/{customjob?}',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
     Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
-    Route::put('update/{job}',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
+    Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');
-    // Route::get('delete/{job}',   [JobController::class, 'delete'])->name('job.delete')->middleware('auth');
+    Route::post('delete',   [JobController::class, 'delete'])->name('job.delete')->middleware('auth');
     // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
