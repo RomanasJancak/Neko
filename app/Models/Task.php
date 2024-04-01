@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'date',
+        'status_id',
+        'job_id',
+        'order_number',
+    ];
     public function pickup()
     {
         return $this->hasOne(Pickuptask::class);

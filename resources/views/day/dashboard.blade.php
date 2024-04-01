@@ -9,6 +9,7 @@
       </div>
       <div class="row job-dropableListArea">
         @foreach ($jobsUnassigned as $job)
+          <!-- <div class="col-12 border border-dark border-2 rounded" style="background-color: {{$job->status->color_main}};"  id="jobElement-{{$job->id}}"> -->
           <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$job->status->color_main}};" draggable="true" id="jobElement-{{$job->id}}">
             <div class="row job-header-div">
               <div class="col job-id-div">
@@ -137,8 +138,8 @@
         <div class="col"><button class="btn btn-primary button-copy-user-jobs" id="button-copy-user-jobs-{{$user->id}}" data-jobs="">Copy</button></div>
       </div>
       <div class="row job-dropableListArea">
-        @foreach ($user->tasks as $task)
-        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="jobElement-{{$task->job->id}}">
+        @foreach ($user->tasksByDate($date) as $task)
+        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="taskElement-{{$task->id}}" data-jobid="{{$task->job->id}}">
           <div class="row job-header-div">
             <div class="col job-id-div">
               NJ{{$task->job->id}}
@@ -312,7 +313,7 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  var jobElements = document.querySelectorAll('.draggable');
+  var draggableElements = document.querySelectorAll('.draggable');
   var jobdropableListAreas = document.querySelectorAll('.job-dropableListArea');
   var jobdropableListAreas2 = document.querySelectorAll('.job-columenToGetDropEvent');
   var splitButtons = document.querySelectorAll('.button-split');
@@ -324,8 +325,8 @@ document.addEventListener('DOMContentLoaded', function() {
       button.setAttribute('data-jobs','');
       var jobsArray = [];
       var column  = button.closest('.job-columenToGetDropEvent');
-      var jobElementsForCopy = column.querySelectorAll('[id^="jobElement-"]');
-      jobElementsForCopy.forEach(function(jobElement){
+      var draggableElementsForCopy = column.querySelectorAll('[id^="jobElement-"]');
+      draggableElementsForCopy.forEach(function(jobElement){
         var id = jobElement.id.replace("jobElement-", "");
         const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', id);
         fetch(routeUrl)
@@ -383,13 +384,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  jobElements.forEach(function(element) {
+  draggableElements.forEach(function(element) {
     element.addEventListener('dragstart', function(event) {
       event.dataTransfer.setData("id", event.target.id);
       dragedElement = element;
     });
   });
-  jobElements.forEach(function(element) {
+  draggableElements.forEach(function(element) {
     element.addEventListener('drag', function(event) {
     });
   });
@@ -403,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
       event.preventDefault();
       var dropedElementId = event.dataTransfer.getData("id");
       var targetList;
+      console.log('dropedElementId : ',dropedElementId);
       if(event.target.closest('.job-header')){
         var column  = event.target.closest('.job-columenToGetDropEvent');
         targetList = column.querySelectorAll('.job-dropableListArea')[0];
@@ -410,9 +412,10 @@ document.addEventListener('DOMContentLoaded', function() {
         targetList = event.target.querySelectorAll('.job-dropableListArea')[0];
       }
       if(targetList){
-        if(event.target.closest('.job-header')){
+        if(event.target.closest('.job-header')){ //jeigu numetama sarašo headeryje pridedama sarašo pradžioje
           targetList.insertBefore(document.getElementById(dropedElementId), targetList.firstChild);
-        }else{
+          console.log('Task droped on the top of the list');
+        }else{ 
           targetList.appendChild(document.getElementById(dropedElementId));
         }
       }else{
@@ -449,11 +452,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
       }else if(/^job-column-usercolumn-\d+$/.test(event.target.closest('.job-columenToGetDropEvent').id)){
         dropedElement = document.getElementById(dropedElementId);
-        jobId = dropedElementId.replace("jobElement-", "");
+        //jobId = dropedElementId.replace("jobElement-", "");
+        jobId = dropedElement.getAttribute('data-jobid');
         userId  = event.target.closest('.job-columenToGetDropEvent').id.replace("job-column-usercolumn-", "");
+        taskListAreaElement = event.target.closest('.job-dropableListArea');
+        //console.log(taskListAreaElement);
+        if(taskListAreaElement){
+          tasks = taskListAreaElement.querySelectorAll('.draggable');
+          tasks.forEach(function(task,index){
+            //console.log(task.id.replace("taskElement-", ""));
+            updateTaskCourierAndStatus(task.id.replace("taskElement-", ""),userId,0,index+1);
+          });
+        }else{
+          //console.log(dropedElement);
+          updateTaskCourierAndStatus(dropedElement.id.replace("taskElement-", ""),userId,0,1);
+          allOtherJobTasksElements = document.querySelectorAll('.draggable[data-jobid="' + jobId + '"]');
+          var copiedNodeList = document.createDocumentFragment();
+          allOtherJobTasksElements.forEach(function(task,index){
+            if(task.id.replace("taskElement-", "") == dropedElement.id.replace("taskElement-", "")){
+            }else{
+              //updateTaskCourierAndStatus(task.id.replace("taskElement-", ""),userId,0,index+2);
+              copiedNodeList.appendChild(task.cloneNode(true));
+            }
+          });
+          console.log(copiedNodeList);
+          var copiedNodeArray = Array.from(copiedNodeList.childNodes);
+          copiedNodeArray.forEach(function(task,index){
+            updateTaskCourierAndStatus(task.id.replace("taskElement-", ""),userId,0,index+2);
+          });
+        }
         statusId  = 13;
         //console.log(userId+' '+jobId);
         updateJobCourierAndStatus(jobId,userId,statusId);
+        //updateTaskCourierAndStatus(taskId,userId,statusId,order_number)
+        taskId = dropedElementId.replace("taskElement-", "");
+        //updateTaskCourierAndStatus(taskId,userId,13,1);
         const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
         fetch(routeUrl)
             .then(response => response.json())
@@ -484,19 +517,51 @@ function updateJobElementColors(jobId){
 
 }
 function updateJobCourierAndStatus(jobId,userId,statusId){
-  console.log(jobId);
-  console.log(userId);
-  console.log(statusId);
         // Prepare the data to send in the request body
         const data = {
             id: jobId,
             courrier_id: userId,
             status_id: statusId
         };
-        console.log(data);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Send a POST request to the server using the generated route
         fetch('{{ route("job.updateajax") }}', { // Blade syntax to generate the route URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', // Set Accept header
+                // Add any additional headers if needed
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            // if (!response.ok) {
+            //     throw new Error('Failed to update job');
+            // }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // Log the success message
+            // Optionally handle the response data, e.g., update UI
+        })
+        .catch(error => {
+            console.error('Error:', error.message); // Log any errors
+            // Optionally handle errors, e.g., display an error message
+        });
+}
+function updateTaskCourierAndStatus(taskId,userId,statusId,order_number){
+          // Prepare the data to send in the request body
+          const data = {
+            id: taskId,
+            courrier_id: userId,
+            status_id: statusId,
+            order_number: order_number,
+        };
+        console.log(data);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Send a POST request to the server using the generated route
+        fetch('{{ route("task.update") }}', { // Blade syntax to generate the route URL
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

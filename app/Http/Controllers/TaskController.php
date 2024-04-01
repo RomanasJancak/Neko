@@ -53,17 +53,32 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        $status = Task::findOrFail($request->statusid);
-        $status->name = $request->name;
-        $status->color_main =   $request->input('color-main');
-        $status->color_pickup =   $request->input('color-pickup');
-        $status->color_dropoff =   $request->input('color-dropoff');
-        $status->color_return =   $request->input('color-return');
-        $status->color_custom =   $request->input('color-custom');
-        $status->save();
+        $task = Task::findOrFail($request->id);
+        if($request->input('courrier_id')){
+            if($request->input('courrier_id') === 'none'){
+                $task->job->courrier_id = null;
+            }else{
+                $task->job->courrier_id = $request->input('courrier_id');
+            }
+        }
+        if($request->input('status_id')){
+            $task->job->status_id = $request->input('status_id');
+            $task->status_id = $request->input('status_id');
+        }
+        $debug = false;
+        if($request->input('order_number')){
+            $task->order_number = $request->input('order_number');
+            $debug = true;
+        }
+        //$task->order_number = 99;
+        $task->save();
+        $task->job->save();
 
         return response()->json([
-            'message' => 'Status updated successfully. '.$status,
+            'message'   => 'Task updated successfully. ',
+            'task'      =>  $task,
+            'debug'     =>  $debug,
+            'request->order_number' =>  $request->input('order_number'),
         ]);
     }
 
