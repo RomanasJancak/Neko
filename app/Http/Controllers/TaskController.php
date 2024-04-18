@@ -55,6 +55,9 @@ class TaskController extends Controller
     {
         $task = Task::findOrFail($request->id);
         if($request->input('courrier_id')){
+            
+        }
+        if($request->input('courrier_id')){
             if($request->input('courrier_id') === 'none'){
                 $task->job->courrier_id = null;
             }else{
@@ -62,8 +65,10 @@ class TaskController extends Controller
             }
         }
         if($request->input('status_id')){
-            $task->job->status_id = $request->input('status_id');
-            $task->status_id = $request->input('status_id');
+            $status = $request->input('status_id');
+                $task->job->status_id = $status;
+                $task->status_id = $status;
+
         }
         $debug = false;
         if($request->input('order_number')){

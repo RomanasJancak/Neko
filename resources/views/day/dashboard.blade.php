@@ -142,8 +142,13 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            <div class="col-2 btn-group btn-group-sm">
+              <!-- <div class="row"> -->
+                <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <!-- </div> -->
+              <!-- <div class="row"> -->
+                
+              <!-- </div> -->
             </div>
           </div>
           @endisset
@@ -210,6 +215,29 @@
             </div>
           </div>
           @endisset
+          <div class="row btn-group btn-group-sm" role="group">
+            <div class="col-auto">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}">AtPU</span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+            <div class="col-1">
+              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div>
+          </div>
         </div> 
         @endforeach
         <!-- @foreach ($user->jobsWithDate($day->date) as $job)
@@ -379,10 +407,11 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   jobdropableListAreas2.forEach(function(element) {
     element.addEventListener('drop', function(event) {
+      statusId = 0;
       event.preventDefault();
       var dropedElementId = event.dataTransfer.getData("id");
       var targetList;
-      console.log('dropedElementId : ',dropedElementId);
+      // console.log('dropedElementId : ',dropedElementId);
       if(event.target.closest('.job-header')){
         var column  = event.target.closest('.job-columenToGetDropEvent');
         targetList = column.querySelectorAll('.job-dropableListArea')[0];
@@ -426,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
               copiedNodeList.appendChild(task.cloneNode(true));
             }
           });
-          console.log(copiedNodeList);
+          // console.log(copiedNodeList);
           var copiedNodeArray = Array.from(copiedNodeList.childNodes);
           copiedNodeArray.forEach(function(task,index){
             updateTaskCourierAndStatus(task.id.replace("taskElement-", ""),userId,statusId,index+2);
@@ -436,24 +465,24 @@ document.addEventListener('DOMContentLoaded', function() {
         //console.log(userId+' '+jobId);
         updateJobCourierAndStatus(jobId,'none',statusId);
         const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
-        fetch(routeUrl)
-            .then(response => response.json())
-            .then(data => {
-              dropedElement.style.backgroundColor = data.color_main;
-              dropedElement.querySelectorAll('.pickup-row').forEach(function(element) {
-                if(element){
-                  element.style.backgroundColor = data.color_pickup;
-                }
-              });
-              dropedElement.querySelectorAll('.package-row').forEach(function(element) {
-                if(element){
-                  element.style.backgroundColor = data.color_dropoff;
-                }
-              });
-            })
-            .catch(error => {
-                console.error(error);
-        });
+        // fetch(routeUrl)
+        //     .then(response => response.json())
+        //     .then(data => {
+        //       dropedElement.style.backgroundColor = data.color_main;
+        //       dropedElement.querySelectorAll('.pickup-row').forEach(function(element) {
+        //         if(element){
+        //           element.style.backgroundColor = data.color_pickup;
+        //         }
+        //       });
+        //       dropedElement.querySelectorAll('.package-row').forEach(function(element) {
+        //         if(element){
+        //           element.style.backgroundColor = data.color_dropoff;
+        //         }
+        //       });
+        //     })
+        //     .catch(error => {
+        //         console.error(error);
+        // });
 
       }else if(/^job-column-usercolumn-\d+$/.test(event.target.closest('.job-columenToGetDropEvent').id)){
         statusId  = 13;
@@ -487,13 +516,30 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
         
-        //console.log(userId+' '+jobId);
         updateJobCourierAndStatus(jobId,userId,statusId);
-        //updateTaskCourierAndStatus(taskId,userId,statusId,order_number)
-        //taskId = dropedElementId.replace("taskElement-", "");
-        //updateTaskCourierAndStatus(taskId,userId,13,1);
         const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
-        fetch(routeUrl)
+        // fetch(routeUrl)
+        //     .then(response => response.json())
+        //     .then(data => {              
+        //       dropedElement.style.backgroundColor = data.color_main;
+        //       dropedElement.querySelectorAll('.pickup-row').forEach(function(element) {
+        //         if(element){
+        //           element.style.backgroundColor = data.color_pickup;
+        //         }
+        //       });
+        //       dropedElement.querySelectorAll('.package-row').forEach(function(element) {
+        //         if(element){
+        //           element.style.backgroundColor = data.color_dropoff;
+        //         }
+        //       });
+        //     })
+        //     .catch(error => {
+        //         console.error(error);
+        // });
+
+      }
+      const routeUrl = "{{ route('status.getStatusInfo', ['id' => ':id']) }}".replace(':id', statusId);
+      fetch(routeUrl)
             .then(response => response.json())
             .then(data => {              
               dropedElement.style.backgroundColor = data.color_main;
@@ -510,11 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error(error);
-        });
-
-      }
-      //assignJobInformationToCopyButtons();
-      //updateJobCourierAndStatus(jobId,UserId,statusId);           
+        });          
     });
   });
 });
@@ -567,7 +609,7 @@ function updateTaskCourierAndStatus(taskId,userId = 0,statusId,order_number){
             status_id: statusId,
             order_number: order_number,
         };
-        // console.log(data);
+        console.log(data);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Send a POST request to the server using the generated route
         fetch('{{ route("task.update") }}', { // Blade syntax to generate the route URL
