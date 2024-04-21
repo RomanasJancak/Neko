@@ -772,7 +772,10 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             afterSelect: function(item) {
                 // Handle the selection here (e.g., redirect to client details page)
-                fetch(`/get-client-info/${item.id}`)
+                //fetch(`/get-client-info/${item.id}`)
+                const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
+                const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
+                fetch(clientInfoUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
@@ -818,7 +821,10 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             afterSelect: function(item) {
                 // Handle the selection here (e.g., redirect to client details page)
-                fetch(`/get-client-info/${item.id}`)
+                //fetch(`/get-client-info/${item.id}`)
+                const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
+                const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
+                fetch(clientInfoUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
@@ -863,7 +869,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return item.name; // Adjust based on your data structure
                 },
                 afterSelect: function(item) {
-                    fetch(`/get-client-info/${item.id}`)
+                    const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
+                const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
+                fetch(clientInfoUrl)
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
