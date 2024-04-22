@@ -36,7 +36,7 @@
                 <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
             </div>
             <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -57,7 +57,7 @@
                 <div class="row"><div class="col">{{$task->package->addressShort()}}</div></div>
             </div>
             <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -78,7 +78,7 @@
                 <div class="row"><div class="col">{{$task->return->addressShort()}}</div></div>
             </div>
             <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -91,7 +91,7 @@
                       text-align: center;
                       vertical-align: middle;"
             >
-              RETURN
+              CUSTOM
             </div>          
             <div class="col-8">
                 <div class="row"><div class="col">{{$task->customTask->name}}</div></div>
@@ -99,7 +99,7 @@
                 <div class="row"><div class="col">{{$task->customTask->addressShort()}}</div></div>
             </div>
             <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -142,14 +142,14 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
             </div>
-            <div class="col-2 btn-group btn-group-sm">
+            <!-- <div class="col-2 btn-group btn-group-sm"> -->
               <!-- <div class="row"> -->
-                <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+                <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
               <!-- </div> -->
               <!-- <div class="row"> -->
                 
               <!-- </div> -->
-            </div>
+            <!-- </div> -->
           </div>
           @endisset
           @isset($task->package)
@@ -168,9 +168,9 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimebegin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimeend)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->package->addressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
+            <!-- <div class="col-2">
+              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div> -->
           </div>
           @endisset
           @isset($task->return)
@@ -189,9 +189,9 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->return->addressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
+            <!-- <div class="col-2">
+              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div> -->
           </div>
           @endisset
           @isset($task->customTask)
@@ -203,113 +203,26 @@
                       text-align: center;
                       vertical-align: middle;"
             >
-              RETURN
+              CUSTOM
             </div>          
             <div class="col-8">
                 <div class="row"><div class="col">{{$task->customTask->name}}</div></div>
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->customTask->addressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
+            <!-- <div class="col-2">
+              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
+            </div> -->
           </div>
           @endisset
           <div class="row btn-group btn-group-sm" role="group">
             <div class="col-auto">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}">AtPU</span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div>
-            <div class="col-1">
-              <button class="btn btn-success button-completeTask" data-jobid="{{$task->id}}" id="button-completeTask-{{$task->id}}"><span class="bi bi-check"></span></button>
+              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}">AtPU</span></button>
             </div>
           </div>
         </div> 
         @endforeach
-        <!-- @foreach ($user->jobsWithDate($day->date) as $job)
-        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$job->status->color_main}};" draggable="true" id="jobElement-{{$job->id}}">
-            <div class="row job-header-div">
-              <div class="col job-id-div">
-                NJ{{$job->id}}
-              </div>
-              <div class="col job-status-div">
-                {{$job->status->name}}
-              </div>   
-            </div>
-            <div class="row pickup-row border" style="background-color: {{$job->status->color_pickup}};">
-              <div  class="col-2" 
-                    style="
-                      writing-mode: vertical-lr;
-                      transform: rotate(180deg);
-                      text-align: center;
-                      vertical-align: middle;"
-              >PU</div>
-              <div class="col-10">
-                <div class="row"><div class="col">{{$job->pickupclientname}}</div></div>
-                <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($job->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($job->pickup_time_end)->format('H:i') }}</div></div>
-                <div class="row"><div class="col">{{$job->pickupAddressShort()}}</div></div>
-              </div>
-            </div>
-            @foreach ($job->packages as $package)
-            <div class="row package-row border" id="package-{{$package->id}}" style="background-color: {{$job->status->color_dropoff}};">
-              <div  class="col-2" 
-                    style="
-                      writing-mode: vertical-lr;
-                      transform: rotate(180deg);
-                      text-align: center;
-                      vertical-align: middle;"
-              >
-              @if (strcasecmp($package->name, 'return') == 0)
-                RETURN
-              @else
-                DROP
-              @endif
-              </div>
-              <div class="col-10 package" >
-                <div class="row">
-                  <div class="col-auto">
-                    {{$package->dropoff_name}}
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-6">
-                    {{ \Illuminate\Support\Carbon::parse($package->packagedropofftimebegin)->format('H:i') }}
-                  </div>
-                  <div class="col-6">
-                    {{ \Illuminate\Support\Carbon::parse($package->packagedropofftimeend)->format('H:i') }}  
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col">
-                    {{$package->pickupAddressShort()}}
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-            @endforeach
-            <div class="row">
-              <div class="col">
-                <button class="button-split" data-jobid="{{$job->id}}" id="button-split-{{$job->id}}">Split</button>
-                <button class="button-completeJob" data-jobid="{{$job->id}}" id="button-completeJob-{{$job->id}}">Complete</button>
-              </div>
-            </div>
-        </div>
-        @endforeach -->
+
       </div>
     </div>
     @endforeach
@@ -319,6 +232,8 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const taskStatusChangeButtons = document.querySelectorAll('.button-changeTaskStatus');
+  console.log(taskStatusChangeButtons);
   var draggableElements = document.querySelectorAll('.draggable');
   var jobdropableListAreas = document.querySelectorAll('.job-dropableListArea');
   var jobdropableListAreas2 = document.querySelectorAll('.job-columenToGetDropEvent');
