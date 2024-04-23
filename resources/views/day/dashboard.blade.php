@@ -109,7 +109,7 @@
       </div>
     </div>
     @foreach ($users as $user)
-    <div class="job-columenToGetDropEvent col-3 border border-dark rounded" id="job-column-usercolumn-{{$user->id}}">
+    <div class="job-columenToGetDropEvent col border border-dark rounded" id="job-column-usercolumn-{{$user->id}}">
       <div class="row border job-header" id="job-column-usercolumn_{{$user->id}}-header">
         <div class="col-auto">{{$user->name}}</div>
         <div class="col-auto">{{$user->workload($day)->bike->name}}</div>
