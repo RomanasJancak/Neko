@@ -306,7 +306,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const pickupClientSearchInput =  $('#pickup_name_search');
     const billingClientSearchInput = $('#billingclientsearch');
     const returnClientSearchInput  =   $('#return_name_search');
-
+    var input = document.getElementById('pickupaddress_postalcode');
+    input.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
     addTypeHeadSearchToReturn(returnClientSearchInput);
     const checkInputElementForReturn    =   document.getElementById("checkButton-return_of_crates");
     if(checkInputElementForReturn){
@@ -931,6 +934,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }else{
                 document.querySelector('.alert.alert-danger.custom-class-job-create').style.display = 'none';
                 console.log(JSON.parse(xhr.responseText));
+                alert('Job created successfuly!');
             }
         };
         xhr.onerror = function () {
@@ -981,6 +985,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('package_postalcode-'+packageCount).addEventListener('change', function(event) { 
                 updateDistances();
             });
+            document.getElementById('package_postalcode-'+packageCount).addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+             });
             document.getElementById('packagetypeselect-'+packageCount).addEventListener('change', function(event) { 
                 updatePrices();
             });
@@ -1008,6 +1015,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('package_postalcode-0').addEventListener('change', function(event) { 
                                     updateDistances();
+        });
+        document.getElementById('package_postalcode-0').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
         });
         document.getElementById('packageQuantity-0').addEventListener('change', function(event) {
             updateQuantityRelatedThings();
