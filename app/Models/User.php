@@ -3,10 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+
+
 
 use Spatie\Permission\Traits\HasRoles;
 
@@ -63,6 +67,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Workload::class,'user_id');
     }
+
     public function workload(Day $day)
     {      
         return $this->hasOne(Workload::class)
@@ -90,5 +95,13 @@ class User extends Authenticatable
         $sql = $query->toSql();
         //dd($query);
         return $query->get();
+    }
+    public static function getCouriersWithWorkload(Day $day): Collection
+    {
+        return self::whereHas('roles', function ($query) {
+            $query->where('name', 'courier');  // Assuming the role name is stored in 'name' column
+        })->whereHas('workloads', function ($query) use ($day) {
+            $query->where('day_id', $day->id);
+        })->get();
     }
 }

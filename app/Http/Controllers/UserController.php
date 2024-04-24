@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Workload;
 use App\Models\Bike;
+use App\Models\Day;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 
@@ -182,5 +183,16 @@ class UserController extends Controller
         $bikes = Bike::all();
 
         return view('user.workload', compact('workloadData', 'daysInMonth', 'currentYear', 'currentMonth','user','bikes'));
+    }
+    public function getCouriersWithWorkloadOnDay($date)
+    {
+        // Fetch the client's information based on the $clientId
+        // $job = Job::find($jobId);
+        $day = Day::whereRaw('DATE(date) = ?', [$date])->first();
+        $courriers = User::getCouriersWithWorkload($day);
+        return response()->json([
+            'couriers' => $courriers,
+        ]);
+        return response()->json(['error' => 'Couriers not found for  : '.$date], 404);
     }
 }

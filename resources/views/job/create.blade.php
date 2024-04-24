@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.send(formData);
     });
     if (currentUrl.endsWith('/create')) {
-        autoFillForm();
+        //autoFillForm();
         moveupPackageButtonElement.addEventListener('click', function (event) {
             event.preventDefault();
             movePackage(moveupPackageButtonElement);

@@ -134,8 +134,7 @@
                       transform: rotate(180deg);
                       text-align: center;
                       vertical-align: middle;"
-            >
-              PU
+            >PU---> 
             </div>          
             <div class="col-8">
                 <div class="row"><div class="col">{{$task->pickup->pickupclientname}}</div></div>
@@ -161,7 +160,7 @@
                       text-align: center;
                       vertical-align: middle;"
             >
-              DROP
+              <---DROP
             </div>          
             <div class="col-8">
                 <div class="row"><div class="col">{{$task->package->dropoff_name}}</div></div>

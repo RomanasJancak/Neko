@@ -41,14 +41,15 @@ Route::get('/get-client-info/{clientId}', [ClientController::class, 'getClientIn
     ->name('getClientInfo')->middleware('auth');
 Auth::routes();
 Route::group(['prefix' => 'users'], function(){
-    Route::get('',                  [UserController::class, 'index'])->name('user.index')->middleware('auth');
-    Route::get('create',            [UserController::class, 'create'])->name('user.create')->middleware('auth');
-    Route::post('store',            [UserController::class, 'store'])->name('user.store')->middleware('auth');
-    Route::get('edit/{user}',       [UserController::class, 'edit'])->name('user.edit')->middleware('auth');
-    Route::post('update/{user}',    [UserController::class, 'update'])->name('user.update')->middleware('auth');
-    Route::get('delete/{user}',     [UserController::class, 'delete'])->name('user.delete')->middleware('auth');
-    Route::post('destroy/{user}',   [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
-    Route::get('show/{user}',       [UserController::class, 'show'])->name('user.show')->middleware('auth');
+    Route::get('',                          [UserController::class, 'index'])->name('user.index')->middleware('auth');
+    Route::get('create',                    [UserController::class, 'create'])->name('user.create')->middleware('auth');
+    Route::post('store',                    [UserController::class, 'store'])->name('user.store')->middleware('auth');
+    Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit')->middleware('auth');
+    Route::post('update/{user}',            [UserController::class, 'update'])->name('user.update')->middleware('auth');
+    Route::get('delete/{user}',             [UserController::class, 'delete'])->name('user.delete')->middleware('auth');
+    Route::post('destroy/{user}',           [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
+    Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show')->middleware('auth');
+    Route::get('getCouriersWithWorkloadOnDay/{date?}', [UserController::class, 'getCouriersWithWorkloadOnDay'])->name('user.getCouriersWithWorkloadOnDay')->middleware('auth');
     Route::get('workload/{user}/{month?}/{year?}', [UserController::class, 'workload'])
     ->where(['year' => '\d{4}', 'month' => '\d{1,2}'])
     ->name('user.workload')

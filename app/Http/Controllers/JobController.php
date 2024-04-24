@@ -18,6 +18,7 @@ use App\Models\Package;
 use App\Models\AddOn;
 use App\Models\AddOnRule;
 use App\Models\Task;
+use App\Models\Day;
 use App\Models\Pickuptask;
 use App\Models\Returntask;
 use App\Models\Customtask;
@@ -35,11 +36,16 @@ class JobController extends Controller
 
 
             $jobs = Job::paginate(10);
+            $day = Day::find(1);
+            $couriers = User::getCouriersWithWorkload($day);
+            $statuses = Status::all();
+            // $couriers = User::all()->filter(function ($user) {
+            //     return $user->hasRole('courier');
+            // });
+            
 
-
-        return view('job.index', compact('jobs'));
+        return view('job.index', compact('jobs','couriers','statuses'));
     }
-
     /**
      * Show the form for creating a new resource.
      */
@@ -346,15 +352,39 @@ class JobController extends Controller
 
         if ($job) {
             return response()->json([
-                'id'                => $job->id,
-                'pickupclientname'  => $job->pickupclientname,
-                'pickupAddress'     => $job->pickupclientpostalcode.' '.$job->pickupclientaddressline,
-                'timeFrame'         => $job->pickup_time_begin.' '.$job->pickup_time_end,
-                'packages' => $job->packages->map(function ($package) {
+                'id'                =>  $job->id,
+                //'courierId'           =>  is_null($job->courrier_id) ? 'none' : $job->courrier_id,
+                'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
+                'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
+                'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
+                'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->Id,
+                'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
-                        'package_id'    => $package->id,
+                        'id'        => $task->id,
+                        'status'    => $task->status,
+                        'name'      => isset($task->pickup)
+                                        ?   'Pickup' 
+                                        :   (isset($task->package)
+                                            ? 'dropoff' 
+                                            :   (isset($task->return)
+                                                ? 'return'
+                                                :(isset($task->customTask)?'custom':null))),
+                        'type'      => isset($task->pickup)
+                                        ?   $task->pickup 
+                                        :   (isset($task->package)
+                                            ? $task->package 
+                                            :   (isset($task->return)
+                                                ? $task->return
+                                                :(isset($task->customTask)?$task->customTask:null))),
+                        'location'  =>  $task->nameOfAddress().' '.$task->postalCode(),
                     ];
-                }),  
+                }),   
+                'packages'          =>  is_null($job->packages) ? 'none' : $job->packages->map(function ($package) {
+                    return [
+                        'id'        => $package->id,
+                        'type'      => $package->packageType,
+                    ];
+                }),   
                 ]);
         }
 
