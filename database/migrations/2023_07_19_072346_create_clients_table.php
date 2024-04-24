@@ -49,6 +49,7 @@ return new class extends Migration
             $table->string('receiverContacts')->nullable();
             $table->string('collection_details')->nullable();
             $table->string('dropoff_details')->nullable();
+            $table->string('shortenedName')->nullable();
         });
     }
 

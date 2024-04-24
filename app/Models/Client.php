@@ -40,23 +40,7 @@ class Client extends Model
     public function jobs(){
         return $this->hasmany(Job::class,'clientToBill_id');
     }
+    public function shortenedNameWithoutterPostalCode(){
+        return $this->shortenedName;
+    }
 }
-       
-// $table->string('dropoff_adress_line')->nullable();//CSV
-// $table->string('dropoff_postal_code')->nullable();//CSV
-// $table->string('dropoff_city')->nullable();//CSV
-// $table->string('dropoff_country')->nullable();//CSV
-// $table->string('public_notes')->nullable();//CSV
-// $table->string('contact_phone')->nullable();//CSV
-// $table->string('first_name')->nullable();//CSV
-// $table->string('last_name')->nullable();//CSV
-// $table->string('email')->nullable();
-// $table->string('Credit_Balance')->nullable();//CSV
-// //==================================
-// $table->string('vat')->nullable();
-// $table->string('address')->default('Default Address');
-// $table->string('note')->nullable()->default('');
-// // $table->unsignedBigInteger('contactPersonForPickup')->default('0')->nullable();
-// $table->string('receiverContacts')->nullable();
-// $table->string('collection_details')->nullable();
-// $table->string('dropoff_details')->nullable();

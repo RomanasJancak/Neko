@@ -111,12 +111,19 @@ class ClientController extends Controller
             'pickup_city' => 'max:255',
             'pickup_postal_code' => 'max:255',
             'pickup_adress_line' => 'max:255',
+            'shortenedName'     =>  'max:255',
         ]);
 
         $client->update($validatedData);
+        $client->shortenedName = $request->shortenedName;
+
+        $client->save();
 
         //return response()->json(['message' => $request->name]);
-        return response()->json(['message' => $client]);
+        return response()->json([
+            'after_update_client' => $client,
+            '$request->shortenedName'   =>$request->shortenedName,
+            ]);
         } catch (\Exception $e) {
         // Handle other types of exceptions as needed
             return response()->json(['errors' => $e->errors()], 422);
@@ -168,6 +175,7 @@ class ClientController extends Controller
             return response()->json([
                 'id'                    => $client->id,
                 'name'                  => $client->name,
+                'nickName'              => is_null($client->shortenedNameWithoutterPostalCode())?'':$client->shortenedNameWithoutterPostalCode(),
                 'email'                 => $client->email,
                 'country'               => $client->country,
                 'city'                  => $client->city,

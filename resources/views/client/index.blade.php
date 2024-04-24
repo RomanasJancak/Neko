@@ -62,9 +62,15 @@
                 <form id="statusForm" action="" method="POST">
                     @csrf
                     <div class="row">
-                        <input type="hidden" name="clientid" id="clientid" value="">
-                        <label for="nameField">Name : </label>
-                        <input type="text" name="name" id="nameField" value="none" >
+                        <div class="col">
+                            <input type="hidden" name="clientid" id="clientid" value="">
+                            <label for="nameField">Name : </label>
+                            <input type="text" name="name" id="nameField" value="" >
+                        </div>
+                        <div class="col">
+                            <label for="nameField">Short name : </label>
+                            <input type="text" name="shortenedName" id="shortenedNameField" value="" >
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col form-group" id="reg-adress-section">
@@ -119,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (data) {
                                 document.getElementById('clientid').value = clientId;
                                 document.getElementById('nameField').value = data.name;
+                                document.getElementById('shortenedNameField').value = data.nickName;
 
                                 document.getElementById('reg-adress-section-adress-country-field').value = data.country;
                                 document.getElementById('reg-adress-section-adress-city-field').value = data.city;
@@ -205,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector(`#statusForm`);
             if (form) {
                 document.getElementById('nameField').readOnly = false;
-                form.setAttribute('action', "{{ route('status.store') }}");
+                form.setAttribute('action', "{{ route('client.store') }}");
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
             }
