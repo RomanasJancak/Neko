@@ -21,7 +21,7 @@
                 <th rowspan="2">Client</th>
                 <th rowspan="2">Date</th>
                 <th colspan="4">Tasks</th>
-                <th rowspan="2">Price</th>
+                <th rowspan="2">Actions</th>
                 <th rowspan="2" style="text-align:center;width:100px;">Create Job <button type="button" data-func="dt-add" class="btn btn-success btn-xs dt-add">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </button></th>
@@ -29,9 +29,8 @@
             <tr>
                 <th>Pickup</th>
                 <th>Drops</th>
-                <th>Return</th>
                 <th>Custom</th>
-                <th>Actions</th>
+                <th>Price</th>
             </tr>
         </thead>
         <tbody>
@@ -70,20 +69,22 @@
                 </td>
                 <td>
                 @foreach ($job->tasks as $task)
+                        
                     @if ($task->package)
-                    <div class="row"><div class="col">{{$task->package->id}}</div></div>           
+                    <!-- <div class="row"><div class="col">{{$task->package->dropoff_name}}</div></div> -->
+                    <div class="row">
+                        <div class="col">
+                            <blockquote class="blockquote">
+                                <p class="mb-0">{{$task->package->dropoff_name}}@if($job->hasReturn())<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>@endif</p>
+                                <footer class="blockquote-footer"><cite title="Source Title">{{$task->fullAddress()}}</cite></footer>
+                            </blockquote>
+                        </div>
+                    </div>           
                     @endif                               
                 @endforeach
                 </td>
-                <td>                       
-                @foreach ($job->tasks as $task)
-                    @isset($task->return)
-                    <div class="row">
-                            <div class="col">{{$task->return->id}}</div>
-                    </div>   
-                    @endisset
-                @endforeach
-                </td>
+                <td></td>
+                <td></td>
                 <td>
                 <button class="btn btn-primary edit-btn" 
                                     data-jobid="{{ $job->id }}"
@@ -150,34 +151,6 @@
                     </div>
                     <div class="row justify-content-md-center border rounded border-info" >
                         <div class="col" id="container-tasks">
-                            <!-- <div class="row" id="container-task-0">
-                                <div class="col" id="container-task-0-type">
-                                    Pickup
-                                </div>
-                                <div class="col" id="container-task-0-addressName">
-                                    NameOfPickup
-                                </div>
-                                <div class="col" id="container-task-0-address">
-                                    Address
-                                </div>
-                                <div class="col" id="container-task-0-timeWindow">
-                                    TimeWindow
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    Pickup
-                                </div>
-                                <div class="col">
-                                    NameOfPickup
-                                </div>
-                                <div class="col">
-                                    Address
-                                </div>
-                                <div class="col">
-                                    TimeWindow
-                                </div>
-                            </div> -->
                         </div>
                         
                     </div>
@@ -227,6 +200,7 @@ function setJobValues(jobid){
     const clientIdField =   document.getElementById('clientIdField');
     const containerTasks =   document.getElementById('container-tasks');
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobid);
+    containerTasks.innerHTML = "";
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {

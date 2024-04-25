@@ -65,6 +65,16 @@ class Job extends Model
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
     }
+    public function hasReturn()
+    {
+        $tasks = $this->tasks;
+        foreach($tasks as $task){
+            if(isset($task->return)){
+                return true;
+            }
+        }
+        return false;
+    }
     public function addOns()
     {
         return $this->hasMany(AddOn::class, 'model_id')

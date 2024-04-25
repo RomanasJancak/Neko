@@ -59,4 +59,16 @@ class Task extends Model
                                         :   null)));
         return $return_value;
     }
+    public function fullAddress(){
+        $return_value   =   isset($this->pickup)
+                ?   $this->pickup->pickupclientname 
+                :   (isset($this->package)
+                    ?   $this->package->dropoff_country.' '.$this->package->dropoff_city.' '.$this->package->dropoff_postal_code.' '.$this->package->dropoff_adress_line
+                    :   (isset($this->return)
+                        ?   $this->return->name
+                        :   (isset($this->customTask)
+                            ?   $this->customTask->name
+                            :   null)));
+        return $return_value;
+    }
 }
