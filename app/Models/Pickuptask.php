@@ -11,4 +11,7 @@ class Pickuptask extends Model
     public function pickupAddressShort(){
         return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode;
     }
+    public function pickupAddressFull(){
+        return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode.' '.$this->pickupclientcity .' '.$this->pickupclientcountry;
+    }
 }

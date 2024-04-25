@@ -56,11 +56,16 @@
                     {{date('d-m-Y',strtotime($job->pickup_time_begin))}}
                 </td>
                 <td>
-                @foreach ($job->tasks as $task)
-                
+                @foreach ($job->tasks as $task)                    
                     @if ($task->pickup)
-                        {{$task->pickup->pickupclientname}}
-                    @endif         
+                        <div @if(!$task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull())) style="background-color: yellow;" @endif>
+                        @if($task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull()))
+                            {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
+                        @else
+                            {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
+                        @endif
+                        </div>
+                    @endif                             
                 @endforeach
                 </td>
                 <td>

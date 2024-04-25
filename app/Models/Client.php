@@ -43,4 +43,18 @@ class Client extends Model
     public function shortenedNameWithoutterPostalCode(){
         return $this->shortenedName;
     }
+    public function isSameAsPickupAdress($address){
+        $pickupAdressString = $this->pickup_adress_line.' '.$this->pickup_postal_code.' '.$this->pickup_city.' '.$this->pickup_country;
+        $normalize = function($str) {
+            $str = strtolower($str); // Convert to lowercase
+            $str = preg_replace('/\s+/', ' ', $str); // Replace multiple spaces with a single space
+            $str = preg_replace('/[^a-z0-9\s]/', '', $str); // Remove punctuation
+            $words = explode(' ', $str); // Split into words
+            sort($words); // Sort the words alphabetically
+            return $words;
+        };
+        $normalizedStr1 = $normalize($pickupAdressString);
+        $normalizedStr2 = $normalize($address);
+        return $normalizedStr1 === $normalizedStr2;
+    }
 }
