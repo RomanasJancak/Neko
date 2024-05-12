@@ -6,6 +6,8 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 
+use Illuminate\Support\Carbon;
+
 class TaskController extends Controller
 {
     /**
@@ -101,7 +103,19 @@ class TaskController extends Controller
 
         if ($task) {
             return response()->json([
-                'id'                => $task->id,
+                'id'                =>  $task->id,
+                'time'          =>  [
+                                            'begin' =>  Carbon::parse($task->timeWindowBegin())->format('H:i:s'),
+                                            'end'   =>  Carbon::parse($task->timeWindowEnd())->format('H:i:s'),    
+                ],
+                'statusId'          =>  $task->status->id,
+                'address'           =>  [
+                                            'name'          =>  $task->nameOfAddress(),
+                                            'country'       =>  $task->country(),
+                                            'city'          =>  $task->city(),
+                                            'postalCode'    =>  $task->postalCode(),
+                                            'addressLine'   =>  $task->addressLine(),
+                ],     
                 ]);
         }
 

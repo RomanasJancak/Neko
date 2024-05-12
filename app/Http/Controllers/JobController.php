@@ -376,15 +376,13 @@ class JobController extends Controller
                                             :   (isset($task->return)
                                                 ? $task->return
                                                 :(isset($task->customTask)?$task->customTask:null))),
-                        'location'  =>  $task->nameOfAddress().' '.$task->postalCode(),
+                        'addressName'   =>  $task->nameOfAddress(),
+                        'timeWindow'    =>  $task->timeWindow(),
+                        'fullAddress'   =>  $task->fullAddress(),
+                        'quantity'      =>  isset($task->package)?$task->package->quantity:null,
+                        'packageType'   =>  isset($task->package)?$task->package->name:null,
                     ];
-                }),   
-                'packages'          =>  is_null($job->packages) ? 'none' : $job->packages->map(function ($package) {
-                    return [
-                        'id'        => $package->id,
-                        'type'      => $package->packageType,
-                    ];
-                }),   
+                }),      
                 ]);
         }
 

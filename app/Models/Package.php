@@ -22,7 +22,7 @@ class Package extends Model
     }
     public function packageType()
     {
-        return $this->belongsTo(PackageType::class);
+        return $this->belongsTo(PackageType::class,'packageType_id');
     }
     public function addOns()
     {
@@ -34,5 +34,8 @@ class Package extends Model
     }
     public function addressShort(){
         return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
+    }
+    public function timeWindow(){
+        return $this->packagedropofftimebegin.'/'.$this->packagedropofftimeend;
     }
 }

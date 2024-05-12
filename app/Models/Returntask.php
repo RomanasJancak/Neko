@@ -15,4 +15,10 @@ class Returntask extends Model
     public function addressShort(){
         return $this->adress_line.' '.$this->postal_code;
     }
+    public function addressFull(){
+        return $this->country.' '.$this->city.' '.$this->postal_code.' '.$this->adress_line;
+    }
+    public function timeWindow(){
+        return $this->time_begin.'/'.$this->time_end;
+    }
 }

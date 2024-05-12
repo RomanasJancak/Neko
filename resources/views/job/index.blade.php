@@ -100,10 +100,10 @@
     <div class="d-flex justify-content-center mt-3">
             {!! $jobs->links() !!}
     </div>
-<!-- Modal -->
+<!-- Modal job begin -->
 
 </div>
-<div class="modal fade" id="modalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+<div class="modal fade" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -156,25 +156,182 @@
                     </div>
                     <div class="row">
                         <div class="form-group">
+                            <button type="button" id="submitform" data-option="create" class="btn btn-success">Apply</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal job end -->
+<!-- Modal task begin -->
+<div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                <form id="taskForm" action="" method="POST">
+                    @csrf
+                    <div class="row justify-content-md-center">
+                        <div class="col-2">
+                            <div class="row">
+                                <input type="hidden" name="taskid" id="taskid" value="">
+                                <label for="taskIdField">Id</label>
+                                <input class="form-control" type="text" name="id" id="taskIdField" value="">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <label for="statusIdField">Status</label>
+                                <select id="taskStatusIdField" name="statusId" class="form-control">
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status->id }}">{{ $status->name }}</option>
+                                @endforeach 
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center">
+                        <div class="col-auto">
+                            <h3>Address</h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <label for="taskClientNameField">Name</label>
+                            <input class="form-control" type="text" name="id" id="taskClientNameField" value="">
+                        </div>
+                        <div class="col-auto">
+                            <label for="taskCountryField">Country</label>
+                            <input class="form-control" type="text" name="id" id="taskCountryField" value="">
+                        </div>
+                        <div class="col-auto">
+                            <label for="taskCityField">City</label>
+                            <input class="form-control" type="text" name="id" id="taskCityField" value="">
+                        </div>
+                        <div class="col-auto">
+                            <label for="taskPostalCodeField">Postal code</label>
+                            <input class="form-control" type="text" name="id" id="taskPostalCodeField" value="">
+                        </div>
+                        <div class="col-auto">
+                            <label for="taskAddressLineField">Adsress line</label>
+                            <input class="form-control" type="text" name="id" id="taskAddressLineField" value="">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <h3>Time winow</h3>
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center">
+                        <div class="col-3 form-group">
+                            <label for="taskTimeBegin">Begin</label>
+                                <input type="time" id="taskTimeBegin" name="timeBegin" class="form-control">
+                        </div>
+                        <div class="col-3 form-group">
+                            <label for="taskTimeEnd">End</label>
+                                <input type="time" id="taskTimeEnd" name="timeEnd" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row justify-content-md-center border rounded border-info" >
+                        <div class="col" id="package-info">
+                        </div>          
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
                             <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="taskModalWindowCloseButton">Close</button>
             </div>
         </div>
     </div>
 </div>
+<!-- Modal task end -->
 @endsection
 @section('scripts')
 <script>
-function createColumn(idSuffix, content) {
+function addEventListner(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        $('#jobModalWindow').modal('hide');
+        $('#taskModalWindow').modal('show');
+        taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
+        setTaskValues(taskId);
+    });
+}
+function setTaskValues(taskId){
+    const idField    =   document.getElementById('taskIdField');
+    const statusIdField     =   document.getElementById('taskStatusIdField');
+    const clientNameField   =   document.getElementById('taskClientNameField');
+    const addressCountryField   =   document.getElementById('taskCountryField');
+    const addressCityField   =   document.getElementById('taskCityField');
+    const addressPostalCodeField   =   document.getElementById('taskPostalCodeField');
+    const addressAddressLineField   =   document.getElementById('taskAddressLineField');
+    const timeBeginField   =   document.getElementById('taskTimeBegin');
+    const timeEndField   =   document.getElementById('taskTimeEnd');
+    idField.value = taskId;
+    idField.disabled =  true;
+    statusIdField.disabled = true;
+    const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            statusIdField.value             =   data.statusId;
+            clientNameField.value           =   data.address.name;
+            addressCountryField.value       =   data.address.country;
+            addressCityField.value          =   data.address.city;
+            addressPostalCodeField.value    =   data.address.postalCode;
+            addressAddressLineField.value   =   data.address.addressLine;
+            timeBeginField.value            =   data.time.begin;
+            timeEndField.value              =   data.time.end;            
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
+function appendButtonsToTaskRowColumn(task){
+    let colEdit = document.createElement('div');
+    let colDelete = document.createElement('div');
+    let row = document.createElement('div');
+    let editButton  =   document.createElement('button');
+    let deleteButton  =   document.createElement('button');
+
+    editButton.textContent = 'Edit';
+    editButton.className = 'btn btn-primary';
+    editButton.id = `task-${task.id}-button-edit`;
+    addEventListner(editButton);
+    deleteButton.textContent = 'Delete';
+    deleteButton.className = 'btn btn-danger';
+    deleteButton.id = `task-${task.id}-button-delete`;
+    addEventListner(deleteButton);
+    colEdit.appendChild(editButton);
+    colDelete.appendChild(deleteButton);
+
+    colEdit.className = 'col border ';
+    colDelete.className = 'col border ';
+    row.className = 'row border ';
+    row.id = `container-task-buttons-${task.id}`;
+    row.appendChild(colEdit);
+    row.appendChild(colDelete);
+    return row;
+}
+function createColumn(idSuffix, content,id) {
     let col = document.createElement('div');
     col.className = 'col border';
-    col.id = `container-task-0-${idSuffix}`;
-    col.textContent = content;
+    col.id = `container-task-${id}-${idSuffix}`;
+    if (content instanceof HTMLElement) {
+        col.appendChild(content);
+    } else {
+        col.textContent = content;
+    }
     return col;
 }
 function appendTaskToContainer(container,task){
@@ -184,22 +341,25 @@ function appendTaskToContainer(container,task){
     taskRow.id = 'container-task-0';
 
     // Create and append each column to the row
-    taskRow.appendChild(createColumn('type', task.name));
-    taskRow.appendChild(createColumn('addressName', task.location));
-    taskRow.appendChild(createColumn('address', 'Address'));
-    taskRow.appendChild(createColumn('timeWindow', 'TimeWindow'));
+    taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task),task.id));
+    taskRow.appendChild(createColumn('type', task.name,task.id));
+    taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
+    taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
+    taskRow.appendChild(createColumn('timeWindow', task.timeWindow,task.id));
+    if(task.name === 'dropoff'){
+        taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
+    }
 
     // Select the target container and append the new row to it
-    console.log(taskRow);
     container.appendChild(taskRow);
 }
-function setJobValues(jobid){
+function setJobValues(jobId){
     const courierIdField    =   document.getElementById('courierIdField');
     const statusIdField    =   document.getElementById('statusIdField');
     const clientSearchField =   document.getElementById('clientSearchField');
     const clientIdField =   document.getElementById('clientIdField');
     const containerTasks =   document.getElementById('container-tasks');
-    const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobid);
+    const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
     fetch(routeUrl)
         .then(response => response.json())
@@ -278,11 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const jobIdField    =   document.getElementById('idField');
             const courierIdField    =   document.getElementById('courierIdField');
             const jobName        =   button.dataset.name;
-            const jobColorMain   =   button.dataset.colormain;
-            const jobColorPickup   =   button.dataset.colorpickup;
-            const jobColorDropoff   =   button.dataset.colordropoff;
-            const jobColorReturn   =   button.dataset.return;
-            const jobColorCustom   =   button.dataset.custom;
             const form = document.querySelector(`#jobForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('job.update') }}");
@@ -304,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
-            $('#modalWindow').modal('show');
+            $('#jobModalWindow').modal('show');
         });
     });
     document.querySelectorAll('.delete-btn').forEach(button => {
@@ -322,20 +477,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('jobid').value = jobid;
                 //document.getElementById('nameField').value = jobName;
                 //document.getElementById('nameField').readOnly = true;
-                document.getElementById('colorPicker-main').value = jobColorMain;
-                document.getElementById('colorPicker-pickup').value = jobColorPickup;
-                document.getElementById('colorPicker-dropoff').value = jobColorDropoff;
-                document.getElementById('colorPicker-return').value = jobColorReturn;
-                document.getElementById('colorPicker-custom').value = jobColorCustom;
-                document.getElementById('colorPicker-main').disabled = true;
-                document.getElementById('colorPicker-pickup').disabled = true;
-                document.getElementById('colorPicker-dropoff').disabled = true;
-                document.getElementById('colorPicker-return').disabled = true;
-                document.getElementById('colorPicker-custom').disabled = true;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
             }
-            $('#modalWindow').modal('show');
+            $('#jobModalWindow').modal('show');
         });
     });
     document.querySelectorAll('.create-btn').forEach(button => {
@@ -352,8 +497,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
             }
-            $('#modalWindow').modal('show');
+            $('#jobModalWindow').modal('show');
         });
+    });
+    document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
+        $('#jobModalWindow').modal('show');
+        $('#taskModalWindow').modal('hide');
     });
     document.getElementById('submitform').addEventListener('click', function() {
         // Get form data

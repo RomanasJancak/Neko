@@ -8,10 +8,35 @@ use Illuminate\Database\Eloquent\Model;
 class Pickuptask extends Model
 {
     use HasFactory;
+    public function nameOfAddress(){
+        return $this->pickupclientname;
+    }
+    public function country(){
+        return $this->pickupclientcountry;
+    }
+    public function city(){
+        return $this->pickupclientcity;
+    }
+    public function postalCode(){
+        return $this->pickupclientpostalcode;
+    }
+    public function addressLine(){
+        return $this->pickupclientaddressline;
+    }
     public function pickupAddressShort(){
         return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode;
     }
     public function pickupAddressFull(){
         return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode.' '.$this->pickupclientcity .' '.$this->pickupclientcountry;
     }
+    public function timeWindow(){
+        return $this->pickup_time_begin.'/'.$this->pickup_time_end;
+    }
+    public function timeWindowBegin(){
+        return $this->pickup_time_begin;
+    }
+    public function timeWindowEnd(){
+        return $this->pickup_time_end;
+    }
+
 }
