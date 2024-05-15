@@ -147,7 +147,7 @@
                         </div>
                         <div class="col">
                             <div class="row">
-                                <label for="jobDateField">CLient</label>
+                                <label for="jobDateField">Date</label>
                                 <input type="date" id="jobDateField" name="jobDate" class="form-control" placeholder="Search for clients">
                             </div>
                         </div>
