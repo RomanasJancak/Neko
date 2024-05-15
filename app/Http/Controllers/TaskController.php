@@ -77,7 +77,24 @@ class TaskController extends Controller
             $task->order_number = $request->input('order_number');
             $debug = true;
         }
-        //$task->order_number = 99;
+        if($request->input('address')){
+            $task->typeOfTask->setAddress(
+                $request->input('address.name'),
+                $request->input('address.country'),
+                $request->input('address.city'),
+                $request->input('address.postalCode'),
+                $request->input('address.addressLine'),
+            );
+        }
+        if($request->input('time')){
+            $task->typeOfTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+        }
+        if($request->input('package')){
+            $task->package->changeTypeWithId($request->input('package.type'));
+            $task->package->setQuantity($request->input('package.quantity'));
+            $task->package->save();
+        }
+        $task->typeOfTask->save();
         $task->save();
         $task->job->save();
 
@@ -115,7 +132,14 @@ class TaskController extends Controller
                                             'city'          =>  $task->city(),
                                             'postalCode'    =>  $task->postalCode(),
                                             'addressLine'   =>  $task->addressLine(),
-                ],     
+                ],
+                'type'              =>  $task->type(),
+                'package'           =>  isset($task->package) 
+                                            ?[
+                                                'type'      =>  $task->package->packageType,
+                                                'quantity'  =>  $task->package->quantity,
+                                            ]
+                                            :'none',    
                 ]);
         }
 

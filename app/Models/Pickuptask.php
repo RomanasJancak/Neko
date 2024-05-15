@@ -38,5 +38,15 @@ class Pickuptask extends Model
     public function timeWindowEnd(){
         return $this->pickup_time_end;
     }
-
+    public function setAddress($name,$country,$city,$postalCode,$addressLine){
+        $this->pickupclientname         =   $name;
+        $this->pickupclientcountry      =   $country;
+        $this->pickupclientcity         =   $city;
+        $this->pickupclientpostalcode   =   $postalCode;
+        $this->pickupclientaddressline  =   $addressLine;     
+    }
+    public function setTimeWindow($begin,$end){
+        $this->pickup_time_begin    =   $begin;
+        $this->pickup_time_end      =   $end;
+    }
 }

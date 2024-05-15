@@ -27,6 +27,30 @@ class Task extends Model
     public function customTask(){
         return $this->hasOne(CustomTask::class);
     }
+    public function type(){
+        $return_value   =   isset($this->pickup)
+                            ?   'pickup'
+                            :   (isset($this->package)
+                                ?   'dropOff'
+                                :   (isset($this->return)
+                                    ?   'return'
+                                    :   (isset($this->customTask)
+                                        ?   'custom'
+                                        :   null)));
+        return $return_value;
+    }
+    public function typeOfTask(){
+        $return_value   =   isset($this->pickup)
+                            ?   $this->hasOne(Pickuptask::class)
+                            :   (isset($this->package)
+                                ?   $this->hasOne(Package::class)
+                                :   (isset($this->return)
+                                    ?   $this->hasOne(ReturnTask::class)
+                                    :   (isset($this->customTask)
+                                        ?   $this->hasOne(CustomTask::class)
+                                        :   null)));
+        return $return_value;
+    }
     public function job(){
         return $this->belongsTo(Job::class);
     }
@@ -38,11 +62,11 @@ class Task extends Model
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->nameOfAddress() 
                             :   (isset($this->package)
-                                ?   $this->package->dropoff_name
+                                ?   $this->package->nameOfAddress()
                                 :   (isset($this->return)
-                                    ?   $this->return->name
+                                    ?   $this->return->nameOfAddress()
                                     :   (isset($this->customTask)
-                                        ?   $this->customTask->name
+                                        ?   $this->customTask->nameOfAddress()
                                         :   null)));
         return $return_value;
     }
@@ -50,11 +74,11 @@ class Task extends Model
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->country() 
                             :   (isset($this->package)
-                                ?   $this->package->dropoff_postal_code
+                                ?   $this->package->country()
                                 :   (isset($this->return)
-                                    ?   $this->return->postal_code
+                                    ?   $this->return->country()
                                     :   (isset($this->customTask)
-                                        ?   $this->customTask->postal_code
+                                        ?   $this->customTask->country()
                                         :   null)));
         return $return_value;
     }
@@ -62,11 +86,11 @@ class Task extends Model
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->city() 
                             :   (isset($this->package)
-                                ?   $this->package->dropoff_postal_code
+                                ?   $this->package->city() 
                                 :   (isset($this->return)
-                                    ?   $this->return->postal_code
+                                    ?   $this->return->city() 
                                     :   (isset($this->customTask)
-                                        ?   $this->customTask->postal_code
+                                        ?   $this->customTask->city() 
                                         :   null)));
         return $return_value;
     }
@@ -75,11 +99,11 @@ class Task extends Model
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->postalCode() 
                             :   (isset($this->package)
-                                ?   $this->package->dropoff_postal_code
+                                ?   $this->package->postalCode()
                                 :   (isset($this->return)
-                                    ?   $this->return->postal_code
+                                    ?   $this->return->postalCode()
                                     :   (isset($this->customTask)
-                                        ?   $this->customTask->postal_code
+                                        ?   $this->customTask->postalCode()
                                         :   null)));
         return $return_value;
     }
@@ -88,11 +112,11 @@ class Task extends Model
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->addressLine() 
                             :   (isset($this->package)
-                                ?   $this->package->dropoff_postal_code
+                                ?   $this->package->addressLine()
                                 :   (isset($this->return)
-                                    ?   $this->return->postal_code
+                                    ?   $this->return->addressLine()
                                     :   (isset($this->customTask)
-                                        ?   $this->customTask->postal_code
+                                        ?   $this->customTask->addressLine()
                                         :   null)));
         return $return_value;
     }

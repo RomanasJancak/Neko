@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Job extends Model
 {
@@ -64,6 +65,16 @@ class Job extends Model
     }
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
+    }
+    public function getDate(){
+        $returnValue = '';
+        $task = $this->tasks()->first();
+        if ($task) {
+            $returnValue = Carbon::parse($task->date)->format('Y-m-d');
+        } else {
+            $returnValue = '0000-00-00';
+        }
+        return $returnValue;
     }
     public function hasReturn()
     {

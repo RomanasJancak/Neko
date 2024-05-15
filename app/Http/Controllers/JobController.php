@@ -353,11 +353,11 @@ class JobController extends Controller
         if ($job) {
             return response()->json([
                 'id'                =>  $job->id,
-                //'courierId'           =>  is_null($job->courrier_id) ? 'none' : $job->courrier_id,
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
-                'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->Id,
+                'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->id,
+                'date'                  =>  $job->getDate(),
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
                         'id'        => $task->id,
@@ -380,13 +380,16 @@ class JobController extends Controller
                         'timeWindow'    =>  $task->timeWindow(),
                         'fullAddress'   =>  $task->fullAddress(),
                         'quantity'      =>  isset($task->package)?$task->package->quantity:null,
-                        'packageType'   =>  isset($task->package)?$task->package->name:null,
+                        'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,
                     ];
                 }),      
                 ]);
         }
 
-        return response()->json(['error' => 'Job not found'], 404);
+        return response()->json([
+            'error' => 'Job not found',
+            'jobId' => $jobId,
+        ], 404);
     }
     public function updateJobAjax(UpdateJobRequest $request)
     {

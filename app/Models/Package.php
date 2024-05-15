@@ -24,10 +24,28 @@ class Package extends Model
     {
         return $this->belongsTo(PackageType::class,'packageType_id');
     }
+    public function changeTypeWithId($id){
+        $this->packageType_id = $id;
+    }
     public function addOns()
     {
         return $this->hasMany(AddOn::class, 'model_id')
                     ->where('model_type', '=', 'app/models/Package');
+    }
+    public function nameOfAddress(){
+        return $this->dropoff_name;
+    }
+    public function country(){
+        return $this->dropoff_country;
+    }
+    public function city(){
+        return $this->dropoff_city;
+    }
+    public function postalCode(){
+        return $this->dropoff_postal_code;
+    }
+    public function addressLine(){
+        return $this->dropoff_adress_line;
     }
     public function pickupAddressShort(){
         return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
@@ -37,5 +55,25 @@ class Package extends Model
     }
     public function timeWindow(){
         return $this->packagedropofftimebegin.'/'.$this->packagedropofftimeend;
+    }
+    public function timeWindowBegin(){
+        return $this->packagedropofftimebegin;
+    }
+    public function timeWindowEnd(){
+        return $this->packagedropofftimeend;
+    }
+    public function setAddress($name,$country,$city,$postalCode,$addressLine){
+        $this->dropoff_name         =   $name;
+        $this->dropoff_country      =   $country;
+        $this->dropoff_city         =   $city;
+        $this->dropoff_postal_code   =   $postalCode;
+        $this->dropoff_adress_line  =   $addressLine;     
+    }
+    public function setTimeWindow($begin,$end){
+        $this->packagedropofftimebegin    =   $begin;
+        $this->packagedropofftimeend      =   $end;
+    }
+    public function setQuantity($quantity){
+         $this->quantity = $quantity;
     }
 }

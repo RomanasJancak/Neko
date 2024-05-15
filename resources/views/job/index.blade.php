@@ -145,6 +145,12 @@
                                 <input type="hidden" name="clientId" id="clientIdField" value="">
                             </div>
                         </div>
+                        <div class="col">
+                            <div class="row">
+                                <label for="jobDateField">CLient</label>
+                                <input type="date" id="jobDateField" name="jobDate" class="form-control" placeholder="Search for clients">
+                            </div>
+                        </div>
                     </div>
                     <div class="row justify-content-md-center">
                         Tasks
@@ -193,6 +199,10 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col">
+                            <label for="taskTypeField">Type</label>
+                            <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value="">
+                        </div>
                     </div>
                     <div class="row justify-content-md-center">
                         <div class="col-auto">
@@ -221,7 +231,7 @@
                             <input class="form-control" type="text" name="id" id="taskAddressLineField" value="">
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row justify-content-md-center">
                         <div class="col">
                             <h3>Time winow</h3>
                         </div>
@@ -242,7 +252,7 @@
                     </div>
                     <div class="row">
                         <div class="form-group">
-                            <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
+                            <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
                         </div>
                     </div>
                 </form>
@@ -266,8 +276,45 @@ function addEventListner(button){
         setTaskValues(taskId);
     });
 }
+function addInfoAboutPackageToTaskModal(package){
+    const container   =   document.getElementById('package-info');
+    container.innerHTML = '';
+    const select = document.createElement('select');
+    const clientIdField =   document.getElementById('clientIdField');
+    const routeUrl = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}".replace(':clientId', clientIdField.value);
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            if(data.packageTypes !== 'none'){
+                const select = document.createElement('select');
+                select.id = 'packageTypeSelect';
+                container.appendChild(select);
+                data.packageTypes.forEach(packageType => {
+                    const option = document.createElement('option');
+                    option.value = packageType.id;
+                    option.text = packageType.name;
+                    select.appendChild(option);
+                    if(option.value == package.type.id){
+                        option.selected = true;
+                    }
+                });
+                const inputQuantity = document.createElement('input');
+                inputQuantity.type = 'number';
+                inputQuantity.id = 'quantityInput';
+                inputQuantity.min = '1'; // Only allow positive integers
+                inputQuantity.placeholder = 'Enter quantity';
+                inputQuantity.value = package.quantity;
+                container.appendChild(inputQuantity);
+            }
+            
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
 function setTaskValues(taskId){
     const idField    =   document.getElementById('taskIdField');
+    const typeField    =   document.getElementById('taskTypeField');
     const statusIdField     =   document.getElementById('taskStatusIdField');
     const clientNameField   =   document.getElementById('taskClientNameField');
     const addressCountryField   =   document.getElementById('taskCountryField');
@@ -278,12 +325,14 @@ function setTaskValues(taskId){
     const timeEndField   =   document.getElementById('taskTimeEnd');
     idField.value = taskId;
     idField.disabled =  true;
-    statusIdField.disabled = true;
+    typeField.disabled =  true;
+    //statusIdField.disabled = true;
     const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
             console.log(data);
+            typeField.value                 =   data.type;
             statusIdField.value             =   data.statusId;
             clientNameField.value           =   data.address.name;
             addressCountryField.value       =   data.address.country;
@@ -291,7 +340,10 @@ function setTaskValues(taskId){
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
             timeBeginField.value            =   data.time.begin;
-            timeEndField.value              =   data.time.end;            
+            timeEndField.value              =   data.time.end;
+            if(data.package !== 'none'){
+                addInfoAboutPackageToTaskModal(data.package);
+            }            
         })
         .catch(error => {
             console.error(error);
@@ -358,13 +410,14 @@ function setJobValues(jobId){
     const statusIdField    =   document.getElementById('statusIdField');
     const clientSearchField =   document.getElementById('clientSearchField');
     const clientIdField =   document.getElementById('clientIdField');
+    const jobDateField =   document.getElementById('jobDateField');
     const containerTasks =   document.getElementById('container-tasks');
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            //console.log(data);
+            // console.log(data);
             if(data.courierId === 'none'){
                 courierIdField.value = 0;
             }else{
@@ -382,7 +435,9 @@ function setJobValues(jobId){
                 clientSearchField.value =   data.clientName;
                 clientIdField.value     =   data.clientId;
             }
+            jobDateField.value = data.date;
             data.tasks.forEach(function(task){
+                console.log(task);
                 appendTaskToContainer(containerTasks,task);
             });            
         })
@@ -428,6 +483,35 @@ function addTypeHeadSearch(searchInput){
         }
     });
     }
+}
+function updateTask(data){
+    console.log(data);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    // Send a POST request to the server using the generated route
+    fetch('{{ route("task.update") }}', { // Blade syntax to generate the route URL
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', // Set Accept header
+            // Add any additional headers if needed
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        // if (!response.ok) {
+        //     throw new Error('Failed to update job');
+        // }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data); // Log the success message
+        // Optionally handle the response data, e.g., update UI
+    })
+    .catch(error => {
+        console.error('Error:', error.message); // Log any errors
+        // Optionally handle errors, e.g., display an error message
+    });
 }
 document.addEventListener('DOMContentLoaded', function() {
     addTypeHeadSearch($('#clientSearchField'));
@@ -503,6 +587,33 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
         $('#jobModalWindow').modal('show');
         $('#taskModalWindow').modal('hide');
+    });
+    document.getElementById('submitTaskform').addEventListener('click', function() {
+        const   typeField   =   document.getElementById('taskTypeField');
+        var     type        =   ''
+        updateData = {
+            id          :   document.getElementById('taskIdField').value,
+            status_id   :   document.getElementById('taskStatusIdField').value,
+            address     :   {
+                name            :   document.getElementById('taskClientNameField').value,
+                country         :   document.getElementById('taskCountryField').value,
+                city            :   document.getElementById('taskCityField').value,
+                postalCode      :   document.getElementById('taskPostalCodeField').value,
+                addressLine     :   document.getElementById('taskAddressLineField').value,
+            },
+            time        :   {
+                begin   :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeBegin').value,
+                end     :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeEnd').value,
+            },
+        }
+        if(typeField.value == 'dropOff'){
+            updateData.package = {
+                type: document.getElementById('packageTypeSelect').value,
+                quantity: document.getElementById('quantityInput').value,
+            }
+        }
+        // console.log(updateData);
+        updateTask(updateData);
     });
     document.getElementById('submitform').addEventListener('click', function() {
         // Get form data

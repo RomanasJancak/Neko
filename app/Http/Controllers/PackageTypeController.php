@@ -138,6 +138,20 @@ class PackageTypeController extends Controller
 
         return response()->json(['error' => 'Client not found'], 404);
     }
+    public function getPackageTypesForClient(Request $request)
+    {
+        try{
+            $client = Client::findOrFail($request->clientId);
+
+            return response()->json([
+                'message' => 'Client found successfully.'
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
+    }
     public function createBackup()
     {
         //dd(Client_PackageType::all());
