@@ -57,7 +57,7 @@
                 <td>
                 @foreach ($job->tasks as $task)                    
                     @if ($task->pickup)
-                        <div @if(!$task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull())) style="background-color: yellow;" @endif>
+                        <div @if(!$task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull())) style="background-color: rgb(141, 153, 80);" @endif>
                         @if($task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull()))
                             {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
                         @else
@@ -160,9 +160,11 @@
                         </div>
                         
                     </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <button type="button" id="submitform" data-option="create" class="btn btn-success">Apply</button>
+                    <div class="row justify-content-md-center">
+                        <div class="col-auto">
+                            <div class="form-group">
+                                <button type="button" id="submitform" data-option="create" class="btn btn-success">Apply</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -209,7 +211,7 @@
                             <h3>Address</h3>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row justify-content-md-center">
                         <div class="col-auto">
                             <label for="taskClientNameField">Name</label>
                             <input class="form-control" type="text" name="id" id="taskClientNameField" value="">
@@ -250,9 +252,11 @@
                         <div class="col" id="package-info">
                         </div>          
                     </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
+                    <div class="row justify-content-md-center">
+                        <div class="col-auto">
+                            <div class="form-group">
+                                <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -267,13 +271,41 @@
 @endsection
 @section('scripts')
 <script>
-function addEventListner(button){
+function setReadOnlyToFieldsOfTaskModal(status){
+    let fields = [];
+    fields.push(document.getElementById('taskStatusIdField'));
+    fields.push(document.getElementById('taskClientNameField'));
+    fields.push(document.getElementById('taskCountryField'));
+    fields.push(document.getElementById('taskCityField'));
+    fields.push(document.getElementById('taskPostalCodeField'));
+    fields.push(document.getElementById('taskAddressLineField'));
+    fields.push(document.getElementById('taskTimeBegin'));
+    fields.push(document.getElementById('taskTimeEnd'));
+    fields.forEach(function(field){
+        field.disabled = status;
+    });
+}
+function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         $('#jobModalWindow').modal('hide');
-        $('#taskModalWindow').modal('show');
+        let submitButton = document.getElementById('submitTaskform');
         taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
-        setTaskValues(taskId);
+        setTaskValues(taskId).then(() =>{
+        if(button.id.match(/task-(\d+)-button-edit/)){
+            setReadOnlyToFieldsOfTaskModal(false);
+            button.setAttribute('data-option', 'edit');            
+            submitButton.setAttribute('data-option', 'edit');
+            submitButton.textContent  = 'Confirm edit';
+        }
+        if(button.id.match(/task-(\d+)-button-delete/)){
+            setReadOnlyToFieldsOfTaskModal(true);
+            button.setAttribute('data-option', 'delete');
+            submitButton.setAttribute('data-option', 'delete');
+            submitButton.textContent  = 'Confirm delete';
+        }
+        });
+        $('#taskModalWindow').modal('show');
     });
 }
 function addInfoAboutPackageToTaskModal(package){
@@ -282,10 +314,11 @@ function addInfoAboutPackageToTaskModal(package){
     const select = document.createElement('select');
     const clientIdField =   document.getElementById('clientIdField');
     const routeUrl = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}".replace(':clientId', clientIdField.value);
-    fetch(routeUrl)
+    return fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
             if(data.packageTypes !== 'none'){
+                
                 const select = document.createElement('select');
                 select.id = 'packageTypeSelect';
                 container.appendChild(select);
@@ -305,6 +338,14 @@ function addInfoAboutPackageToTaskModal(package){
                 inputQuantity.placeholder = 'Enter quantity';
                 inputQuantity.value = package.quantity;
                 container.appendChild(inputQuantity);
+                let submitButton = document.getElementById('submitTaskform');
+                if(submitButton.getAttribute('data-option') === 'delete'){
+                    document.getElementById('packageTypeSelect').disabled = true;
+                    document.getElementById('quantityInput').disabled = true;
+                }else{
+                    document.getElementById('packageTypeSelect').disabled = false;
+                    document.getElementById('quantityInput').disabled = false;
+                }
             }
             
         })
@@ -328,10 +369,9 @@ function setTaskValues(taskId){
     typeField.disabled =  true;
     //statusIdField.disabled = true;
     const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
-    fetch(routeUrl)
+    return fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            console.log(data);
             typeField.value                 =   data.type;
             statusIdField.value             =   data.statusId;
             clientNameField.value           =   data.address.name;
@@ -359,11 +399,11 @@ function appendButtonsToTaskRowColumn(task){
     editButton.textContent = 'Edit';
     editButton.className = 'btn btn-primary';
     editButton.id = `task-${task.id}-button-edit`;
-    addEventListner(editButton);
+    // addEventListener(editButton);
     deleteButton.textContent = 'Delete';
     deleteButton.className = 'btn btn-danger';
     deleteButton.id = `task-${task.id}-button-delete`;
-    addEventListner(deleteButton);
+    // addEventListener(deleteButton);
     colEdit.appendChild(editButton);
     colDelete.appendChild(deleteButton);
 
@@ -401,9 +441,11 @@ function appendTaskToContainer(container,task){
     if(task.name === 'dropoff'){
         taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
     }
-
-    // Select the target container and append the new row to it
     container.appendChild(taskRow);
+    addEventListenerToButton(document.getElementById(`task-${task.id}-button-edit`));
+    addEventListenerToButton(document.getElementById(`task-${task.id}-button-delete`));
+    // Select the target container and append the new row to it
+    
 }
 function setJobValues(jobId){
     const courierIdField    =   document.getElementById('courierIdField');
@@ -417,7 +459,6 @@ function setJobValues(jobId){
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            // console.log(data);
             if(data.courierId === 'none'){
                 courierIdField.value = 0;
             }else{
@@ -437,7 +478,6 @@ function setJobValues(jobId){
             }
             jobDateField.value = data.date;
             data.tasks.forEach(function(task){
-                console.log(task);
                 appendTaskToContainer(containerTasks,task);
             });            
         })
@@ -612,15 +652,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 quantity: document.getElementById('quantityInput').value,
             }
         }
-        // console.log(updateData);
         updateTask(updateData);
     });
     document.getElementById('submitform').addEventListener('click', function() {
         // Get form data
         const form = document.getElementById('jobForm');
         const formData = new FormData(form);
-        console.log(formData.get('jobid'));
-        //console.log(formData.get('workloadid'));
 
         // Create a new XMLHttpRequest object
         const xhr = new XMLHttpRequest();
