@@ -287,14 +287,17 @@ class JobController extends Controller
      */
     public function update(UpdateJobRequest $request, Job $job)
     {
+
         try{
-            $job->courrier_id   =   $request->courrier_id;
-            $job->status_id =   $request->status_id;
-            $job->manager_id    =   $request->manager_id;
-            $job->notes =   $request->notes;
+            $job = Job::findOrFail($request->id);
+            $job->courrier_id   =    $request->courierId;
+            $job->status_id =   $request->statusId;
+            $job->clientToBill_id   =   $request->clientId;
             $job->save();
             return response()->json([
                 'message'   => 'Job updated successfully. ',
+                'job'       =>  $job,
+                'requestData'   =>  $request->all(),
             ]);
         } catch (\Exception $e){
             return response()->json(['error' => $e->getMessage(),

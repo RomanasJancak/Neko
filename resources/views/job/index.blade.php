@@ -649,35 +649,39 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTask(updateData,route);
     });
     document.getElementById('submitform').addEventListener('click', function() {
-        // Get form data
         const form = document.getElementById('jobForm');
-        const formData = new FormData(form);
-
-        // Create a new XMLHttpRequest object
-        const xhr = new XMLHttpRequest();
-
-        // Define the request type, URL, and set up the request
-        xhr.open('POST', form.action, true);
-        xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
-
-        // Handle the response
-        xhr.onload = function() {
-            // Process the response if needed
-            console.log(xhr.responseText);
-            parsedMessage = JSON.parse(xhr.responseText).message;
-            //console.log(parsedMessage);
-            if(parsedMessage === 'deleted'){
-                //document.getElementById('workload-'+formData.get('workloadid')).remove();
-            }
-            if(parsedMessage === 'updated'){
-            }
-            if(parsedMessage === 'created'){
-            }
-
-        };
-
-        // Send the request
-        xhr.send(formData);
+        updateData  =   {
+            id          :   document.getElementById('idField').value,
+            courierId   :   document.getElementById('courierIdField').value,
+            statusId    :   document.getElementById('statusIdField').value,
+            clientId    :   document.getElementById('clientIdField').value,
+        }
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Send a POST request to the server using the generated route
+        fetch(form.action, { // Blade syntax to generate the route URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', // Set Accept header
+                // Add any additional headers if needed
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => {
+            // if (!response.ok) {
+            //     throw new Error('Failed to update job');
+            // }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // Log the success message
+            // Optionally handle the response data, e.g., update UI
+        })
+        .catch(error => {
+            console.error('Error:', error.message); // Log any errors
+            // Optionally handle errors, e.g., display an error message
+        });
     });
 });
 
