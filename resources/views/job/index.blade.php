@@ -524,11 +524,11 @@ function addTypeHeadSearch(searchInput){
     });
     }
 }
-function updateTask(data){
+function updateTask(data,route){
     console.log(data);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     // Send a POST request to the server using the generated route
-    fetch('{{ route("task.update") }}', { // Blade syntax to generate the route URL
+    fetch(route, { // Blade syntax to generate the route URL
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -630,7 +630,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('submitTaskform').addEventListener('click', function() {
         const   typeField   =   document.getElementById('taskTypeField');
-        var     type        =   ''
+        var     route       = '';
+        if(this.getAttribute('data-option') === 'delete'){
+            route = '{{ route("task.delete") }}';
+        }else if(this.getAttribute('data-option') === 'edit'){
+            route = '{{ route("task.update") }}';
+        }
         updateData = {
             id          :   document.getElementById('taskIdField').value,
             status_id   :   document.getElementById('taskStatusIdField').value,
@@ -652,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 quantity: document.getElementById('quantityInput').value,
             }
         }
-        updateTask(updateData);
+        updateTask(updateData,route);
     });
     document.getElementById('submitform').addEventListener('click', function() {
         // Get form data

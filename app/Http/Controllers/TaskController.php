@@ -6,6 +6,8 @@ use App\Models\Task;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 
+use Illuminate\Http\Request;
+
 use Illuminate\Support\Carbon;
 
 class TaskController extends Controller
@@ -109,9 +111,22 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(Request $request)
     {
-        //
+        try{
+        $task = Task::findOrFail($request->id);
+        $task->typeOfTask->delete();
+        $task->delete();
+        $task->job->save();
+
+        return response()->json([
+            'message'   => 'Task deleted successfully. ',
+        ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }   
     }
     public function getTaskInfo($taskId)
     {
