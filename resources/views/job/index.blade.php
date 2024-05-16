@@ -160,17 +160,19 @@
                         </div>
                         
                     </div>
-                    <div class="row justify-content-md-center">
-                        <div class="col-auto">
-                            <div class="form-group">
-                                <button type="button" id="submitform" data-option="create" class="btn btn-success">Apply</button>
-                            </div>
-                        </div>
-                    </div>
+
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Close</button>
+            <div class="modal-footer ">
+                <!-- <div class="row"> -->
+                    <div class="col-12">
+                        <div class="form-group d-flex justify-content-between">
+                            <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Cancel</button>
+                        </div>
+                    </div>
+                    <!-- <div class="col-auto"></div> -->
+                <!-- </div>                 -->
             </div>
         </div>
     </div>
@@ -252,17 +254,17 @@
                         <div class="col" id="package-info">
                         </div>          
                     </div>
-                    <div class="row justify-content-md-center">
-                        <div class="col-auto">
-                            <div class="form-group">
-                                <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
-                            </div>
-                        </div>
-                    </div>
+
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="taskModalWindowCloseButton">Close</button>
+                <div class="col-12">
+                    <div class="form-group d-flex justify-content-between">
+                        <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="taskModalWindowCloseButton">Close</button>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -556,7 +558,6 @@ function updateTask(data,route){
 document.addEventListener('DOMContentLoaded', function() {
     addTypeHeadSearch($('#clientSearchField'));
     document.querySelectorAll('.edit-btn').forEach(button => {
-
         button.addEventListener('click', () => {
             const jobid         =   button.dataset.jobid;
             const jobIdField    =   document.getElementById('idField');
@@ -568,18 +569,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 jobIdField.value = jobid;
                 jobIdField.readOnly = true;
                 setJobValues(jobid);
-                // document.getElementById('nameField').value = jobName;
-                // document.getElementById('nameField').readOnly = false;
-                // document.getElementById('colorPicker-main').value = jobColorMain;
-                // document.getElementById('colorPicker-pickup').value = jobColorPickup;
-                // document.getElementById('colorPicker-dropoff').value = jobColorDropoff;
-                // document.getElementById('colorPicker-return').value = jobColorReturn;
-                // document.getElementById('colorPicker-custom').value = jobColorCustom;
-                // document.getElementById('colorPicker-main').disabled = false;
-                // document.getElementById('colorPicker-pickup').disabled = false;
-                // document.getElementById('colorPicker-dropoff').disabled = false;
-                // document.getElementById('colorPicker-return').disabled = false;
-                // document.getElementById('colorPicker-custom').disabled = false;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }

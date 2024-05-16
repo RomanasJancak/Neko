@@ -287,25 +287,20 @@ class JobController extends Controller
      */
     public function update(UpdateJobRequest $request, Job $job)
     {
-        $job->sender_id =   $request->sender_id;
-        $job->pickup_time_begin =   $request->pickup_time_begin;
-        $job->pickup_time_end =   $request->pickup_time_end;
-        $job->dropoff_time_begin =   $request->dropoff_time_begin;
-        
-        $job->dropoff_time_end =   $request->dropoff_time_end;
-        $job->receiver_id =   $request->receiver_id;
-        $job->courrier_id   =   $request->courrier_id;
-        $job->status_id =   $request->status_id;
-        $job->collection_details    =   $request->collection_details;
-        $job->pickup_address    =   $request->pickup_address;
-        $job->delivery_address  =   $request->delivery_address;
-        $job->senderContacts    =   $request->senderContacts;
-        $job->manager_id    =   $request->manager_id;
-        $job->receiverContacts  =   $request->receiverContacts;
-        $job->notes =   $request->notes;
-        //dd($job);
-        $job->save();
-        return redirect()->route('job.show',['job' => $job])->with('success_message', 'Updated sucsesfully');
+        try{
+            $job->courrier_id   =   $request->courrier_id;
+            $job->status_id =   $request->status_id;
+            $job->manager_id    =   $request->manager_id;
+            $job->notes =   $request->notes;
+            $job->save();
+            return response()->json([
+                'message'   => 'Job updated successfully. ',
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
     public function updateStatus(UpdateJobRequest $request, Job $job){
         $job->status_id =   $request->status_id;
