@@ -157,10 +157,13 @@
                     </div>
                     <div class="row justify-content-md-center border rounded border-info" >
                         <div class="col" id="container-tasks">
-                        </div>
-                        
+                        </div>                        
                     </div>
-
+                    <div class="row justify-content-md-center">
+                        <div class="col">
+                            <button type="button" id="createNewTask" data-option="create" class="btn btn-primary">Create new Task</button>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer ">
@@ -254,7 +257,6 @@
                         <div class="col" id="package-info">
                         </div>          
                     </div>
-
                 </form>
             </div>
             <div class="modal-footer">
@@ -567,7 +569,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (form) {
                 form.setAttribute('action', "{{ route('job.update') }}");
                 jobIdField.value = jobid;
-                jobIdField.readOnly = true;
+                jobIdField.disabled = true;
+                document.getElementById('courierIdField').disabled = false;
+                document.getElementById('statusIdField').disabled = false;
+                document.getElementById('clientSearchField').disabled = false;
+                document.getElementById('jobDateField').disabled = false;
+                
                 setJobValues(jobid);
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
@@ -579,19 +586,23 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const jobid = button.dataset.jobid;
             const jobName = button.dataset.name;
-            const jobColorMain   =   button.dataset.colormain;
-            const jobColorPickup   =   button.dataset.colorpickup;
-            const jobColorDropoff   =   button.dataset.colordropoff;
-            const jobColorReturn   =   button.dataset.return;
+            const jobIdField    =   document.getElementById('idField');
+            const courierIdField    =   document.getElementById('courierIdField');
             const jobColorCustom   =   button.dataset.custom;
             const form = document.querySelector(`#jobForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('job.delete') }}");
+                jobIdField.value = jobid;
+                jobIdField.disabled = true;
+                document.getElementById('courierIdField').disabled = true;
+                document.getElementById('statusIdField').disabled = true;
+                document.getElementById('clientSearchField').disabled = true;
+                document.getElementById('jobDateField').disabled = true;
                 document.getElementById('jobid').value = jobid;
-                //document.getElementById('nameField').value = jobName;
-                //document.getElementById('nameField').readOnly = true;
+                setJobValues(jobid);
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+
             }
             $('#jobModalWindow').modal('show');
         });

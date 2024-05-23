@@ -316,7 +316,7 @@ class JobController extends Controller
     public function destroy(Request $request, Job $job)
     {
         try{
-            $job = Job::findOrFail($request->jobid);
+            $job = Job::findOrFail($request->id);
             foreach($job->tasks as $task){
                 if(isset($task->pickup)){
                     $task->pickup->delete();
@@ -339,6 +339,7 @@ class JobController extends Controller
             ]);
         } catch (\Exception $e){
             return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
             'file' => $e->getFile(),
             'line' => $e->getLine(),], 500);
         }
