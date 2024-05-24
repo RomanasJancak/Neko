@@ -351,12 +351,12 @@ function addInfoAboutPackageToTaskModal(package){
                 inputQuantity.value = package.quantity;
                 container.appendChild(inputQuantity);
                 let submitButton = document.getElementById('submitTaskform');
-                if(submitButton.getAttribute('data-option') === 'delete'){
-                    document.getElementById('packageTypeSelect').disabled = true;
-                    document.getElementById('quantityInput').disabled = true;
-                }else{
+                if(submitButton.getAttribute('data-option') === 'edit'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
+                }else{
+                    document.getElementById('packageTypeSelect').disabled = true;
+                    document.getElementById('quantityInput').disabled = true;
                 }
             }
             
@@ -695,14 +695,17 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#jobModalWindow').modal('show');
         $('#taskModalWindow').modal('hide');
     });
-    document.getElementById('submitTaskform').addEventListener('click', function() {
+    document.getElementById('submitTaskform').addEventListener('click', function(event) {
+        event.preventDefault();
         const   typeField   =   document.getElementById('taskTypeField');
         var     route       = '';
         if(this.getAttribute('data-option') === 'delete'){
             route = '{{ route("task.delete") }}';
         }else if(this.getAttribute('data-option') === 'edit'){
             route = '{{ route("task.update") }}';
-        }
+        }else if(this.getAttribute('data-option') === 'view'){
+            return;
+        } 
         updateData = {
             id          :   document.getElementById('taskIdField').value,
             status_id   :   document.getElementById('taskStatusIdField').value,

@@ -290,7 +290,12 @@ class JobController extends Controller
 
         try{
             $job = Job::findOrFail($request->id);
-            $job->courrier_id   =    $request->courierId;
+            if($request->courierId == '0'){
+                $job->courrier_id   =   null;
+            }else{
+                $job->courrier_id   =   $request->courierId;                    
+            }
+            
             $job->status_id =   $request->statusId;
             $job->clientToBill_id   =   $request->clientId;
             $job->save();
@@ -302,7 +307,10 @@ class JobController extends Controller
         } catch (\Exception $e){
             return response()->json(['error' => $e->getMessage(),
             'file' => $e->getFile(),
-            'line' => $e->getLine(),], 500);
+            'line' => $e->getLine(),
+            '$request->courierId'   =>  $request->courierId,
+            ], 500);
+            
         }
     }
     public function updateStatus(UpdateJobRequest $request, Job $job){
