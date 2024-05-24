@@ -376,7 +376,11 @@ class JobController extends Controller
                                                 ? $task->return
                                                 :(isset($task->customTask)?$task->customTask:null))),
                         'addressName'   =>  $task->nameOfAddress(),
-                        'timeWindow'    =>  $task->timeWindow(),
+                        //'timeWindow'    =>  $task->timeWindow(),
+                        'timeWindow'    =>  [
+                                            'begin' =>  $task->timeWindowBegin(),
+                                            'end'   =>  $task->timeWindowEnd(),    
+                        ],
                         'fullAddress'   =>  $task->fullAddress(),
                         'quantity'      =>  isset($task->package)?$task->package->quantity:null,
                         'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,

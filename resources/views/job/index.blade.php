@@ -71,7 +71,6 @@
                 @foreach ($job->tasks as $task)
                         
                     @if ($task->package)
-                    <!-- <div class="row"><div class="col">{{$task->package->dropoff_name}}</div></div> -->
                     <div class="row">
                         <div class="col">
                             <blockquote class="blockquote">
@@ -86,12 +85,15 @@
                 <td></td>
                 <td></td>
                 <td>
-                <button class="btn btn-primary edit-btn" 
-                                    data-jobid="{{ $job->id }}"
-                                ><i class="bi bi-pen"></i></button>
-                                <button class="btn btn-danger delete-btn" 
-                                    data-jobid="{{ $job->id }}"
-                                ><i class="bi bi-trash"></i></button>
+                    <button class="btn btn-success view-btn" data-jobid="{{ $job->id }}">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button class="btn btn-primary edit-btn" data-jobid="{{ $job->id }}">
+                        <i class="bi bi-pen"></i>
+                    </button>
+                    <button class="btn btn-danger delete-btn" data-jobid="{{ $job->id }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>   
             </tr>
             @endforeach
@@ -284,7 +286,7 @@ function setReadOnlyToFieldsOfTaskModal(status){
     fields.push(document.getElementById('taskPostalCodeField'));
     fields.push(document.getElementById('taskAddressLineField'));
     fields.push(document.getElementById('taskTimeBegin'));
-    fields.push(document.getElementById('taskTimeEnd'));
+    fields.push(document.getElementById('taskTimeEnd'));//package-info
     fields.forEach(function(field){
         field.disabled = status;
     });
@@ -308,12 +310,18 @@ function addEventListenerToButton(button){
             submitButton.setAttribute('data-option', 'delete');
             submitButton.textContent  = 'Confirm delete';
         }
+        if(button.id.match(/task-(\d+)-button-view/)){
+            setReadOnlyToFieldsOfTaskModal(true);
+            button.setAttribute('data-option', 'view');
+            submitButton.setAttribute('data-option', 'view');
+            submitButton.textContent  = 'Confirm view';
+        }
         });
         $('#taskModalWindow').modal('show');
     });
 }
-function addInfoAboutPackageToTaskModal(package){
-    const container   =   document.getElementById('package-info');
+function addInfoAboutPackageToTaskModal(package){   
+    const container =   document.getElementById('package-info');
     container.innerHTML = '';
     const select = document.createElement('select');
     const clientIdField =   document.getElementById('clientIdField');
@@ -393,21 +401,27 @@ function setTaskValues(taskId){
             console.error(error);
     });
 }
-function appendButtonsToTaskRowColumn(task){
+
+function appendButtonsToTaskRowColumn(task,buttonClicked){
+    let colView = document.createElement('div');
     let colEdit = document.createElement('div');
     let colDelete = document.createElement('div');
+    
     let row = document.createElement('div');
     let editButton  =   document.createElement('button');
     let deleteButton  =   document.createElement('button');
+    let viewButton  =   document.createElement('button');
 
     editButton.textContent = 'Edit';
     editButton.className = 'btn btn-primary';
     editButton.id = `task-${task.id}-button-edit`;
-    // addEventListener(editButton);
     deleteButton.textContent = 'Delete';
     deleteButton.className = 'btn btn-danger';
     deleteButton.id = `task-${task.id}-button-delete`;
-    // addEventListener(deleteButton);
+    viewButton.textContent = 'View';
+    viewButton.className = 'btn btn-success';
+    viewButton.id = `task-${task.id}-button-view`;
+    colView.appendChild(viewButton);
     colEdit.appendChild(editButton);
     colDelete.appendChild(deleteButton);
 
@@ -415,8 +429,15 @@ function appendButtonsToTaskRowColumn(task){
     colDelete.className = 'col border ';
     row.className = 'row border ';
     row.id = `container-task-buttons-${task.id}`;
-    row.appendChild(colEdit);
-    row.appendChild(colDelete);
+    if(buttonClicked === 'view'){
+        row.appendChild(colView);
+    }else if(buttonClicked === 'edit'){
+        row.appendChild(colView);
+        row.appendChild(colEdit);
+        row.appendChild(colDelete);
+    }else if(buttonClicked === 'delete'){
+        row.appendChild(colView);
+    }
     return row;
 }
 function createColumn(idSuffix, content,id) {
@@ -430,28 +451,43 @@ function createColumn(idSuffix, content,id) {
     }
     return col;
 }
-function appendTaskToContainer(container,task){
+function formatDateTimeStringTo12HourFormat(dateString) {
+            const date = new Date(dateString);
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutesStr + ' ' + ampm;
+        }
+function appendTaskToContainer(container,task,buttonClicked){
     // Create the main 'row' div
     let taskRow = document.createElement('div');
     taskRow.className = 'row';
     taskRow.id = 'container-task-0';
 
     // Create and append each column to the row
-    taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task),task.id));
+    taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task,buttonClicked),task.id));
     taskRow.appendChild(createColumn('type', task.name,task.id));
     taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
     taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
-    taskRow.appendChild(createColumn('timeWindow', task.timeWindow,task.id));
+    taskRow.appendChild(createColumn('timeWindow', formatDateTimeStringTo12HourFormat(task.timeWindow.begin)+' / '+formatDateTimeStringTo12HourFormat(task.timeWindow.end),task.id));
     if(task.name === 'dropoff'){
         taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
     }
     container.appendChild(taskRow);
-    addEventListenerToButton(document.getElementById(`task-${task.id}-button-edit`));
-    addEventListenerToButton(document.getElementById(`task-${task.id}-button-delete`));
-    // Select the target container and append the new row to it
-    
+    if(document.getElementById(`task-${task.id}-button-view`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-view`));
+    }
+    if(document.getElementById(`task-${task.id}-button-edit`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-edit`));
+    }
+    if(document.getElementById(`task-${task.id}-button-delete`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-delete`));   
+    }     
 }
-function setJobValues(jobId){
+function setJobValues(jobId,buttonClicked){
     const courierIdField    =   document.getElementById('courierIdField');
     const statusIdField    =   document.getElementById('statusIdField');
     const clientSearchField =   document.getElementById('clientSearchField');
@@ -482,7 +518,7 @@ function setJobValues(jobId){
             }
             jobDateField.value = data.date;
             data.tasks.forEach(function(task){
-                appendTaskToContainer(containerTasks,task);
+                appendTaskToContainer(containerTasks,task,buttonClicked);
             });            
         })
         .catch(error => {
@@ -565,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const jobIdField    =   document.getElementById('idField');
             const courierIdField    =   document.getElementById('courierIdField');
             const jobName        =   button.dataset.name;
+            const createNewTaskButton   =   document.getElementById('createNewTask'); 
             const form = document.querySelector(`#jobForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('job.update') }}");
@@ -575,9 +612,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('clientSearchField').disabled = false;
                 document.getElementById('jobDateField').disabled = false;
                 
-                setJobValues(jobid);
+                setJobValues(jobid,'edit');
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+                submitButton.style.visibility = 'visible';
+                createNewTaskButton.style.visibility = 'visible';
             }
             $('#jobModalWindow').modal('show');
         });
@@ -588,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const jobName = button.dataset.name;
             const jobIdField    =   document.getElementById('idField');
             const courierIdField    =   document.getElementById('courierIdField');
-            const jobColorCustom   =   button.dataset.custom;
+            const createNewTaskButton   =   document.getElementById('createNewTask');
             const form = document.querySelector(`#jobForm`);
             if (form) {
                 form.setAttribute('action', "{{ route('job.delete') }}");
@@ -599,9 +638,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('clientSearchField').disabled = true;
                 document.getElementById('jobDateField').disabled = true;
                 document.getElementById('jobid').value = jobid;
-                setJobValues(jobid);
+                setJobValues(jobid,'delete');
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+                submitButton.style.visibility = 'visible';
+                createNewTaskButton.style.visibility = 'hidden';
+            }
+            $('#jobModalWindow').modal('show');
+        });
+    });
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const jobid = button.dataset.jobid;
+            const jobName = button.dataset.name;
+            const jobIdField    =   document.getElementById('idField');
+            const courierIdField    =   document.getElementById('courierIdField');
+            const createNewTaskButton   =   document.getElementById('createNewTask');
+            const form = document.querySelector(`#jobForm`);
+            if (form) {
+                form.setAttribute('action', "{{ route('job.delete') }}");
+                jobIdField.value = jobid;
+                jobIdField.disabled = true;
+                document.getElementById('courierIdField').disabled = true;
+                document.getElementById('statusIdField').disabled = true;
+                document.getElementById('clientSearchField').disabled = true;
+                document.getElementById('jobDateField').disabled = true;
+                document.getElementById('jobid').value = jobid;
+                setJobValues(jobid,'view');
+                submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+                submitButton.style.visibility = 'hidden';
+                createNewTaskButton.style.visibility = 'hidden';
 
             }
             $('#jobModalWindow').modal('show');
