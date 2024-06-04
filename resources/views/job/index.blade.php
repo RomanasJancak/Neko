@@ -210,7 +210,13 @@
                         </div>
                         <div class="col">
                             <label for="taskTypeField">Type</label>
-                            <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value="">
+                            <!-- <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value=""> -->
+                            <select class="form-control" name="taskTypename" id="taskTypeField">
+                                <option value="pickup">Pickup</option>
+                                <option value="dropOff">DropOff</option>
+                                <option value="return">Return</option>
+                                <option value="custom">Custom</option>
+                            </select>
                         </div>
                     </div>
                     <div class="row justify-content-md-center">
@@ -255,7 +261,7 @@
                                 <input type="time" id="taskTimeEnd" name="timeEnd" class="form-control">
                         </div>
                     </div>
-                    <div class="row justify-content-md-center border rounded border-info" >
+                    <div class="row justify-content-md-center">
                         <div class="col" id="package-info">
                         </div>          
                     </div>
@@ -277,6 +283,15 @@
 @endsection
 @section('scripts')
 <script>
+function showPackageDiv(status){
+    const container =   document.getElementById('package-info');
+    if(status){
+        container.style.visibility = 'visible';
+    }else{
+        container.style.visibility = 'hidden';
+        container.innerHTML =   '';
+    }
+}
 function setReadOnlyToFieldsOfTaskModal(status){
     let fields = [];
     fields.push(document.getElementById('taskStatusIdField'));
@@ -291,32 +306,59 @@ function setReadOnlyToFieldsOfTaskModal(status){
         field.disabled = status;
     });
 }
+function cleanTaskCreateWindow(){
+    let selectStatusField =   document.getElementById('taskStatusIdField');
+    let selectTypeField =   document.getElementById('taskTypeField');
+    let taskClientNameField =   document.getElementById('taskClientNameField');
+    let taskPostalCodeField =   document.getElementById('taskPostalCodeField');
+    let taskAddressLineField =   document.getElementById('taskAddressLineField');
+    let taskTimeBegin =   document.getElementById('taskTimeBegin');
+    let taskTimeEnd =   document.getElementById('taskTimeEnd');
+    // let selectTypeField =   document.getElementById('taskTypeField');
+    // let selectTypeField =   document.getElementById('taskTypeField');
+    selectStatusField.selectedIndex = -1;
+    selectTypeField.selectedIndex = -1;
+    selectTypeField.disabled = false;
+    taskClientNameField.value   =   '';
+    taskPostalCodeField.value   =   '';
+    taskAddressLineField.value   =   '';
+    taskTimeBegin.value   =   '';
+    taskTimeEnd.value   =   '';
+}
 function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         $('#jobModalWindow').modal('hide');
         let submitButton = document.getElementById('submitTaskform');
-        taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
-        setTaskValues(taskId).then(() =>{
-        if(button.id.match(/task-(\d+)-button-edit/)){
+        if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
-            button.setAttribute('data-option', 'edit');            
-            submitButton.setAttribute('data-option', 'edit');
-            submitButton.textContent  = 'Confirm edit';
+            cleanTaskCreateWindow();
+            button.setAttribute('data-option', 'create');            
+            submitButton.setAttribute('data-option', 'create');
+            submitButton.textContent  = 'Confirm creation';
+        }else{
+            taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
+            setTaskValues(taskId).then(() =>{
+            if(button.id.match(/task-(\d+)-button-edit/)){
+                setReadOnlyToFieldsOfTaskModal(false);
+                button.setAttribute('data-option', 'edit');            
+                submitButton.setAttribute('data-option', 'edit');
+                submitButton.textContent  = 'Confirm edit';
+            }
+            if(button.id.match(/task-(\d+)-button-delete/)){
+                setReadOnlyToFieldsOfTaskModal(true);
+                button.setAttribute('data-option', 'delete');
+                submitButton.setAttribute('data-option', 'delete');
+                submitButton.textContent  = 'Confirm delete';
+            }
+            if(button.id.match(/task-(\d+)-button-view/)){
+                setReadOnlyToFieldsOfTaskModal(true);
+                button.setAttribute('data-option', 'view');
+                submitButton.setAttribute('data-option', 'view');
+                submitButton.textContent  = 'Confirm view';
+            }
+            });
         }
-        if(button.id.match(/task-(\d+)-button-delete/)){
-            setReadOnlyToFieldsOfTaskModal(true);
-            button.setAttribute('data-option', 'delete');
-            submitButton.setAttribute('data-option', 'delete');
-            submitButton.textContent  = 'Confirm delete';
-        }
-        if(button.id.match(/task-(\d+)-button-view/)){
-            setReadOnlyToFieldsOfTaskModal(true);
-            button.setAttribute('data-option', 'view');
-            submitButton.setAttribute('data-option', 'view');
-            submitButton.textContent  = 'Confirm view';
-        }
-        });
         $('#taskModalWindow').modal('show');
     });
 }
@@ -395,6 +437,10 @@ function setTaskValues(taskId){
             timeEndField.value              =   data.time.end;
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package);
+                showPackageDiv(true);
+
+            }else{
+                showPackageDiv(false);
             }            
         })
         .catch(error => {
@@ -485,7 +531,8 @@ function appendTaskToContainer(container,task,buttonClicked){
     }
     if(document.getElementById(`task-${task.id}-button-delete`)){
         addEventListenerToButton(document.getElementById(`task-${task.id}-button-delete`));   
-    }     
+    }
+     
 }
 function setJobValues(jobId,buttonClicked){
     const courierIdField    =   document.getElementById('courierIdField');
@@ -519,7 +566,10 @@ function setJobValues(jobId,buttonClicked){
             jobDateField.value = data.date;
             data.tasks.forEach(function(task){
                 appendTaskToContainer(containerTasks,task,buttonClicked);
-            });            
+            });
+            if(document.getElementById(`createNewTask`)){
+                addEventListenerToButton(document.getElementById(`createNewTask`)); 
+            }            
         })
         .catch(error => {
             console.error(error);
@@ -705,8 +755,11 @@ document.addEventListener('DOMContentLoaded', function() {
             route = '{{ route("task.update") }}';
         }else if(this.getAttribute('data-option') === 'view'){
             return;
+        }else if(this.getAttribute('data-option') === 'create'){
+            route = '{{ route("task.store") }}';
         } 
         updateData = {
+            jobId       :   document.getElementById('idField').value,
             id          :   document.getElementById('taskIdField').value,
             status_id   :   document.getElementById('taskStatusIdField').value,
             address     :   {
@@ -720,6 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 begin   :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeBegin').value,
                 end     :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeEnd').value,
             },
+            date        :   document.getElementById('jobDateField').value,
         }
         if(typeField.value == 'dropOff'){
             updateData.package = {
@@ -729,7 +783,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateTask(updateData,route);
     });
-    document.getElementById('submitform').addEventListener('click', function() {
+    document.getElementById('submitform').addEventListener('click', function(event) {
+        event.preventDefault();
         const form = document.getElementById('jobForm');
         updateData  =   {
             id          :   document.getElementById('idField').value,

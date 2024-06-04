@@ -33,7 +33,25 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        //
+        try{
+            $task   =   new Task();
+            $task->date             =   $request->input('date');
+            $task->order_number     =   0;
+            $task->job_id           =   $request->input('jobId');
+            $task->status_id        =   $request->input('status_id');
+            $task->save();
+            return response()->json([
+                'message'   => 'Task created successfully. ',
+                'request'   =>  $request->all(),
+                'task'      =>  $task,
+            ]);
+        } catch (\Exception $e){
+                return response()->json([
+                'location' =>  'TaskController : Store',
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
     }
 
     /**
