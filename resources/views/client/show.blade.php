@@ -26,7 +26,7 @@
                 <li class="list-group-item"><strong>Private Notes:</strong> {{ $client->private_notes }}</li>
                 <li class="list-group-item"><strong>Industry:</strong> {{ $client->industry }}</li>
                 <li class="list-group-item"><strong>Client Size:</strong> {{ $client->client_size }}</li>
-                <li class="list-group-item"><strong>Client Phone:</strong> {{ $client->client_phone }}</li>
+                <li class="list-group-item"><strong>Client Phone:</strong> {{ $client->phone }}</li>
                 <li class="list-group-item"><strong>Street:</strong> {{ $client->street }}</li>
                 <li class="list-group-item"><strong>Apt/Suite:</strong> {{ $client->apt_suite }}</li>
                 <li class="list-group-item"><strong>City:</strong> {{ $client->city }}</li>

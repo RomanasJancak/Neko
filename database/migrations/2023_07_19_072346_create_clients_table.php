@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('client_currency')->nullable();//CSV
             $table->string('website')->nullable();//CSV
             $table->string('private_notes')->nullable();//CSV
-            $table->string('client_phone')->nullable();//CSV
+            $table->string('phone')->nullable();//CSV
             $table->string('address_line')->nullable();
             $table->string('postal_code')->nullable();//CSV
             $table->string('city')->nullable();//CSV

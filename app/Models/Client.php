@@ -18,7 +18,7 @@ class Client extends Model
                             'client_currency',
                             'website',
                             'private_notes',
-                            'client_phone',
+                            'phone',
                             'address_line',
                             'postal_code',
                             'city',
