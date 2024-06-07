@@ -95,11 +95,8 @@ class ClientController extends Controller
         
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            // 'email' => 'required|email|unique:clients,email,' . $client->id,
-            // 'vat' => 'required|string|max:255',
-            // 'regNumber' => 'nullable|string|max:255',
-            // 'address' => 'required|string',
-            // 'note' => 'nullable|string',
+            'shortenedName'     =>  'max:255',
+
 
             
             'country' => 'required|string|max:255',
@@ -111,7 +108,9 @@ class ClientController extends Controller
             'pickup_city' => 'max:255',
             'pickup_postal_code' => 'max:255',
             'pickup_adress_line' => 'max:255',
-            'shortenedName'     =>  'max:255',
+            
+
+            'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
         ]);
 
         $client->update($validatedData);
@@ -122,7 +121,7 @@ class ClientController extends Controller
         //return response()->json(['message' => $request->name]);
         return response()->json([
             'after_update_client' => $client,
-            '$request->shortenedName'   =>$request->shortenedName,
+            '$request->phone'   =>$request->phone,
             ]);
         } catch (\Exception $e) {
         // Handle other types of exceptions as needed
@@ -185,15 +184,16 @@ class ClientController extends Controller
                 'pickup_city'                  => $client->pickup_city,
                 'pickup_postal_code'                  => $client->pickup_postal_code,
                 'pickup_adress_line'                  => $client->pickup_adress_line,
-                'packageTypes' => $client->packageTypes->map(function ($packageType) {
-                    return [
-                        'id' => $packageType->id,
-                        'name' => $packageType->name,
-                        'price' => $packageType->price,
-                        'baseQuantityThreshold' => $packageType->baseQuantityThreshold, 
-                        'maxQuantityThreshold' => $packageType->maxQuantityThreshold,  
-                    ];
-                }),
+                'packageTypes'          => $client->packageTypes->map(function ($packageType) {
+                                            return [
+                                                'id' => $packageType->id,
+                                                'name' => $packageType->name,
+                                                'price' => $packageType->price,
+                                                'baseQuantityThreshold' => $packageType->baseQuantityThreshold, 
+                                                'maxQuantityThreshold' => $packageType->maxQuantityThreshold,  
+                                            ];
+                                        }),
+                'phone'                 =>  $client->phone,
                 ]);
         }
 
@@ -210,4 +210,57 @@ class ClientController extends Controller
 
         return response()->json($clients);
     }
+    public function fetchClientsPaginate(Request $request)
+{
+    try {
+        $id = $request->get('id', '');
+        $name = $request->get('name', '');
+        $address = $request->get('address', '');
+        $sortField = $request->get('sortField', 'id');
+        $sortOrder = $request->get('sortOrder', 'asc');
+
+        $clients = Client::when($id, function ($queryBuilder) use ($id) {
+                $queryBuilder->where('id', 'like', '%' . $id . '%');
+            })
+            ->when($name, function ($queryBuilder) use ($name) {
+                $queryBuilder->where(function ($query) use ($name) {
+                    $query->where('name', 'like', '%' . $name . '%')
+                          ->orWhere('shortenedName', 'like', '%' . $name . '%');
+                });
+            })
+            ->when($address, function ($queryBuilder) use ($address) {
+                $queryBuilder->where(function ($query) use ($address) {
+                    $query->where('country', 'like', '%' . $address . '%')
+                          ->orWhere('city', 'like', '%' . $address . '%')
+                          ->orWhere('postal_code', 'like', '%' . $address . '%')
+                          ->orWhere('address_line', 'like', '%' . $address . '%')
+                          ->orWhere('pickup_country', 'like', '%' . $address . '%')
+                          ->orWhere('pickup_city', 'like', '%' . $address . '%')
+                          ->orWhere('pickup_postal_code', 'like', '%' . $address . '%')
+                          ->orWhere('pickup_adress_line', 'like', '%' . $address . '%');
+                });
+            })
+            ->orderBy($sortField, $sortOrder)
+            ->paginate(10);
+
+        $clients->appends([
+            'id' => $id,
+            'name' => $name,
+            'address' => $address,
+            'sortField' => $sortField,
+            'sortOrder' => $sortOrder
+        ]);
+
+        return response()->json($clients);
+    } catch (QueryException $e) {
+        return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+    }
+}
+
 }

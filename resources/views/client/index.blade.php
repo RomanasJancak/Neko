@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
-
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Clients</h1><button class="btn btn-secondary create-btn" >Add new Client</i></button>        
+            <h1>Clients</h1>
+            <button class="btn btn-secondary create-btn">Add new Client</button>        
             <form method="POST" action="{{ route('client.createBackup') }}">
                 @csrf
                 <button type="submit" class="btn btn-primary">Create Backup</button>
@@ -18,12 +18,18 @@
                         <input type="text" id="search-address" class="form-control" placeholder="Search by Address">
                     </tr>
                     <tr>
-                        <th scope="col" data-column="id">ID</th>
-                        <th scope="col" data-column="name">Name</th>
-                        <th scope="col" data-column="adress">Billing Adress</th>
-                        <th scope="col" data-column="adress">PU. Adress</th>
+                        <th scope="col" data-column="id">
+                            ID
+                            <button class="sort-btn" data-sort-field="id" data-sort-order="asc">Sort</button>
+                        </th>
+                        <th scope="col" data-column="name">
+                            Name
+                            <button class="sort-btn" data-sort-field="name" data-sort-order="asc">Sort</button>
+                        </th>
+                        <th scope="col" data-column="address">Billing Address</th>
+                        <th scope="col" data-column="pickup_address">PU. Address</th>
                         <th scope="col" data-column="phone">Phone number</th>
-                        <th scope="col" >Actions</th>
+                        <th scope="col">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="clientsTableBody">
@@ -50,9 +56,11 @@
                         <td>
                             <button class="btn btn-primary edit-btn" 
                                 data-clientid="{{ $client->id }}"
+                                onclick="editClient({{ $client->id }})"
                             ><i class="bi bi-pen"></i></button>
                             <button class="btn btn-danger delete-btn" 
                                 data-clientid="{{ $client->id }}"
+                                onclick="deleteClient({{ $client->id }})"
                             ><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -129,332 +137,238 @@
 @section('scripts')
 <script>
     function editClient(clientId) {
-    
         const form = document.querySelector('#statusForm');
-
         if (form) {
-        form.setAttribute('action', "{{ route('client.update') }}");
-        const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-    
-        fetch(routeUrl)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                document.getElementById('clientid').value = clientId;
-                document.getElementById('nameField').value = data.name;
-                document.getElementById('shortenedNameField').value = data.nickName;
+            form.setAttribute('action', "{{ route('client.update') }}");
+            const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
 
-                document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-                document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-                document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-                document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
+            fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('clientid').value = clientId;
+                        document.getElementById('nameField').value = data.name;
+                        document.getElementById('shortenedNameField').value = data.nickName;
 
-                document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
-                document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
-                document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
-                document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
+                        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
+                        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
+                        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
+                        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
 
-                document.getElementById('phoneNumberField').value = data.phone;
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
+                        document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
+                        document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
+                        document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
+                        document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
 
-        document.getElementById('nameField').readOnly = false;
-        document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
-        document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
-        document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
-        document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
-        document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
-        document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
-        document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
-        document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
-        document.getElementById('phoneNumberField').readOnly = false;
+                        document.getElementById('phoneNumberField').value = data.phone;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
 
-        const submitButton = document.getElementById('submitform');
-        submitButton.innerHTML = "Update";
+            document.getElementById('nameField').readOnly = false;
+            document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
+            document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
+            document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
+            document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
+            document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
+            document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
+            document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
+            document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
+            document.getElementById('phoneNumberField').readOnly = false;
+
+            const submitButton = document.getElementById('submitform');
+            submitButton.innerHTML = "Update";
         }
         $('#modalWindow').modal('show');
     }
-document.addEventListener('DOMContentLoaded', function() {
 
-    document.querySelectorAll('.edit-btn').forEach(button => {
+    function deleteClient(clientId) {
+        const form = document.querySelector('#statusForm');
+        if (form) {
+            form.setAttribute('action', "{{ route('client.delete') }}");
+            const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
 
-        button.addEventListener('click', () => {
-            const clientId          =   button.dataset.clientid;
-            const form = document.querySelector(`#statusForm`);
-            if (form) {
-                form.setAttribute('action', "{{ route('client.update') }}");
-                const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-                //fetch(`/get-client-info/${clientId}`)
-                fetch(routeUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data) {
-                                document.getElementById('clientid').value = clientId;
-                                document.getElementById('nameField').value = data.name;
-                                document.getElementById('shortenedNameField').value = data.nickName;
+            fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('clientid').value = clientId;
+                        document.getElementById('nameField').value = data.name;
 
-                                document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-                                document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-                                document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-                                document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-                                
-                                document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
-                                document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
-                                document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
-                                document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
+                        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
+                        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
+                        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
+                        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
 
-                                document.getElementById('phoneNumberField').value = data.phone;
-                                phoneNumberField
-                            }
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
-                
-                document.getElementById('nameField').readOnly = false;
-                document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
-                document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
-                document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
-                document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
-                
-                document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
-                document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
-                document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
-                document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
-                document.getElementById('phoneNumberField').readOnly = false;
-                submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "Update";
-            }
-            $('#modalWindow').modal('show');
-        });
-    });
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const clientid = button.dataset.clientid;
-            const statusName = button.dataset.name;
-            const clientId          =   button.dataset.clientid;
-            const form = document.querySelector(`#statusForm`);
-            if (form) {
-                form.setAttribute('action', "{{ route('client.delete') }}");
-                const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-                //fetch(`/get-client-info/${clientId}`)
-                fetch(routeUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data) {
-                                document.getElementById('clientid').value = clientId;
-                                document.getElementById('nameField').value = data.name;
+                        document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
+                        document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
+                        document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
+                        document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
 
-                                document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-                                document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-                                document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-                                document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-                                
-                                document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
-                                document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
-                                document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
-                                document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
-                                
-                                document.getElementById('phoneNumberField').value = data.phone;
-                            }
-                        })
-                        .catch(error => {
-                            console.error(error);
-                        });
-                
-                document.getElementById('nameField').readOnly = true;
-                document.getElementById('reg-adress-section-adress-country-field').readOnly = true;
-                document.getElementById('reg-adress-section-adress-city-field').readOnly = true;
-                document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = true;
-                document.getElementById('reg-adress-section-adress-addressline-field').readOnly = true;  
-                
-                document.getElementById('pu-adress-section-adress-country-field').readOnly = true;
-                document.getElementById('pu-adress-section-adress-city-field').readOnly = true;
-                document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = true;
-                document.getElementById('pu-adress-section-adress-addressline-field').readOnly = true;
-
-                document.getElementById('phoneNumberField').readOnly = true;
-
-                submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "Delete";
-            }
-            $('#modalWindow').modal('show');
-        });
-    });
-    document.querySelectorAll('.create-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const form = document.querySelector(`#statusForm`);
-            if (form) {
-                document.getElementById('nameField').readOnly = false;
-                form.setAttribute('action', "{{ route('client.store') }}");
-                submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "<i class='bi bi-save'></i>";
-            }
-            $('#modalWindow').modal('show');
-        });
-    });
-    document.getElementById('submitform').addEventListener('click', function() {
-        // Get form data
-        const form = document.getElementById('statusForm');
-        const formData = new FormData(form);
-
-        //console.log(formData.get('workloadid'));
-
-        // Create a new XMLHttpRequest object
-        const xhr = new XMLHttpRequest();
-
-        // Define the request type, URL, and set up the request
-        xhr.open('POST', form.action, true);
-        xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
-
-        // Handle the response
-        xhr.onload = function() {
-            // Process the response if needed
-            console.log(xhr.responseText);
-            parsedMessage = JSON.parse(xhr.responseText).message;
-            //console.log(parsedMessage);
-            if(parsedMessage === 'deleted'){
-                //document.getElementById('workload-'+formData.get('workloadid')).remove();
-            }
-            if(parsedMessage === 'updated'){
-            }
-            if(parsedMessage === 'created'){
-            }
-
-        };
-
-        // Send the request
-        xhr.send(formData);
-        $('#modalWindow').modal('hide');
-    });
-    const searchInputs = [
-                { id: 'search-id', field: 'id' },
-                { id: 'search-name', field: 'name' },
-                { id: 'search-address', field: 'address' }
-    ];
-    searchInputs.forEach(input => {
-                const inputElement = document.getElementById(input.id);
-                const suggestionsElement = document.getElementById(`${input.id}-suggestions`);
-
-                inputElement.addEventListener('input', function() {
-                    fetchSuggestions(input.id, input.field, inputElement.value, suggestionsElement);
-                    fetchUsers();
+                        document.getElementById('phoneNumberField').value = data.phone;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
                 });
 
-                inputElement.addEventListener('blur', function() {
-                    setTimeout(() => {
-                        //suggestionsElement.innerHTML = '';
-                    }, 100);
-                });
-    });
-    function fetchSuggestions(inputId, field, query, suggestionsElement) {
-                if (query.length < 1) {
-                    //suggestionsElement.innerHTML = '';
-                    return;
-                }
+            document.getElementById('nameField').readOnly = true;
+            document.getElementById('reg-adress-section-adress-country-field').readOnly = true;
+            document.getElementById('reg-adress-section-adress-city-field').readOnly = true;
+            document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = true;
+            document.getElementById('reg-adress-section-adress-addressline-field').readOnly = true;
+            document.getElementById('pu-adress-section-adress-country-field').readOnly = true;
+            document.getElementById('pu-adress-section-adress-city-field').readOnly = true;
+            document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = true;
+            document.getElementById('pu-adress-section-adress-addressline-field').readOnly = true;
+            document.getElementById('phoneNumberField').readOnly = true;
 
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', `{{ route('client.fetch') }}?query=${query}&field=${field}`, true);
-                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.responseText).data;
-                        data.forEach(item => {
-                            const div = document.createElement('div');
-                            div.textContent = item.name; // Adjust this according to your data structure
-                            div.addEventListener('click', () => {
-                                document.getElementById(inputId).value = item.name;
-                                fetchUsers();
-                            });
-                        });
-                    }
-                };
-                xhr.send();
-    }
-    //---------------------------
-    function fetchUsers(page = 1) {
-                const id = document.getElementById('search-id').value;
-                const name = document.getElementById('search-name').value;
-                const address = document.getElementById('search-address').value;
-
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', `{{ route('client.fetch') }}?id=${id}&name=${name}&address=${address}&page=${page}`, true);
-                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.responseText);
-                        //const userList = document.getElementById('user-list');
-                        //userList.innerHTML = '';
-                        document.getElementById('clientsTableBody').innerHTML = '';
-                        console.log(data);
-                        data.data.forEach(client => {
-                            //const div = document.createElement('div');
-                            //div.textContent = `${user.name} (${user.email})`; // Adjust this according to your data structure
-                            //userList.appendChild(div);
-                            const clientRow = `
-                                <tr>
-                                    <th scope="row">${client.id}</th>
-                                    <td>${client.name}</td>
-                                    <td>${client.address_line}<br>
-                                        ${client.postal_code}<br>
-                                        ${client.city},${client.country}
-                                    </td>
-                                    <td>${client.pickup_adress_line}<br>
-                                        ${client.pickup_postal_code}<br>
-                                        ${client.pickup_city},${client.pickup_country}
-                                    </td>
-                                    <td>
-                                        ${client.phone !== '' ? `${client.phone}
-                                        <a href="tel:${client.phone}"><i class="fa-solid fa-phone"></i></a>
-                                        <a href="https://wa.me/${client.phone}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-primary edit-btn" 
-                                            data-clientid="${client.id}"
-                                            onclick="editClient(${client.id})"
-                                        ><i class="bi bi-pen"></i></button>
-                                        <button class="btn btn-danger delete-btn" 
-                                            data-clientid="${client.id}"
-                                        ><i class="bi bi-trash"></i></button>
-                                    </td>
-                                </tr>
-                            `;
-                            
-                            document.getElementById('clientsTableBody').insertAdjacentHTML('beforeend', clientRow);
-                        });
-                        
-                        const paginationLinks = document.createElement('div');
-                        paginationLinks.classList.add('mt-3');
-                        paginationLinks.innerHTML = data.links;
-                        //userList.appendChild(paginationLinks);
-                    }
-                };
-                xhr.send();
-            }
-
-    document.addEventListener('click', function(event) {
-        if (event.target.closest('.pagination a')) {
-            event.preventDefault();
-            const page = event.target.getAttribute('href').split('page=')[1];
-            fetchUsers(page);
+            const submitButton = document.getElementById('submitform');
+            submitButton.innerHTML = "Delete";
         }
-    });
-
-    fetchUsers();
- 
-    //---------------------------
-    function getClientInfo(clientId){
+        $('#modalWindow').modal('show');
     }
 
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.create-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const form = document.querySelector(`#statusForm`);
+                if (form) {
+                    document.getElementById('nameField').readOnly = false;
+                    form.setAttribute('action', "{{ route('client.store') }}");
+                    submitButton = document.getElementById('submitform');
+                    submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                }
+                $('#modalWindow').modal('show');
+            });
+        });
 
-});
+        document.getElementById('submitform').addEventListener('click', function() {
+            // Get form data
+            const form = document.getElementById('statusForm');
+            const formData = new FormData(form);
 
+            // Create a new XMLHttpRequest object
+            const xhr = new XMLHttpRequest();
+
+            // Define the request type, URL, and set up the request
+            xhr.open('POST', form.action, true);
+            xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
+
+            // Handle the response
+            xhr.onload = function() {
+                // Process the response if needed
+                console.log(xhr.responseText);
+                parsedMessage = JSON.parse(xhr.responseText).message;
+                // Handle the response based on the message
+            };
+
+            // Send the request
+            xhr.send(formData);
+            $('#modalWindow').modal('hide');
+        });
+
+        const searchInputs = [
+            { id: 'search-id', field: 'id' },
+            { id: 'search-name', field: 'name' },
+            { id: 'search-address', field: 'address' }
+        ];
+
+        searchInputs.forEach(input => {
+            const inputElement = document.getElementById(input.id);
+
+            inputElement.addEventListener('input', function() {
+                fetchUsers();
+            });
+        });
+
+        function fetchUsers(page = 1) {
+            const id = document.getElementById('search-id').value;
+            const name = document.getElementById('search-name').value;
+            const address = document.getElementById('search-address').value;
+            const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
+            const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `{{ route('client.fetch') }}?id=${id}&name=${name}&address=${address}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+            xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+                    document.getElementById('clientsTableBody').innerHTML = '';
+
+                    data.data.forEach(client => {
+                        const clientRow = `
+                            <tr>
+                                <th scope="row">${client.id}</th>
+                                <td>${client.name}</td>
+                                <td>${client.address_line}<br>
+                                    ${client.postal_code}<br>
+                                    ${client.city},${client.country}
+                                </td>
+                                <td>${client.pickup_adress_line}<br>
+                                    ${client.pickup_postal_code}<br>
+                                    ${client.pickup_city},${client.pickup_country}
+                                </td>
+                                <td>
+                                    ${client.phone !== '' ? `${client.phone}
+                                    <a href="tel:${client.phone}"><i class="fa-solid fa-phone"></i></a>
+                                    <a href="https://wa.me/${client.phone}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary edit-btn" 
+                                        data-clientid="${client.id}"
+                                        onclick="editClient(${client.id})"
+                                    ><i class="bi bi-pen"></i></button>
+                                    <button class="btn btn-danger delete-btn" 
+                                        data-clientid="${client.id}"
+                                        onclick="deleteClient(${client.id})"
+                                    ><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                        
+                        document.getElementById('clientsTableBody').insertAdjacentHTML('beforeend', clientRow);
+                    });
+
+                    const paginationLinks = document.createElement('div');
+                    paginationLinks.classList.add('mt-3');
+                    paginationLinks.innerHTML = data.links;
+                }
+            };
+            xhr.send();
+        }
+
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.pagination a')) {
+                event.preventDefault();
+                const page = event.target.getAttribute('href').split('page=')[1];
+                fetchUsers(page);
+            }
+
+            if (event.target.closest('.sort-btn')) {
+                const button = event.target.closest('.sort-btn');
+                const sortField = button.dataset.sortField;
+                const currentOrder = button.dataset.sortOrder;
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+                document.querySelectorAll('.sort-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.dataset.sortOrder = 'asc';
+                });
+
+                button.classList.add('active');
+                button.dataset.sortOrder = newOrder;
+                
+                fetchUsers();
+            }
+        });
+
+        fetchUsers();
+    });
 </script>
 @endsection

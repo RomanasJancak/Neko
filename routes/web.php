@@ -68,6 +68,7 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
     Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
     Route::get('searchClients',    [ClientController::class, 'searchClients'])->name('client.searchClients')->middleware('auth');
+    Route::get('fetchClientsPaginate', [ClientController::class, 'fetchClientsPaginate'])->name('client.fetch');
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
