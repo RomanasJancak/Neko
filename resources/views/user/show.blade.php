@@ -21,7 +21,10 @@
                         <label for="username">Username</label>
                         <input id="username" type="text" class="form-control" value="{{ $user->username }}" readonly>
                     </div>
-
+                    <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input id="phone" type="text" class="form-control" name="phone" value="{{ $user->phone }}">
+                    </div>
                     <div class="form-group">
                         <label for="role">Roles</label>
                         @foreach ($user->getRoleNames() as $role)         

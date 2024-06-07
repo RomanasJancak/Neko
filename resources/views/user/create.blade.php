@@ -18,6 +18,10 @@
                             <label for="email">Email</label>
                             <input id="email" type="email" class="form-control" name="email" required>
                         </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input id="phone" type="text" class="form-control" name="phone" >
+                        </div>
 
                         <div class="form-group">
                             <label for="username">Username</label>

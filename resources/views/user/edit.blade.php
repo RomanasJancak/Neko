@@ -18,7 +18,10 @@
                             <label for="email">Email</label>
                             <input id="email" type="email" class="form-control" name="user_email" value="{{ $user->email }}" required>
                         </div>
-
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input id="phone" type="text" class="form-control" name="phone" value="{{ $user->phone }}">
+                        </div>
                         <div class="form-group">
                             <label for="username">Roles</label>
                             <select class="form-select" aria-label="Default select example" name="role" id="roles" required>

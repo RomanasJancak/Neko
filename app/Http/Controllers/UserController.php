@@ -71,12 +71,15 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed',
+            'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
         ]);
 
         $user = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
             'password' => bcrypt($validatedData['password']),
+            
         ]);
         $user->assignRole($request->role);
 
@@ -126,7 +129,7 @@ class UserController extends Controller
 
 
             $user->name = $request->user_name;
-
+            $user->phone = $request->get('phone', '');
 
             $user->email = $request->user_email;
 
