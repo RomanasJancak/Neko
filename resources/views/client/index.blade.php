@@ -13,14 +13,20 @@
             <table class="table table-striped table-sm">
                 <thead>
                     <tr>
+                        <input type="text" id="search-id" class="form-control" placeholder="Search by ID">
+                        <input type="text" id="search-name" class="form-control" placeholder="Search by Name">
+                        <input type="text" id="search-address" class="form-control" placeholder="Search by Address">
+                    </tr>
+                    <tr>
                         <th scope="col" data-column="id">ID</th>
                         <th scope="col" data-column="name">Name</th>
                         <th scope="col" data-column="adress">Billing Adress</th>
                         <th scope="col" data-column="adress">PU. Adress</th>
+                        <th scope="col" data-column="phone">Phone number</th>
                         <th scope="col" >Actions</th>
                     </tr>
                 </thead>
-                <tbody id="statusesTableBody">
+                <tbody id="clientsTableBody">
                     @foreach($clients as $client)
                     <tr>
                         <th scope="row">{{ $client->id }}</th>
@@ -33,6 +39,13 @@
                             {{$client->pickup_postal_code}}<br>
                             {{$client->pickup_city}},{{ $client->pickup_country }} 
                             
+                        </td>
+                        <td>
+                            @if($client->phone !== '')
+                                {{$client->phone}}    
+                                <a href="tel:{{$client->phone}}"><i class="fa-solid fa-phone"></i></a>    
+                                <a href="https://wa.me/{{$client->phone}}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+                            @endif
                         </td>
                         <td>
                             <button class="btn btn-primary edit-btn" 
@@ -93,6 +106,12 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col">
+                            <label for="phoneNumberField"><i class="fa-solid fa-phone"></i> : </label>
+                            <input type="text" name="phone" id="phoneNumberField" value="" >
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="form-group">
                             <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
                         </div>
@@ -109,7 +128,57 @@
 
 @section('scripts')
 <script>
+    function editClient(clientId) {
+    
+        const form = document.querySelector('#statusForm');
+
+        if (form) {
+        form.setAttribute('action', "{{ route('client.update') }}");
+        const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
+    
+        fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                document.getElementById('clientid').value = clientId;
+                document.getElementById('nameField').value = data.name;
+                document.getElementById('shortenedNameField').value = data.nickName;
+
+                document.getElementById('reg-adress-section-adress-country-field').value = data.country;
+                document.getElementById('reg-adress-section-adress-city-field').value = data.city;
+                document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
+                document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
+
+                document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
+                document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
+                document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
+                document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
+
+                document.getElementById('phoneNumberField').value = data.phone;
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+        document.getElementById('nameField').readOnly = false;
+        document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
+        document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
+        document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
+        document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
+        document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
+        document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
+        document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
+        document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
+        document.getElementById('phoneNumberField').readOnly = false;
+
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "Update";
+        }
+        $('#modalWindow').modal('show');
+    }
 document.addEventListener('DOMContentLoaded', function() {
+
     document.querySelectorAll('.edit-btn').forEach(button => {
 
         button.addEventListener('click', () => {
@@ -136,6 +205,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
                                 document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
                                 document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
+
+                                document.getElementById('phoneNumberField').value = data.phone;
+                                phoneNumberField
                             }
                         })
                         .catch(error => {
@@ -152,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
                 document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
                 document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
+                document.getElementById('phoneNumberField').readOnly = false;
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "Update";
             }
@@ -185,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
                                 document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
                                 
+                                document.getElementById('phoneNumberField').value = data.phone;
                             }
                         })
                         .catch(error => {
@@ -201,6 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('pu-adress-section-adress-city-field').readOnly = true;
                 document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = true;
                 document.getElementById('pu-adress-section-adress-addressline-field').readOnly = true;
+
+                document.getElementById('phoneNumberField').readOnly = true;
+
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "Delete";
             }
@@ -253,9 +330,130 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.send(formData);
         $('#modalWindow').modal('hide');
     });
-    function getClientInfo(clientId){
+    const searchInputs = [
+                { id: 'search-id', field: 'id' },
+                { id: 'search-name', field: 'name' },
+                { id: 'search-address', field: 'address' }
+    ];
+    searchInputs.forEach(input => {
+                const inputElement = document.getElementById(input.id);
+                const suggestionsElement = document.getElementById(`${input.id}-suggestions`);
 
+                inputElement.addEventListener('input', function() {
+                    fetchSuggestions(input.id, input.field, inputElement.value, suggestionsElement);
+                    fetchUsers();
+                });
+
+                inputElement.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        //suggestionsElement.innerHTML = '';
+                    }, 100);
+                });
+    });
+    function fetchSuggestions(inputId, field, query, suggestionsElement) {
+                if (query.length < 1) {
+                    //suggestionsElement.innerHTML = '';
+                    return;
+                }
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `{{ route('client.fetch') }}?query=${query}&field=${field}`, true);
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText).data;
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.textContent = item.name; // Adjust this according to your data structure
+                            div.addEventListener('click', () => {
+                                document.getElementById(inputId).value = item.name;
+                                fetchUsers();
+                            });
+                        });
+                    }
+                };
+                xhr.send();
     }
+    //---------------------------
+    function fetchUsers(page = 1) {
+                const id = document.getElementById('search-id').value;
+                const name = document.getElementById('search-name').value;
+                const address = document.getElementById('search-address').value;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `{{ route('client.fetch') }}?id=${id}&name=${name}&address=${address}&page=${page}`, true);
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        //const userList = document.getElementById('user-list');
+                        //userList.innerHTML = '';
+                        document.getElementById('clientsTableBody').innerHTML = '';
+                        console.log(data);
+                        data.data.forEach(client => {
+                            //const div = document.createElement('div');
+                            //div.textContent = `${user.name} (${user.email})`; // Adjust this according to your data structure
+                            //userList.appendChild(div);
+                            const clientRow = `
+                                <tr>
+                                    <th scope="row">${client.id}</th>
+                                    <td>${client.name}</td>
+                                    <td>${client.address_line}<br>
+                                        ${client.postal_code}<br>
+                                        ${client.city},${client.country}
+                                    </td>
+                                    <td>${client.pickup_adress_line}<br>
+                                        ${client.pickup_postal_code}<br>
+                                        ${client.pickup_city},${client.pickup_country}
+                                    </td>
+                                    <td>
+                                        ${client.phone !== '' ? `${client.phone}
+                                        <a href="tel:${client.phone}"><i class="fa-solid fa-phone"></i></a>
+                                        <a href="https://wa.me/${client.phone}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary edit-btn" 
+                                            data-clientid="${client.id}"
+                                            onclick="editClient(${client.id})"
+                                        ><i class="bi bi-pen"></i></button>
+                                        <button class="btn btn-danger delete-btn" 
+                                            data-clientid="${client.id}"
+                                        ><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `;
+                            
+                            document.getElementById('clientsTableBody').insertAdjacentHTML('beforeend', clientRow);
+                        });
+                        
+                        const paginationLinks = document.createElement('div');
+                        paginationLinks.classList.add('mt-3');
+                        paginationLinks.innerHTML = data.links;
+                        //userList.appendChild(paginationLinks);
+                    }
+                };
+                xhr.send();
+            }
+
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.pagination a')) {
+            event.preventDefault();
+            const page = event.target.getAttribute('href').split('page=')[1];
+            fetchUsers(page);
+        }
+    });
+
+    fetchUsers();
+ 
+    //---------------------------
+    function getClientInfo(clientId){
+    }
+
+
 });
 
 </script>
