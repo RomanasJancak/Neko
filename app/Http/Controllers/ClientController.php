@@ -251,7 +251,10 @@ class ClientController extends Controller
             'sortOrder' => $sortOrder
         ]);
 
-        return response()->json($clients);
+        return response()->json([
+            'clients'   =>  $clients,
+            'links'     =>  (string) $clients->links(),
+        ]);
     } catch (QueryException $e) {
         return response()->json(['error' => $e->getMessage(),
             'file' => $e->getFile(),

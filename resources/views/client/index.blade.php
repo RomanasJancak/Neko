@@ -70,7 +70,7 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-center mt-3">
+    <div class="d-flex justify-content-center mt-3" id='paginationLinks'>
         {!! $clients->links() !!}
     </div>
 </div>
@@ -300,8 +300,8 @@
                 if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     document.getElementById('clientsTableBody').innerHTML = '';
-
-                    data.data.forEach(client => {
+                    console.log(data);
+                    data.clients.data.forEach(client => {
                         const clientRow = `
                             <tr>
                                 <th scope="row">${client.id}</th>
@@ -334,9 +334,7 @@
                         
                         document.getElementById('clientsTableBody').insertAdjacentHTML('beforeend', clientRow);
                     });
-
-                    const paginationLinks = document.createElement('div');
-                    paginationLinks.classList.add('mt-3');
+                    paginationLinks = document.getElementById('paginationLinks');
                     paginationLinks.innerHTML = data.links;
                 }
             };
