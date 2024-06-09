@@ -24,7 +24,8 @@
                 <div class="card">
                     <div class="card-header">
                         {{-- dd($currentYear) --}}
-                    <h5>{{ $day }} <a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
+                    <?php $p = DateTime::createFromFormat('Y-m-d',$currentYear."-".$currentMonth."-".$day)?>
+                    <h5>{{ $day }} {{$p->format('l')}}<a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
 
                     </div>
                     <div class="card-body">
