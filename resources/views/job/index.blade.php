@@ -7,6 +7,54 @@
 .no-padding {
     padding: 0 !important;
 }
+.info-icon {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .info-icon .tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #f9f9f9;
+            color: #333;
+            text-align: left;
+            border-radius: 5px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the icon */
+            left: 50%;
+            margin-left: -100px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .info-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .info-icon .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #f9f9f9 transparent transparent transparent;
+        }
+
+        .info-content {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .info-content.active {
+            display: block;
+        }
 </style>
 @endsection
 @section('content')
@@ -63,6 +111,10 @@
                         @else
                             {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
                         @endif
+                        <span class="info-icon">
+                        <i class="bi bi-info-circle-fill"></i>
+                <span class="tooltip">{{$task->fullAddress()}}</span>
+            </span>
                         </div>
                     @endif                             
                 @endforeach
