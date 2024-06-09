@@ -70,7 +70,8 @@ class Task extends Model
                                         :   null)));
         return $return_value;
     }
-    public function country(){
+    public function country()
+    {
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->country() 
                             :   (isset($this->package)
@@ -82,7 +83,8 @@ class Task extends Model
                                         :   null)));
         return $return_value;
     }
-    public function city(){
+    public function city()
+    {
         $return_value   =   isset($this->pickup)
                             ?   $this->pickup->city() 
                             :   (isset($this->package)

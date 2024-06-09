@@ -68,15 +68,21 @@
                 @endforeach
                 </td>
                 <td>
+                <?php $PackageCounter = 1;?>
                 @foreach ($job->tasks as $task)
                         
                     @if ($task->package)
                     <div class="row">
                         <div class="col">
-                            <blockquote class="blockquote">
-                                <p class="mb-0">{{$task->package->dropoff_name}}@if($job->hasReturn())<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>@endif</p>
-                                <footer class="blockquote-footer"><cite title="Source Title">{{$task->fullAddress()}}</cite></footer>
-                            </blockquote>
+                            <div class="row justify-content-center">
+                                <div class="col">
+                                    <blockquote class="blockquote border">
+                                        <h6>Package No [ {{$PackageCounter++}} ]</h6>
+                                        <p class="mb-0" style="padding-bottom: 1rem;">{{$task->package->dropoff_name}}@if($job->hasReturn())<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>@endif</p>
+                                        <footer class="blockquote-footer"><cite title="Source Title">{{$task->postalCode()}}, {{$task->addressLine()}}</cite></footer>
+                                    </blockquote>
+                                </div>
+                            </div>
                         </div>
                     </div>           
                     @endif                               
