@@ -113,27 +113,27 @@ class DayController extends Controller
      */
     public function getFreeBikes(Request $request)
     {
-    $day = $request->input('day');
-    $month = $request->input('month');
-    $year = $request->input('year');
-    $option =   $request->input('option');
+        $day = $request->input('day');
+        $month = $request->input('month');
+        $year = $request->input('year');
+        $option =   $request->input('option');
+            
+        $dayModel = Day::where('date', Carbon::createFromDate($year, $month, $day)->format('Y-m-d'))->first();
+            
+        if (!$dayModel) {
+            $dayModel = new Day;
+            $dateTimeString = $year."-".$month."-".$day;
+            $dayModel->date  = $dateTimeString;
+            $dayModel->name  = $dateTimeString;
+            $dayModel->save();
+        }
+        switch($option){
+            case 'free':
+                $freeBikes = $dayModel->freeBikes();
+                break;
+        }
         
-    $dayModel = Day::where('date', Carbon::createFromDate($year, $month, $day)->format('Y-m-d'))->first();
-        
-    if (!$dayModel) {
-        $dayModel = new Day;
-        $dateTimeString = $year."-".$month."-".$day;
-        $dayModel->date  = $dateTimeString;
-        $dayModel->name  = $dateTimeString;
-        $dayModel->save();
-    }
-    switch($option){
-        case 'free':
-            $freeBikes = $dayModel->freeBikes();
-            break;
-    }
-    
-    return response()->json($freeBikes);
+        return response()->json($freeBikes);
     }
     public function getFreeCouriers(Request $request)
     {

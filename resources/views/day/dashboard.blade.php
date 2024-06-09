@@ -1,7 +1,12 @@
 @extends('layouts.app')
 @section('content')
-
 <div class="container">
+  <div class="row">
+    <div class="col-2">
+      <label for="nameField">Date : </label>
+      <input type="date" id="datepicker" class="form-control" value="{{$day->name}}" >
+    </div>
+  </div>
   <div class="row">
     <div class="job-columenToGetDropEvent col-2 border border-dark rounded" id="job-column-unassigned">
       <div class="row border job-header" id="job-column-unassigned-header">
@@ -231,6 +236,14 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  var datepicker = document.getElementById('datepicker');
+
+  datepicker.addEventListener('change', function(event) {
+                var selectedDate = event.target.value;
+                var url = '{{ route("day.showdashboard", ":date") }}';
+                url = url.replace(':date', selectedDate);
+                window.location.href = url;
+            });
   const taskStatusChangeButtons = document.querySelectorAll('.button-changeTaskStatus');
   console.log(taskStatusChangeButtons);
   var draggableElements = document.querySelectorAll('.draggable');
