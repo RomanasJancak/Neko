@@ -307,9 +307,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const billingClientSearchInput = $('#billingclientsearch');
     const returnClientSearchInput  =   $('#return_name_search');
     var input = document.getElementById('pickupaddress_postalcode');
-    input.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-    });
+    if (input){
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
     addTypeHeadSearchToReturn(returnClientSearchInput);
     const checkInputElementForReturn    =   document.getElementById("checkButton-return_of_crates");
     if(checkInputElementForReturn){
