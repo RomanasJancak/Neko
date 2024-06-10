@@ -5,63 +5,89 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Statuses</h1><button class="btn btn-secondary create-btn" >Add new Status</i></button>        
-            <form method="POST" action="{{ route('status.createBackup') }}">
-            @csrf
-            <button type="submit" class="btn btn-primary">Create Backup</button>
-        </form>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th data-column="id">ID</th>
-                        <th data-column="name">Name</th>
-                        <th data-column="name">Color main</th>
-                        <th data-column="name">Color pickup</th>
-                        <th data-column="name">Color dropoff</th>
-                        <th data-column="name">Color return</th>
-                        <th data-column="name">Color custom</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="statusesTableBody">
-                    @foreach($statuses as $status)
-                    <tr>
-                        <td>{{ $status->id }}</td>
-                        <td>{{ $status->name }}</td>
-                        <td style="background-color: {{$status->color_main}}">{{ $status->color_main }}</td>
-                        <td style="background-color: {{$status->color_pickup}}">{{ $status->color_pickup }}</td>
-                        <td style="background-color: {{$status->color_dropoff}}">{{ $status->color_dropoff }}</td>
-                        <td style="background-color: {{$status->color_return}}">{{ $status->color_return }}</td>
-                        <td style="background-color: {{$status->color_custom}}">{{ $status->color_custom }}</td>
-                        <td>
-                            <button class="btn btn-primary edit-btn" 
-                                data-statusid="{{ $status->id }}"
-                                data-name="{{ $status->name }}"
-                                data-colormain="{{ $status->color_main }}"
-                                data-colorpickup="{{ $status->color_pickup }}"
-                                data-colordropoff="{{ $status->color_dropoff }}"
-                                data-return="{{ $status->color_return }}"
-                                data-custom="{{ $status->color_custom }}"
-                            ><i class="bi bi-pen"></i></button>
-                            <button class="btn btn-danger delete-btn" 
-                                data-statusid="{{ $status->id }}"
-                                data-name="{{ $status->name }}"
-                                data-colormain="{{ $status->color_main }}"
-                                data-colorpickup="{{ $status->color_pickup }}"
-                                data-colordropoff="{{ $status->color_dropoff }}"
-                                data-return="{{ $status->color_return }}"
-                                data-custom="{{ $status->color_custom }}"
-                            ><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <h1>Statuses</h1>
+        </div>
+        <div class="col-md-12">
+            <div class="row justify-content-start">
+                <div class="col-2">
+                    <button class="btn btn-secondary create-btn">Add new Status</button>
+                </div>
+                <div class="col-2">
+                    <form method="POST" action="{{ route('status.createBackup') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">Create Backup</button>
+                    </form>
+                </div>
+                <div class="col-3">
+                    <form method="GET" action="{{ route('status.index') }}">
+                        <div class="input-group">
+                            <label class="input-group-text" for="itemsPerPage">Items per page</label>
+                            <select class="form-select" id="itemsPerPage" name="itemsPerPage" onchange="this.form.submit()">
+                                <option value="10" {{ request('itemsPerPage') == 10 ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ request('itemsPerPage') == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('itemsPerPage') == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('itemsPerPage') == 100 ? 'selected' : '' }}>100</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th data-column="id">ID</th>
+                            <th data-column="name">Name</th>
+                            <th data-column="name">Color main</th>
+                            <th data-column="name">Color pickup</th>
+                            <th data-column="name">Color dropoff</th>
+                            <th data-column="name">Color return</th>
+                            <th data-column="name">Color custom</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statusesTableBody">
+                        @foreach($statuses as $status)
+                        <tr>
+                            <td>{{ $status->id }}</td>
+                            <td>{{ $status->name }}</td>
+                            <td style="background-color: {{ $status->color_main }}">{{ $status->color_main }}</td>
+                            <td style="background-color: {{ $status->color_pickup }}">{{ $status->color_pickup }}</td>
+                            <td style="background-color: {{ $status->color_dropoff }}">{{ $status->color_dropoff }}</td>
+                            <td style="background-color: {{ $status->color_return }}">{{ $status->color_return }}</td>
+                            <td style="background-color: {{ $status->color_custom }}">{{ $status->color_custom }}</td>
+                            <td>
+                                <button class="btn btn-primary edit-btn" 
+                                    data-statusid="{{ $status->id }}"
+                                    data-name="{{ $status->name }}"
+                                    data-colormain="{{ $status->color_main }}"
+                                    data-colorpickup="{{ $status->color_pickup }}"
+                                    data-colordropoff="{{ $status->color_dropoff }}"
+                                    data-return="{{ $status->color_return }}"
+                                    data-custom="{{ $status->color_custom }}">
+                                    <i class="bi bi-pen"></i>
+                                </button>
+                                <button class="btn btn-danger delete-btn" 
+                                    data-statusid="{{ $status->id }}"
+                                    data-name="{{ $status->name }}"
+                                    data-colormain="{{ $status->color_main }}"
+                                    data-colorpickup="{{ $status->color_pickup }}"
+                                    data-colordropoff="{{ $status->color_dropoff }}"
+                                    data-return="{{ $status->color_return }}"
+                                    data-custom="{{ $status->color_custom }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div class="d-flex justify-content-center mt-3">
-        {!! $statuses->links() !!}
+        {!! $statuses->appends(['itemsPerPage' => request('itemsPerPage')])->links() !!}
     </div>
 </div>
 
@@ -78,24 +104,24 @@
                         <input type="text" name="name" id="nameField" value="">
                     </div>
                     <div class="row">
-                        <div class="col">                            
+                        <div class="col">
                             <label for="colorPicker-main">Color main: </label>
-                            <input type="color" id="colorPicker-main" name="color-main" value="#808080">                      
+                            <input type="color" id="colorPicker-main" name="color-main" value="#808080">
                         </div>
                         <div class="col">
-                            <label for="nameField">Color pickup: </label>
-                            <input type="color" id="colorPicker-pickup" name="color-pickup" value="#808080">                       
+                            <label for="colorPicker-pickup">Color pickup: </label>
+                            <input type="color" id="colorPicker-pickup" name="color-pickup" value="#808080">
                         </div>
                         <div class="col">
-                            <label for="nameField">Color dropoff: </label>
+                            <label for="colorPicker-dropoff">Color dropoff: </label>
                             <input type="color" id="colorPicker-dropoff" name="color-dropoff" value="#808080">
                         </div>
                         <div class="col">
-                            <label for="nameField">Color return: </label>
+                            <label for="colorPicker-return">Color return: </label>
                             <input type="color" id="colorPicker-return" name="color-return" value="#808080">
                         </div>
                         <div class="col">
-                            <label for="nameField">Color custom: </label>
+                            <label for="colorPicker-custom">Color custom: </label>
                             <input type="color" id="colorPicker-custom" name="color-custom" value="#808080">
                         </div>
                     </div>
@@ -116,19 +142,17 @@
 
 @section('scripts')
 <script>
-    
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.edit-btn').forEach(button => {
-
         button.addEventListener('click', () => {
-            const statusid          =   button.dataset.statusid;
-            const statusName        =   button.dataset.name;
-            const statusColorMain   =   button.dataset.colormain;
-            const statusColorPickup   =   button.dataset.colorpickup;
-            const statusColorDropoff   =   button.dataset.colordropoff;
-            const statusColorReturn   =   button.dataset.return;
-            const statusColorCustom   =   button.dataset.custom;
-            const form = document.querySelector(`#statusForm`);
+            const statusid = button.dataset.statusid;
+            const statusName = button.dataset.name;
+            const statusColorMain = button.dataset.colormain;
+            const statusColorPickup = button.dataset.colorpickup;
+            const statusColorDropoff = button.dataset.colordropoff;
+            const statusColorReturn = button.dataset.return;
+            const statusColorCustom = button.dataset.custom;
+            const form = document.querySelector('#statusForm');
             if (form) {
                 form.setAttribute('action', "{{ route('status.update') }}");
                 document.getElementById('statusid').value = statusid;
@@ -144,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-dropoff').disabled = false;
                 document.getElementById('colorPicker-return').disabled = false;
                 document.getElementById('colorPicker-custom').disabled = false;
-                submitButton = document.getElementById('submitform');
+                const submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
             $('#modalWindow').modal('show');
@@ -154,12 +178,12 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const statusid = button.dataset.statusid;
             const statusName = button.dataset.name;
-            const statusColorMain   =   button.dataset.colormain;
-            const statusColorPickup   =   button.dataset.colorpickup;
-            const statusColorDropoff   =   button.dataset.colordropoff;
-            const statusColorReturn   =   button.dataset.return;
-            const statusColorCustom   =   button.dataset.custom;
-            const form = document.querySelector(`#statusForm`);
+            const statusColorMain = button.dataset.colormain;
+            const statusColorPickup = button.dataset.colorpickup;
+            const statusColorDropoff = button.dataset.colordropoff;
+            const statusColorReturn = button.dataset.return;
+            const statusColorCustom = button.dataset.custom;
+            const form = document.querySelector('#statusForm');
             if (form) {
                 form.setAttribute('action', "{{ route('status.delete') }}");
                 document.getElementById('statusid').value = statusid;
@@ -175,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-dropoff').disabled = true;
                 document.getElementById('colorPicker-return').disabled = true;
                 document.getElementById('colorPicker-custom').disabled = true;
-                submitButton = document.getElementById('submitform');
+                const submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
             }
             $('#modalWindow').modal('show');
@@ -183,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('.create-btn').forEach(button => {
         button.addEventListener('click', () => {
-            const form = document.querySelector(`#statusForm`);
+            const form = document.querySelector('#statusForm');
             if (form) {
                 document.getElementById('nameField').readOnly = false;
                 document.getElementById('colorPicker-main').disabled = false;
@@ -192,46 +216,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('colorPicker-return').disabled = false;
                 document.getElementById('colorPicker-custom').disabled = false;
                 form.setAttribute('action', "{{ route('status.store') }}");
-                submitButton = document.getElementById('submitform');
+                const submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
             }
             $('#modalWindow').modal('show');
         });
     });
     document.getElementById('submitform').addEventListener('click', function() {
-        // Get form data
         const form = document.getElementById('statusForm');
         const formData = new FormData(form);
-        console.log(formData.get('statusid'));
-        //console.log(formData.get('workloadid'));
-
-        // Create a new XMLHttpRequest object
         const xhr = new XMLHttpRequest();
-
-        // Define the request type, URL, and set up the request
         xhr.open('POST', form.action, true);
-        xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
+        xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}');
 
-        // Handle the response
         xhr.onload = function() {
-            // Process the response if needed
-            console.log(xhr.responseText);
-            parsedMessage = JSON.parse(xhr.responseText).message;
-            //console.log(parsedMessage);
-            if(parsedMessage === 'deleted'){
-                //document.getElementById('workload-'+formData.get('workloadid')).remove();
+            const parsedMessage = JSON.parse(xhr.responseText).message;
+            if (parsedMessage === 'deleted') {
+                document.querySelector(`#status-${formData.get('statusid')}`).remove();
             }
-            if(parsedMessage === 'updated'){
+            if (parsedMessage === 'updated' || parsedMessage === 'created') {
+                location.reload(); // Reload the page to reflect changes
             }
-            if(parsedMessage === 'created'){
-            }
-
         };
 
-        // Send the request
         xhr.send(formData);
     });
 });
-
 </script>
 @endsection

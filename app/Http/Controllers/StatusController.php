@@ -16,9 +16,10 @@ class StatusController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $statuses = Status::orderBy('id', 'asc')->paginate(10);
+        $itemsPerPage = $request->input('itemsPerPage', 10);
+        $statuses = Status::orderBy('id', 'asc')->paginate($itemsPerPage);
 
         return view('status.index', compact('statuses'));
     }
