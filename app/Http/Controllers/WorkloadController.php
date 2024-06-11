@@ -70,26 +70,58 @@ class WorkloadController extends Controller
     {
         //
     }
-    public function calendar(Request $request){
-        $currentYear = $request->year ?? $currentYear ?? Carbon::now()->year;
-        $currentMonth = $request->month ?? $currentMonth ?? Carbon::now()->month;
-        // Fetch workloads for the specified user for the current month
-        $workloads = Workload::select('workloads.*')
-        ->join('days', 'workloads.day_id', '=', 'days.id')
-        ->whereYear('days.date', $currentYear)
-        ->whereMonth('days.date', $currentMonth)
-        ->distinct()
-        ->get();
-        // Organize workload data for the calendar view
-        $workloadData = [];
-        foreach ($workloads as $workload) {
-            $day = Carbon::parse($workload->day->date)->format('j');
-            $workloadData[$day][] = $workload;
+    public function calendar(Request $request)
+    {
+        $currentYear = $request->year ?? Carbon::now()->year;
+        $currentMonth = $request->month ?? Carbon::now()->month;
+        $view = $request->view ?? 'monthly'; // Default to monthly view
+    
+        if ($view == 'weekly') {
+            $currentWeek = $request->week ?? Carbon::now()->weekOfYear;
+            $startOfWeek = Carbon::now()->setISODate($currentYear, $currentWeek)->startOfWeek();
+            $endOfWeek = Carbon::now()->setISODate($currentYear, $currentWeek)->endOfWeek();
+    
+            // Fetch workloads for the specified week
+            $workloads = Workload::select('workloads.*')
+                ->join('days', 'workloads.day_id', '=', 'days.id')
+                ->whereBetween('days.date', [$startOfWeek, $endOfWeek])
+                ->distinct()
+                ->get();
+    
+            // Organize workload data for the weekly view
+            $workloadData = [];
+            foreach ($workloads as $workload) {
+                $day = Carbon::parse($workload->day->date)->format('j');
+                $workloadData[$day][] = $workload;
+            }
+    
+            $daysInWeek = $startOfWeek->daysUntil($endOfWeek)->count();
+            $bikes = Bike::all();
+    
+            return view('workload.calendar', compact('workloadData', 'daysInWeek', 'currentYear', 'currentMonth', 'currentWeek', 'bikes', 'view'));
+        } else {
+            // Fetch workloads for the specified month
+            $workloads = Workload::select('workloads.*')
+                ->join('days', 'workloads.day_id', '=', 'days.id')
+                ->whereYear('days.date', $currentYear)
+                ->whereMonth('days.date', $currentMonth)
+                ->distinct()
+                ->get();
+    
+            // Organize workload data for the monthly view
+            $workloadData = [];
+            foreach ($workloads as $workload) {
+                $day = Carbon::parse($workload->day->date)->format('j');
+                $workloadData[$day][] = $workload;
+            }
+    
+            $daysInMonth = Carbon::create($currentYear, $currentMonth)->daysInMonth;
+            $bikes = Bike::all();
+    
+            return view('workload.calendar', compact('workloadData', 'daysInMonth', 'currentYear', 'currentMonth', 'bikes', 'view'));
         }
-        $daysInMonth = Carbon::create($currentYear, $currentMonth)->daysInMonth;
-        $bikes = Bike::all();
-        return view('workload.calendar', compact('workloadData', 'daysInMonth', 'currentYear', 'currentMonth','bikes'));
     }
+    
     public function storeJavascript(StoreWorkloadRequest $request)
     {
         $workload   =   new Workload();
