@@ -61,6 +61,7 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d')) }}">Today</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d', strtotime('+1 day'))) }}">Tommorow</a></li>
                                 </ul>
                             </div>
                         </li>
