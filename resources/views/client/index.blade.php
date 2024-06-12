@@ -280,11 +280,11 @@
             const inputElement = document.getElementById(input.id);
 
             inputElement.addEventListener('input', function() {
-                fetchUsers();
+                fetchClients();
             });
         });
 
-        function fetchUsers(page = 1) {
+        function fetchClients(page = 1) {
             const id = document.getElementById('search-id').value;
             const name = document.getElementById('search-name').value;
             const address = document.getElementById('search-address').value;
@@ -345,7 +345,7 @@
             if (event.target.closest('.pagination a')) {
                 event.preventDefault();
                 const page = event.target.getAttribute('href').split('page=')[1];
-                fetchUsers(page);
+                fetchClients(page);
             }
 
             if (event.target.closest('.sort-btn')) {
@@ -362,11 +362,11 @@
                 button.classList.add('active');
                 button.dataset.sortOrder = newOrder;
                 
-                fetchUsers();
+                fetchClients();
             }
         });
 
-        fetchUsers();
+        fetchClients();
     });
 </script>
 @endsection
