@@ -13,7 +13,7 @@
             cursor: pointer;
         }
 
-        .info-icon .tooltip {
+.info-icon .tooltip {
             visibility: hidden;
             width: 200px;
             background-color: #f9f9f9;
@@ -31,12 +31,12 @@
             transition: opacity 0.3s;
         }
 
-        .info-icon:hover .tooltip {
+.info-icon:hover .tooltip {
             visibility: visible;
             opacity: 1;
         }
 
-        .info-icon .tooltip::after {
+.info-icon .tooltip::after {
             content: '';
             position: absolute;
             top: 100%;
@@ -47,14 +47,33 @@
             border-color: #f9f9f9 transparent transparent transparent;
         }
 
-        .info-content {
+.info-content {
             display: none;
             margin-top: 10px;
         }
 
-        .info-content.active {
+.info-content.active {
             display: block;
         }
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 10px 10px 10px 1.5rem; 
+    box-sizing: border-box;
+}
+
+.input-container .fa-magnifying-glass {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: #aaa; 
+}
+
 </style>
 @endsection
 @section('content')
@@ -65,9 +84,54 @@
     <table id="example" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>
-                <th rowspan="2">Id</th>
-                <th rowspan="2">Client</th>
-                <th rowspan="2">Date</th>
+                <th rowspan="2">
+                    <div class="row">
+                        <div class="col">
+                            Id
+                            <button id="button-sort-id" class="sort-btn" data-sort-field="id" data-sort-order="asc">
+                                <i id="button-sort-id-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-id" class="form-control" placeholder="Search...">
+                        </div>
+                    </div>                    
+                </th>
+                <th rowspan="2">
+                    <div class="row">
+                        <div class="col">
+                            Client
+                            <button id="button-sort-clientName" class="sort-btn" data-sort-field="clientName" data-sort-order="asc">
+                                <i id="button-sort-clientName-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-clienName" class="form-control" placeholder="Search...">
+                        </div>
+                    </div>
+                </th>
+                <th rowspan="2">
+                    <div class="row">
+                        <div class="col">
+                            Date                    
+                            <button id="button-sort-date" class="sort-btn" data-sort-field="date" data-sort-order="asc">
+                                <i id="button-sort-date-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-date" class="form-control" placeholder="Search...">
+                        </div>
+                    </div>
+                </th>
                 <th colspan="4">Tasks</th>
                 <th rowspan="2">Actions</th>
                 <th rowspan="2" style="text-align:center;width:100px;">Create Job <button type="button" data-func="dt-add" class="btn btn-success btn-xs dt-add">
@@ -81,7 +145,7 @@
                 <th>Price</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="jobsTableBody">
             @foreach ($jobs as $job)
             <tr>
                 <td>
@@ -105,12 +169,12 @@
                 <td>
                 @foreach ($job->tasks as $task)                    
                     @if ($task->pickup)
-                        <div @if(!$task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull())) style="background-color: rgb(141, 153, 80);" @endif>
-                        @if($task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull()))
-                            {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
-                        @else
-                            {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
-                        @endif
+                        <div @if(!$task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull())) style="background-color: rgb(141, 153, 80);" @endif >
+                            @if($task->job->clientToBill->isSameAsPickupAdress($task->pickup->pickupAddressFull()))
+                                {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
+                            @else
+                                {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
+                            @endif
                         <span class="info-icon">
                         <i class="bi bi-info-circle-fill"></i>
                 <span class="tooltip">{{$task->fullAddress()}}</span>
@@ -131,7 +195,7 @@
                                     <blockquote class="blockquote border">
                                         <h6>Package No [ {{$PackageCounter++}} ]</h6>
                                         <p class="mb-0" style="padding-bottom: 1rem;">{{$task->package->dropoff_name}}@if($job->hasReturn())<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>@endif</p>
-                                        <footer class="blockquote-footer"><cite title="Source Title">{{$task->postalCode()}}, {{$task->addressLine()}}</cite></footer>
+                                        <footer class="blockquote-footer"><cite title="Source Title"> {{$task->addressLine()}},{{$task->postalCode()}}</cite></footer>
                                     </blockquote>
                                 </div>
                             </div>
@@ -157,8 +221,8 @@
             @endforeach
         </tbody>
     </table>
-    <div class="d-flex justify-content-center mt-3">
-            {!! $jobs->links() !!}
+    <div class="d-flex justify-content-center mt-3" id='paginationLinks'>
+        {!! $jobs->links() !!}
     </div>
 <!-- Modal job begin -->
 
@@ -341,6 +405,7 @@
 @endsection
 @section('scripts')
 <script>
+
 function showPackageDiv(status){
     const container =   document.getElementById('package-info');
     if(status){
@@ -505,7 +570,6 @@ function setTaskValues(taskId){
             console.error(error);
     });
 }
-
 function appendButtonsToTaskRowColumn(task,buttonClicked){
     let colView = document.createElement('div');
     let colEdit = document.createElement('div');
@@ -701,8 +765,217 @@ function updateTask(data,route){
         // Optionally handle errors, e.g., display an error message
     });
 }
+// function fetchJobs(page = 1){
+//     const searchValue_id =  document.getElementById('search-id').value;
+//     const searchValue_clienName =  document.getElementById('search-clienName').value;
+//     const searchValue_date =  document.getElementById('search-date').value;
+//     const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
+//     const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
+
+//     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+//     const xhr = new XMLHttpRequest();
+
+//     xhr.open('GET', `{{ route('job.fetch') }}?id=${searchValue_id}&name=${searchValue_clienName}&date=${searchValue_date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+//     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+//     xhr.onload = function() {
+//         if (xhr.status === 200) {
+//             const data = JSON.parse(xhr.responseText);
+//         }
+//     }
+//     xhr.send();
+// }
+function fetchJobs(page = 1) {
+    const id = document.getElementById('search-id').value;
+    const clientName = document.getElementById('search-clienName').value;
+    const date = document.getElementById('search-date').value;
+    const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
+    const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `{{ route('job.fetch') }}?id=${id}&clientName=${clientName}&date=${date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            document.getElementById('jobsTableBody').innerHTML = '';
+            console.log(data);
+            data.jobs.forEach(job => {
+                let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
+                let addressNameToDisplay = isAddressSameAsClientAdress 
+                                            ? (job.clientToBill.shortenedName !=='') 
+                                            ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
+                                                :job.clientToBill.name
+                                            : job.pickup.namdeOfAddress;
+                const jobRow = `
+                    <tr>
+                        <td>${job.id}</td>
+                        <td class="no-padding">
+                            <img src='${job.urlToLogo}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
+                            <span>${job.clientName}</span>
+                        </td>
+                        <td>${job.date}</td>
+                        <td>
+                            <div>
+                                <span>${addressNameToDisplay}</span>
+                                <span class="info-icon">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                    <span class="tooltip">
+                                        ${job.pickup.fullAddress}
+                                    </span>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            ${job.tasks.map(task => task.package ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [ ]</h6><p class="mb-0">${task.package.dropoff_name}${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}</p><footer class="blockquote-footer"><cite title="Source Title">${task.addressLine}</cite></footer></blockquote></div></div>` : '').join('')}
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button class="btn btn-success view-btn" onclick="viewJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>
+                            <button 
+                                class="btn btn-danger delete-btn"
+                                
+                                data-jobid="${job.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
+            });
+            document.getElementById('paginationLinks').innerHTML = data.links;
+        }
+    };
+    xhr.send();
+}
+
+function addEventListenerToSortButton(button){
+    button.addEventListener('click', function() {
+        const icon  =   button.querySelector('i');
+        if (icon.classList.contains('fa-up-down')) {
+            icon.classList.remove('fa-up-down');
+            icon.classList.add('fa-up-long');
+            button.dataset.sortOrder = 'asc';
+        } else if(icon.classList.contains('fa-up-long')){
+            icon.classList.remove('fa-up-long');
+            icon.classList.add('fa-down-long');
+            button.dataset.sortOrder = 'desc';
+        } else {
+            icon.classList.remove('fa-down-long');
+            icon.classList.add('fa-up-long');
+            button.dataset.sortOrder = 'asc';
+        } 
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            if(btn.id === button.id){
+                btn.classList.add('active');
+            }else{
+                btn.classList.remove('active');
+                btn.dataset.sortOrder = 'asc';
+                btn.querySelector('i').className   =   btn.querySelector('i').getAttribute('data-default-class');
+            }
+        });
+        fetchJobs();
+    });
+}
+//==================---------------------==============----------------------
+function viewJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.delete') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = true;
+        statusIdField.disabled = true;
+        clientSearchField.disabled = true;
+        jobDateField.disabled = true;
+        document.getElementById('jobid').value = jobId;
+        
+        setJobValues(jobId, 'view');
+
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+        submitButton.style.visibility = 'hidden';
+        createNewTaskButton.style.visibility = 'hidden';
+    }
+    $('#jobModalWindow').modal('show');
+}
+
+function editJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.update') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = false;
+        statusIdField.disabled = false;
+        clientSearchField.disabled = false;
+        jobDateField.disabled = false;
+        
+        setJobValues(jobId, 'edit');
+
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+        submitButton.style.visibility = 'visible';
+        createNewTaskButton.style.visibility = 'visible';
+    }
+    $('#jobModalWindow').modal('show');
+}
+
+function deleteJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.delete') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = true;
+        statusIdField.disabled = true;
+        clientSearchField.disabled = true;
+        jobDateField.disabled = true;
+        
+        setJobValues(jobId, 'delete');
+
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+        submitButton.style.visibility = 'visible';
+        createNewTaskButton.style.visibility = 'hidden';
+    }
+    $('#jobModalWindow').modal('show');
+}
+
+//==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
     addTypeHeadSearch($('#clientSearchField'));
+    sortButton_clientName   =   document.getElementById('button-sort-clientName');
+    sortButton_date   =   document.getElementById('button-sort-date');
+    sortButton_id   =   document.getElementById('button-sort-id');
+    addEventListenerToSortButton(sortButton_clientName);
+    addEventListenerToSortButton(sortButton_date);
+    addEventListenerToSortButton(sortButton_id);
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', () => {
             const jobid         =   button.dataset.jobid;

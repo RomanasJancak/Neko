@@ -68,7 +68,7 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
     Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
     Route::get('searchClients',    [ClientController::class, 'searchClients'])->name('client.searchClients')->middleware('auth');
-    Route::get('fetchClientsPaginate', [ClientController::class, 'fetchClientsPaginate'])->name('client.fetch');
+    Route::get('fetchClientsPaginate', [ClientController::class, 'fetchClientsPaginate'])->name('client.fetch')->middleware('auth');
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
@@ -83,6 +83,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
     Route::post('update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
     Route::get('getJobInfo/{id}',     [JobController::class, 'getJobInfo'])->name('job.getJobInfo')->middleware('auth');
+    Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
 });
 Route::group(['prefix' => 'days'], function(){
     Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');

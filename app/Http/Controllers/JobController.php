@@ -428,15 +428,72 @@ class JobController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    public function assign(){
-        {
-
-            if(auth()->user()->hasRole('courier')){
-                $jobs = Job::where('courrier_id',auth()->user()->id)->latest()->paginate(10);
-            }else{
-                $jobs = Job::latest()->paginate(10);
-            }
-            return view('job.assign', compact('jobs'));
+    public function fetchJobsPaginate(Request $request)
+    {
+        try {
+            $id = $request->get('id', '');
+            $clientName = $request->get('clientName', '');
+            $date = $request->get('date', '');
+            $sortField = $request->get('sortField', 'id');
+            $sortOrder = $request->get('sortOrder', 'asc');
+    
+            $jobs = Job::with(['clientToBill', 'tasks'])
+                ->when($id, function ($queryBuilder) use ($id) {
+                    $queryBuilder->where('id', 'like', '%' . $id . '%');
+                })
+                ->when($clientName, function ($queryBuilder) use ($clientName) {
+                    $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
+                        $query->where('name', 'like', '%' . $clientName . '%');
+                    });
+                })
+                ->when($date, function ($queryBuilder) use ($date) {
+                    $queryBuilder->whereDate('pickup_time_begin', $date);
+                })
+                ->orderBy($sortField, $sortOrder)
+                ->paginate(10);
+    
+            $jobs->appends([
+                'id' => $id,
+                'clientName' => $clientName,
+                'date' => $date,
+                'sortField' => $sortField,
+                'sortOrder' => $sortOrder
+            ]);
+    
+            return response()->json([
+                //'jobs' => $jobs,
+                'jobs' =>  $jobs->map(function ($job) {
+                    return[
+                        'id'    =>  $job->id,
+                        'hasReturn' =>  $job->hasReturn(),
+                        'urlToLogo'   =>  $job->urlToLogo(),
+                        'clientName'    =>  $job->clientToBill->name,
+                        'tasks' =>  $job->tasks,
+                        'date'  =>  $job->getDate(),
+                        // 'something' => $job->getPickupTask(),
+                        'pickup'    =>  (null !== $job->getPickupTask())?[
+                                'id'  =>  $job->getPickupTask()->id,
+                                'isAddressSameAsClientAdress' =>   $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull()),
+                                'namdeOfAddress'    =>  $job->getPickupTask()->nameOfAddress(),
+                                'fullAddress'   =>  $job->getPickupTask()->pickupAddressFull(),
+                            ]:'',
+                        'clientToBill'  =>  $job->clientToBill,
+                    ];
+                }),
+                'links' => (string) $jobs->links(),
+            ]);
+        } catch (QueryException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
         }
     }
 }

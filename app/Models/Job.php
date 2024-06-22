@@ -9,19 +9,27 @@ use Illuminate\Support\Carbon;
 class Job extends Model
 {
     use HasFactory;
+
+    static $snakeAttributes = false;
+
     protected $fillable = [
-        'eilesNumeris'.
+        'eilesNumeris',
         'courrier_id',
-        'sender_id',
-        'receiver_id',
+        'status_id',
+        'clientToBill_id',
         'pickup_time_begin',
         'pickup_time_end',
-        'dropoff_time_begin',
-        'dropoff_time_end',
-        'status_id',
-        'collection_details',
-        'dropoff_details',
-
+        'pickupclientname',
+        'pickupclientaddressline',
+        'pickupclientcity',
+        'pickupclientcountry',
+        'pickupclientpostalcode',
+        'manager_id',
+        'notes',
+        'price',
+        'distance',
+        'invoice_id',
+        'price_adjustment_number',
     ];
     public function status(){
         return $this->belongsTo(Status::class,'status_id');
@@ -58,13 +66,24 @@ class Job extends Model
     {
         return $this->belongsTo(Group::class, 'group_id');
     }
-
     public function invoice()
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
+    }
+    public function getPickupTask(){
+        $returnValue = null;
+        foreach($this->tasks as $task){
+            if($task->type() === 'pickup'){
+                $returnValue = $task->pickup;
+            }
+        }
+        return $returnValue;
+    }
+    public function urlToLogo(){
+        return asset('files/logos/'.$this->clientToBill->id.".png");
     }
     public function getDate(){
         $returnValue = '';
