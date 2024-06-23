@@ -453,14 +453,17 @@ class JobController extends Controller
                 ->when($id, function ($queryBuilder) use ($id) {
                     $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
                 })
+                ->when($date, function ($queryBuilder) use ($date) {
+                    $queryBuilder->where('jobs.date', 'like', '%' . $date . '%');
+                })
                 ->when($clientName, function ($queryBuilder) use ($clientName) {
                     $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
                         $query->where('name', 'like', '%' . $clientName . '%');
                     });
                 })
-                ->when($date, function ($queryBuilder) use ($date) {
-                    $queryBuilder->whereDate('pickup_time_begin', $date);
-                })
+                // ->when($date, function ($queryBuilder) use ($date) {
+                //     $queryBuilder->whereDate('pickup_time_begin', $date);
+                // })
                 ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
                 ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
                 ->select('jobs.*') // Ensure you only select the fields from jobs table

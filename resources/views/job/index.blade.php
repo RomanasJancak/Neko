@@ -112,7 +112,7 @@
                     <div class="row">
                         <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-clienName" class="form-control" placeholder="Search...">
+                            <input type="text" id="search-clientName" class="form-control" placeholder="Search...">
                         </div>
                     </div>
                 </th>
@@ -767,7 +767,7 @@ function updateTask(data,route){
 }
 // function fetchJobs(page = 1){
 //     const searchValue_id =  document.getElementById('search-id').value;
-//     const searchValue_clienName =  document.getElementById('search-clienName').value;
+//     const searchValue_clientName =  document.getElementById('search-clientName').value;
 //     const searchValue_date =  document.getElementById('search-date').value;
 //     const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
 //     const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
@@ -775,7 +775,7 @@ function updateTask(data,route){
 //     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 //     const xhr = new XMLHttpRequest();
 
-//     xhr.open('GET', `{{ route('job.fetch') }}?id=${searchValue_id}&name=${searchValue_clienName}&date=${searchValue_date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+//     xhr.open('GET', `{{ route('job.fetch') }}?id=${searchValue_id}&name=${searchValue_clientName}&date=${searchValue_date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
 //     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
 //     xhr.onload = function() {
@@ -787,7 +787,7 @@ function updateTask(data,route){
 // }
 function fetchJobs(page = 1) {
     const id = document.getElementById('search-id').value;
-    const clientName = document.getElementById('search-clienName').value;
+    const clientName = document.getElementById('search-clientName').value;
     const date = document.getElementById('search-date').value;
     const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
     const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
@@ -802,6 +802,8 @@ function fetchJobs(page = 1) {
             const data = JSON.parse(xhr.responseText);
             document.getElementById('jobsTableBody').innerHTML = '';
             data.jobs.forEach(job => {
+                let packageCounter = 1;
+                console.log(job);
                 let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
                 let addressNameToDisplay = isAddressSameAsClientAdress 
                                             ? (job.clientToBill.shortenedName !=='') 
@@ -828,7 +830,13 @@ function fetchJobs(page = 1) {
                             </div>
                         </td>
                         <td>
-                            ${job.tasks.map(task => task.package ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [ ]</h6><p class="mb-0">${task.package.dropoff_name}${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}</p><footer class="blockquote-footer"><cite title="Source Title">${task.addressLine}</cite></footer></blockquote></div></div>` : '').join('')}
+                            ${job.tasks.map(
+                                task => task.package 
+                                            ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
+                                                    ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
+                                            </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
+                                                    : '')
+                                .join('')}
                         </td>
                         <td></td>
                         <td></td>
@@ -909,7 +917,6 @@ function viewJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
-
 function editJob(jobId) {
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
@@ -937,7 +944,6 @@ function editJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
-
 function deleteJob(jobId) {
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
@@ -965,9 +971,21 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
-
 //==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
+    const searchInputs = [
+            { id: 'search-id', field: 'id' },
+            { id: 'search-clientName', field: 'name' },
+            { id: 'search-date', field: 'date' }
+        ];
+
+        searchInputs.forEach(input => {
+            const inputElement = document.getElementById(input.id);
+
+            inputElement.addEventListener('input', function() {
+                fetchJobs();
+            });
+        });
     addTypeHeadSearch($('#clientSearchField'));
     sortButton_clientName   =   document.getElementById('button-sort-clientName');
     sortButton_date   =   document.getElementById('button-sort-date');
