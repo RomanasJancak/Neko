@@ -34,6 +34,7 @@ return new class extends Migration
             $table->foreign('clientToBill_id')->references('id')->on('clients');
             $table->foreign('manager_id')->references('id')->on('users');
             $table->foreign('courrier_id')->references('id')->on('users');
+            $table->date('date');
         });
     }
 

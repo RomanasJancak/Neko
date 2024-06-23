@@ -8,6 +8,9 @@ use App\Http\Requests\UpdateJobRequest;
 
 use Illuminate\Http\Request;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+
 use App\Models\Client;
 use App\Models\User;
 use App\Models\Role;
@@ -82,6 +85,7 @@ class JobController extends Controller
             $job->status_id         =   $request->input('status_id');
             $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
             $job->clientToBill_id   =   $request->input('billingClientId');
+            $job->date              =   $request->input('common_date');
             $job->save();
             $task                   =   new Task();
             $task->date             =   $request->input('common_date');
@@ -113,11 +117,16 @@ class JobController extends Controller
             }catch (QueryException $e){
                 return response()->json(['error' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine(),], 500);
+                'line' => $e->getLine(),
+                'date'  =>  'this',
+                ], 500);
+                
             } catch (\Exception $e){
                 return response()->json(['error' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine(),], 500);
+                'line' => $e->getLine(),
+                'date'  =>  'this',
+            ], 500);
             }
         }else{
             //$request->validated();
@@ -136,6 +145,7 @@ class JobController extends Controller
             $job->pickupclientcountry       =   $request->input('pickupclientcountry');
             $job->pickupclientpostalcode    =   $request->input('pickupclientpostalcode');
             $job->manager_id                =   $request->input('manager_id');
+            $job->date              =   $request->input('common_date');
             $job->save();
 
             $task               =   new Task();
@@ -295,7 +305,7 @@ class JobController extends Controller
             }else{
                 $job->courrier_id   =   $request->courierId;                    
             }
-            
+            $job->date  =   $request->input('common_date');
             $job->status_id =   $request->statusId;
             $job->clientToBill_id   =   $request->clientId;
             $job->save();
@@ -364,7 +374,8 @@ class JobController extends Controller
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
                 'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->id,
-                'date'                  =>  $job->getDate(),
+                //'date'                  =>  $job->getDate(),
+                'date'                  =>  $job->date,
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
                         'id'        => $task->id,
@@ -428,6 +439,7 @@ class JobController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
     public function fetchJobsPaginate(Request $request)
     {
         try {
@@ -439,7 +451,7 @@ class JobController extends Controller
     
             $jobs = Job::with(['clientToBill', 'tasks'])
                 ->when($id, function ($queryBuilder) use ($id) {
-                    $queryBuilder->where('id', 'like', '%' . $id . '%');
+                    $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
                 })
                 ->when($clientName, function ($queryBuilder) use ($clientName) {
                     $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
@@ -449,7 +461,9 @@ class JobController extends Controller
                 ->when($date, function ($queryBuilder) use ($date) {
                     $queryBuilder->whereDate('pickup_time_begin', $date);
                 })
-                ->orderBy($sortField, $sortOrder)
+                ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+                ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
+                ->select('jobs.*') // Ensure you only select the fields from jobs table
                 ->paginate(10);
     
             $jobs->appends([
@@ -461,7 +475,6 @@ class JobController extends Controller
             ]);
     
             return response()->json([
-                //'jobs' => $jobs,
                 'jobs' =>  $jobs->map(function ($job) {
                     return[
                         'id'    =>  $job->id,
@@ -470,7 +483,6 @@ class JobController extends Controller
                         'clientName'    =>  $job->clientToBill->name,
                         'tasks' =>  $job->tasks,
                         'date'  =>  $job->getDate(),
-                        // 'something' => $job->getPickupTask(),
                         'pickup'    =>  (null !== $job->getPickupTask())?[
                                 'id'  =>  $job->getPickupTask()->id,
                                 'isAddressSameAsClientAdress' =>   $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull()),
@@ -496,4 +508,7 @@ class JobController extends Controller
             ], 500);
         }
     }
+    
+
+    
 }

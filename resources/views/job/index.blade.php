@@ -164,7 +164,7 @@
                     <span> {{$job->clientToBill->name}}</span>  
                 </td>
                 <td>            
-                    {{date('d-m-Y',strtotime($job->pickup_time_begin))}}
+                    {{$job->date}}
                 </td>
                 <td>
                 @foreach ($job->tasks as $task)                    
@@ -801,7 +801,6 @@ function fetchJobs(page = 1) {
         if (xhr.status === 200) {
             const data = JSON.parse(xhr.responseText);
             document.getElementById('jobsTableBody').innerHTML = '';
-            console.log(data);
             data.jobs.forEach(job => {
                 let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
                 let addressNameToDisplay = isAddressSameAsClientAdress 
@@ -838,7 +837,7 @@ function fetchJobs(page = 1) {
                             <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>
                             <button 
                                 class="btn btn-danger delete-btn"
-                                
+                                onclick="deleteJob(${job.id})"
                                 data-jobid="${job.id}">
                                 <i class="bi bi-trash"></i>
                             </button>
