@@ -90,7 +90,7 @@ class User extends Authenticatable
     {
         //dd($date);
         $query = $this->hasManyThrough(Task::class, Job::class, 'courrier_id', 'job_id')
-        ->whereDate('date', $date.' 00:00:00')
+        ->whereDate('tasks.date', $date.' 00:00:00')
         ->orderBy('order_number');
         $sql = $query->toSql();
         //dd($query);
