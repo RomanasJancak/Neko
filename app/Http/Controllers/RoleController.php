@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\Permission;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 
@@ -13,7 +14,10 @@ class RoleController extends Controller
      */
     public function index()
     {
-        //
+        //$roles = Role::latest()->paginate(10);
+        $roles = Role::with('permissions')->get();
+        $permissions = Permission::all();
+        return view('role.index', compact('roles','permissions'));
     }
 
     /**

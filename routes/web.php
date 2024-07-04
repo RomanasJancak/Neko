@@ -2,18 +2,18 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\DayController;
-use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\AddOnRuleController;
 use App\Http\Controllers\BikeController;
-use App\Http\Controllers\StatusController;
-use App\Http\Controllers\PackageTypeController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DayController;
 use App\Http\Controllers\DistanceController;
+use App\Http\Controllers\JobController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PackageTypeController;
+use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TaskController;
-
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkloadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,6 +56,9 @@ Route::group(['prefix' => 'users'], function(){
     ->middleware('auth');
     Route::post('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole')->middleware('auth');
 
+});
+Route::group(['prefix' => 'roles'], function(){
+    Route::get('',                          [RoleController::class, 'index'])->name('role.index')->middleware('auth'); 
 });
 Route::group(['prefix' => 'clients'], function(){
     Route::get('',                  [ClientController::class, 'index'])->name('client.index')->middleware('auth');
