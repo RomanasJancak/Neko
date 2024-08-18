@@ -77,6 +77,33 @@ class JobController extends Controller
      */
     public function store(StoreJobRequest $request)
     {
+
+
+        if($request->input('isJobCreationFromIndexPage')){
+            try{
+                $job                    =   new Job();
+                $job->eilesNumeris      =   0;
+                $job->manager_id        =   auth()->user()->id;
+                $job->status_id         =   $request->input('status_id');
+                $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
+                $job->clientToBill_id   =   $request->input('billingClientId');
+                $job->date              =   $request->input('common_date');
+                $job->save();
+
+
+                return response()->json([
+                'success'  => true,
+                'job'       =>  $job,
+                'logedInUser'       =>  auth()->user(),                     
+                ], 200);
+            }catch (\Exception $e){
+                return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'date'  =>  'this',
+            ], 500);
+            }
+        }
         if($request->input('isItCustomJob') === 'true'){
             try{
             $job                    =   new Job();
@@ -306,7 +333,7 @@ class JobController extends Controller
                 $job->courrier_id   =   $request->courierId;                    
             }
             $job->date  =   $request->input('common_date');
-            $job->status_id =   $request->statusId;
+            $job->status_id =   $request->input('status_id');
             $job->clientToBill_id   =   $request->clientId;
             $job->save();
             return response()->json([
@@ -319,6 +346,7 @@ class JobController extends Controller
             'file' => $e->getFile(),
             'line' => $e->getLine(),
             '$request->courierId'   =>  $request->courierId,
+            '$request->clientId'   =>  $request->clientId,
             ], 500);
             
         }

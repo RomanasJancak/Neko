@@ -134,9 +134,12 @@
                 </th>
                 <th colspan="4">Tasks</th>
                 <th rowspan="2">Actions</th>
-                <th rowspan="2" style="text-align:center;width:100px;">Create Job <button type="button" data-func="dt-add" class="btn btn-success btn-xs dt-add">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                    </button></th>
+                <th rowspan="2" style="text-align:center;width:100px;">
+                    <span>Create Job</span>
+                    <button type="button" class="btn btn-success btn-xs text-success create-btn" style="background: none; border: none;">
+                        <i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>
+                    </button>
+                </th>
             </tr>
             <tr>
                 <th>Pickup</th>
@@ -264,7 +267,7 @@
                         </div>
                         <div class="col">
                             <div class="row">
-                                <label for="clientSearchField">CLient</label>
+                                <label for="clientSearchField">Client</label>
                                 <input type="text" id="clientSearchField" name="clientName" class="form-control" placeholder="Search for clients">
                                 <input type="hidden" name="clientId" id="clientIdField" value="">
                             </div>
@@ -448,6 +451,87 @@ function cleanTaskCreateWindow(){
     taskTimeBegin.value   =   '';
     taskTimeEnd.value   =   '';
 }
+function set_Some_JobCreationFields_ToDefaultValues(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    statusIdField_SelectElement.value = 10; //unassigned
+    courierIdField_SelectElement.value = 0;
+
+}
+
+function checkIf_All_JobCreationFields_HaveInputs(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    let return_value = true;
+    if(statusIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(courierIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(jobDateField.value == ''){
+        return_value = false;
+        return return_value;
+    }
+
+}
+function createJob(){
+
+        const form = document.getElementById('jobForm');
+        updateData  =   {
+            id          :   document.getElementById('idField').value,
+            courierId   :   document.getElementById('courierIdField').value,
+            status_id    :   document.getElementById('statusIdField').value,
+            billingClientId    :   document.getElementById('clientIdField').value,
+            common_date : document.getElementById('jobDateField').value,
+            isJobCreationFromIndexPage : true,
+        }
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Send a POST request to the server using the generated route
+        fetch(form.action, { // Blade syntax to generate the route URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', // Set Accept header
+                // Add any additional headers if needed
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => {
+            // if (!response.ok) {
+            //     throw new Error('Failed to update job');
+            // }
+            return response.json();
+        })
+        .then(data => {
+            //console.log(data); 
+            if(data.errors){
+                let errorsMessage = '';
+                for (const key in data.errors) {
+                    if (data.errors.hasOwnProperty(key)) {
+                        errorsMessage+=(`${data.errors[key]}\n`);
+                        if (key === "common_date") {
+                            const jobDateField = document.getElementById('jobDateField');
+                            jobDateField.classList.add('border', 'border-danger');
+                            setTimeout(() => {
+                                jobDateField.classList.remove('border', 'border-danger');
+                            }, 3000);
+                        }
+
+                    }
+                }
+                //alert(errorsMessage);
+            };
+            
+        })
+        .catch(error => {
+            console.error('Error:', error.message);
+        });
+}
 function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
@@ -459,6 +543,7 @@ function addEventListenerToButton(button){
             button.setAttribute('data-option', 'create');            
             submitButton.setAttribute('data-option', 'create');
             submitButton.textContent  = 'Confirm creation';
+            //createJob();
         }else{
             taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
             setTaskValues(taskId).then(() =>{
@@ -665,6 +750,7 @@ function setJobValues(jobId,buttonClicked){
     const containerTasks =   document.getElementById('container-tasks');
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
+    if(jobId === 0){return;}
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
@@ -859,7 +945,6 @@ function fetchJobs(page = 1) {
     };
     xhr.send();
 }
-
 function addEventListenerToSortButton(button){
     button.addEventListener('click', function() {
         const icon  =   button.querySelector('i');
@@ -971,6 +1056,35 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
+function disable_CreateNewTaskButton(){
+    createNewTaskButton = document.getElementById('createNewTask');
+    createNewTaskButton.classList.remove('btn-primary');
+    createNewTaskButton.classList.add('btn-secondary');
+    createNewTaskButton.disabled = true;
+    //createNewTaskButton.style.visibility = 'hidden';
+}
+function undisable_CreateNewTaskButton(){
+    createNewTaskButton = document.getElementById('createNewTask');
+    createNewTaskButton.classList.remove('btn-secondary');
+    createNewTaskButton.classList.add('btn-primary');
+    createNewTaskButton.disabled = false;
+    //createNewTaskButton.style.visibility = 'visible';
+}
+function add_CreateNewTaskButtonHidder_EventListener_toInput(input){
+    input.addEventListener('input', function() {
+        let status = true;
+        if(document.getElementById('courierIdField').value == ''){status = false;}
+        if(document.getElementById('statusIdField').value == ''){status = false;}
+        if(document.getElementById('clientSearchField').value == ''){status = false;}
+        if(document.getElementById('jobDateField').value == ''){status = false;}
+        if(status){
+            undisable_CreateNewTaskButton();
+        }else{
+            disable_CreateNewTaskButton();
+        }
+
+    });
+}
 //==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
     const searchInputs = [
@@ -1074,17 +1188,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('.create-btn').forEach(button => {
         button.addEventListener('click', () => {
+            const createNewTaskButton   =   document.getElementById('createNewTask');
+            createNewTaskButton.style.visibility = 'visible';
+            addEventListenerToButton(createNewTaskButton);
+            const jobIdField    =   document.getElementById('idField');                
+            jobIdField.disabled = true;
             const form = document.querySelector(`#jobForm`);
-            if (form) {
-                document.getElementById('nameField').readOnly = false;
-                document.getElementById('colorPicker-main').disabled = false;
-                document.getElementById('colorPicker-pickup').disabled = false;
-                document.getElementById('colorPicker-dropoff').disabled = false;
-                document.getElementById('colorPicker-return').disabled = false;
-                document.getElementById('colorPicker-custom').disabled = false;
+            if (form) {               
+                setJobValues(0,'create');
+                set_Some_JobCreationFields_ToDefaultValues();
+
+                document.getElementById('idField').value = '';
+                document.getElementById('courierIdField').disabled = false;
+                document.getElementById('statusIdField').disabled = false;
+                document.getElementById('clientSearchField').disabled = false;
+                document.getElementById('jobDateField').disabled = false;
+                //document.getElementById('courierIdField').value = 0;
+                //document.getElementById('statusIdField').value = '';
+                document.getElementById('clientSearchField').value = '';
+                document.getElementById('jobDateField').value = ''; 
                 form.setAttribute('action', "{{ route('job.store') }}");
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                if(!checkIf_All_JobCreationFields_HaveInputs()){
+                    disable_CreateNewTaskButton();
+                }else{
+                    undisable_CreateNewTaskButton();
+                }
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('courierIdField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('statusIdField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('clientSearchField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('jobDateField'));
             }
             $('#jobModalWindow').modal('show');
         });
@@ -1132,40 +1266,56 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTask(updateData,route);
     });
     document.getElementById('submitform').addEventListener('click', function(event) {
-        event.preventDefault();
-        const form = document.getElementById('jobForm');
-        updateData  =   {
-            id          :   document.getElementById('idField').value,
-            courierId   :   document.getElementById('courierIdField').value,
-            statusId    :   document.getElementById('statusIdField').value,
-            clientId    :   document.getElementById('clientIdField').value,
+        let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
+        //console.log(document.getElementById('jobForm'));        
+        if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+            createJob();
+        }else{
+
+        
+            event.preventDefault();
+            const form = document.getElementById('jobForm');
+            updateData  =   {
+                id          :   document.getElementById('idField').value,
+                courierId   :   document.getElementById('courierIdField').value,
+                status_id    :   document.getElementById('statusIdField').value,
+                clientId    :   document.getElementById('clientIdField').value,
+            }
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            // Send a POST request to the server using the generated route
+            fetch(form.action, { // Blade syntax to generate the route URL
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json', // Set Accept header
+                    // Add any additional headers if needed
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(updateData)
+            })
+            .then(response => {
+                // if (!response.ok) {
+                //     throw new Error('Failed to update job');
+                // }
+                return response.json();
+            })
+            .then(data => {
+                //console.log(data); 
+                if(data.errors){
+                    let errorsMessage = '';
+                    for (const key in data.errors) {
+                        if (data.errors.hasOwnProperty(key)) {
+                            errorsMessage+=(`${data.errors[key]}\n`);
+                        }
+                    }
+                    alert(errorsMessage);
+                };
+                
+            })
+            .catch(error => {
+                console.error('Error:', error.message);
+            });
         }
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        // Send a POST request to the server using the generated route
-        fetch(form.action, { // Blade syntax to generate the route URL
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json', // Set Accept header
-                // Add any additional headers if needed
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify(updateData)
-        })
-        .then(response => {
-            // if (!response.ok) {
-            //     throw new Error('Failed to update job');
-            // }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data); // Log the success message
-            // Optionally handle the response data, e.g., update UI
-        })
-        .catch(error => {
-            console.error('Error:', error.message); // Log any errors
-            // Optionally handle errors, e.g., display an error message
-        });
     });
 });
 
