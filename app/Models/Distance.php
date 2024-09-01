@@ -50,7 +50,7 @@ class Distance extends Model
                 $distance = 0;
             }
         }
-        return $distance;
+        return $distance->distance;
     }
     public static function getDistance2($origin, $destination, $mode = 'walking')
     {

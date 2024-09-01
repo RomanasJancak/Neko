@@ -12,6 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 use App\Models\Client;
+use App\Models\Distance;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Status;
@@ -390,6 +391,7 @@ class JobController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
+
     public function getJobInfo($jobId)
     {
         // Fetch the client's information based on the $clientId
@@ -397,6 +399,7 @@ class JobController extends Controller
 
         if ($job) {
             return response()->json([
+                'price'             =>  $job->price(),
                 'id'                =>  $job->id,
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,

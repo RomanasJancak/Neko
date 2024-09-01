@@ -110,25 +110,80 @@ class Job extends Model
         return $this->hasMany(AddOn::class, 'model_id')
                     ->where('model_type', '=', 'app/models/Job');
     }
+    public function findShortestDistance(){
+        $pickup = '';
+        $dropOffs = [];
+        $return = '';
+        foreach($this->tasks as $task){
+            if($task->type() == 'pickup'){
+                $pickup = $task;
+            }else if($task->type() == 'dropOff'){
+                $dropOffs[] = $task;
+            }else if($task->type() == 'picreturnkup'){
+                $return = $task;
+            }
+        }
+        $distanceToNearestDropOff = PHP_INT_MAX;
+        foreach($dropOffs as $dropOff){
+            $distance = Distance::getDistance($pickup->fullAddress(),$dropOff->fullAddress());
+            if($distance < $distanceToNearestDropOff){
+                $distanceToNearestDropOff = $distance;
+            }
+        }
+        return $distanceToNearestDropOff;
+    }
+    public function distancePrice(){
+        $distance = $this->findShortestDistance()*0.0006213712;
+        $freeMile = 1;
+        $tresholds = [
+            [
+                'treshold'      => 1,
+                'price'         => 100,
+                'charginStep'   =>  0.5
+            ],
+            [
+                'treshold'      => 5,
+                'price'         => 150,
+                'charginStep'   =>  0.5
+            ],[
+                'treshold'  => 6,
+                'price'     => 300,
+                'charginStep'   =>  1
+            ]
+        ];
+        $price_distance = 0;
+        if($distance < 1){
+            $price_distance = 0;
+        }else{
+            $lastTreshold = array_pop($tresholds);
+            while($lastTreshold != null){
+                while($distance > $lastTreshold['treshold']){
+                    if(($distance - $lastTreshold['charginStep']) < $lastTreshold['treshold']){
+                        $distance = $lastTreshold['treshold'] - 0.000001;
+                    }else{
+                        $distance -= $lastTreshold['charginStep'];
+                    }
+                    $price_distance += $lastTreshold['price'];
+                }
+                $lastTreshold = array_pop($tresholds);
+            }
+        }
+
+        return $price_distance;
+    }
+    public function outsidePostalCodeZone(){
+        $postalCodes = [
+                        'N1','N4','N5','N7','N16','N19',
+                        'W1',
+                        'NW','NW5',
+                        'WC1','WC2',
+                        'EC1','EC2','EC3','EC4',
+                        'E1','E2','E5','E8','E9',];
+                        
+    }
     public function price(){
         $price = 0;
-        $distance = 0;
-        $originAddress = $this->pickupclientcountry.' '.$this->pickupclientcity.' '.$this->pickupclientpostalcode.' '.$this->pickupclientaddressline;
-        foreach($this->packages as $key => $package){
-            foreach($package->addOns as $addOn){
-                $price+=$addOn->price;
-            }
-            $address= $package->dropoff_country.' '.$package->dropoff_city.' '.$package->dropoff_postal_code.' '.$package->dropoff_adress_line;
-            if($key === 0){
-                $distance+=Distance::getDistance($originAddress,$address);
-                $originAddress = $address;
-            }else{
-                $distance+=Distance::getDistance($originAddress,$address);
-            }
-        }
-        foreach($this->addOns as $addon){
-            $price+=$addon->price;
-        }
+        $price+=$this->distancePrice();
         return $price;
     }
 }
