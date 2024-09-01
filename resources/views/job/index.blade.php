@@ -150,8 +150,8 @@
         </thead>
         <tbody id="jobsTableBody">
             @foreach ($jobs as $job)
-            <tr>
-                <td>
+            <tr id="jobTableRow_{{$job->id}}">
+                <td >
                     {{$job->id}}
                 </td>
                 <td class="no-padding">
@@ -233,76 +233,92 @@
 <div class="modal fade" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-body">
-                <form id="jobForm" action="" method="POST">
-                    @csrf
-                    <div class="row justify-content-md-center">
-                        <div class="col-2">
-                            <div class="row">
-                                <input type="hidden" name="jobid" id="jobid" value="">
-                                <label for="idField">Id</label>
-                                <input class="form-control" type="text" name="id" id="idField" value="">
+            <div class="row g-0">
+                <div class="col-9 border rounded d-flex flex-column "> <!--Left side -->
+                    <div class="modal-body">
+                        <form id="jobForm" action="" method="POST">
+                            @csrf
+                            <div class="row justify-content-md-center">
+                                <div class="col-2">
+                                    <div class="row">
+                                        <input type="hidden" name="jobid" id="jobid" value="">
+                                        <label for="idField">Id</label>
+                                        <input class="form-control" type="text" name="id" id="idField" value="">
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="row">
+                                        <label for="courierIdField">Courier</label>
+                                        <select id="courierIdField" name="courierId" class="form-control" >
+                                            <option value="0">none</option>
+                                            @foreach($couriers as $courier)
+                                            <option value="{{ $courier->id }}">{{ $courier->name }}</option>
+                                            @endforeach                                  
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="row">
+                                        <label for="statusIdField">Status</label>
+                                        <select id="statusIdField" name="statusId" class="form-control">
+                                        @foreach($statuses as $status)
+                                            <option value="{{ $status->id }}">{{ $status->name }}</option>
+                                        @endforeach 
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="row">
+                                        <label for="clientSearchField">Client</label>
+                                        <input type="text" id="clientSearchField" name="clientName" class="form-control" placeholder="Search for clients">
+                                        <input type="hidden" name="clientId" id="clientIdField" value="">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="row">
+                                        <label for="jobDateField">Date</label>
+                                        <input type="date" id="jobDateField" name="jobDate" class="form-control" placeholder="Search for clients">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="row">
-                                <label for="courierIdField">Courier</label>
-                                <select id="courierIdField" name="courierId" class="form-control" >
-                                    <option value="0">none</option>
-                                    @foreach($couriers as $courier)
-                                    <option value="{{ $courier->id }}">{{ $courier->name }}</option>
-                                    @endforeach                                  
-                                </select>
+                            <div class="row justify-content-md-center">
+                                Tasks
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <label for="statusIdField">Status</label>
-                                <select id="statusIdField" name="statusId" class="form-control">
-                                @foreach($statuses as $status)
-                                    <option value="{{ $status->id }}">{{ $status->name }}</option>
-                                @endforeach 
-                            </select>
+                            <div class="row justify-content-md-center border rounded border-info" >
+                                <div class="col" id="container-tasks">
+                                </div>                        
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <label for="clientSearchField">Client</label>
-                                <input type="text" id="clientSearchField" name="clientName" class="form-control" placeholder="Search for clients">
-                                <input type="hidden" name="clientId" id="clientIdField" value="">
+                            <div class="row justify-content-md-center">
+                                <div class="col">
+                                    <button type="button" id="createNewTask" data-option="create" class="btn btn-primary">Create new Task</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <label for="jobDateField">Date</label>
-                                <input type="date" id="jobDateField" name="jobDate" class="form-control" placeholder="Search for clients">
+                        </form>
+                    </div>
+                    <div class="modal-footer ">
+                        <!-- <div class="row"> -->
+                            <div class="col-12">
+                                <div class="form-group d-flex justify-content-between">
+                                    <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Cancel</button>
+                                </div>
                             </div>
+                            <!-- <div class="col-auto"></div> -->
+                        <!-- </div>                 -->
+                    </div>
+                </div>
+                <div class="col-3 border rounded justify-content-left"> <!--Right side -->
+                    <div class="row">
+                        <div class="col-12">
+                            <span>Total price : </span><span id="total_Price_DisplayField">0.00</span><span>$</span>
                         </div>
                     </div>
-                    <div class="row justify-content-md-center">
-                        Tasks
-                    </div>
-                    <div class="row justify-content-md-center border rounded border-info" >
-                        <div class="col" id="container-tasks">
-                        </div>                        
-                    </div>
-                    <div class="row justify-content-md-center">
-                        <div class="col">
-                            <button type="button" id="createNewTask" data-option="create" class="btn btn-primary">Create new Task</button>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>Total distance : </span><span id="total_Distance_DisplayField">0.00</span><span> miles</span>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer ">
-                <!-- <div class="row"> -->
-                    <div class="col-12">
-                        <div class="form-group d-flex justify-content-between">
-                            <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Cancel</button>
-                        </div>
-                    </div>
-                    <!-- <div class="col-auto"></div> -->
-                <!-- </div>                 -->
+                </div>            
             </div>
         </div>
     </div>
@@ -315,6 +331,11 @@
             <div class="modal-body">
                 <form id="taskForm" action="" method="POST">
                     @csrf
+                    <div class="row justify-content-md-center">
+                        <div class="col">
+                            <h5>Task creation window</h5>
+                        </div>
+                    </div>
                     <div class="row justify-content-md-center">
                         <div class="col-2">
                             <div class="row">
@@ -353,6 +374,7 @@
                         <div class="col-auto">
                             <label for="taskClientNameField">Name</label>
                             <input class="form-control" type="text" name="id" id="taskClientNameField" value="">
+                            <input type="hidden" name="clientId" id="task_clientIdField" value="">
                         </div>
                         <div class="col-auto">
                             <label for="taskCountryField">Country</label>
@@ -420,6 +442,7 @@ function showPackageDiv(status){
 }
 function setReadOnlyToFieldsOfTaskModal(status){
     let fields = [];
+    //fields.push(document.getElementById('taskIdField'));
     fields.push(document.getElementById('taskStatusIdField'));
     fields.push(document.getElementById('taskClientNameField'));
     fields.push(document.getElementById('taskCountryField'));
@@ -454,8 +477,12 @@ function cleanTaskCreateWindow(){
 function set_Some_JobCreationFields_ToDefaultValues(){
     let statusIdField_SelectElement = document.getElementById('statusIdField');
     let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let clientSearchField = document.getElementById('clientSearchField');
+    let clientIdField = document.getElementById('clientIdField');
+    let jobDateField = document.getElementById('jobDateField');
     statusIdField_SelectElement.value = 10; //unassigned
-    courierIdField_SelectElement.value = 0;
+    courierIdField_SelectElement.value = 4;
+    jobDateField.value = "2024-08-19";
 
 }
 
@@ -479,7 +506,7 @@ function checkIf_All_JobCreationFields_HaveInputs(){
 
 }
 function createJob(){
-
+        console.log("Function_createJob()_begin");
         const form = document.getElementById('jobForm');
         updateData  =   {
             id          :   document.getElementById('idField').value,
@@ -508,7 +535,7 @@ function createJob(){
             return response.json();
         })
         .then(data => {
-            //console.log(data); 
+            console.log(data); 
             if(data.errors){
                 let errorsMessage = '';
                 for (const key in data.errors) {
@@ -525,10 +552,13 @@ function createJob(){
                     }
                 }
                 //alert(errorsMessage);
-            };
-            
+            }else{
+                let submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+            }
         })
         .catch(error => {
+            console.log('Errors');
             console.error('Error:', error.message);
         });
 }
@@ -539,11 +569,15 @@ function addEventListenerToButton(button){
         let submitButton = document.getElementById('submitTaskform');
         if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
+            document.getElementById('taskIdField').disabled = true;
             cleanTaskCreateWindow();
             button.setAttribute('data-option', 'create');            
             submitButton.setAttribute('data-option', 'create');
             submitButton.textContent  = 'Confirm creation';
-            //createJob();
+            let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
+            if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+                createJob();
+            }
         }else{
             taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
             setTaskValues(taskId).then(() =>{
@@ -569,6 +603,47 @@ function addEventListenerToButton(button){
         }
         $('#taskModalWindow').modal('show');
     });
+}
+function addTypeHeadSearchToTaskWindow(searchInput){
+    if (searchInput.length > 0) {
+        searchInput.typeahead({
+        source: function(query, process) {
+            var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Process the fetched data and pass it to the typeahead
+                    process(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching client data:', error);
+                });
+        },
+        autoSelect: true,
+        minLength: 2, // Minimum characters required before searching
+        displayText: function(item) {
+            return item.name; // Adjust this based on your client data structure
+        },
+        afterSelect: function(item) {
+            // Handle the selection here (e.g., redirect to client details page)
+            //fetch(`/get-client-info/${item.id}`)
+            const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
+            const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
+            fetch(clientInfoUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    console.log(data);
+                    document.getElementById('task_clientIdField').value = data.id;
+                    document.getElementById('taskCountryField').value = data.id;       
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }
+    });
+    }
 }
 function addInfoAboutPackageToTaskModal(package){   
     const container =   document.getElementById('package-info');
@@ -1101,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     addTypeHeadSearch($('#clientSearchField'));
+    addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
     sortButton_clientName   =   document.getElementById('button-sort-clientName');
     sortButton_date   =   document.getElementById('button-sort-date');
     sortButton_id   =   document.getElementById('button-sort-id');
@@ -1270,7 +1346,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //console.log(document.getElementById('jobForm'));        
         if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
             createJob();
-        }else{
+        }else {
 
         
             event.preventDefault();
@@ -1310,7 +1386,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     alert(errorsMessage);
                 };
-                
+                if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
+                    $('#jobModalWindow').modal('hide');
+                    //jobTableRow_4
+                    row = document.getElementById('jobTableRow_'+updateData.id);
+                    if(row){
+                        row.parentNode.removeChild(row);
+                    }
+                }
             })
             .catch(error => {
                 console.error('Error:', error.message);
