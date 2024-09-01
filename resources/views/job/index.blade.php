@@ -431,13 +431,14 @@
 @section('scripts')
 <script>
 
+var global_typeOfButtonClickedToOpenJobModal = 'create';//create/edit/view/delete
+
 function showPackageDiv(status){
     const container =   document.getElementById('package-info');
     if(status){
         container.style.visibility = 'visible';
     }else{
         container.style.visibility = 'hidden';
-        container.innerHTML =   '';
     }
 }
 function setReadOnlyToFieldsOfTaskModal(status){
@@ -534,8 +535,7 @@ function createJob(){
             // }
             return response.json();
         })
-        .then(data => {
-            console.log(data); 
+        .then(data => { 
             if(data.errors){
                 let errorsMessage = '';
                 for (const key in data.errors) {
@@ -556,6 +556,7 @@ function createJob(){
                 let submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
+            document.getElementById('idField').value = data.job.id;
         })
         .catch(error => {
             console.log('Errors');
@@ -576,6 +577,7 @@ function addEventListenerToButton(button){
             submitButton.textContent  = 'Confirm creation';
             let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
             if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+                console.log('Listener for button clicked');
                 createJob();
             }
         }else{
@@ -633,9 +635,12 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    console.log(data);
                     document.getElementById('task_clientIdField').value = data.id;
-                    document.getElementById('taskCountryField').value = data.id;       
+                    document.getElementById('taskCountryField').value = data.pickup_country; 
+                    document.getElementById('taskCityField').value = data.pickup_city;
+                    document.getElementById('taskPostalCodeField').value = data.pickup_postal_code;
+                    document.getElementById('taskAddressLineField').value = data.pickup_adress_line;
+                          
                 }
             })
             .catch(error => {
@@ -645,7 +650,16 @@ function addTypeHeadSearchToTaskWindow(searchInput){
     });
     }
 }
-function addInfoAboutPackageToTaskModal(package){   
+function addInfoAboutPackageToTaskModal(package){  
+    if(!package){
+        package = {
+                type: {
+                id: 0, // Set the id for the type
+                },
+                quantity: 0 // Set the quantity
+        };
+        console.log(package);
+    } 
     const container =   document.getElementById('package-info');
     container.innerHTML = '';
     const select = document.createElement('select');
@@ -677,6 +691,9 @@ function addInfoAboutPackageToTaskModal(package){
                 container.appendChild(inputQuantity);
                 let submitButton = document.getElementById('submitTaskform');
                 if(submitButton.getAttribute('data-option') === 'edit'){
+                    document.getElementById('packageTypeSelect').disabled = false;
+                    document.getElementById('quantityInput').disabled = false;
+                }else if(submitButton.getAttribute('data-option') === 'create'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
                 }else{
@@ -850,9 +867,7 @@ function setJobValues(jobId,buttonClicked){
             data.tasks.forEach(function(task){
                 appendTaskToContainer(containerTasks,task,buttonClicked);
             });
-            if(document.getElementById(`createNewTask`)){
-                addEventListenerToButton(document.getElementById(`createNewTask`)); 
-            }            
+                          
         })
         .catch(error => {
             console.error(error);
@@ -898,7 +913,6 @@ function addTypeHeadSearch(searchInput){
     }
 }
 function updateTask(data,route){
-    console.log(data);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     // Send a POST request to the server using the generated route
     fetch(route, { // Blade syntax to generate the route URL
@@ -920,6 +934,11 @@ function updateTask(data,route){
     .then(data => {
         console.log(data); // Log the success message
         // Optionally handle the response data, e.g., update UI
+        console.log(document.getElementById('jobid').value);
+        setJobValues(
+            document.getElementById('jobid').value,
+            global_typeOfButtonClickedToOpenJobModal
+        );
     })
     .catch(error => {
         console.error('Error:', error.message); // Log any errors
@@ -1069,6 +1088,7 @@ function viewJob(jobId) {
         document.getElementById('jobid').value = jobId;
         
         setJobValues(jobId, 'view');
+        global_typeOfButtonClickedToOpenJobModal = 'view';
 
         const submitButton = document.getElementById('submitform');
         submitButton.innerHTML = "<i class='bi bi-trash'></i>";
@@ -1096,7 +1116,8 @@ function editJob(jobId) {
         jobDateField.disabled = false;
         
         setJobValues(jobId, 'edit');
-
+        global_typeOfButtonClickedToOpenJobModal = 'edit';
+        
         const submitButton = document.getElementById('submitform');
         submitButton.innerHTML = "<i class='bi bi-pen'></i>";
         submitButton.style.visibility = 'visible';
@@ -1123,7 +1144,7 @@ function deleteJob(jobId) {
         jobDateField.disabled = true;
         
         setJobValues(jobId, 'delete');
-
+        global_typeOfButtonClickedToOpenJobModal = 'delete';
         const submitButton = document.getElementById('submitform');
         submitButton.innerHTML = "<i class='bi bi-trash'></i>";
         submitButton.style.visibility = 'visible';
@@ -1160,6 +1181,17 @@ function add_CreateNewTaskButtonHidder_EventListener_toInput(input){
 
     });
 }
+function add_TaskTypeSelect_EventListener_OnChange(selectElement){
+    selectElement.addEventListener('change', function(event) {
+        const selectedValue = event.target.value;
+        if(selectedValue === 'dropOff'){
+            addInfoAboutPackageToTaskModal();
+        }else{
+            const container =   document.getElementById('package-info');
+            container.innerHTML = '';
+        }
+    });
+}
 //==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
     const searchInputs = [
@@ -1175,8 +1207,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetchJobs();
             });
         });
+    add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
     addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
+    addEventListenerToButton(document.getElementById(`createNewTask`));  
     sortButton_clientName   =   document.getElementById('button-sort-clientName');
     sortButton_date   =   document.getElementById('button-sort-date');
     sortButton_id   =   document.getElementById('button-sort-id');
@@ -1201,6 +1235,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('jobDateField').disabled = false;
                 
                 setJobValues(jobid,'edit');
+                global_typeOfButtonClickedToOpenJobModal = 'edit';
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
                 submitButton.style.visibility = 'visible';
@@ -1227,6 +1262,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('jobDateField').disabled = true;
                 document.getElementById('jobid').value = jobid;
                 setJobValues(jobid,'delete');
+                global_typeOfButtonClickedToOpenJobModal = 'delete';
+
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
                 submitButton.style.visibility = 'visible';
@@ -1253,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('jobDateField').disabled = true;
                 document.getElementById('jobid').value = jobid;
                 setJobValues(jobid,'view');
+                global_typeOfButtonClickedToOpenJobModal = 'view';
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-trash'></i>";
                 submitButton.style.visibility = 'hidden';
@@ -1266,12 +1304,15 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const createNewTaskButton   =   document.getElementById('createNewTask');
             createNewTaskButton.style.visibility = 'visible';
-            addEventListenerToButton(createNewTaskButton);
+            //addEventListenerToButton(createNewTaskButton);
             const jobIdField    =   document.getElementById('idField');                
             jobIdField.disabled = true;
             const form = document.querySelector(`#jobForm`);
-            if (form) {               
-                setJobValues(0,'create');
+            if (form) {
+                // if(jobIdField.value){               
+                //     setJobValues(jobIdField.value,'create');
+                // }
+                global_typeOfButtonClickedToOpenJobModal = 'create';
                 set_Some_JobCreationFields_ToDefaultValues();
 
                 document.getElementById('idField').value = '';
@@ -1320,6 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
             jobId       :   document.getElementById('idField').value,
             id          :   document.getElementById('taskIdField').value,
             status_id   :   document.getElementById('taskStatusIdField').value,
+            type        :   typeField.value,
             address     :   {
                 name            :   document.getElementById('taskClientNameField').value,
                 country         :   document.getElementById('taskCountryField').value,
@@ -1339,6 +1381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 quantity: document.getElementById('quantityInput').value,
             }
         }
+
         updateTask(updateData,route);
     });
     document.getElementById('submitform').addEventListener('click', function(event) {
@@ -1376,7 +1419,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                //console.log(data); 
                 if(data.errors){
                     let errorsMessage = '';
                     for (const key in data.errors) {

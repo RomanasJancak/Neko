@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\Pickuptask;
+use App\Models\ReturnTask;
+use App\Models\Package;
+use App\Models\PackageType;
+use App\Models\CustomTask;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 
@@ -40,10 +45,44 @@ class TaskController extends Controller
             $task->job_id           =   $request->input('jobId');
             $task->status_id        =   $request->input('status_id');
             $task->save();
+            if($request->input('type') === 'pickup'){
+                $pickupTask = new PickupTask();
+                $pickupTask->task_id = $task->id;
+                $pickupTask->status_id = $task->status_id;
+                $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+                $pickupTask->setAddress(
+                    $request->input('address.name'),
+                    $request->input('address.country'),
+                    $request->input('address.city'),
+                    $request->input('address.postalCode'),
+                    $request->input('address.addressLine'),
+                );
+                $pickupTask->save();
+            }
+            if($request->input('type') === 'dropOff'){
+                $package = new Package;
+                $package->task_id = $task->id;
+                $package->status_id = $task->status_id;
+                $package->packageType_id = $request->input('package.type');
+                $package->weight = 0;
+                $package->dimensions = 0;
+                $package->quantity = $request->input('package.quantity');
+                $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+                $package->setAddress(
+                    $request->input('address.name'),
+                    $request->input('address.country'),
+                    $request->input('address.city'),
+                    $request->input('address.postalCode'),
+                    $request->input('address.addressLine'),
+                );
+                $package->save();
+            }
             return response()->json([
-                'message'   => 'Task created successfully. ',
-                'request'   =>  $request->all(),
-                'task'      =>  $task,
+                'message'       => 'Task created successfully. ',
+                'request'       =>  $request->all(),
+                'task'          =>  $task,
+                'pickupTask'    =>  $request->input('type') === 'pickup' ? $pickupTask : 'doesNotExist',
+                'dropOff'       =>  $request->input('type') === 'dropOff' ? $package : 'doesNotExist',
             ]);
         } catch (\Exception $e){
                 return response()->json([
@@ -76,6 +115,60 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, Task $task)
     {
         $task = Task::findOrFail($request->id);
+        $task->date             =   $request->input('date');
+        $task->order_number     =   0;
+        $task->job_id           =   $request->input('jobId');
+        $task->status_id        =   $request->input('status_id');
+        $task->save();
+        
+        $taskTypeObject = null;
+
+        if($request->input('type') === 'pickup'){
+
+            $pickupTask = $task->pickup;
+            $pickupTask->task_id = $task->id;
+            $pickupTask->status_id = $task->status_id;
+            $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+            $pickupTask->setAddress(
+                $request->input('address.name'),
+                $request->input('address.country'),
+                $request->input('address.city'),
+                $request->input('address.postalCode'),
+                $request->input('address.addressLine'),
+            );
+            $pickupTask->save();
+            
+            $taskTypeObject = $pickupTask;
+        }
+        if($request->input('type') === 'dropOff'){
+
+            $package = $task->package;
+            $package->task_id = $task->id;
+            $package->status_id = $task->status_id;
+            $package->packageType_id = $request->input('package.type');
+            $package->weight = 0;
+            $package->dimensions = 0;
+            $package->quantity = $request->input('package.quantity');
+            $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+            $package->setAddress(
+                $request->input('address.name'),
+                $request->input('address.country'),
+                $request->input('address.city'),
+                $request->input('address.postalCode'),
+                $request->input('address.addressLine'),
+            );
+            $package->save();
+
+            $taskTypeObject = $package;
+        }
+        
+        return response()->json([
+            //'message'   => 'Task updated successfully. ',
+            'task'      =>  $task,
+            'taskTypeObject'    =>   $taskTypeObject,
+            'requestData' =>  $request->all(),
+        ]);
+
         if($request->input('courrier_id')){
             
         }
