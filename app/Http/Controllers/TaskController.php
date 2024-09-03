@@ -64,7 +64,7 @@ class TaskController extends Controller
                 $package->task_id = $task->id;
                 $package->status_id = $task->status_id;
                 $package->packageType_id = $request->input('package.type');
-                $package->weight = 0;
+                $package->weight = $request->input('package.weight');
                 $package->dimensions = 0;
                 $package->quantity = $request->input('package.quantity');
                 $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
@@ -146,7 +146,7 @@ class TaskController extends Controller
             $package->task_id = $task->id;
             $package->status_id = $task->status_id;
             $package->packageType_id = $request->input('package.type');
-            $package->weight = 0;
+            $package->weight = $request->input('package.weight');
             $package->dimensions = 0;
             $package->quantity = $request->input('package.quantity');
             $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
@@ -262,8 +262,10 @@ class TaskController extends Controller
                 'type'              =>  $task->type(),
                 'package'           =>  isset($task->package) 
                                             ?[
-                                                'type'      =>  $task->package->packageType,
-                                                'quantity'  =>  $task->package->quantity,
+                                                'type'          =>  $task->package->packageType,
+                                                'quantity'      =>  $task->package->quantity,
+                                                'weight'        =>  $task->package->weight,
+                                                'dimensions'    =>  $task->package->dimensions,
                                             ]
                                             :'none',    
                 ]);

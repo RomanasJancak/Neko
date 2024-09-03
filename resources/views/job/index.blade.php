@@ -310,12 +310,28 @@
                 <div class="col-3 border rounded justify-content-left"> <!--Right side -->
                     <div class="row">
                         <div class="col-12">
-                            <span>Total price : </span><span id="total_Price_DisplayField">0.00</span><span>$</span>
+                            <span>Total price : </span><span>&#163;</span><span id="total_Price_DisplayField">0.00</span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <span>Total distance : </span><span id="total_Distance_DisplayField">0.00</span><span> miles</span>
+                            <span>Total distance : </span><span id="total_distance_DisplayField">0.00</span><span> miles</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Price from distance : </span><span>&#163;</span><span id="total_distance_price_DisplayField">0.00</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>Total weight : </span><span id="total_weight_DisplayField">0.00</span><span>kg</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Price from weight : </span><span>&#163;</span><span id="total_weight_price_DisplayField">0.00</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>Outside Zone Price : </span><span>&#163;</span><span id="total_outsideZone_price_DisplayField">0.00</span>
                         </div>
                     </div>
                 </div>            
@@ -557,6 +573,7 @@ function createJob(){
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
             }
             document.getElementById('idField').value = data.job.id;
+            document.getElementById('jobid').value = data.job.id;
         })
         .catch(error => {
             console.log('Errors');
@@ -654,9 +671,9 @@ function addInfoAboutPackageToTaskModal(package){
     if(!package){
         package = {
                 type: {
-                id: 0, // Set the id for the type
+                id: 1, // Set the id for the type
                 },
-                quantity: 0 // Set the quantity
+                quantity: 1 // Set the quantity
         };
         console.log(package);
     } 
@@ -689,6 +706,26 @@ function addInfoAboutPackageToTaskModal(package){
                 inputQuantity.placeholder = 'Enter quantity';
                 inputQuantity.value = package.quantity;
                 container.appendChild(inputQuantity);
+
+                const label = document.createElement('label');
+                label.setAttribute('for', 'weight'); // Set the 'for' attribute
+                label.textContent = 'Weight:';
+                container.appendChild(label);
+
+                const inputWeight = document.createElement('input');
+                inputWeight.setAttribute('type', 'number');        // Set the type to 'number'
+                inputWeight.setAttribute('id', 'weightInput');          // Set the id
+                inputWeight.setAttribute('name', 'weight');        // Set the name attribute
+                inputWeight.setAttribute('min', '0');              // Set the minimum value
+                inputWeight.setAttribute('max', '500');            // Set the maximum value
+                inputWeight.setAttribute('step', '0.1');           // Set the step value
+                inputWeight.setAttribute('placeholder', 'Enter weight'); // Set the placeholder text
+                inputWeight.setAttribute('required', '');          // Set the input to be required
+                container.appendChild(inputWeight);
+                const labelForWeight = document.createElement('span');
+                labelForWeight.textContent = 'Kg';
+                container.appendChild(labelForWeight);
+
                 let submitButton = document.getElementById('submitTaskform');
                 if(submitButton.getAttribute('data-option') === 'edit'){
                     document.getElementById('packageTypeSelect').disabled = false;
@@ -736,7 +773,10 @@ function setTaskValues(taskId){
             timeBeginField.value            =   data.time.begin;
             timeEndField.value              =   data.time.end;
             if(data.package !== 'none'){
-                addInfoAboutPackageToTaskModal(data.package);
+                addInfoAboutPackageToTaskModal(data.package).then(()=>{
+                    document.getElementById('weightInput').value = data.package.weight;
+                    console.log(data.package);
+                });
                 showPackageDiv(true);
 
             }else{
@@ -810,7 +850,7 @@ function appendTaskToContainer(container,task,buttonClicked){
     // Create the main 'row' div
     let taskRow = document.createElement('div');
     taskRow.className = 'row';
-    taskRow.id = 'container-task-0';
+    taskRow.id = 'container-task-'+task.id;
 
     // Create and append each column to the row
     taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task,buttonClicked),task.id));
@@ -840,6 +880,14 @@ function setJobValues(jobId,buttonClicked){
     const clientIdField =   document.getElementById('clientIdField');
     const jobDateField =   document.getElementById('jobDateField');
     const containerTasks =   document.getElementById('container-tasks');
+
+    const price_total_field         =   document.getElementById('total_Price_DisplayField');
+    const distance_total_field      =   document.getElementById('total_distance_DisplayField');
+    const price_distance_field      =   document.getElementById('total_distance_price_DisplayField');
+    const price_weight_field        =   document.getElementById('total_weight_price_DisplayField');
+    const weight_total_field        =   document.getElementById('total_weight_DisplayField');
+    const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
+
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
     if(jobId === 0){return;}
@@ -867,6 +915,12 @@ function setJobValues(jobId,buttonClicked){
             data.tasks.forEach(function(task){
                 appendTaskToContainer(containerTasks,task,buttonClicked);
             });
+            price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
+            distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
+            price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
+            price_weight_field.innerHTML = parseFloat(data.price.weight_price.price/100);
+            weight_total_field.innerHTML = parseFloat(data.price.weight_price.value).toFixed(3);
+            price_postalCode_field.innerHTML = parseFloat(data.price.price_OutOfZone/100,2);
                           
         })
         .catch(error => {
@@ -932,39 +986,24 @@ function updateTask(data,route){
         return response.json();
     })
     .then(data => {
-        console.log(data); // Log the success message
         // Optionally handle the response data, e.g., update UI
-        console.log(document.getElementById('jobid').value);
+        console.log('Function : updateTask(data,route)');
+        console.log('Function parameters begin.:');
+        console.log(data);
+        console.log('-=-=-=-=-')
+        console.log(route);
+        console.log('Function parameters end.')
+        console.log('document.getElementById(`idField`).value :'+ document.getElementById('idField').value);
         setJobValues(
-            document.getElementById('jobid').value,
-            global_typeOfButtonClickedToOpenJobModal
-        );
+                document.getElementById('idField').value,
+                global_typeOfButtonClickedToOpenJobModal
+            );
     })
     .catch(error => {
         console.error('Error:', error.message); // Log any errors
         // Optionally handle errors, e.g., display an error message
     });
 }
-// function fetchJobs(page = 1){
-//     const searchValue_id =  document.getElementById('search-id').value;
-//     const searchValue_clientName =  document.getElementById('search-clientName').value;
-//     const searchValue_date =  document.getElementById('search-date').value;
-//     const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
-//     const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
-
-//     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-//     const xhr = new XMLHttpRequest();
-
-//     xhr.open('GET', `{{ route('job.fetch') }}?id=${searchValue_id}&name=${searchValue_clientName}&date=${searchValue_date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
-//     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-
-//     xhr.onload = function() {
-//         if (xhr.status === 200) {
-//             const data = JSON.parse(xhr.responseText);
-//         }
-//     }
-//     xhr.send();
-// }
 function fetchJobs(page = 1) {
     const id = document.getElementById('search-id').value;
     const clientName = document.getElementById('search-clientName').value;
@@ -1374,15 +1413,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 end     :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeEnd').value,
             },
             date        :   document.getElementById('jobDateField').value,
+               
         }
         if(typeField.value == 'dropOff'){
             updateData.package = {
-                type: document.getElementById('packageTypeSelect').value,
-                quantity: document.getElementById('quantityInput').value,
+                type        : document.getElementById('packageTypeSelect').value,
+                quantity    : document.getElementById('quantityInput').value,
+                weight      : document.getElementById('weightInput').value,
             }
         }
-
         updateTask(updateData,route);
+        $('#jobModalWindow').modal('show');
+        $('#taskModalWindow').modal('hide');
     });
     document.getElementById('submitform').addEventListener('click', function(event) {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;

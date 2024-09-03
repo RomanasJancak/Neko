@@ -123,17 +123,30 @@ class Job extends Model
                 $return = $task;
             }
         }
+        //=============TBD FIX SHORTEST PATH ==== Dabar tiesiog is eiles sudeda
+        /*
         $distanceToNearestDropOff = PHP_INT_MAX;
+        
         foreach($dropOffs as $dropOff){
             $distance = Distance::getDistance($pickup->fullAddress(),$dropOff->fullAddress());
             if($distance < $distanceToNearestDropOff){
                 $distanceToNearestDropOff = $distance;
             }
         }
+        */
+        $tempDropOffs = $dropOffs;
+        $distanceToNearestDropOff = 0;
+        $lastPoint = $pickup;
+        foreach($dropOffs as $dropOff){
+            $distance = Distance::getDistance($lastPoint->fullAddress(),$dropOff->fullAddress());
+            $lastPoint = $dropOff;
+            $distanceToNearestDropOff+= $distance;    
+        } 
         return $distanceToNearestDropOff;
     }
-    public function distancePrice(){
+    public function price_distance(){
         $distance = $this->findShortestDistance()*0.0006213712;
+        $returnDistance = $distance;
         $freeMile = 1;
         $tresholds = [
             [
@@ -152,7 +165,7 @@ class Job extends Model
             ]
         ];
         $price_distance = 0;
-        if($distance < 1){
+        if($distance < $freeMile){
             $price_distance = 0;
         }else{
             $lastTreshold = array_pop($tresholds);
@@ -169,9 +182,18 @@ class Job extends Model
             }
         }
 
-        return $price_distance;
+        return [
+            'value' =>  $returnDistance,
+            'price' =>  $price_distance,
+        ];
     }
-    public function outsidePostalCodeZone(){
+    private function isPostalCodeInsideList($postalCode,$list){
+        $firstPart = strtoupper(explode(' ', $postalCode)[0]);
+        return in_array($firstPart, $list);
+    }
+    public function price_outsidePostalCodeZone(){
+        $price = 0;
+        $outOfZonePrice = 600;
         $postalCodes = [
                         'N1','N4','N5','N7','N16','N19',
                         'W1',
@@ -179,11 +201,65 @@ class Job extends Model
                         'WC1','WC2',
                         'EC1','EC2','EC3','EC4',
                         'E1','E2','E5','E8','E9',];
-                        
+        foreach($this->tasks as $task){
+            if(!$this->isPostalCodeInsideList($task->postalCode(),$postalCodes)){
+                $price = $outOfZonePrice;
+                break;
+            }
+        }
+        return $price;                
+    }
+    public function price_weight(){
+        $price = 0;
+        $price_weight = 0;
+        $dropOffs = [];
+        $weight = 0;
+        $freeWeight = 20.00;
+        $tresholds = [
+            [
+                'treshold'      => 20.00,
+                'price'         => 100,
+                'charginStep'   =>  10
+            ],
+        ];
+        foreach($this->tasks as $task){
+            if($task->type() == 'dropOff'){
+                $dropOffs[] = $task;
+            }
+        }
+        foreach($dropOffs as $dropOff){
+            $weight+=$dropOff->package->weight;
+        }
+        if($weight < $freeWeight){
+            $price_weight = 0;
+        }else{
+            $lastTreshold = array_pop($tresholds);
+            while($lastTreshold != null){
+                while($weight > $lastTreshold['treshold']){
+                    if(($weight - $lastTreshold['charginStep']) < $lastTreshold['treshold']){
+                        $weight = $lastTreshold['treshold'] - 0.000001;
+                    }else{
+                        $weight -= $lastTreshold['charginStep'];
+                    }
+                    $price_weight += $lastTreshold['price'];
+                }
+                $lastTreshold = array_pop($tresholds);
+            }
+        }
+        return  [
+                    'value' =>  $weight,
+                    'price' =>  $price_weight,
+                ];
     }
     public function price(){
         $price = 0;
-        $price+=$this->distancePrice();
-        return $price;
+        //$price+=$this->price_distance();
+        //$price+=$this->price_outsidePostalCodeZone();//TBD
+        return [
+            'totalPrice'        =>  $this->price_distance()['price']+$this->price_outsidePostalCodeZone()+$this->price_weight()['price'],
+            'price_Distance'    =>  $this->price_distance(),
+            'price_OutOfZone'   =>  $this->price_outsidePostalCodeZone(),
+            'weight_price'      =>  $this->price_weight(),
+        ];
     }
 }
