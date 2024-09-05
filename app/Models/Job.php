@@ -12,6 +12,11 @@ class Job extends Model
 
     static $snakeAttributes = false;
 
+    private $workShift_Begin    = "08:00:00";
+    private $workShift_End      = "16:00:00";
+    private $workingHours_minimum = "07:00:00";
+    private $workingHours_maximum = "17:00:00";
+    private $timeWindowSize_minimumJourneyTime = "00:15:00";
     protected $fillable = [
         'eilesNumeris',
         'courrier_id',
@@ -47,7 +52,6 @@ class Job extends Model
         
         return $this->belongsTo(Client::class, 'receiver_id');
     }
-
     public function courier()
     {
         return $this->belongsTo(User::class, 'courrier_id');
@@ -62,12 +66,10 @@ class Job extends Model
     public function pickupAddressShort(){
         return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode;
     }
-    public function group()
-    {
+    public function group(){
         return $this->belongsTo(Group::class, 'group_id');
     }
-    public function invoice()
-    {
+    public function invoice(){
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
     public function tasks(){
@@ -250,6 +252,9 @@ class Job extends Model
                     'value' =>  $weight,
                     'price' =>  $price_weight,
                 ];
+    }
+    public function workShiftComparison(){
+
     }
     public function price(){
         $price = 0;
