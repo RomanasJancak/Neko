@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pricings', function (Blueprint $table) {
+        Schema::create('client_pricing', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('name');
-            $table->unsignedBigInteger('value');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->foreignId('client_id')->constrained()->onDelete('cascade');
+            $table->foreignId('pricing_rule_id')->constrained()->onDelete('cascade');
         });
     }
 
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pricings');
+        Schema::dropIfExists('client_pricing');
     }
 };

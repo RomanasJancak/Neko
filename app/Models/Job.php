@@ -12,6 +12,15 @@ class Job extends Model
 
     static $snakeAttributes = false;
 
+    private $addOns             =   [];
+    private $addOns_distance    =   [];
+    private $addOns_weight      =   [];
+    private $addOns_time        =   [];
+    private $addOns_postalCode  =   [];
+    private $packages_zero      =   [];
+    private $price_oversize     =   0;
+    private $price_oversize_status     =   0;
+    
     private $workShift_Begin    = "08:00:00";
     private $workShift_End      = "16:00:00";
     private $workingHours_minimum = "07:00:00";
@@ -148,39 +157,34 @@ class Job extends Model
     }
     public function price_distance(){
         $distance = $this->findShortestDistance()*0.0006213712;
+        $thresholds = [];
+        
+        foreach($this->addOns_distance as $addOn){
+            if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
+                $thresholds[] = [
+                    'threshold' => $matches[1],
+                    'price'     => $addOn['price'],
+                    'charginStep'   =>  $matches[2],
+                ];
+            }
+        }
         $returnDistance = $distance;
         $freeMile = 1;
-        $tresholds = [
-            [
-                'treshold'      => 1,
-                'price'         => 100,
-                'charginStep'   =>  0.5
-            ],
-            [
-                'treshold'      => 5,
-                'price'         => 150,
-                'charginStep'   =>  0.5
-            ],[
-                'treshold'  => 6,
-                'price'     => 300,
-                'charginStep'   =>  1
-            ]
-        ];
         $price_distance = 0;
         if($distance < $freeMile){
             $price_distance = 0;
         }else{
-            $lastTreshold = array_pop($tresholds);
+            $lastTreshold = array_pop($thresholds);
             while($lastTreshold != null){
-                while($distance > $lastTreshold['treshold']){
-                    if(($distance - $lastTreshold['charginStep']) < $lastTreshold['treshold']){
-                        $distance = $lastTreshold['treshold'] - 0.000001;
+                while($distance > $lastTreshold['threshold']){
+                    if(($distance - $lastTreshold['charginStep']) < $lastTreshold['threshold']){
+                        $distance = $lastTreshold['threshold'] - 0.000001;
                     }else{
                         $distance -= $lastTreshold['charginStep'];
                     }
                     $price_distance += $lastTreshold['price'];
                 }
-                $lastTreshold = array_pop($tresholds);
+                $lastTreshold = array_pop($thresholds);
             }
         }
 
@@ -195,7 +199,7 @@ class Job extends Model
     }
     public function price_outsidePostalCodeZone(){
         $price = 0;
-        $outOfZonePrice = 600;
+        $outOfZonePrice = $this->addOns_postalCode[0]['price'];
         $postalCodes = [
                         'N1','N4','N5','N7','N16','N19',
                         'W1',
@@ -212,18 +216,21 @@ class Job extends Model
         return $price;                
     }
     public function price_weight(){
+        $thresholds = [];
         $price = 0;
         $price_weight = 0;
         $dropOffs = [];
         $weight = 0;
         $freeWeight = 20.00;
-        $tresholds = [
-            [
-                'treshold'      => 20.00,
-                'price'         => 100,
-                'charginStep'   =>  10
-            ],
-        ];
+        foreach($this->addOns_distance as $addOn){
+            if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
+                $thresholds[] = [
+                    'threshold' => $matches[1],
+                    'price'     => $addOn['price'],
+                    'charginStep'   =>  $matches[2],
+                ];
+            }
+        }
         foreach($this->tasks as $task){
             if($task->type() == 'dropOff'){
                 $dropOffs[] = $task;
@@ -235,17 +242,17 @@ class Job extends Model
         if($weight < $freeWeight){
             $price_weight = 0;
         }else{
-            $lastTreshold = array_pop($tresholds);
+            $lastTreshold = array_pop($thresholds);
             while($lastTreshold != null){
-                while($weight > $lastTreshold['treshold']){
-                    if(($weight - $lastTreshold['charginStep']) < $lastTreshold['treshold']){
-                        $weight = $lastTreshold['treshold'] - 0.000001;
+                while($weight > $lastTreshold['threshold']){
+                    if(($weight - $lastTreshold['charginStep']) < $lastTreshold['threshold']){
+                        $weight = $lastTreshold['threshold'] - 0.000001;
                     }else{
                         $weight -= $lastTreshold['charginStep'];
                     }
                     $price_weight += $lastTreshold['price'];
                 }
-                $lastTreshold = array_pop($tresholds);
+                $lastTreshold = array_pop($thresholds);
             }
         }
         return  [
@@ -253,18 +260,201 @@ class Job extends Model
                     'price' =>  $price_weight,
                 ];
     }
-    public function workShiftComparison(){
+    public function convertToCarbonTime($timeString) {
+        // Pad the time string to ensure it's at least 4 characters long (e.g., "900" becomes "0900")
+        $timeString = str_pad($timeString, 4, '0', STR_PAD_LEFT);
+        
+        // Extract the hours and minutes from the string
+        $hours = substr($timeString, 0, -2); // First part for hours
+        $minutes = substr($timeString, -2);  // Last two characters for minutes
+    
+        // Create a Carbon instance for today's date with the extracted time
+        return Carbon::createFromTime($hours, $minutes);
+    }
+    private function calculateOverlap(Carbon $shiftStart, Carbon $shiftEnd, Carbon $eventStart, Carbon $eventEnd)
+    {
+        $shiftStart = $shiftStart->setDate(1970, 1, 1);
+        $shiftEnd = $shiftEnd->setDate(1970, 1, 1);
+        $eventStart = $eventStart->setDate(1970, 1, 1);
+        $eventEnd = $eventEnd->setDate(1970, 1, 1);
+        // Calculate the overlap in minutes using min and max
 
+        if ($eventEnd <= $shiftStart || $eventStart >= $shiftEnd) {
+            // No overlap
+            return 0;
+        }
+        $overlapMinutes = max(0, min($shiftEnd, $eventEnd)->diffInMinutes(max($shiftStart, $eventStart)));
+    
+        // Convert the overlap to decimal hours
+        $overlapHours = $overlapMinutes / 60;
+    
+        // Return the overlap in decimal hours
+        return round($overlapHours, 2);  // Rounded to 2 decimal places
+        //return max($shiftStart, $eventStart);
+        //return min($shiftEnd, $eventEnd);
+        //return min($shiftEnd, $eventEnd)->diffInMinutes(max($shiftStart, $eventStart));
+        
+    }
+    public function price_timing(){
+        $pickup_normal_begin    =   ''; $pickup_normal_end = '';
+        $dropoff_normal_begin   =   ''; $dropoff_normal_end = '';
+        $pickup_max_begin    =   ''; $pickup_max_end = '';
+        $dropoff_max_begin   =   ''; $dropoff_max_end = '';
+
+        
+        foreach($this->addOns_time as $addOn){
+            if(preg_match('/time-normalworktime-pickup-begin-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $pickup_normal_begin = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-normalworktime-pickup-end-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $pickup_normal_end = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-normalworktime-dropoff-begin-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $dropoff_normal_begin = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-normalworktime-dropoff-end-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $dropoff_normal_end = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+
+            if(preg_match('/time-maxworktime-pickup-begin-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $pickup_max_begin = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-maxworktime-pickup-end-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $pickup_max_end = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-maxworktime-dropoff-begin-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $dropoff_max_begin = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+            if(preg_match('/time-maxworktime-dropoff-end-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $dropoff_max_end = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
+            }
+
+        }
+        $pickup_price = 0;
+        $dropOff_price = 0;
+        $dropOff_price = 0;
+        $overlap = 0;
+        $outsideNormalWh = 0;
+        $window = '';
+        foreach($this->tasks as $task){
+            if($task->type() ==='pickup'){
+                $overlap =  $this->calculateOverlap($pickup_normal_begin,$pickup_normal_end,Carbon::parse($task->timeWindowBegin()),Carbon::parse($task->timeWindowEnd()));
+                if($overlap < (($pickup_normal_begin->diffInMinutes($pickup_normal_end))/60)){
+                    $window = (Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin())))/60;
+                    $outsideNormalWh = $window - $overlap;
+                    $totalHours = $outsideNormalWh + $overlap;
+                    $pickup_price = 4/$window+$outsideNormalWh*0.5;
+                }else{
+                    $pickup_price = 0;
+                }
+            }
+            else if($task->type() ==='dropOff'){
+                $overlap =  $this->calculateOverlap(
+                    $dropoff_normal_begin,$dropoff_normal_end,
+                    Carbon::parse($task->timeWindowBegin()),Carbon::parse($task->timeWindowEnd()));
+                if($overlap < (($dropoff_normal_begin->diffInMinutes($dropoff_normal_end))/60)){
+                    $window = (Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin())))/60;
+                    $outsideNormalWh = $window - $overlap;
+                    $dropOff_price += 4/$window+$outsideNormalWh*0.5;
+                }else{
+
+                }
+            }
+        }
+        return [
+            'price' => ($pickup_price+$dropOff_price)*100,
+            'pickup_price'  => $pickup_price*100,
+            'dropOff_price'  => $dropOff_price*100,
+        ];
+    }
+    public function price_packages(){
+        $price = 0;
+        foreach($this->tasks as $task){
+            if($task->type() ==='dropOff'){
+                $this->packages_zero[] = [
+                    'price' => $task->package->packageType->price,
+                    'quantity'  => $task->package->quantity,
+                    'baseQuantityThreshold' => $task->package->packageType->baseQuantityThreshold,
+                ];
+
+            }
+        }
+        $oversize = false;
+        $tempPrice = 0;
+        foreach($this->packages_zero as $package){
+                        
+            if($package['quantity'] > $package['baseQuantityThreshold']){
+                $oversize = true;
+            }
+            $tempPrice += $package['price'];
+        }
+        if($oversize){
+            $price+= $this->price_oversize;
+        }
+        $price+=$tempPrice;
+        return ['price' => $price];
+    }
+    public function oversizePrice(){
+        if($this->price_oversize_status){
+            return $this->price_oversize;
+        }
+        return 0;
+    }
+    public function populateVariables(){
+
+        $this->addOns = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient('2024-09-03',$this->clientToBill->id),true);
+        foreach ($this->addOns as $addOn) {
+            if (strpos($addOn['name'], 'distance-') === 0) {
+                $this->addOns_distance[] = $addOn;
+            }
+            if (strpos($addOn['name'], 'weight-') === 0) {
+                $this->addOns_weight[] = $addOn;
+            }
+            if (strpos($addOn['name'], 'time-') === 0) {
+                $this->addOns_time[] = $addOn;
+            }
+            if (strpos($addOn['name'], 'postalcodes-') === 0) {
+                $this->addOns_postalCode[] = $addOn;
+            }
+            if (strpos($addOn['name'], 'package-oversize') === 0) {
+                $this->price_oversize = $addOn['price'];
+            }
+        }
     }
     public function price(){
+        $this->populateVariables();
+
         $price = 0;
+        $price+=$this->price_distance()['price'];
+        $price+=$this->price_outsidePostalCodeZone();
+        $price+=$this->price_weight()['price'];
+        $price+=$this->price_timing()['price'];
+        $price+=$this->price_packages()['price'];
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
-            'totalPrice'        =>  $this->price_distance()['price']+$this->price_outsidePostalCodeZone()+$this->price_weight()['price'],
-            'price_Distance'    =>  $this->price_distance(),
-            'price_OutOfZone'   =>  $this->price_outsidePostalCodeZone(),
-            'weight_price'      =>  $this->price_weight(),
+            //'test'              =>  (strpos($this->addOns[0]['name'], 'postalcodes-') === 0),
+            //  'addOns'            =>  $this->addOns,
+            // 'addOns_distance'   =>  $this->addOns_distance,
+            //'addOns_weight'     =>  $this->addOns_weight,
+            //'addOns_time'       =>  $this->addOns_time,
+            //'addOns_postalCode' =>  $this->addOns_postalCode,
+            'totalPrice'            =>  $price,
+            'price_Distance'        =>  $this->price_distance(),
+            'price_OutOfZone'       =>  $this->price_outsidePostalCodeZone(),
+            'weight_price'          =>  $this->price_weight(),
+            'timing_price'          =>  $this->price_timing(),
+            'price-package_type&qt' =>  $this->price_packages(),
+            'price_oversize'        =>  $this->oversizePrice(),
+
         ];
     }
 }

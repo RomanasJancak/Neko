@@ -290,7 +290,10 @@
                             </div>
                             <div class="row justify-content-md-center">
                                 <div class="col">
-                                    <button type="button" id="createNewTask" data-option="create" class="btn btn-primary">Create new Task</button>
+                                    <button type="button" id="createNewTask" data-option="create" class="btn btn-primary ">Create new Task</button>
+                                    <button type="button" id="createNewPickup"data-type="specifictask" data-option="pickup" class="btn btn-primary">+Pickup</button>
+                                    <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+DropOff</button>
+                                    <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+Return</button>
                                 </div>
                             </div>
                         </form>
@@ -334,6 +337,17 @@
                             <span>Outside Zone Price : </span><span>&#163;</span><span id="total_outsideZone_price_DisplayField">0.00</span>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <span>Total timing : </span><span>&#163;</span><span id="total_timing_price_DisplayField">0.00</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Price from pickup : </span><span>&#163;</span><span id="pickup_timing_price_DisplayField">0.00</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Price from dropOff : </span><span>&#163;</span><span id="dropoff_timing_price_DisplayField">0.00</span>
+                        </div>
+                    </div>
                 </div>            
             </div>
         </div>
@@ -349,7 +363,7 @@
                     @csrf
                     <div class="row justify-content-md-center">
                         <div class="col">
-                            <h5>Task creation window</h5>
+                            <h5 id="taskWIndow_name">Task creation window</h5>
                         </div>
                     </div>
                     <div class="row justify-content-md-center">
@@ -594,7 +608,17 @@ function addEventListenerToButton(button){
             submitButton.textContent  = 'Confirm creation';
             let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
             if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
-                console.log('Listener for button clicked');
+                createJob();
+            }
+        }else if(false){
+            setReadOnlyToFieldsOfTaskModal(false);
+            document.getElementById('taskIdField').disabled = true;
+            cleanTaskCreateWindow();
+            button.setAttribute('data-option', 'create');            
+            submitButton.setAttribute('data-option', 'create');
+            submitButton.textContent  = 'Confirm creation';
+            let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
+            if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
                 createJob();
             }
         }else{
@@ -887,6 +911,9 @@ function setJobValues(jobId,buttonClicked){
     const price_weight_field        =   document.getElementById('total_weight_price_DisplayField');
     const weight_total_field        =   document.getElementById('total_weight_DisplayField');
     const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
+    const total_timing_price_DisplayField   =   document.getElementById('total_timing_price_DisplayField');
+    const pickup_timing_price_DisplayField   =   document.getElementById('pickup_timing_price_DisplayField');
+    const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
 
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
@@ -921,6 +948,10 @@ function setJobValues(jobId,buttonClicked){
             price_weight_field.innerHTML = parseFloat(data.price.weight_price.price/100);
             weight_total_field.innerHTML = parseFloat(data.price.weight_price.value).toFixed(3);
             price_postalCode_field.innerHTML = parseFloat(data.price.price_OutOfZone/100,2);
+            total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
+            pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
+            dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
+
                           
         })
         .catch(error => {

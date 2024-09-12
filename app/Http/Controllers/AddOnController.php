@@ -63,4 +63,23 @@ class AddOnController extends Controller
     {
         //
     }
+    public function createBackup()
+    {
+        $clients = AddOn::all();        
+        $columns = Schema::getColumnListing('add_ons'); 
+
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($clients as $client) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $client->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = resource_path('files/backups/AddOn/add_on.backup_'.$timestamp.'.csv');
+
+        file_put_contents($file_path, $csvData);
+        return redirect()->back()->with('succeses', 'Client backup created successfully.');
+    }
 }
