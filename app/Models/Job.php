@@ -300,6 +300,7 @@ class Job extends Model
         $dropoff_normal_begin   =   ''; $dropoff_normal_end = '';
         $pickup_max_begin    =   ''; $pickup_max_end = '';
         $dropoff_max_begin   =   ''; $dropoff_max_end = '';
+        $normalworktime_cof =   ''; $maxworktime_cof    =   '';
 
         
         foreach($this->addOns_time as $addOn){
@@ -336,6 +337,12 @@ class Job extends Model
                 $timeString = str_pad($matches[1], 4, '0', STR_PAD_LEFT);
                 $dropoff_max_end = Carbon::createFromTime(substr($timeString, 0, 2), substr($timeString, 2, 2));
             }
+            if(preg_match('/time-normalworktime-cof/', $addOn['name'], $matches)){//time-normalworktime-cof
+                $normalworktime_cof = $addOn['price'];
+            }
+            if(preg_match('/time-maxworktime-cof/', $addOn['name'], $matches)){
+                $maxworktime_cof = $addOn['price'];
+            }
 
         }
         $pickup_price = 0;
@@ -351,7 +358,7 @@ class Job extends Model
                     $window = (Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin())))/60;
                     $outsideNormalWh = $window - $overlap;
                     $totalHours = $outsideNormalWh + $overlap;
-                    $pickup_price = 4/$window+$outsideNormalWh*0.5;
+                    $pickup_price = ($normalworktime_cof/100)/$window+$outsideNormalWh*($maxworktime_cof/100);
                 }else{
                     $pickup_price = 0;
                 }
@@ -363,7 +370,9 @@ class Job extends Model
                 if($overlap < (($dropoff_normal_begin->diffInMinutes($dropoff_normal_end))/60)){
                     $window = (Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin())))/60;
                     $outsideNormalWh = $window - $overlap;
+                    ////
                     $dropOff_price += 4/$window+$outsideNormalWh*0.5;
+                    ////
                 }else{
 
                 }
@@ -410,7 +419,7 @@ class Job extends Model
     }
     public function populateVariables(){
 
-        $this->addOns = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient('2024-09-03',$this->clientToBill->id),true);
+        $this->addOns = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($this->date,$this->clientToBill->id),true);
         foreach ($this->addOns as $addOn) {
             if (strpos($addOn['name'], 'distance-') === 0) {
                 $this->addOns_distance[] = $addOn;
