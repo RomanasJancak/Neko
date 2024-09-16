@@ -169,7 +169,10 @@ class Job extends Model
             }
         }
         $returnDistance = $distance;
-        $freeMile = 1;
+        usort($thresholds, function ($a, $b) {
+            return $a['threshold'] <=> $b['threshold'];
+        });
+        $freeMile = $thresholds[0]['threshold'];
         $price_distance = 0;
         if($distance < $freeMile){
             $price_distance = 0;
@@ -191,6 +194,7 @@ class Job extends Model
         return [
             'value' =>  $returnDistance,
             'price' =>  $price_distance,
+            '$freeMile' => $freeMile,
         ];
     }
     private function isPostalCodeInsideList($postalCode,$list){
@@ -222,7 +226,7 @@ class Job extends Model
         $dropOffs = [];
         $weight = 0;
         $freeWeight = 20.00;
-        foreach($this->addOns_distance as $addOn){
+        foreach($this->addOns_weight as $addOn){
             if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
                 $thresholds[] = [
                     'threshold' => $matches[1],
@@ -239,6 +243,10 @@ class Job extends Model
         foreach($dropOffs as $dropOff){
             $weight+=$dropOff->package->weight;
         }
+        usort($thresholds, function ($a, $b) {
+            return $a['threshold'] <=> $b['threshold'];
+        });
+        $freeWeight  = $thresholds[0]['threshold'];
         if($weight < $freeWeight){
             $price_weight = 0;
         }else{
@@ -258,6 +266,7 @@ class Job extends Model
         return  [
                     'value' =>  $weight,
                     'price' =>  $price_weight,
+                    'freeWeight' => $freeWeight,
                 ];
     }
     public function convertToCarbonTime($timeString) {
@@ -271,8 +280,7 @@ class Job extends Model
         // Create a Carbon instance for today's date with the extracted time
         return Carbon::createFromTime($hours, $minutes);
     }
-    private function calculateOverlap(Carbon $shiftStart, Carbon $shiftEnd, Carbon $eventStart, Carbon $eventEnd)
-    {
+    private function calculateOverlap(Carbon $shiftStart, Carbon $shiftEnd, Carbon $eventStart, Carbon $eventEnd){
         $shiftStart = $shiftStart->setDate(1970, 1, 1);
         $shiftEnd = $shiftEnd->setDate(1970, 1, 1);
         $eventStart = $eventStart->setDate(1970, 1, 1);
@@ -371,7 +379,7 @@ class Job extends Model
                     $window = (Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin())))/60;
                     $outsideNormalWh = $window - $overlap;
                     ////
-                    $dropOff_price += 4/$window+$outsideNormalWh*0.5;
+                    $dropOff_price += ($normalworktime_cof/100)/$window+$outsideNormalWh*($maxworktime_cof/100);
                     ////
                 }else{
 
@@ -382,34 +390,62 @@ class Job extends Model
             'price' => ($pickup_price+$dropOff_price)*100,
             'pickup_price'  => $pickup_price*100,
             'dropOff_price'  => $dropOff_price*100,
+            'normalworktime_cof' => $normalworktime_cof,
+            '$maxworktime_cof' => $maxworktime_cof,
         ];
     }
     public function price_packages(){
         $price = 0;
-        foreach($this->tasks as $task){
-            if($task->type() ==='dropOff'){
-                $this->packages_zero[] = [
-                    'price' => $task->package->packageType->price,
-                    'quantity'  => $task->package->quantity,
-                    'baseQuantityThreshold' => $task->package->packageType->baseQuantityThreshold,
-                ];
-
+        $packages = [];
+    
+        // Step 1: Loop through tasks and accumulate packages by type (id)
+        foreach ($this->tasks as $task) {
+            if ($task->type() === 'dropOff') {
+                $packageTypeId = $task->package->packageType->id;
+    
+                // If the package type already exists in the array, accumulate its quantity
+                if (isset($packages[$packageTypeId])) {
+                    $packages[$packageTypeId]['quantity'] += $task->package->quantity;
+                    $packages[$packageTypeId]['total_price'] += $task->package->packageType->price * $task->package->quantity;
+                } else {
+                    // Otherwise, add the new package type to the array
+                    $packages[$packageTypeId] = [
+                        'id'    => $task->package->packageType->id,
+                        'price' => $task->package->packageType->price,
+                        'quantity' => $task->package->quantity,
+                        'baseQuantityThreshold' => $task->package->packageType->baseQuantityThreshold,
+                        'total_price' => $task->package->packageType->price * $task->package->quantity, // Keep track of the total price for this package type
+                    ];
+                }
             }
         }
+    
         $oversize = false;
         $tempPrice = 0;
-        foreach($this->packages_zero as $package){
-                        
-            if($package['quantity'] > $package['baseQuantityThreshold']){
+    
+        // Step 2: Check if any of the total quantities exceed the base threshold and calculate total price
+        foreach ($packages as $package) {
+            if ($package['quantity'] > $package['baseQuantityThreshold']) {
                 $oversize = true;
+                $this->price_oversize_status = true;
             }
-            $tempPrice += $package['price'];
+            $tempPrice += $package['total_price']; // Add the total price for this package type
         }
-        if($oversize){
-            $price+= $this->price_oversize;
+    
+        // Step 3: Add oversize price if any package exceeds baseQuantityThreshold
+        if ($oversize) {
+            $price += $this->price_oversize;
         }
-        $price+=$tempPrice;
-        return ['price' => $price];
+    
+        // Step 4: Add the base price of all packages
+        $price += $tempPrice;
+    
+        // Step 5: Return the calculated price
+        return [
+            'price' => $price,
+            'packages'  =>  $packages,
+            'oversize'  => $oversize,
+        ];
     }
     public function oversizePrice(){
         if($this->price_oversize_status){
@@ -462,7 +498,8 @@ class Job extends Model
             'weight_price'          =>  $this->price_weight(),
             'timing_price'          =>  $this->price_timing(),
             'price-package_type&qt' =>  $this->price_packages(),
-            'price_oversize'        =>  $this->oversizePrice(),
+            'price_oversize_added'  =>  $this->oversizePrice(),
+            'price_oversize_value'  =>  $this->price_oversize,
 
         ];
     }

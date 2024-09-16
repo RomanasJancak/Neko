@@ -14,7 +14,19 @@ return new class extends Migration
         Schema::create('postal_codes', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('name');
+            $table->string('name')->nullable();
+            // Postal code components
+            $table->string('postal_code', 8)->unique(); // Full postal code with a max length of 8 characters
+            $table->string('outward_code', 4); // Outward part of the postal code
+            $table->string('inward_code', 4); // Inward part of the postal code
+
+            // Optional additional fields
+            $table->string('area')->nullable(); // Postal area (e.g., first one or two letters of outward code)
+            $table->string('district')->nullable(); // Postal district (the rest of the outward code)
+            $table->string('sector')->nullable(); // Postal sector (first digit of inward code)
+            $table->string('unit')->nullable(); // Postal unit (last two characters of inward code)
+            
+                       
         });
     }
 
