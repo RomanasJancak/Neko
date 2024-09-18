@@ -247,10 +247,13 @@ class Job extends Model
             return $a['threshold'] <=> $b['threshold'];
         });
         $freeWeight  = $thresholds[0]['threshold'];
+        $thresholds2  = $thresholds;
+        $information = [];
         if($weight < $freeWeight){
             $price_weight = 0;
         }else{
             $lastTreshold = array_pop($thresholds);
+            $step = [];
             while($lastTreshold != null){
                 while($weight > $lastTreshold['threshold']){
                     if(($weight - $lastTreshold['charginStep']) < $lastTreshold['threshold']){
@@ -260,13 +263,22 @@ class Job extends Model
                     }
                     $price_weight += $lastTreshold['price'];
                 }
+                $step[] = [
+                    'lastThreshold' => $lastTreshold,
+                    'if(($weight - $lastTreshold[`charginStep`]) `<` $lastTreshold[`threshold`])' => (($weight - $lastTreshold['charginStep']) < $lastTreshold['threshold']),
+                    'priceSoFar' => $price_weight,
+                ];
                 $lastTreshold = array_pop($thresholds);
+                $information[] = $step;
+                $step  = [];
             }
         }
         return  [
                     'value' =>  $weight,
                     'price' =>  $price_weight,
                     'freeWeight' => $freeWeight,
+                    // 'thresholds' => $thresholds2,
+                    //'information' => $information,
                 ];
     }
     public function convertToCarbonTime($timeString) {
