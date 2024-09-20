@@ -225,7 +225,8 @@ class Job extends Model
         $price_weight = 0;
         $dropOffs = [];
         $weight = 0;
-        $freeWeight = 20.00;
+        $totalWeight = 0;
+        //$freeWeight = 20.00;
         foreach($this->addOns_weight as $addOn){
             if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
                 $thresholds[] = [
@@ -249,13 +250,14 @@ class Job extends Model
         $freeWeight  = $thresholds[0]['threshold'];
         $thresholds2  = $thresholds;
         $information = [];
+        $totalWeight = $weight;
         if($weight < $freeWeight){
             $price_weight = 0;
         }else{
             $lastTreshold = array_pop($thresholds);
             $step = [];
             while($lastTreshold != null){
-                while($weight > $lastTreshold['threshold']){
+                while($weight >= $lastTreshold['threshold']){
                     if(($weight - $lastTreshold['charginStep']) < $lastTreshold['threshold']){
                         $weight = $lastTreshold['threshold'] - 0.000001;
                     }else{
@@ -267,6 +269,7 @@ class Job extends Model
                     'lastThreshold' => $lastTreshold,
                     'if(($weight - $lastTreshold[`charginStep`]) `<` $lastTreshold[`threshold`])' => (($weight - $lastTreshold['charginStep']) < $lastTreshold['threshold']),
                     'priceSoFar' => $price_weight,
+                    'weight' => $weight,
                 ];
                 $lastTreshold = array_pop($thresholds);
                 $information[] = $step;
@@ -274,11 +277,11 @@ class Job extends Model
             }
         }
         return  [
-                    'value' =>  $weight,
+                    'value' =>  $totalWeight,
                     'price' =>  $price_weight,
                     'freeWeight' => $freeWeight,
-                    // 'thresholds' => $thresholds2,
-                    //'information' => $information,
+                    'thresholds' => $thresholds2,
+                    'information' => $information,
                 ];
     }
     public function convertToCarbonTime($timeString) {
@@ -419,6 +422,7 @@ class Job extends Model
                 if (isset($packages[$packageTypeId])) {
                     $packages[$packageTypeId]['quantity'] += $task->package->quantity;
                     $packages[$packageTypeId]['total_price'] += $task->package->packageType->price * $task->package->quantity;
+                    // $packages[$packageTypeId]['total_weight'] += $task->package->packageType->price * $task->package->quantity;
                 } else {
                     // Otherwise, add the new package type to the array
                     $packages[$packageTypeId] = [
