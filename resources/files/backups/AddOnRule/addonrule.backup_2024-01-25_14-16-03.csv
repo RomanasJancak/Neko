@@ -1,5 +1,0 @@
-begin_date,client_id,created_at,display_name,end_date,id,name,price,updated_at
-2024-01-22 00:00:00,1,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 23:59:59,1,job-distance-lessthan-3,200,2024-01-25 14:13:21
-2024-01-22 00:00:00,1,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 23:59:59,2,job-distance-lessthan-5,600,2024-01-25 14:13:21
-2024-01-22 00:00:00,1,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 23:59:59,3,job-distance-eachafter-5,300,2024-01-25 14:13:21
-2024-01-22 00:00:00,1,2024-01-25 14:13:21,Outside of service zone,2024-01-28 23:59:59,4,job-postalcodezones,600,2024-01-25 14:13:21

@@ -1,6 +1,0 @@
-begin_date,created_at,display_name,end_date,id,name,price,updated_at
-2024-01-22 00:00:00,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 00:00:00,1,job-distance-lessthan-3,200,2024-02-13 11:15:33
-2024-01-22 00:00:00,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 00:00:00,2,job-distance-lessthan-5,600,2024-02-13 11:15:37
-2024-01-22 00:00:00,2024-01-25 14:13:21,Up to 3 miles,2024-01-28 00:00:00,3,job-distance-eachafter-5,300,2024-02-13 11:15:41
-2024-01-22 00:00:00,2024-01-25 14:13:21,Outside of service zone,2024-01-28 00:00:00,4,job-postalcodezones,600,2024-02-13 11:15:44
-2024-01-01 00:00:00,2024-02-09 09:56:34,Oversize,2024-12-31 00:00:00,6,package-oversize,200,2024-02-09 09:56:34

@@ -421,7 +421,7 @@ class Job extends Model
                 // If the package type already exists in the array, accumulate its quantity
                 if (isset($packages[$packageTypeId])) {
                     $packages[$packageTypeId]['quantity'] += $task->package->quantity;
-                    $packages[$packageTypeId]['total_price'] += $task->package->packageType->price * $task->package->quantity;
+                    $packages[$packageTypeId]['total_price'] += $task->package->packageType->price;
                     // $packages[$packageTypeId]['total_weight'] += $task->package->packageType->price * $task->package->quantity;
                 } else {
                     // Otherwise, add the new package type to the array
@@ -430,7 +430,7 @@ class Job extends Model
                         'price' => $task->package->packageType->price,
                         'quantity' => $task->package->quantity,
                         'baseQuantityThreshold' => $task->package->packageType->baseQuantityThreshold,
-                        'total_price' => $task->package->packageType->price * $task->package->quantity, // Keep track of the total price for this package type
+                        'total_price' => $task->package->packageType->price, // Keep track of the total price for this package type
                     ];
                 }
             }
