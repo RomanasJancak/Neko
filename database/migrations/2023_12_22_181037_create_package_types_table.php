@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('name');
             $table->bigInteger('price');
             $table->unsignedBigInteger('baseQuantityThreshold');
-            $table->unsignedBigInteger('maxQuantityThreshold');            
+            $table->unsignedBigInteger('maxQuantityThreshold');
+            $table->boolean('is_fixed_price')->default(false);            
         });
     }
 
