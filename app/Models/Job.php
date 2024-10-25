@@ -318,6 +318,84 @@ class Job extends Model
         //return min($shiftEnd, $eventEnd)->diffInMinutes(max($shiftStart, $eventStart));
         
     }
+    public function new_price_timing(){
+        $pickup_price = null;
+        $dropOff_price = null;
+        $timeString = 0;
+        $timeArray_pickup = [];
+        $timeArray_dropoff = [];
+        // ================
+        foreach($this->addOns_time as $addOn){
+            if(preg_match('/time-pickup-window-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeValue  = (int)str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $timeArray_pickup[] = [
+                    'value' => $timeValue,
+                    'price' => $addOn['price'],
+                ];
+            }
+        }
+        usort($timeArray_pickup, function ($a, $b) {
+            return $a['value'] - $b['value'];
+        });
+        foreach($this->addOns_time as $addOn){
+            if(preg_match('/time-dropoff-window-([0-9.]+)/', $addOn['name'], $matches)){
+                $timeValue  = (int)str_pad($matches[1], 4, '0', STR_PAD_LEFT);
+                $timeArray_dropoff[] = [
+                    'value' => $timeValue,
+                    'price' => $addOn['price'],
+                ];
+            }
+        }
+        usort($timeArray_dropoff, function ($a, $b) {
+            return $a['value'] - $b['value'];
+        });
+        // ================
+        //echo count($this->tasks);
+        foreach($this->tasks as $task){
+            //echo $task->type();
+            if($task->type() ==='pickup'){
+                //echo 'yes';
+                
+                $dif = Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin()));
+                //echo $dif;
+                //echo $task->timeWindowEnd().' ';
+                //echo $task->timeWindowBegin().' ';
+                foreach ($timeArray_pickup as $item) {
+                    if($dif <= $item['value']){
+
+                        $pickup_price = $item['price'];
+
+                        break;
+                    }
+                }
+                if ($pickup_price === null) {
+                    $pickup_price = end($timeArray_pickup)['price'];
+                }
+            }
+            else if($task->type() ==='dropOff'){
+
+                $dif = Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin()));
+                foreach ($timeArray_dropoff as $item) {
+                    if($dif <= $item['value']){
+                        $dropOff_price = $item['price'];
+                        break;
+                    }
+                }
+                if ($dropOff_price === null) {
+                    $dropOff_price = end($timeArray_dropoff)['price'];
+                }
+            }
+        }
+        return [
+            //'tasks' => $this->tasks,
+            'price' => $pickup_price+$dropOff_price,
+            'pickup_price'  => $pickup_price,
+            'dropOff_price'  => $dropOff_price,
+            //'alltimeAddons' =>  $this->addOns_time,
+            'timeArray_pickup'  => $timeArray_pickup,
+            'timeArray_dropoff'  => $timeArray_dropoff,  
+        ];
+    }
     public function price_timing(){
         $pickup_normal_begin    =   ''; $pickup_normal_end = '';
         $dropoff_normal_begin   =   ''; $dropoff_normal_end = '';
@@ -497,7 +575,8 @@ class Job extends Model
         $price+=$this->price_distance()['price'];
         $price+=$this->price_outsidePostalCodeZone();
         $price+=$this->price_weight()['price'];
-        $price+=$this->price_timing()['price'];
+        //$price+=$this->price_timing()['price'];
+        $price+=$this->new_price_timing()['price'];
         $price+=$this->price_packages()['price'];
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
@@ -512,10 +591,11 @@ class Job extends Model
             'price_Distance'        =>  $this->price_distance(),
             'price_OutOfZone'       =>  $this->price_outsidePostalCodeZone(),
             'weight_price'          =>  $this->price_weight(),
-            'timing_price'          =>  $this->price_timing(),
+            //'old_timing_price'          =>  $this->price_timing(),
             'price-package_type&qt' =>  $this->price_packages(),
             'price_oversize_added'  =>  $this->oversizePrice(),
             'price_oversize_value'  =>  $this->price_oversize,
+            'timing_price'          =>  $this->new_price_timing(),
 
         ];
     }

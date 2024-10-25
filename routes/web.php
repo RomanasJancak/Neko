@@ -14,7 +14,7 @@ use App\Http\Controllers\StatusController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkloadController;
-
+use App\Http\Controllers\PostalCodeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -175,4 +175,12 @@ Route::group(['prefix'  => 'tasks'],function(){
     Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
     Route::post('createBackup',     [TaskController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
     Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
+});
+Route::group(['prefix'  => 'postalCode'],function(){
+    Route::get('',                  [PostalCodeController::class, 'index'])->name('postalCode.index')->middleware('auth');
+    // Route::post('update',           [PostalCodeController::class, 'update'])->name('task.update')->middleware('auth');
+    // Route::post('delete',           [PostalCodeController::class, 'destroy'])->name('task.delete')->middleware('auth');
+    // Route::post('store',            [PostalCodeController::class, 'store'])->name('task.store')->middleware('auth');
+    // Route::post('createBackup',     [PostalCodeController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
+    // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 });

@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PostalCode;
-use App\Http\Requests\StorePostalCodeRequest;
-use App\Http\Requests\UpdatePostalCodeRequest;
+use App\Models\ApprovedPostalCodeArea;
+use App\Http\Requests\StoreApprovedPostalCodeAreaRequest;
+use App\Http\Requests\UpdateApprovedPostalCodeAreaRequest;
 
-class PostalCodeController extends Controller
+class ApprovedPostalCodeAreaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('postalCode.index');
+        //
     }
 
     /**
@@ -27,7 +27,7 @@ class PostalCodeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePostalCodeRequest $request)
+    public function store(StoreApprovedPostalCodeAreaRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class PostalCodeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PostalCode $postalCode)
+    public function show(ApprovedPostalCodeArea $approvedPostalCodeArea)
     {
         //
     }
@@ -43,7 +43,7 @@ class PostalCodeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PostalCode $postalCode)
+    public function edit(ApprovedPostalCodeArea $approvedPostalCodeArea)
     {
         //
     }
@@ -51,7 +51,7 @@ class PostalCodeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePostalCodeRequest $request, PostalCode $postalCode)
+    public function update(UpdateApprovedPostalCodeAreaRequest $request, ApprovedPostalCodeArea $approvedPostalCodeArea)
     {
         //
     }
@@ -59,7 +59,7 @@ class PostalCodeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PostalCode $postalCode)
+    public function destroy(ApprovedPostalCodeArea $approvedPostalCodeArea)
     {
         //
     }
