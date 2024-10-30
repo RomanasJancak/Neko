@@ -81,7 +81,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');
     Route::post('delete',   [JobController::class, 'destroy'])->name('job.delete')->middleware('auth');
-    // Route::delete('destroy/{job}',  [JobController::class, 'destroy'])->name('job.destroy')->middleware('auth');
+    Route::post('createBackup',     [JobController::class, 'createBackup'])->name('job.createBackup')->middleware('auth');
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
     Route::post('update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');

@@ -81,6 +81,10 @@
     <div class="d-flex justify-content-center mt-3">
             {!! $jobs->links() !!}
     </div>
+    <form method="POST" action="{{ route('job.createBackup') }}">
+        @csrf
+        <button type="submit" class="btn btn-primary">Create Backup</button>
+    </form>
     <table id="example" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>

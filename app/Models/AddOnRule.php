@@ -73,4 +73,5 @@ class AddOnRule extends Model
     {
         return $this->belongsToMany(Client::class, 'client_add_on_rules')->withTimestamps();
     }
+    
 }

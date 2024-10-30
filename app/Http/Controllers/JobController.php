@@ -9,7 +9,7 @@ use App\Http\Requests\UpdateJobRequest;
 use Illuminate\Http\Request;
 
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
+
 
 use App\Models\Client;
 use App\Models\Distance;
@@ -29,6 +29,10 @@ use App\Models\Customtask;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
+
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class JobController extends Controller
 {
@@ -542,7 +546,30 @@ class JobController extends Controller
             ], 500);
         }
     }
-    
+    public function createBackup()
+    {
+        $controllerName = class_basename($this);
+        $modelName = 'App\\Models\\' . str_replace('Controller', '', $controllerName);
+        
+        $model_name = class_basename($modelName);
+        $directory = $model_name;
+        Storage::disk('backups')->makeDirectory($directory);
+        $models = $modelName::all();        
+        $columns = Schema::getColumnListing((new $modelName)->getTable()); 
+        $csvData = implode(',', $columns) . "\n";
+        foreach ($models as $model) {
+            $rowData = [];
+            foreach ($columns as $column) {
+                $rowData[] = $model->{$column};
+            }
+            $csvData .= implode(',', $rowData) . "\n";
+        }
+        $timestamp = date('Y-m-d_H-i-s');
+        $file_path = $directory . '/' . strtolower($model_name) . '.backup_' . $timestamp . '.csv';;
+        Storage::disk('backups')->put($file_path, $csvData);
+
+        return redirect()->back()->with('succeses', $model_name.' backup created successfully.');
+    }
 
     
 }

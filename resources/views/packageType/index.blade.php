@@ -7,9 +7,9 @@
         <div class="col-md-12">
             <h1>Package Types</h1><button class="btn btn-secondary create-btn" >Add new Package Type</i></button>        
             <form method="POST" action="{{ route('packageType.createBackup') }}">
-            @csrf
-            <button type="submit" class="btn btn-primary">Create Backup</button>
-        </form>
+                @csrf
+                <button type="submit" class="btn btn-primary">Create Backup</button>
+            </form>
             <table class="table">
                 <thead>
                     <tr>
