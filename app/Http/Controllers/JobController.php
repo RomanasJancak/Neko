@@ -551,26 +551,6 @@ class JobController extends Controller
     public function createBackup()
     {
         BackupService::createBackup(new Job());
-        // $controllerName = class_basename($this);
-        // $modelName = 'App\\Models\\' . str_replace('Controller', '', $controllerName);
-        
-        // $model_name = class_basename($modelName);
-        // $directory = $model_name;
-        // Storage::disk('backups')->makeDirectory($directory);
-        // $models = $modelName::all();        
-        // $columns = Schema::getColumnListing((new $modelName)->getTable()); 
-        // $csvData = implode(',', $columns) . "\n";
-        // foreach ($models as $model) {
-        //     $rowData = [];
-        //     foreach ($columns as $column) {
-        //         $rowData[] = $model->{$column};
-        //     }
-        //     $csvData .= implode(',', $rowData) . "\n";
-        // }
-        // $timestamp = date('Y-m-d_H-i-s');
-        // $file_path = $directory . '/' . strtolower($model_name) . '.backup_' . $timestamp . '.csv';;
-        // Storage::disk('backups')->put($file_path, $csvData);
-
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }
 
