@@ -8,6 +8,9 @@ use App\Models\Bike;
 use App\Http\Requests\StoreBikeRequest;
 use App\Http\Requests\UpdateBikeRequest;
 
+use App\Services\BackupService;
+
+
 class BikeController extends Controller
 {
     /**
@@ -92,5 +95,10 @@ class BikeController extends Controller
         return response()->json([
             'message' => 'Bike deleted successfully.'
         ]);
+    }
+    public function createBackup()
+    {
+        BackupService::createBackup(new Bike());
+        return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }
 }
