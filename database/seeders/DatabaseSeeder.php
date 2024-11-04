@@ -5,6 +5,7 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+use Illuminate\Support\Facades\File;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,24 +14,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        
-        //\App\Models\Client::factory(100)->create();
-        $this->call([
-            ClientSeeder::class,
-            PermissionSeeder::class,
-            RoleSeeder::class,
-            UserSeeder::class,
-            StatusSeeder::class,
-            DaySeeder::class,
-            PostalCodeSeeder::class,
-            PackageTypeSeeder::class,
-            ClientPackageTypeSeeder::class,
-            JobSeeder::class,
-            BikeSeeder::class,
-            WorkloadSeeder::class,
-            AddOnRuleSeeder::class,
-            ClientAddOnRuleSeeder::class,
-        ]);
-        //\App\Models\User::factory(100)->create();
+        // Retrieve all models and seeders dynamically
+        $seeders = $this->getAllModelSeeders();
+
+        // Call each seeder
+        $this->call($seeders);
+    }
+        /**
+     * Get all model seeders dynamically based on model names.
+     *
+     * @return array
+     */
+    private function getAllModelSeeders(): array
+    {
+        $seeders = [];
+        $modelsPath = app_path('Models'); // Models directory path
+        $namespace = 'Database\\Seeders\\'; // Seeders namespace
+
+        // Scan the Models directory for model files
+        $modelFiles = File::allFiles($modelsPath);
+
+        foreach ($modelFiles as $file) {
+            // Get the model name
+            $modelName = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+            $seederClass = $namespace . $modelName . 'Seeder';
+
+            // Check if the corresponding seeder class exists
+            if (class_exists($seederClass)) {
+                $seeders[] = $seederClass;
+            }
+        }
+
+        return $seeders;
     }
 }
