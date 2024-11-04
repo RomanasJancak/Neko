@@ -30,7 +30,6 @@ class DatabaseSeeder extends Seeder
             WorkloadSeeder::class,
             AddOnRuleSeeder::class,
             ClientAddOnRuleSeeder::class,
-            //AddOnSeeder::class,
         ]);
         //\App\Models\User::factory(100)->create();
     }
