@@ -152,41 +152,5 @@ class PackageTypeController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
-    public function createBackup()
-    {
-        //dd(ClientPackageType::all());
-        $packageTypes = PackageType::all();        
-        $columns = Schema::getColumnListing('package_types'); 
 
-        $csvData = implode(',', $columns) . "\n";
-        foreach ($packageTypes as $packageType) {
-            $rowData = [];
-            foreach ($columns as $column) {
-                $rowData[] = $packageType->{$column};
-            }
-            $csvData .= implode(',', $rowData) . "\n";
-        }
-        $timestamp = date('Y-m-d_H-i-s');
-        $file_path = resource_path('files/backups/PackageType/packagetype.backup_'.$timestamp.'.csv');
-
-        file_put_contents($file_path, $csvData);
-
-        $clientPackageTypes = ClientPackageType::all();
-        $columns = Schema::getColumnListing('client__package_types'); 
-
-        $csvData = implode(',', $columns) . "\n";
-        foreach ($clientPackageTypes as $clientPackageType) {
-            $rowData = [];
-            foreach ($columns as $column) {
-                $rowData[] = $clientPackageType->{$column};
-            }
-            $csvData .= implode(',', $rowData) . "\n";
-        }
-        $timestamp = date('Y-m-d_H-i-s');
-        $file_path = resource_path('files/backups/ClientPackageType/clientpackagetype.backup_'.$timestamp.'.csv');
-
-        file_put_contents($file_path, $csvData);
-
-        return redirect()->back()->with('succeses', 'PackageType backup created successfully.');
-    }
 }
