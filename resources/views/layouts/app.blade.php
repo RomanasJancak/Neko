@@ -165,6 +165,9 @@
                                     <li>
                                     <a class="dropdown-item " href="{{route('postalCode.index')}}">Postal code areas</a>
                                     </li>
+                                    <li>
+                                    <a class="dropdown-item " href="{{route('setting.index')}}">Settings</a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>

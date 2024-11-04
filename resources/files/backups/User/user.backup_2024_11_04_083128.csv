@@ -1,0 +1,9 @@
+id,name,email,phone,email_verified_at,password,remember_token,created_at,updated_at,client_id
+1,SAdmin,SAdmin@localhost.lt,,,$2y$10$0WxKiiqIl1wOLHGG1aHs/.IXwqb0w1qz/EfxTVOSmiZrI0AjuiN7.,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+2,Thomas,thcuenot@gmail.com,,,$2y$10$q5hKwSjSEAxOZi7qqmuXTuK.IL1hPR1vKBCXIIYK.JP6yv1EVD1re,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+3,Aurelija,aurelija.jancak@gmail.com,,,$2y$10$14OoFlXh1wjvBYddJcsTfe11ZN8jrhkn64raqR2YvvXgvN9J/te0y,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+4,Andrew New Cat,Activisuals@gmail.com,,,$2y$10$ZVmbQyYOKXC118yjm7kZ0ueggd3o9an64E56F..zLsxZ2BclHxecy,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+5,Gabriel Turner,gt.xpress98@gmail.com,,,$2y$10$KGj67x5rUSfUHv8coh/YbeIpGTeMQkg.s59iHJxMjSybvMIWvmiq.,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+6,Gil Neko,gilyehezkel1995@gmail.com,,,$2y$10$6iXRmkhirfMP3q4Ofis7Tu.3tyzPDuKr7Uh6WFtF74R.VCFg10eQa,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+7,Josh Hartmann,joshua.hartmann4@gmail.com,,,$2y$10$9LbUR9Idz0J3basG9IAkKe4ldSKmJIPOwQtPx.crzgnAPCiAtoCCi,,2024-11-04 08:29:58,2024-11-04 08:29:58,
+8,Jules Neko Cat,Juliabicknell6@gmail.com,,,$2y$10$l/TRrQUgR/4jCYVtkiVz5eCT3TYDC3OaF3KVonbQW/cqCogwA05qS,,2024-11-04 08:29:58,2024-11-04 08:29:58,

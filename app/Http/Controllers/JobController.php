@@ -551,6 +551,7 @@ class JobController extends Controller
     public function createBackup()
     {
         BackupService::createBackup(new Job());
+        
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }
 

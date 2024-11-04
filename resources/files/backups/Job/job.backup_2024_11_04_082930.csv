@@ -1,0 +1,1 @@
+clientToBill_id,courrier_id,created_at,date,distance,eilesNumeris,id,invoice_id,manager_id,notes,pickup_time_begin,pickup_time_end,pickupclientaddressline,pickupclientcity,pickupclientcountry,pickupclientname,pickupclientpostalcode,price,price_adjustment_number,status_id,updated_at
