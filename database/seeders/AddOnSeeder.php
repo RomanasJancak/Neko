@@ -2,8 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\AddOn;
+
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+
+use League\Csv\Reader;
 
 class AddOnSeeder extends Seeder
 {
