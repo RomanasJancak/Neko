@@ -31,7 +31,7 @@ class Client extends Model
                             'vat','regNumber','address','note'];
     public function packageTypes()
     {
-        return $this->belongsToMany(PackageType::class,'client__package_types')->withTimestamps();
+        return $this->belongsToMany(PackageType::class,'client_package_types')->withTimestamps();
     }
     public function addOnRules()
     {

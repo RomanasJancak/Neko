@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PackageType;
 use App\Models\Client;
-use App\Models\Client_PackageType;
+use App\Models\ClientPackageType;
 use App\Http\Requests\StorePackageTypeRequest;
 use App\Http\Requests\UpdatePackageTypeRequest;
 
@@ -154,7 +154,7 @@ class PackageTypeController extends Controller
     }
     public function createBackup()
     {
-        //dd(Client_PackageType::all());
+        //dd(ClientPackageType::all());
         $packageTypes = PackageType::all();        
         $columns = Schema::getColumnListing('package_types'); 
 
@@ -171,7 +171,7 @@ class PackageTypeController extends Controller
 
         file_put_contents($file_path, $csvData);
 
-        $clientPackageTypes = Client_PackageType::all();
+        $clientPackageTypes = ClientPackageType::all();
         $columns = Schema::getColumnListing('client__package_types'); 
 
         $csvData = implode(',', $columns) . "\n";

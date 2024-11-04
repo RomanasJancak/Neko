@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-use App\Models\Client_PackageType;
+use App\Models\ClientPackageType;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
@@ -59,7 +59,7 @@ class ClientPackageTypeSeeder extends Seeder
                 //dd($column1);
                 // Process the data here...
             }
-            $tableName = with(new Client_PackageType)->getTable();
+            $tableName = with(new ClientPackageType)->getTable();
             // Optionally, you can convert the records to an array for further manipulation
             $parsedData = iterator_to_array($records);
             for($i=1;$i < count($parsedData);$i++){
@@ -72,7 +72,7 @@ class ClientPackageTypeSeeder extends Seeder
                     }
                     
                 }
-                Client_PackageType::create($array);
+                ClientPackageType::create($array);
                 
             }
             // Return or do something with the parsed data
@@ -106,7 +106,7 @@ class ClientPackageTypeSeeder extends Seeder
 //             ['client_id' => 2,'package_type_id' => 9,'price' => 1010],
 //         ];
 //         foreach($packageTypes as $packageType){
-//             Client_PackageType::create([
+//             ClientPackageType::create([
 //                 'client_id'=> $packageType['client_id'],
 //                 'package_type_id' => $packageType['package_type_id'],
 //                 'price' => $packageType['price'],

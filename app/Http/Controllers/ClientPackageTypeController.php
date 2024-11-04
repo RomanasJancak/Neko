@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client_PackageType;
-use App\Http\Requests\StoreClient_PackageTypeRequest;
-use App\Http\Requests\UpdateClient_PackageTypeRequest;
+use App\Models\ClientPackageType;
+use App\Http\Requests\StoreClientPackageTypeRequest;
+use App\Http\Requests\UpdateClientPackageTypeRequest;
 
 class ClientPackageTypeController extends Controller
 {
@@ -27,7 +27,7 @@ class ClientPackageTypeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreClient_PackageTypeRequest $request)
+    public function store(StoreClientPackageTypeRequest $request)
     {
         //
     }
@@ -35,7 +35,7 @@ class ClientPackageTypeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Client_PackageType $client_PackageType)
+    public function show(ClientPackageType $client_PackageType)
     {
         //
     }
@@ -43,7 +43,7 @@ class ClientPackageTypeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Client_PackageType $client_PackageType)
+    public function edit(ClientPackageType $client_PackageType)
     {
         //
     }
@@ -51,7 +51,7 @@ class ClientPackageTypeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateClient_PackageTypeRequest $request, Client_PackageType $client_PackageType)
+    public function update(UpdateClientPackageTypeRequest $request, ClientPackageType $client_PackageType)
     {
         //
     }
@@ -59,7 +59,7 @@ class ClientPackageTypeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Client_PackageType $client_PackageType)
+    public function destroy(ClientPackageType $client_PackageType)
     {
         //
     }
