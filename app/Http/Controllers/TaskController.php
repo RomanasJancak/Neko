@@ -226,7 +226,7 @@ class TaskController extends Controller
     {
         try{
         $task = Task::findOrFail($request->id);
-        $task->typeOfTask->delete();
+        $task->typeOfTask()->delete();
         $task->delete();
         $task->job->save();
 
@@ -243,7 +243,6 @@ class TaskController extends Controller
     {
         // Fetch the client's information based on the $clientId
         $task = Task::find($taskId);
-
         if ($task) {
             return response()->json([
                 'id'                =>  $task->id,
