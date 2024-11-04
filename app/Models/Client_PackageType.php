@@ -7,6 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Client_PackageType extends Model
 {
-    //protected $table = 'inventory_items';
     use HasFactory;
 }
