@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client__package_types', function (Blueprint $table) {
+        Schema::create('client_package_types', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->unsignedBigInteger('client_id');
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('client__package_types');
+        Schema::dropIfExists('client_package_types');
     }
 };
