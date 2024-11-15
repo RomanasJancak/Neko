@@ -49,9 +49,6 @@ class JobController extends Controller
             $day = Day::find(1);
             $couriers = User::getCouriersWithWorkload($day);
             $statuses = Status::all();
-            // $couriers = User::all()->filter(function ($user) {
-            //     return $user->hasRole('courier');
-            // });
             
 
         return view('job.index', compact('jobs','couriers','statuses'));
