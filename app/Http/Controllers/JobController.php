@@ -36,6 +36,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\JobTemplate;
+
 class JobController extends Controller
 {
     /**
@@ -408,7 +410,19 @@ class JobController extends Controller
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
                 'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->id,
-                //'date'                  =>  $job->getDate(),
+                'pickup'                =>  is_null($job->getPickupTask()) ? 'none' : $job->getPickupTask(),
+                'dropoffs'              =>  is_null($job->getDropOffTasks()) ? 'none' : collect($job->getDropOffTasks())->map(function ($dropoff) {
+                    return [
+                        'id'    =>  $dropoff->id,
+                        'nameOfAddress'  =>  $dropoff->nameOfAddress(),
+                        'address'   =>  $dropoff->fullAddress(),
+                        'timeWindow'    =>  [
+                            'begin' =>  $dropoff->timeWindowBegin(),
+                            'end'   =>  $dropoff->timeWindowEnd(),
+                        ],
+                    ];
+                }),
+                'returns'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'date'                  =>  $job->date,
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
@@ -538,6 +552,40 @@ class JobController extends Controller
                 'line' => $e->getLine(),
             ], 500);
         } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
+    }
+    public function create_JobTemplate_fromThisJob($jobId){
+        try{
+            $job = Job::findOrFail($jobId);
+            $jobTemplate = new JobTemplate();
+            $jobTemplate->clientToBill_id = $job->clientToBill_id;
+            $jobTemplate->status_id = $job->status_id;
+            $jobTemplate->notes = $job->notes;
+            $jobTemplate->price = $job->price()['totalPrice'];
+            //$jobTemplate->distance = $job->distance();
+            // $jobTemplate->price_adjustment_number = $job->price_adjustment_number;
+            // $jobTemplate->fixedPrice = $job->fixedPrice;
+            $jobTemplate->date = $job->date;
+            $jobTemplate->pickuptask_data = json_encode($job->getPickupTask());
+            $jobTemplate->dropOffs_data = json_encode(collect($job->getDropOffTasks()));
+            $jobTemplate->return_data = is_null($job->getReturnTask()) ? null : $job->getReturnTask();
+            $jobTemplate->save();
+            return response()->json([
+                'message' => 'Job template created successfully.',
+                'jobTemplate' => $jobTemplate,
+            ]);
+        } catch (QueryException $e){
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        } catch (\Exception $e){
             return response()->json([
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),

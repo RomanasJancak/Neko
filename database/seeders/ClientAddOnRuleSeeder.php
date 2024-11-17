@@ -17,8 +17,8 @@ class ClientAddOnRuleSeeder extends Seeder
      */
     public function run(): void
     {
-
-        $folderPath = resource_path('files\backups\ClientAddOnRule');
+        $seederName = str_replace('Seeder','',class_basename($this));
+        $folderPath = resource_path('files\backups\\'.$seederName);
         $filePath = $this->getLatestBackup($folderPath);
         $this->seed($filePath);
     }

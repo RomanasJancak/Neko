@@ -16,6 +16,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\PostalCodeController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\JobTemplateController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -88,6 +89,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::post('update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
     Route::get('getJobInfo/{id}',     [JobController::class, 'getJobInfo'])->name('job.getJobInfo')->middleware('auth');
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
+    Route::get('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
 });
 Route::group(['prefix' => 'days'], function(){
     Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');
@@ -194,4 +196,8 @@ Route::group(['prefix'  => 'settings'],function(){
     // Route::post('createBackup',     [PostalCodeController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 });
-
+Route::group(['prefix'  => 'jobtemplates'],function(){
+    Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
+    Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
+    Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+});

@@ -88,10 +88,11 @@ class SettingController extends Controller
         return $models;
     }
     public function backupAll(){
-        $models = $this->getAllModels();
-        foreach ($models as $model) {
-            BackupService::createBackup(new $model());
-        }
+        BackupService::createBackup();
+        // $models = $this->getAllModels();
+        // foreach ($models as $model) {
+            
+        // }
 
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }

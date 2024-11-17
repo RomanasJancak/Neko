@@ -84,6 +84,24 @@ class Job extends Model
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
     }
+    public function getDropOffTasks(){
+        $returnValue = [];
+        foreach($this->tasks as $task){
+            if($task->type() === 'dropOff'){
+                $returnValue[] = $task;
+            }
+        }
+        return $returnValue;
+    }
+    public function getReturnTask(){
+        $returnValue = null;
+        foreach($this->tasks as $task){
+            if($task->type() === 'return'){
+                $returnValue = $task;
+            }
+        }
+        return $returnValue;
+    }
     public function getPickupTask(){
         $returnValue = null;
         foreach($this->tasks as $task){

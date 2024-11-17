@@ -32,10 +32,6 @@ return new class extends Migration
             $table->unsignedBigInteger('invoice_id')->nullable();
             $table->bigInteger('price_adjustment_number')->default(0);
             $table->unsignedBigInteger('jobTemplate_id')->nullable();
-            $table->foreign('clientToBill_id')->references('id')->on('clients');
-            $table->foreign('manager_id')->references('id')->on('users');
-            $table->foreign('courrier_id')->references('id')->on('users');
-            $table->foreign('jobTemplate_id')->references('id')->on('job_templates');
             $table->date('date');
         });
     }
