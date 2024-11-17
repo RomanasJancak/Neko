@@ -586,6 +586,26 @@ class Job extends Model
             }
         }
     }
+    public function price_sunday(){
+        $sundayAddon;
+        if(Carbon::parse($this->getDate())->dayOfWeek != 0){
+            return [
+                'price' => 0,
+                'isApplicable' => false,
+            ];
+        }else{
+            foreach($this->addOns_time as $addOn){
+                if(strpos($addOn['name'], 'time-sunday') === 0){
+                    $sundayAddon = $addOn;
+                }
+            }
+        }
+
+        return [
+            'price' => $sundayAddon['price'],
+            'isApplicable' => true,
+        ];
+    }
     public function price(){
         $this->populateVariables();
 
@@ -596,6 +616,7 @@ class Job extends Model
         //$price+=$this->price_timing()['price'];
         $price+=$this->new_price_timing()['price'];
         $price+=$this->price_packages()['price'];
+        $price+=$this->price_sunday()['price'];
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
@@ -614,7 +635,7 @@ class Job extends Model
             'price_oversize_added'  =>  $this->oversizePrice(),
             'price_oversize_value'  =>  $this->price_oversize,
             'timing_price'          =>  $this->new_price_timing(),
-
+            'price_time_sunday'     =>  $this->price_sunday(),  
         ];
     }
 }

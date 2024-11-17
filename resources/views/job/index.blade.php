@@ -317,7 +317,7 @@
                 <div class="col-3 border rounded justify-content-left"> <!--Right side -->
                     <div class="row">
                         <div class="col-12">
-                            <span>Total price : </span><span>&#163;</span><span id="total_Price_DisplayField">0.00</span>
+                            <span style="font-size: larger; font-weight: bold;">Total price : </span><span style="font-size: larger; font-weight: bold;">&#163;</span><span id="total_Price_DisplayField" style="font-size: larger; font-weight: bold;">0.00</span>
                         </div>
                     </div>
                     <div class="row">
@@ -346,11 +346,17 @@
                             <span>Total timing : </span><span>&#163;</span><span id="total_timing_price_DisplayField">0.00</span>
                         </div>
                         <div class="col-12">
+                            <span>Sunday? : </span><span>&#163;</span><span id="addon_time_price_DisplayField">0.00</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
                             <span>Price from pickup : </span><span>&#163;</span><span id="pickup_timing_price_DisplayField">0.00</span>
                         </div>
                         <div class="col-12">
                             <span>Price from dropOff : </span><span>&#163;</span><span id="dropoff_timing_price_DisplayField">0.00</span>
                         </div>
+
                     </div>
                 </div>            
             </div>
@@ -916,6 +922,7 @@ function setJobValues(jobId,buttonClicked){
     const weight_total_field        =   document.getElementById('total_weight_DisplayField');
     const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
     const total_timing_price_DisplayField   =   document.getElementById('total_timing_price_DisplayField');
+    const addon_time_price_DisplayField   =   document.getElementById('addon_time_price_DisplayField');
     const pickup_timing_price_DisplayField   =   document.getElementById('pickup_timing_price_DisplayField');
     const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
 
@@ -953,6 +960,7 @@ function setJobValues(jobId,buttonClicked){
             weight_total_field.innerHTML = parseFloat(data.price.weight_price.value).toFixed(3);
             price_postalCode_field.innerHTML = parseFloat(data.price.price_OutOfZone/100,2);
             total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
+            addon_time_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
             dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
 
