@@ -37,18 +37,29 @@ class ClientController extends Controller
      */
     public function store(StoreClientRequest $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:clients',
-            'vat' => 'required|string|max:255',
-            'regNumber' => 'nullable|string|max:255',
-            'address' => 'required|string',
-            'note' => 'nullable|string',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'shortenedName'     =>  'max:255',
+                'country' => 'required|string|max:255',
+                'city' => 'required|string|max:255',
+                'postal_code' => 'required|string|max:255',
+                'address_line' => 'required|string|max:255',
+                'pickup_country' => 'max:255',
+                'pickup_city' => 'max:255',
+                'pickup_postal_code' => 'max:255',
+                'pickup_adress_line' => 'max:255',
+                'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
+            ]);
 
-        Client::create($validatedData);
+            $client = Client::create($validatedData);
 
-        return redirect()->route('client.index')->with('success', 'Client created successfully');
+            return response()->json(['message' => 'Client created successfully', 'client' => $client], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
