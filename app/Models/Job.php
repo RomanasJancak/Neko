@@ -20,6 +20,45 @@ class Job extends Model
     private $packages_zero      =   [];
     private $price_oversize     =   0;
     private $price_oversize_status     =   0;
+
+    private $bankHolidays = [
+        ['date' => '2024-01-01', 'nameOfHoliday' => 'New Year’s Day'],
+        ['date' => '2024-03-29', 'nameOfHoliday' => 'Good Friday'],
+        ['date' => '2024-04-01', 'nameOfHoliday' => 'Easter Monday'],
+        ['date' => '2024-05-06', 'nameOfHoliday' => 'Early May Bank Holiday'],
+        ['date' => '2024-05-27', 'nameOfHoliday' => 'Spring Bank Holiday'],
+        ['date' => '2024-08-26', 'nameOfHoliday' => 'Summer Bank Holiday'],
+        ['date' => '2024-12-25', 'nameOfHoliday' => 'Christmas Day'],
+        ['date' => '2024-12-26', 'nameOfHoliday' => 'Boxing Day'],
+        ['date' => '2025-01-01', 'nameOfHoliday' => 'New Year’s Day'],
+        ['date' => '2025-04-18', 'nameOfHoliday' => 'Good Friday'],
+        ['date' => '2025-04-21', 'nameOfHoliday' => 'Easter Monday'],
+        ['date' => '2025-05-05', 'nameOfHoliday' => 'Early May Bank Holiday'],
+        ['date' => '2025-05-26', 'nameOfHoliday' => 'Spring Bank Holiday'],
+        ['date' => '2025-08-25', 'nameOfHoliday' => 'Summer Bank Holiday'],
+        ['date' => '2025-12-25', 'nameOfHoliday' => 'Christmas Day'],
+        ['date' => '2025-12-26', 'nameOfHoliday' => 'Boxing Day'],
+        ['date' => '2026-01-01', 'nameOfHoliday' => 'New Year’s Day'],
+        ['date' => '2026-04-03', 'nameOfHoliday' => 'Good Friday'],
+        ['date' => '2026-04-06', 'nameOfHoliday' => 'Easter Monday'],
+        ['date' => '2026-05-04', 'nameOfHoliday' => 'Early May Bank Holiday'],
+        ['date' => '2026-05-25', 'nameOfHoliday' => 'Spring Bank Holiday'],
+        ['date' => '2026-08-31', 'nameOfHoliday' => 'Summer Bank Holiday'],
+        ['date' => '2026-12-25', 'nameOfHoliday' => 'Christmas Day'],
+        ['date' => '2026-12-26', 'nameOfHoliday' => 'Boxing Day'],
+        ['date' => '2027-01-01', 'nameOfHoliday' => 'New Year’s Day'],
+        ['date' => '2027-03-26', 'nameOfHoliday' => 'Good Friday'],
+        ['date' => '2027-03-29', 'nameOfHoliday' => 'Easter Monday'],
+        ['date' => '2027-05-03', 'nameOfHoliday' => 'Early May Bank Holiday'],
+        ['date' => '2027-05-31', 'nameOfHoliday' => 'Spring Bank Holiday'],
+        ['date' => '2027-08-30', 'nameOfHoliday' => 'Summer Bank Holiday'],
+        ['date' => '2027-12-25', 'nameOfHoliday' => 'Christmas Day'],
+        ['date' => '2027-12-26', 'nameOfHoliday' => 'Boxing Day'],
+        ['date' => '2028-01-01', 'nameOfHoliday' => 'New Year’s Day'],
+        ['date' => '2028-04-14', 'nameOfHoliday' => 'Good Friday'],
+        ['date' => '2028-04-17', 'nameOfHoliday' => 'Easter Monday'],
+        ['date' => '2028-05-01', 'nameOfHoliday' => 'Early May Bank Holiday'],
+    ];
     
     private $workShift_Begin    = "08:00:00";
     private $workShift_End      = "16:00:00";
@@ -606,6 +645,26 @@ class Job extends Model
             'isApplicable' => true,
         ];
     }
+    public function price_bankHoliday(){
+        $bankHolidayAddon;
+        foreach($this->bankHolidays as $holiday){
+            if($this->getDate() == $holiday['date']){
+                foreach($this->addOns_time as $addOn){
+                    if(strpos($addOn['name'], 'time-bankHoliday') === 0){
+                        $bankHolidayAddon = $addOn;
+                    }
+                }
+                return [
+                    'price' => $bankHolidayAddon['price'],
+                    'isApplicable' => true,
+                ];
+            }
+        }
+        return [
+            'price' => 0,
+            'isApplicable' => false,
+        ];
+    }
     public function price(){
         $this->populateVariables();
 
@@ -635,7 +694,8 @@ class Job extends Model
             'price_oversize_added'  =>  $this->oversizePrice(),
             'price_oversize_value'  =>  $this->price_oversize,
             'timing_price'          =>  $this->new_price_timing(),
-            'price_time_sunday'     =>  $this->price_sunday(),  
+            'price_time_sunday'     =>  $this->price_sunday(),
+            'price_time_bankHoliday'     =>  $this->price_bankHoliday(),   
         ];
     }
 }
