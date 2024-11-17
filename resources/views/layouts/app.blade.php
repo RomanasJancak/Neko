@@ -88,9 +88,6 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="{{route('client.index')}}">List</a></li>
-                                    @can('client-create')
-                                    <li><a class="dropdown-item" href="{{route('client.create')}}">Create</a></li>
-                                    @endcan
                                 </ul>
                             </div>
                         </li>
