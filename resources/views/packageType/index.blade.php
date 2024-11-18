@@ -70,58 +70,81 @@
             <div class="modal-body">
                 <form id="packageTypeForm" action="" method="POST">
                     @csrf
-                    <div class="row">
-                        <input type="hidden" name="packageTypeId" id="packageTypeId" value="">
-                        <input type="hidden" name="packageTypeClientIdOld" id="packageTypeClientIdOld" value="">
-                        <input type="hidden" name="packageTypeClientId" id="packageTypeClientId" value="">
-                        <label for="nameField">Name : </label>
-                        <input type="text" name="name" id="nameField" value="" placeholder="Package type name">
-                    </div>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="priceField"> Base price add : </label>
-                            <input type="text" name="priceField" id="priceField" value="1.11"><i class="bi bi-info-circle-fill" data-toggle="tooltip" data-placement="right" title="Use period instead of comma"></i>
+                    <div class="col-10">
+                        <div class="row">
+                            <input type="hidden" name="packageTypeId" id="packageTypeId" value="">
+                            <input type="hidden" name="packageTypeClientIdOld" id="packageTypeClientIdOld" value="">
+                            <input type="hidden" name="packageTypeClientId" id="packageTypeClientId" value="">
+                            <label for="nameField">Name : </label>
+                            <input type="text" name="name" id="nameField" value="" placeholder="Package type name">
                         </div>
-                        <div class="col-md-3">
-                            <label for="baseQuantityThresholdField">Quantity before oversize : </label>
-                            <input type="number" name="baseQuantityThreshold" id="baseQuantityThresholdField" value="1">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="maxQuantityThresholdField">Max allowable : </label>
-                            <input type="number" name="maxQuantityThreshold" id="maxQuantityThresholdField" value="1">
-                        </div>
-                    </div>
-                    <hr class="my-divider">
-                    <div class="row">
-                        <div class="col-md-6"><button type="button" id="checkAllClientsButton" class="btn btn-primary">Check All</button></div>
-                        <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
-                    </div>
-                    <hr class="my-divider">
-                    <div class="row">
-                        <!-- <label for="clientNameField">Used by : </label> -->
-                        <input hidden type="text" name="clientNameField" id="clientNameField" value="" placeholder="Search for client">
-                        @foreach ($clients as $client)
-                            <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
-                                <label>
-                                    <input type="checkbox" name="selected_clients[]"  value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
-                                    <?php $maxLengthOfCLientName = 21;?>
-                                    @if(strlen($client->name) > $maxLengthOfCLientName)
-                                        <span data-toggle="tooltip" data-placement="top" title="{{ $client->name }}">
-                                            {{ substr($client->name, 0, $maxLengthOfCLientName) }}...
-                                        </span>
-                                    @else
-                                        {{ $client->name }}
-                                    @endif
-                                </label>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="priceField"> Base price add : </label>
+                                <input type="text" name="priceField" id="priceField" value="1.11"><i class="bi bi-info-circle-fill" data-toggle="tooltip" data-placement="right" title="Use period instead of comma"></i>
                             </div>
-                         @endforeach
-
-
-                    </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
+                            <div class="col-md-3">
+                                <label for="baseQuantityThresholdField">Quantity before oversize : </label>
+                                <input type="number" name="baseQuantityThreshold" id="baseQuantityThresholdField" value="1">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="maxQuantityThresholdField">Max allowable : </label>
+                                <input type="number" name="maxQuantityThreshold" id="maxQuantityThresholdField" value="1">
+                            </div>
                         </div>
+                        <hr class="my-divider">
+                        <div class="row">
+                            <div class="col-md-6"><button type="button" id="checkAllClientsButton" class="btn btn-primary">Check All</button></div>
+                            <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
+                        </div>
+                        <hr class="my-divider">
+                        <div class="row">
+                            <!-- <label for="clientNameField">Used by : </label> -->
+                            <input hidden type="text" name="clientNameField" id="clientNameField" value="" placeholder="Search for client">
+                            @foreach ($clients as $client)
+                                <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
+                                    <label>
+                                        <input type="checkbox" name="selected_clients[]"  value="{{ $client->id }}" {{ $client->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
+                                        <?php $maxLengthOfCLientName = 21;?>
+                                        @if(strlen($client->name) > $maxLengthOfCLientName)
+                                            <span data-toggle="tooltip" data-placement="top" title="{{ $client->name }}">
+                                                {{ substr($client->name, 0, $maxLengthOfCLientName) }}...
+                                            </span>
+                                        @else
+                                            {{ $client->name }}
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
+
+
+                        </div>
+                        <div class="row">
+                            <div class="form-group">
+                                <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12" id="addoncontainer">
+                        
+                        <input hidden type="text" name="addOnNameField" id="addOnNameField" value="" placeholder="Search for client">
+                            @foreach ($addOnRules as $addOnRule)
+                                <div class="col-md-4 client-item" data-client-id="{{ $addOnRule->id }}">
+                                    <label>
+                                        <input type="checkbox" name="selected_addOnRules[]"  value="{{ $addOnRule->id }}" {{ $addOnRule->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
+                                        <?php $maxLengthOfAddOnRuleName = 100;?>
+                                        @if(strlen($addOnRule->name) > $maxLengthOfCLientName)
+                                            <span data-toggle="tooltip" data-placement="top" title="{{ $addOnRule->name }}">
+                                                {{ substr($addOnRule->name, 0, $maxLengthOfAddOnRuleName) }}...
+                                            </span>
+                                        @else
+                                            <span data-toggle="tooltip" data-placement="top" title="{{ $addOnRule->name }}">
+                                                {{ $addOnRule->name }}
+                                            </span>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
                     </div>
                 </form>
             </div>
@@ -203,9 +226,7 @@ clientLists.forEach(function(clientList) {
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
-                                document.getElementById('packageTypeClientId').value = data.id;
-                                //console.log(data.name);
-                                //populateFields('sender',data);    
+                                document.getElementById('packageTypeClientId').value = data.id;    
                             }
                         })
                         .catch(error => {
@@ -251,6 +272,7 @@ clientLists.forEach(function(clientList) {
                         .then(response => response.json())
                         .then(data => {
                             if (data) {
+                                console.log(data);
                                 document.getElementById('clientNameField').value = data.clients[0].name;
                                 document.getElementById('priceField').value = (data.price / 100).toFixed(2);
                                 document.getElementById('baseQuantityThresholdField').value = data.baseQuantityThreshold;
@@ -263,6 +285,16 @@ clientLists.forEach(function(clientList) {
                                         checkbox.checked = true;
                                     }
                                     var checkboxes = document.querySelectorAll('input[name="selected_clients[]"]');
+                                    checkboxes.forEach(function(checkBox){      
+                                        checkbox.removeAttribute('disabled');  
+                                    });
+                                });
+                                data.addOns.forEach(function(addonrule) {
+                                    var checkbox = document.querySelector('input[name="selected_addOnRules[]"][value="' + addonrule.id + '"]');
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                    }
+                                    var checkboxes = document.querySelectorAll('input[name="selected_addOnRules[]"]');
                                     checkboxes.forEach(function(checkBox){      
                                         checkbox.removeAttribute('disabled');  
                                     });
@@ -372,7 +404,6 @@ clientLists.forEach(function(clientList) {
         // Get form data
         const form = document.getElementById('packageTypeForm');
         const formData = new FormData(form);
-        //console.log(formData.get('workloadid'));
 
         // Create a new XMLHttpRequest object
         const xhr = new XMLHttpRequest();
@@ -384,9 +415,8 @@ clientLists.forEach(function(clientList) {
         // Handle the response
         xhr.onload = function() {
             // Process the response if needed
-            console.log(xhr.responseText);
             parsedMessage = JSON.parse(xhr.responseText).message;
-            //console.log(parsedMessage);
+            console.log(xhr.responseText);
             if(parsedMessage === 'deleted'){
                 //document.getElementById('workload-'+formData.get('workloadid')).remove();
             }
@@ -401,18 +431,5 @@ clientLists.forEach(function(clientList) {
         xhr.send(formData);
     });
 });
-//const routeUrl = "{{ route('packageType.getPackageTypeInfo', ['id' => 1]) }}";
-//fetch(`/getPackageTypeInfo/${1}`)
-// fetch(routeUrl)
-//                         .then(response => response.json())
-//                         .then(data => {
-//                             if (data) {
-//                                 console.log(data.name);
-//                                 console.log(data.clients[0].name);    
-//                             }
-//                         })
-//                         .catch(error => {
-//                             console.error(error);
-// });
 </script>
 @endsection

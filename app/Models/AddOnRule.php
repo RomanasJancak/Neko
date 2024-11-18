@@ -73,5 +73,9 @@ class AddOnRule extends Model
     {
         return $this->belongsToMany(Client::class, 'client_add_on_rules')->withTimestamps();
     }
+    public function packageTypes()
+    {
+        return $this->belongsToMany(PackageType::class)->withTimestamps();
+    }
     
 }

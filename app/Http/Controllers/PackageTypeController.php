@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PackageType;
+use App\Models\AddOnRule;
 use App\Models\Client;
 use App\Models\ClientPackageType;
 use App\Http\Requests\StorePackageTypeRequest;
@@ -22,8 +23,9 @@ class PackageTypeController extends Controller
     {
         $clients = Client::orderBy('name', 'asc')->get();
         $packageTypes = PackageType::orderBy('id', 'asc')->paginate(10);
+        $addOnRules = AddOnRule::orderBy('name', 'asc')->get();
 
-        return view('packageType.index', compact('packageTypes','clients'));
+        return view('packageType.index', compact('packageTypes','clients','addOnRules'));
     }
 
     /**
@@ -52,7 +54,9 @@ class PackageTypeController extends Controller
         foreach($request->selected_clients as $selected_client ){
             $packageType->clients()->attach($selected_client);
         }
-        
+        foreach($request->selected_addOnRules as $selected_addOnRule ){
+            $packageType->addOnRules()->attach($selected_addOnRule);
+        }
 
         //$packageType->clients()->attach($request->packageTypeClientId, ['price' => $request->priceField]);
         $packageType->save();
@@ -95,10 +99,15 @@ class PackageTypeController extends Controller
         foreach($request->selected_clients as $selected_client ){
             $packageType->clients()->attach($selected_client);
         }
+        $packageType->addOnRules()->detach();        
+        foreach($request->selected_addOnRules as $selected_addOnRule ){
+            $packageType->addOnRules()->attach($selected_addOnRule);
+        }
         $packageType->save();
 
         return response()->json([
-            'message' => 'PackageType updated successfully. '.$request->packageTypeClientIdOld.' '.$request->packageTypeClientId
+            'message' => 'PackageType updated successfully',
+            'addOns' => $request->all(),
         ]);
     }
 
@@ -110,6 +119,7 @@ class PackageTypeController extends Controller
 
         $packageType = PackageType::findOrFail($request->packageTypeId);
         $packageType->clients()->detach();
+        $packageType->addOnRules()->detach(); 
         $packageType->delete();
         return response()->json([
             'message' => 'PackageType deleted successfully.'.$request->packageTypeId.' '.$request->name
@@ -132,7 +142,13 @@ class PackageTypeController extends Controller
                         'id'    => $client->id,
                         'name' => $client->name,
                     ];
-                }),  
+                }),
+                'addOns' => is_null($packageType->addOnRules)? 'none' : $packageType->addOnRules->map(function ($addOn) {
+                    return [
+                        'id'    => $addOn->id,
+                        'name' => $addOn->name,
+                    ];
+                }),
                 ]);
         }
 
