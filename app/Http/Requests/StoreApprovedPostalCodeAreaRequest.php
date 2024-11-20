@@ -11,7 +11,7 @@ class StoreApprovedPostalCodeAreaRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,8 @@ class StoreApprovedPostalCodeAreaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255', // Code of the postal code area
+            'type' => 'required|string|max:255', // Type of the postal code area
         ];
     }
 }

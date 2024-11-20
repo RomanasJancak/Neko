@@ -17,6 +17,7 @@ use App\Http\Controllers\WorkloadController;
 use App\Http\Controllers\PostalCodeController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\JobTemplateController;
+use App\Http\Controllers\ApprovedPostalCodeAreaController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -186,6 +187,14 @@ Route::group(['prefix'  => 'postalCode'],function(){
     // Route::post('store',            [PostalCodeController::class, 'store'])->name('task.store')->middleware('auth');
     // Route::post('createBackup',     [PostalCodeController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
+});
+//approvedpostalcodearea
+Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
+    Route::get('',                  [ApprovedPostalCodeAreaController::class, 'index'])->name('approvedpostalcodearea.index')->middleware('auth');
+    Route::get('getById/{id}',  [ApprovedPostalCodeAreaController::class, 'getById'])->name('approvedpostalcodearea.getById')->middleware('auth');
+    Route::post('store',            [ApprovedPostalCodeAreaController::class, 'store'])->name('approvedpostalcodearea.store')->middleware('auth');
+    Route::post('update',           [ApprovedPostalCodeAreaController::class, 'update'])->name('approvedpostalcodearea.update')->middleware('auth');
+    Route::post('delete',           [ApprovedPostalCodeAreaController::class, 'destroy'])->name('approvedpostalcodearea.delete')->middleware('auth');
 });
 Route::group(['prefix'  => 'settings'],function(){
     Route::get('',                  [SettingController::class, 'index'])->name('setting.index')->middleware('auth');
