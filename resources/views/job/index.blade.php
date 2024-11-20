@@ -335,6 +335,9 @@
                         <div class="col-12">
                             <span>Price from weight : </span><span>&#163;</span><span id="total_weight_price_DisplayField">0.00</span>
                         </div>
+                        <div class="col-12">
+                            <span>Price from oversize : </span><span>&#163;</span><span id="addon_package_oversize_price_DisplayField">0.00</span>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
@@ -346,17 +349,42 @@
                             <span>Total timing : </span><span>&#163;</span><span id="total_timing_price_DisplayField">0.00</span>
                         </div>
                         <div class="col-12">
-                            <span>Sunday? : </span><span>&#163;</span><span id="addon_time_price_DisplayField">0.00</span>
+                            <span>Sunday : </span><span>&#163;</span><span id="addon_time_sunday_price_DisplayField">0.00</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Bank holiday : </span><span>&#163;</span><span id="addon_time_bankholiday_price_DisplayField">0.00</span>
+                        </div>
+                        <div class="col-12">
+                            <span>Same day order : </span><span>&#163;</span><span id="addon_time_samedayorder_price_DisplayField">0.00</span>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <span>Price from pickup : </span><span>&#163;</span><span id="pickup_timing_price_DisplayField">0.00</span>
+                            <div class="row">
+                                <div class="col-12">
+                                    <span>Pickup window : </span><span id="pickup_timing_value_DisplayField"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <span>Price from pickup : </span><span>&#163;</span><span id="pickup_timing_price_DisplayField">0.00</span>
+                                </div>
+                            </div>    
                         </div>
                         <div class="col-12">
-                            <span>Price from dropOff : </span><span>&#163;</span><span id="dropoff_timing_price_DisplayField">0.00</span>
+                            <div class="row">
+                                <div class="col-12">
+                                    <span>Dropoff window : </span><span id="dropoff_timing_value_DisplayField"></span>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span>Price from dropOff : </span><span>&#163;</span><span id="dropoff_timing_price_DisplayField">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
                     </div>
                 </div>            
             </div>
@@ -922,9 +950,12 @@ function setJobValues(jobId,buttonClicked){
     const weight_total_field        =   document.getElementById('total_weight_DisplayField');
     const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
     const total_timing_price_DisplayField   =   document.getElementById('total_timing_price_DisplayField');
-    const addon_time_price_DisplayField   =   document.getElementById('addon_time_price_DisplayField');
+    const addon_time_sunday_price_DisplayField   =   document.getElementById('addon_time_sunday_price_DisplayField');
+    const addon_time_bankholiday_price_DisplayField   =   document.getElementById('addon_time_bankholiday_price_DisplayField');
     const pickup_timing_price_DisplayField   =   document.getElementById('pickup_timing_price_DisplayField');
+    const pickup_timing_value_DisplayField  =   document.getElementById('pickup_timing_value_DisplayField');
     const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
+    const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
 
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
@@ -960,8 +991,18 @@ function setJobValues(jobId,buttonClicked){
             weight_total_field.innerHTML = parseFloat(data.price.weight_price.value).toFixed(3);
             price_postalCode_field.innerHTML = parseFloat(data.price.price_OutOfZone/100,2);
             total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
-            addon_time_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
+            addon_time_sunday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
+            addon_time_bankholiday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_bankholiday.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
+            pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
+            dropOff_timing_value_DisplayField.innerHTM='';
+            string = '';
+            data.price.timing_price.dropOff_value.forEach(function(value){
+                string+= '<span style="color: green;">'+formatMinutesToHoursAndMinutes(value)+'</span><br>';
+            });
+            dropOff_timing_value_DisplayField.innerHTML=string;
+            string = '';
+            //console.log(data.price.timing_price.dropOff_value.type());
             dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
 
                           
@@ -970,6 +1011,22 @@ function setJobValues(jobId,buttonClicked){
             console.error(error);
         });
 }
+function formatMinutesToHoursAndMinutes(minutes) {
+    console.log('minutes :'+minutes);
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                if (hours > 0) {
+                    console.log('hours :'+hours);
+                    console.log('remainingMinutes :'+remainingMinutes);
+                    if (remainingMinutes > 0) {
+                        return `${hours}h ${remainingMinutes}min`;
+                    } else {
+                        return `${hours}h`;
+                    }
+                } else {
+                    return `${remainingMinutes}min`;
+                }
+            }
 function addTypeHeadSearch(searchInput){
     if (searchInput.length > 0) {
         searchInput.typeahead({

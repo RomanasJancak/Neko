@@ -48,7 +48,7 @@ class JobController extends Controller
 
 
             $jobs = Job::paginate(10);
-            $day = Day::find(1);
+            $day = Day::first();
             $couriers = User::getCouriersWithWorkload($day);
             $statuses = Status::all();
             

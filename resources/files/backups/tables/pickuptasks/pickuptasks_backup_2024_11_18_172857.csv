@@ -1,0 +1,2 @@
+id,created_at,updated_at,task_id,status_id,pickup_time_begin,pickup_time_end,pickupclientname,pickupclientaddressline,pickupclientcity,pickupclientcountry,pickupclientpostalcode,notes,price
+1,2024-11-18 17:15:58,2024-11-18 17:15:58,1,10,2024-11-18 07:15:00,2024-11-18 20:15:00,N5 Kitchen LTD,68 Mountgrove Rd,London,UK,N5 2LT,,

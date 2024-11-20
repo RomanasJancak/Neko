@@ -265,8 +265,8 @@ class Job extends Model
                         'N1','N4','N5','N7','N16','N19',
                         'W1',
                         'NW','NW5',
-                        'WC1','WC2',
-                        'EC1','EC2','EC3','EC4',
+                        'WC1','WC2','WC2E',
+                        'EC1','EC2','EC2A','EC3','EC4',
                         'E1','E2','E5','E8','E9',];
         foreach($this->tasks as $task){
             if(!$this->isPostalCodeInsideList($task->postalCode(),$postalCodes)){
@@ -377,10 +377,12 @@ class Job extends Model
     }
     public function new_price_timing(){
         $pickup_price = null;
-        $dropOff_price = null;
+        $dropOff_price_array = [];
         $timeString = 0;
         $timeArray_pickup = [];
         $timeArray_dropoff = [];
+        $pickupWindow = '';
+        $dropoffWindow = [];
         // ================
         foreach($this->addOns_time as $addOn){
             if(preg_match('/time-pickup-window-([0-9.]+)/', $addOn['name'], $matches)){
@@ -414,6 +416,7 @@ class Job extends Model
                 //echo 'yes';
                 
                 $dif = Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin()));
+                $pickupWindow = $dif;
                 //echo $dif;
                 //echo $task->timeWindowEnd().' ';
                 //echo $task->timeWindowBegin().' ';
@@ -430,18 +433,23 @@ class Job extends Model
                 }
             }
             else if($task->type() ==='dropOff'){
-
+                
                 $dif = Carbon::parse($task->timeWindowEnd())->diffInMinutes(Carbon::parse($task->timeWindowBegin()));
+                $dropoffWindow[] = $dif;
                 foreach ($timeArray_dropoff as $item) {
                     if($dif <= $item['value']){
-                        $dropOff_price = $item['price'];
+                        $dropOff_price_array[] = $item['price'];
                         break;
                     }
                 }
-                if ($dropOff_price === null) {
-                    $dropOff_price = end($timeArray_dropoff)['price'];
+                if ($dropOff_price_array === []) {
+                    $dropOff_price_array = end($timeArray_dropoff)['price'];
                 }
             }
+        }
+        $dropOff_price = 0;
+        foreach($dropOff_price_array as $price){
+            $dropOff_price += $price;
         }
         return [
             //'tasks' => $this->tasks,
@@ -450,7 +458,9 @@ class Job extends Model
             'dropOff_price'  => $dropOff_price,
             //'alltimeAddons' =>  $this->addOns_time,
             'timeArray_pickup'  => $timeArray_pickup,
-            'timeArray_dropoff'  => $timeArray_dropoff,  
+            'timeArray_dropoff'  => $timeArray_dropoff,
+            'pickup_value'  => $pickupWindow,
+            'dropOff_value'  => $dropoffWindow,
         ];
     }
     public function price_timing(){
@@ -676,6 +686,8 @@ class Job extends Model
         $price+=$this->new_price_timing()['price'];
         $price+=$this->price_packages()['price'];
         $price+=$this->price_sunday()['price'];
+        $price+=$this->price_bankHoliday()['price'];
+        $price+=$this->oversizePrice();
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
@@ -693,9 +705,10 @@ class Job extends Model
             'price-package_type&qt' =>  $this->price_packages(),
             'price_oversize_added'  =>  $this->oversizePrice(),
             'price_oversize_value'  =>  $this->price_oversize,
+            'price_package_oversize'        =>  $this->oversizePrice(),
             'timing_price'          =>  $this->new_price_timing(),
             'price_time_sunday'     =>  $this->price_sunday(),
-            'price_time_bankHoliday'     =>  $this->price_bankHoliday(),   
+            'price_time_bankholiday'     =>  $this->price_bankHoliday(),   
         ];
     }
 }

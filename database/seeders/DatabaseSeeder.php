@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        //$this->call($this->getAllModelSeeders());
-        $this->restoreBackup();
+        $this->call($this->getAllModelSeeders());
+        //$this->restoreBackup();
 
 
 
@@ -73,7 +73,7 @@ class DatabaseSeeder extends Seeder
                         }
                     }
     
-                    DB::statement('INSERT IGNORE INTO ' . $tableName . ' (' . implode(',', array_keys($data)) . ') VALUES (' . implode(',', array_map(function($value) {
+                    DB::statement('INSERT INTO ' . $tableName . ' (' . implode(',', array_keys($data)) . ') VALUES (' . implode(',', array_map(function($value) {
                         return DB::getPdo()->quote($value);
                     }, $data)) . ')');
                 }

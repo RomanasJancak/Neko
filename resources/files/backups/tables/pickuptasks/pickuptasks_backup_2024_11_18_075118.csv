@@ -1,0 +1,5 @@
+id,created_at,updated_at,task_id,status_id,pickup_time_begin,pickup_time_end,pickupclientname,pickupclientaddressline,pickupclientcity,pickupclientcountry,pickupclientpostalcode,notes,price
+8,2024-11-17 15:21:42,2024-11-17 15:21:42,15,10,2024-11-18 08:00:00,2024-11-18 17:00:00,HF Flowers Ltd,62 Chatsworth Road,London,UK,E5 0LS,,
+9,2024-11-17 15:24:33,2024-11-17 15:24:33,17,10,2024-11-18 08:30:00,2024-11-18 11:00:00,Anthomania Ltd (Untitled),48 St Paul's Road,London,UK,N1 2QW,,
+10,2024-11-17 15:32:58,2024-11-17 15:32:58,19,10,2024-11-18 07:40:00,2024-11-18 07:55:00,N5 Kitchen LTD,68 Mountgrove Rd,London,UK,N5 2LT,,
+13,2024-11-17 16:45:14,2024-11-17 16:45:14,25,10,2024-11-18 11:30:00,2024-11-18 11:45:00,Kastner and Ovens Ltd Covent Garden,52 Floral St, London,London,UK,WC2E 9DA,,

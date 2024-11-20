@@ -13,7 +13,7 @@ class ApprovedPostalCodeAreaController extends Controller
      */
     public function index()
     {
-        //
+        return view('approvedPostalCodeAreaController.index', compact('jobs','couriers','statuses'));
     }
 
     /**
