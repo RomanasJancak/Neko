@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use App\Models\ApprovedPostalCodeArea;
 
 class Job extends Model
 {
@@ -254,22 +255,79 @@ class Job extends Model
             '$freeMile' => $freeMile,
         ];
     }
-    private function isPostalCodeInsideList($postalCode,$list){
-        $firstPart = strtoupper(explode(' ', $postalCode)[0]);
-        return in_array($firstPart, $list);
+    public function parseUkPostalCode($postalCode) {
+        // Standardize the format by converting to uppercase (keep spaces intact)
+        $postalCode = strtoupper($postalCode);
+    
+        // Updated regex pattern to account for spaces
+        $pattern = '/^([A-Z]{1,2}) ?(\d{1,2}[A-Z]?)? ?(\d)? ?([A-Z]{2})?$/';
+    
+        if (preg_match($pattern, $postalCode, $matches)) {
+            return [
+                'area' => $matches[1] ?? null,      // Area: letters at the start
+                'district' => $matches[2] ?? null, // District: numbers/letters after the area
+                'sector' => $matches[3] ?? null,   // Sector: first number after the space
+                'unit' => $matches[4] ?? null      // Unit: last two letters
+            ];
+        } else {
+            // Return empty components for unparseable input
+            return [
+                'area' => null,
+                'district' => null,
+                'sector' => null,
+                'unit' => null
+            ];
+        }
     }
     public function price_outsidePostalCodeZone(){
         $price = 0;
         $outOfZonePrice = $this->addOns_postalCode[0]['price'];
-        $postalCodes = [
-                        'N1','N4','N5','N7','N16','N19',
-                        'W1',
-                        'NW','NW5',
-                        'WC1','WC2','WC2E',
-                        'EC1','EC2','EC2A','EC3','EC4',
-                        'E1','E2','E5','E8','E9',];
+        $approvedPostalCodes = ApprovedPostalCodeArea::all();
+        
         foreach($this->tasks as $task){
-            if(!$this->isPostalCodeInsideList($task->postalCode(),$postalCodes)){
+            $postalCode = strtoupper($task->postalCode());
+            $postalCodeDecoded = $this->parseUkPostalCode($postalCode);
+            $isInside = false;
+            
+            foreach ($approvedPostalCodes as $approvedPostalCode) {
+                //echo(json_encode($postalCodeDecoded));
+                $nameToUpper = strtoupper($approvedPostalCode->name);
+                
+                $approvedPostalCodeDecoded = $this->parseUkPostalCode($nameToUpper);
+                switch ($approvedPostalCode->type) {
+                    case 'district':
+                        if($postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district']){
+                            if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
+                                $isInside = true;
+                            }
+                        }
+                        break;
+                    case 'area':
+                        if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
+                            $isInside = true;
+                        }
+                        break;
+                    case 'sector':
+                        if($postalCodeDecoded['sector'] === $approvedPostalCodeDecoded['sector']){
+                            if($postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district']){
+                                if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
+                                    $isInside = true;
+                                }
+                            }
+                        }
+                        break;
+                    case 'postalcode':
+                        if ($postalCode === $nameToUpper) {
+                            $isInside = true;
+                        }
+                        break;
+                }
+                if ($isInside) {
+                    break;
+                }
+            }
+            
+            if (!$isInside) {
                 $price = $outOfZonePrice;
                 break;
             }
