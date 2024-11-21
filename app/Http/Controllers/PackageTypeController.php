@@ -87,6 +87,7 @@ class PackageTypeController extends Controller
      */
     public function update(UpdatePackageTypeRequest $request, PackageType $packageType)
     {
+        try{
         // return response()->json([
         //     $request->input()
         // ]);
@@ -99,16 +100,19 @@ class PackageTypeController extends Controller
         foreach($request->selected_clients as $selected_client ){
             $packageType->clients()->attach($selected_client);
         }
-        $packageType->addOnRules()->detach();        
-        foreach($request->selected_addOnRules as $selected_addOnRule ){
-            $packageType->addOnRules()->attach($selected_addOnRule);
-        }
+        $packageType->addOnRules()->detach();
+        isset($request->selected_addOnRules) ? $packageType->addOnRules()->detach() : null;        
         $packageType->save();
 
         return response()->json([
             'message' => 'PackageType updated successfully',
             'addOns' => $request->all(),
         ]);
+        }         catch (\Exception $e){
+        return response()->json(['error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),], 500);
+    }
     }
 
     /**
