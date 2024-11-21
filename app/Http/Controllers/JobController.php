@@ -414,6 +414,7 @@ class JobController extends Controller
                 'dropoffs'              =>  is_null($job->getDropOffTasks()) ? 'none' : collect($job->getDropOffTasks())->map(function ($dropoff) {
                     return [
                         'id'    =>  $dropoff->id,
+                        'packageType_price' => $dropoff->package->packageType->price,
                         'nameOfAddress'  =>  $dropoff->nameOfAddress(),
                         'address'   =>  $dropoff->fullAddress(),
                         'timeWindow'    =>  [

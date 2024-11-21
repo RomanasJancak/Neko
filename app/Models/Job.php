@@ -653,7 +653,7 @@ class Job extends Model
     
         // Step 3: Add oversize price if any package exceeds baseQuantityThreshold
         if ($oversize) {
-            $price += $this->price_oversize;
+            //$price += $this->price_oversize;
         }
     
         // Step 4: Add the base price of all packages
@@ -749,6 +749,16 @@ class Job extends Model
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
+            'breakdownOfPrice' => [
+                'price_distance'        =>  $this->price_distance()['price'],
+                'price_outsidePostalCodeZone'   =>  $this->price_outsidePostalCodeZone(),
+                'price_weight'          =>  $this->price_weight()['price'],
+                'price_timing'          =>  $this->new_price_timing()['price'],
+                'price_packages'        =>  $this->price_packages()['price'],
+                'price_sunday'          =>  $this->price_sunday()['price'],
+                'price_bankHoliday'     =>  $this->price_bankHoliday()['price'],
+                'oversizePrice'         =>  $this->oversizePrice(),
+            ],
             //'test'              =>  (strpos($this->addOns[0]['name'], 'postalcodes-') === 0),
             //  'addOns'            =>  $this->addOns,
             // 'addOns_distance'   =>  $this->addOns_distance,
@@ -760,7 +770,7 @@ class Job extends Model
             'price_OutOfZone'       =>  $this->price_outsidePostalCodeZone(),
             'weight_price'          =>  $this->price_weight(),
             //'old_timing_price'          =>  $this->price_timing(),
-            'price-package_type&qt' =>  $this->price_packages(),
+            'price-packages' =>  $this->price_packages(),
             'price_oversize_added'  =>  $this->oversizePrice(),
             'price_oversize_value'  =>  $this->price_oversize,
             'price_package_oversize'        =>  $this->oversizePrice(),

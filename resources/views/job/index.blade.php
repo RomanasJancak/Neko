@@ -340,6 +340,10 @@
                         </div>
                     </div>
                     <div class="row">
+                        <div class="col-12" id='packages_price_base_DisplayField'>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-12">
                             <span>Outside Zone Price : </span><span>&#163;</span><span id="total_outsideZone_price_DisplayField">0.00</span>
                         </div>
@@ -956,6 +960,7 @@ function setJobValues(jobId,buttonClicked){
     const pickup_timing_value_DisplayField  =   document.getElementById('pickup_timing_value_DisplayField');
     const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
     const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
+    const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
 
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
@@ -999,6 +1004,10 @@ function setJobValues(jobId,buttonClicked){
             string = '';
             data.price.timing_price.dropOff_value.forEach(function(value){
                 string+= '<span style="color: green;">'+formatMinutesToHoursAndMinutes(value)+'</span><br>';
+            });
+            packages_price_base_DisplayField.innerHTML = "";
+            data.dropoffs.forEach(function(dropoff){
+                packages_price_base_DisplayField.innerHTML += '<span style="color: green";><span>Package base price : </span><span>&#163;'+parseFloat(dropoff.packageType_price/100,2)+'</span></span><br>';
             });
             dropOff_timing_value_DisplayField.innerHTML=string;
             string = '';
