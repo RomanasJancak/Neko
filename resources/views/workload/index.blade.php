@@ -11,6 +11,7 @@
                             <div class="list-group">
                                 <div class="list-group-item list-group-item-action">
                                     <div>{{$workload->id}}</div>
+                                    <div>{{$workload->date}}</div>
                                     <div>{{$workload->capacity}}</div>
                                     <div>{{$workload->day->date}}</div>
                                     <div>{{$workload->user->name}}</div>
