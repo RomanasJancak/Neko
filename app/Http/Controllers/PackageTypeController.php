@@ -102,6 +102,9 @@ class PackageTypeController extends Controller
         }
         $packageType->addOnRules()->detach();
         isset($request->selected_addOnRules) ? $packageType->addOnRules()->detach() : null;        
+        foreach($request->selected_addOnRules as $selected_addOnRule ){
+            $packageType->addOnRules()->attach($selected_addOnRule);
+        }
         $packageType->save();
 
         return response()->json([
