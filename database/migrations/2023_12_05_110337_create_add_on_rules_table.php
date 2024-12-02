@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('add_on_rules', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('model_type')->nullable();// either app/models/Job or app/models/Package or app/models/PackageType
+            $table->unsignedBigInteger('model_id')->nullable();
             $table->dateTime('begin_date');
             $table->dateTime('end_date');
             $table->string('name');//code

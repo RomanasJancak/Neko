@@ -16,11 +16,9 @@ return new class extends Migration
             $table->timestamps();
             $table->string('model_type');// either app/models/Job or app/models/Package or app/models/PackageType
             $table->unsignedBigInteger('model_id');
-            $table->dateTime('begin_date');
-            $table->dateTime('end_date');
-            $table->string('name');//temp
+            $table->string('name');//code
             $table->string('display_name');
-            $table->unsignedBigInteger('price');//temp
+            $table->unsignedBigInteger('price');
         });
     }
 

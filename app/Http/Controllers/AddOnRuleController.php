@@ -25,10 +25,11 @@ class AddOnRuleController extends Controller
      */
     public function index()
     {
+        $modelTypes = ['App\Models\Job','App\Models\PackageType'];
         $addOnRules = AddOnRule::latest()->paginate(10);
         $clients = Client::orderBy('name', 'asc')->get();
 
-        return view('addonrule.index', compact('addOnRules','clients'));
+        return view('addonrule.index', compact('addOnRules','clients','modelTypes'));
     }
 
     /**
@@ -46,39 +47,15 @@ class AddOnRuleController extends Controller
      */
     public function store(StoreAddOnRuleRequest $request)
     {
-        // $validator = Validator::make($request->all(), [
-        //     'begin_date' => 'required|date|before:end_date',
-        //     'end_date' => 'required|date|after:begin_date',
-        //     'name' => 'required',
-        //     'display_name' => 'required',
-        //     'price' => 'required',
-        //     // 'client_id' => 'required',
-        //     'selected_clients' => 'required',
-        //     'selected_clients.*' => 'required',
-        // ], [
-        //     'end_date.after' => 'The End Date must be a date after the Begin Date.',
-        // ]);
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Validation errors',
-        //         'errors' => $validator->errors(),
-        //     ]);
-        // }else{
-           //$validatedData = $validator->validated();
-            //$addOnRule = AddOnRule::create($validatedData);
             $addOnRule = new AddOnRule();
             $addOnRule->begin_date = $request->input('begin_date');
             $addOnRule->end_date = $request->input('end_date');
             $addOnRule->name = $request->input('name');
             $addOnRule->display_name = $request->input('display_name');
-            //return response()->json($request->input('price'));
             $addOnRule->price = intval(str_replace('.', '', $request->input('price')));
-            //return response()->json($request->selected_clients);
             $addOnRule->save();
             foreach($request->selected_clients as $selected_client ){
                 $addOnRule->clients()->attach($selected_client
-                //, ['column_name' => $value]
             );
             }
             $addOnRule->save();

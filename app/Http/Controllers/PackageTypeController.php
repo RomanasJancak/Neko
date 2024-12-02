@@ -88,9 +88,6 @@ class PackageTypeController extends Controller
     public function update(UpdatePackageTypeRequest $request, PackageType $packageType)
     {
         try{
-        // return response()->json([
-        //     $request->input()
-        // ]);
         $packageType = PackageType::findOrFail($request->packageTypeId);
         $packageType->name = $request->name;
         $packageType->baseQuantityThreshold =   $request->baseQuantityThreshold;

@@ -103,7 +103,17 @@
                         <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
                     </div>
                     <hr class="my-divider">
-                    <div class="row">
+                    <div class="row modal-client-list" >
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-6">
+                                <button  class="btn btn-primary expand-button" style="display: none;">Expand</button>                                    
+                            </div>
+                            <div class="col-6">
+                                <button  class="btn btn-primary collapse-button" style="display: none;">Collapse</button>
+                            </div>
+                        </div>
+                    </div>
                     @foreach ($clients as $client)
                             <div class="col-md-4 client-item" data-client-id="{{ $client->id }}">
                                 <label>
@@ -119,6 +129,7 @@
                                 </label>
                             </div>
                          @endforeach
+
                     </div>
                     <div class="row">
                         <div class="form-group">
@@ -141,16 +152,22 @@
 
 @section('scripts')
 <script>
-    
+function addHideShowFunctionalityForModalClientList(clientList){
+    console.log(clientList);
+    var expandButton = clientList.getElementById('expandButton-' + packageTypeId);
+    var collapseButton = clientList.getElementById('collapseButton-' + packageTypeId);
+}
 document.addEventListener('DOMContentLoaded', function() {
 //===========================================================================================
 var clientLists = document.querySelectorAll('.client-list');
+const modalClientList = document.querySelector('.modal-client-list');
+addHideShowFunctionalityForModalClientList(modalClientList);
 
 clientLists.forEach(function(clientList) {
     var packageTypeId = clientList.getAttribute('data-package-type-id');
-        var expandButton = document.getElementById('expandButton-' + packageTypeId);
-        var collapseButton = document.getElementById('collapseButton-' + packageTypeId);
-        var rows = clientList.querySelectorAll('.row');
+    var expandButton = document.getElementById('expandButton-' + packageTypeId);
+    var collapseButton = document.getElementById('collapseButton-' + packageTypeId);
+    var rows = clientList.querySelectorAll('.row');
 
     if (rows.length > 3) {
         expandButton.style.display = 'block';

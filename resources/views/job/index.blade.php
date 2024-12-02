@@ -579,7 +579,6 @@ function checkIf_All_JobCreationFields_HaveInputs(){
 
 }
 function createJob(){
-        console.log("Function_createJob()_begin");
         const form = document.getElementById('jobForm');
         updateData  =   {
             id          :   document.getElementById('idField').value,
@@ -590,13 +589,12 @@ function createJob(){
             isJobCreationFromIndexPage : true,
         }
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        // Send a POST request to the server using the generated route
-        fetch(form.action, { // Blade syntax to generate the route URL
+ 
+        fetch(form.action, { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json', // Set Accept header
-                // Add any additional headers if needed
+                'Accept': 'application/json', 
                 'X-CSRF-TOKEN': csrfToken
             },
             body: JSON.stringify(updateData)
