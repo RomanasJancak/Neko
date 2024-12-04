@@ -42,4 +42,15 @@ class Returntask extends Model
     public function timeWindowEnd(){
         return $this->time_end;
     }
+    public function setAddress($name,$country,$city,$postalCode,$addressLine){
+        $this->name         =   $name;
+        $this->country      =   $country;
+        $this->city         =   $city;
+        $this->postal_code   =   $postalCode;
+        $this->adress_line  =   $addressLine;     
+    }
+    public function setTimeWindow($begin,$end){
+        $this->time_begin    =   $begin;
+        $this->time_end      =   $end;
+    }
 }

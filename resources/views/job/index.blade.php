@@ -361,6 +361,9 @@
                         <div class="col-12">
                             <span>Same day order : </span><span>&#163;</span><span id="addon_time_samedayorder_price_DisplayField">0.00</span>
                         </div>
+                        <div class="col-12">
+                            <span>Same day return : </span><span>&#163;</span><span id="addon_time_samedayreturn_price_DisplayField">0.00</span>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-12">
@@ -471,6 +474,10 @@
                         </div>
                     </div>
                     <div class="row justify-content-md-center">
+                        <div class="col-3 form-group" style="visibility: hidden;" id="container_taskTimeDate">
+                            <label for="taskTimeDate">Date</label>
+                                <input type="date" id="taskTimeDate" name="timeDate" class="form-control">
+                        </div>
                         <div class="col-3 form-group">
                             <label for="taskTimeBegin">Begin</label>
                                 <input type="time" id="taskTimeBegin" name="timeBegin" class="form-control">
@@ -482,6 +489,12 @@
                     </div>
                     <div class="row justify-content-md-center">
                         <div class="col" id="package-info">
+                        </div>          
+                    </div>
+                    <div class="row justify-content-md-center">
+                        <div class="col" id="return-info">
+                            <input type="checkbox" name="returnTask_isFlexible" id="returnTask_isFlexible" checked>
+                            <label for="returnTask_isFlexible">Flexible Return</label>
                         </div>          
                     </div>
                 </form>
@@ -523,7 +536,8 @@ function setReadOnlyToFieldsOfTaskModal(status){
     fields.push(document.getElementById('taskPostalCodeField'));
     fields.push(document.getElementById('taskAddressLineField'));
     fields.push(document.getElementById('taskTimeBegin'));
-    fields.push(document.getElementById('taskTimeEnd'));//package-info
+    fields.push(document.getElementById('taskTimeEnd'));
+    fields.push(document.getElementById('taskTimeDate'));
     fields.forEach(function(field){
         field.disabled = status;
     });
@@ -731,6 +745,7 @@ function addTypeHeadSearchToTaskWindow(searchInput){
     });
     }
 }
+
 function addInfoAboutPackageToTaskModal(package){  
     if(!package){
         package = {
@@ -739,7 +754,6 @@ function addInfoAboutPackageToTaskModal(package){
                 },
                 quantity: 1 // Set the quantity
         };
-        console.log(package);
     } 
     const container =   document.getElementById('package-info');
     container.innerHTML = '';
@@ -834,18 +848,44 @@ function setTaskValues(taskId){
             addressCityField.value          =   data.address.city;
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
-            timeBeginField.value            =   data.time.begin;
-            timeEndField.value              =   data.time.end;
+            const dateBegin = new Date(data.time.begin);
+            const dateEnd = new Date(data.time.end);
+            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
+            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
+            console.log(timeBeginField.value);
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{
                     document.getElementById('weightInput').value = data.package.weight;
-                    console.log(data.package);
                 });
                 showPackageDiv(true);
 
             }else{
                 showPackageDiv(false);
-            }            
+            }
+            container_return = document.getElementById('return-info');
+            if(data.returnTask !== 'none'){
+                taskTimeDate = document.getElementById('taskTimeDate');
+                taskTimeDate.value  = `${dateBegin.getUTCFullYear()}-${String(dateBegin.getUTCMonth() + 1).padStart(2, '0')}-${String(dateBegin.getUTCDate()).padStart(2, '0')}`;
+                
+                checkbox  = document.getElementById('returnTask_isFlexible');
+                if (checkbox.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                container_return.style.visibility = 'visible';
+                
+                
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                });
+            }else{
+                container_return.style.visibility = 'hidden';
+            }
         })
         .catch(error => {
             console.error(error);
@@ -959,6 +999,7 @@ function setJobValues(jobId,buttonClicked){
     const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
     const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
     const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
+    const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
 
     const routeUrl = "{{ route('job.getJobInfo', ['id' => ':id']) }}".replace(':id', jobId);
     containerTasks.innerHTML = "";
@@ -996,6 +1037,8 @@ function setJobValues(jobId,buttonClicked){
             total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
             addon_time_sunday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
             addon_time_bankholiday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_bankholiday.price/100,2);
+            console.log(data.price.breakdownOfPrice.price_sameDayReturn);
+            addon_time_samedayreturn_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_sameDayReturn.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
             pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
             dropOff_timing_value_DisplayField.innerHTM='';
@@ -1527,6 +1570,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 type        : document.getElementById('packageTypeSelect').value,
                 quantity    : document.getElementById('quantityInput').value,
                 weight      : document.getElementById('weightInput').value,
+            }
+        }
+        if(typeField.value == 'return'){
+            updateData.returnTask = {
+                is_flexible : document.getElementById('returnTask_isFlexible').checked,
+                date    : document.getElementById('taskTimeDate').value,
             }
         }
         updateTask(updateData,route);

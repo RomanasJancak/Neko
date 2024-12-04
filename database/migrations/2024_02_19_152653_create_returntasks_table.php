@@ -25,6 +25,7 @@ return new class extends Migration
             $table->dateTime('time_end');
             $table->bigInteger('price')->nullable();
             $table->string('notes')->nullable();
+            $table->boolean('is_flexible')->default(true);
         });
     }
 

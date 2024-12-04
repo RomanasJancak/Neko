@@ -21,6 +21,7 @@ class Job extends Model
     private $packages_zero      =   [];
     private $price_oversize     =   0;
     private $price_oversize_status     =   0;
+    private $sameDayReturnAddOnPrice = 0;
 
     private $bankHolidays = [
         ['date' => '2024-01-01', 'nameOfHoliday' => 'New Year’s Day'],
@@ -179,7 +180,63 @@ class Job extends Model
         return $this->hasMany(AddOn::class, 'model_id')
                     ->where('model_type', '=', 'app/models/Job');
     }
+    public function calculateShortestRoute($start, $points, $end = null)
+    {
+        //dd(!$start);
+        if(!$start){
+            return [
+                'distance' => 0,
+                'route' => [],
+            ];
+        }
+        $points = array_values($points); // Ensure points are indexed from 0
+        $permutations = self::permute($points);
+        $shortestDistance = PHP_INT_MAX;
+        $shortestRoute = [];
+
+        foreach ($permutations as $permutation) {
+            $route = array_merge([$start], $permutation);
+            if ($end) {
+                $route[] = $end;
+            }
+
+            $distance = self::calculateTotalDistance($route);
+            if ($distance < $shortestDistance) {
+                $shortestDistance = $distance;
+                $shortestRoute = $route;
+            }
+        }
+
+        return [
+            'distance' => $shortestDistance,
+            'route' => $shortestRoute,
+        ];
+    }
+    public function calculateTotalDistance($route)
+    {
+        $totalDistance = 0;
+        for ($i = 0; $i < count($route) - 1; $i++) {
+            $totalDistance += Distance::getDistance($route[$i]->fullAddress(), $route[$i + 1]->fullAddress());
+        }
+        return $totalDistance;
+    }
+    public function permute($items, $perms = [], &$result = [])
+    {
+        if (empty($items)) {
+            $result[] = $perms;
+        } else {
+            for ($i = count($items) - 1; $i >= 0; --$i) {
+                $newItems = $items;
+                $newPerms = $perms;
+                list($foo) = array_splice($newItems, $i, 1);
+                array_unshift($newPerms, $foo);
+                self::permute($newItems, $newPerms, $result);
+            }
+        }
+        return $result;
+    }
     public function findShortestDistance(){
+        
         $pickup = '';
         $dropOffs = [];
         $return = '';
@@ -188,33 +245,15 @@ class Job extends Model
                 $pickup = $task;
             }else if($task->type() == 'dropOff'){
                 $dropOffs[] = $task;
-            }else if($task->type() == 'picreturnkup'){
+            }else if($task->type() == 'return'){
                 $return = $task;
             }
         }
-        //=============TBD FIX SHORTEST PATH ==== Dabar tiesiog is eiles sudeda
-        /*
-        $distanceToNearestDropOff = PHP_INT_MAX;
-        
-        foreach($dropOffs as $dropOff){
-            $distance = Distance::getDistance($pickup->fullAddress(),$dropOff->fullAddress());
-            if($distance < $distanceToNearestDropOff){
-                $distanceToNearestDropOff = $distance;
-            }
-        }
-        */
-        $tempDropOffs = $dropOffs;
-        $distanceToNearestDropOff = 0;
-        $lastPoint = $pickup;
-        foreach($dropOffs as $dropOff){
-            $distance = Distance::getDistance($lastPoint->fullAddress(),$dropOff->fullAddress());
-            $lastPoint = $dropOff;
-            $distanceToNearestDropOff+= $distance;    
-        } 
-        return $distanceToNearestDropOff;
+        //dd($return->fullAddress());
+        return $this->calculateShortestRoute($pickup, $dropOffs, $return);
     }
     public function price_distance(){
-        $distance = $this->findShortestDistance()*0.0006213712;
+        $distance = $this->findShortestDistance()['distance']*0.0006213712;
         $thresholds = [];
         
         foreach($this->addOns_distance as $addOn){
@@ -672,6 +711,16 @@ class Job extends Model
         }
         return 0;
     }
+    public function price_sameDayReturn(){
+        $price = 0;
+        $returnTask = $this->getReturnTask();
+        if ($returnTask) {
+            if(!$returnTask->return->is_flexible){
+                $price = $this->sameDayReturnAddOnPrice;
+            }
+        }
+        return ['price' => $price];
+    }
     public function populateVariables(){
 
         $this->addOns = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($this->date,$this->clientToBill->id),true);
@@ -690,6 +739,9 @@ class Job extends Model
             }
             if (strpos($addOn['name'], 'package-oversize') === 0) {
                 $this->price_oversize = $addOn['price'];
+            }
+            if (strpos($addOn['name'], 'time-sameDayReturn') === 0) {
+                $this->sameDayReturnAddOnPrice = $addOn['price'];
             }
         }
     }
@@ -746,6 +798,7 @@ class Job extends Model
         $price+=$this->price_sunday()['price'];
         $price+=$this->price_bankHoliday()['price'];
         $price+=$this->oversizePrice();
+        $price+=$this->price_sameDayReturn()['price'];
         //$price+=$this->price_distance();
         //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
@@ -757,6 +810,7 @@ class Job extends Model
                 'price_packages'        =>  $this->price_packages()['price'],
                 'price_sunday'          =>  $this->price_sunday()['price'],
                 'price_bankHoliday'     =>  $this->price_bankHoliday()['price'],
+                'price_sameDayReturn'   =>  $this->price_sameDayReturn(),
                 'oversizePrice'         =>  $this->oversizePrice(),
             ],
             //'test'              =>  (strpos($this->addOns[0]['name'], 'postalcodes-') === 0),
@@ -776,7 +830,8 @@ class Job extends Model
             'price_package_oversize'        =>  $this->oversizePrice(),
             'timing_price'          =>  $this->new_price_timing(),
             'price_time_sunday'     =>  $this->price_sunday(),
-            'price_time_bankholiday'     =>  $this->price_bankHoliday(),   
+            'price_time_bankholiday'     =>  $this->price_bankHoliday(),
+            
         ];
     }
 }

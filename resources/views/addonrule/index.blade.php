@@ -154,8 +154,8 @@
 <script>
 function addHideShowFunctionalityForModalClientList(clientList){
     console.log(clientList);
-    var expandButton = clientList.getElementById('expandButton-' + packageTypeId);
-    var collapseButton = clientList.getElementById('collapseButton-' + packageTypeId);
+    //var expandButton = clientList.getElementById('expandButton-' + packageTypeId);
+    //var collapseButton = clientList.getElementById('collapseButton-' + packageTypeId);
 }
 document.addEventListener('DOMContentLoaded', function() {
 //===========================================================================================

@@ -77,6 +77,45 @@ class TaskController extends Controller
                 );
                 $package->save();
             }
+            
+            if($request->input('type') === 'return'){
+                $returnTask = new ReturnTask();
+                $returnTask->task_id = $task->id;
+                $returnTask->status_id = $task->status_id;
+                $returnTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+                $returnTask->is_flexible = $request->input('returnTask.is_flexible');
+                if($request->input('returnTask.is_flexible')){
+                    if($request->input('date') !== $request->input('returnTask.date')){
+                        $returnTaskDate = Carbon::parse($request->input('returnTask.date'));
+                        $timeBegin = Carbon::parse($request->input('time.begin'));
+                        $timeEnd = Carbon::parse($request->input('time.end'));
+                        $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $returnTask->setTimeWindow(
+                            $timeBegin->toDateTimeString(),
+                            $timeEnd->toDateTimeString()
+                        );
+                    }
+                }else{
+                    $returnTaskDate = Carbon::parse($request->input('date'));
+                    $timeBegin = Carbon::parse($request->input('time.begin'));
+                    $timeEnd = Carbon::parse($request->input('time.end'));
+                    $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $returnTask->setTimeWindow(
+                        $timeBegin->toDateTimeString(),
+                        $timeEnd->toDateTimeString()
+                    );
+                }
+                $returnTask->setAddress(
+                    $request->input('address.name'),
+                    $request->input('address.country'),
+                    $request->input('address.city'),
+                    $request->input('address.postalCode'),
+                    $request->input('address.addressLine'),
+                );
+                $returnTask->save();
+            }
             return response()->json([
                 'message'       => 'Task created successfully. ',
                 'request'       =>  $request->all(),
@@ -140,6 +179,45 @@ class TaskController extends Controller
             
             $taskTypeObject = $pickupTask;
         }
+        if($request->input('type') === 'return'){
+            $returnTask = $task->return;
+            $returnTask->task_id = $task->id;
+            $returnTask->status_id = $task->status_id;
+            $returnTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+            $returnTask->is_flexible = $request->input('returnTask.is_flexible');
+            if($request->input('returnTask.is_flexible')){
+                if($request->input('date') !== $request->input('returnTask.date')){
+                    $returnTaskDate = Carbon::parse($request->input('returnTask.date'));
+                    $timeBegin = Carbon::parse($request->input('time.begin'));
+                    $timeEnd = Carbon::parse($request->input('time.end'));
+                    $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $returnTask->setTimeWindow(
+                        $timeBegin->toDateTimeString(),
+                        $timeEnd->toDateTimeString()
+                    );
+                }
+            }else{
+                $returnTaskDate = Carbon::parse($request->input('date'));
+                $timeBegin = Carbon::parse($request->input('time.begin'));
+                $timeEnd = Carbon::parse($request->input('time.end'));
+                $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                $returnTask->setTimeWindow(
+                    $timeBegin->toDateTimeString(),
+                    $timeEnd->toDateTimeString()
+                );
+            }
+            $returnTask->setAddress(
+                $request->input('address.name'),
+                $request->input('address.country'),
+                $request->input('address.city'),
+                $request->input('address.postalCode'),
+                $request->input('address.addressLine'),
+            );
+            $returnTask->save();
+        }
+        
         if($request->input('type') === 'dropOff'){
 
             $package = $task->package;
@@ -167,55 +245,6 @@ class TaskController extends Controller
             'task'      =>  $task,
             'taskTypeObject'    =>   $taskTypeObject,
             'requestData' =>  $request->all(),
-        ]);
-
-        if($request->input('courrier_id')){
-            
-        }
-        if($request->input('courrier_id')){
-            if($request->input('courrier_id') === 'none'){
-                $task->job->courrier_id = null;
-            }else{
-                $task->job->courrier_id = $request->input('courrier_id');
-            }
-        }
-        if($request->input('status_id')){
-            $status = $request->input('status_id');
-                $task->job->status_id = $status;
-                $task->status_id = $status;
-
-        }
-        $debug = false;
-        if($request->input('order_number')){
-            $task->order_number = $request->input('order_number');
-            $debug = true;
-        }
-        if($request->input('address')){
-            $task->typeOfTask->setAddress(
-                $request->input('address.name'),
-                $request->input('address.country'),
-                $request->input('address.city'),
-                $request->input('address.postalCode'),
-                $request->input('address.addressLine'),
-            );
-        }
-        if($request->input('time')){
-            $task->typeOfTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
-        }
-        if($request->input('package')){
-            $task->package->changeTypeWithId($request->input('package.type'));
-            $task->package->setQuantity($request->input('package.quantity'));
-            $task->package->save();
-        }
-        $task->typeOfTask->save();
-        $task->save();
-        $task->job->save();
-
-        return response()->json([
-            'message'   => 'Task updated successfully. ',
-            'task'      =>  $task,
-            'debug'     =>  $debug,
-            'request->order_number' =>  $request->input('order_number'),
         ]);
     }
 
@@ -246,9 +275,10 @@ class TaskController extends Controller
         if ($task) {
             return response()->json([
                 'id'                =>  $task->id,
+                'date'              =>  $task->job->date,
                 'time'          =>  [
-                                            'begin' =>  Carbon::parse($task->timeWindowBegin())->format('H:i:s'),
-                                            'end'   =>  Carbon::parse($task->timeWindowEnd())->format('H:i:s'),    
+                                            'begin' =>  Carbon::parse($task->timeWindowBegin()),
+                                            'end'   =>  Carbon::parse($task->timeWindowEnd()),    
                 ],
                 'statusId'          =>  $task->status->id,
                 'address'           =>  [
@@ -266,7 +296,23 @@ class TaskController extends Controller
                                                 'weight'        =>  $task->package->weight,
                                                 'dimensions'    =>  $task->package->dimensions,
                                             ]
-                                            :'none',    
+                                            :'none',
+                'returnTask'        =>  isset($task->return)
+                                            ?[
+                                                'time'          =>  [
+                                                                        'begin' =>  Carbon::parse($task->return->timeWindowBegin()),
+                                                                        'end'   =>  Carbon::parse($task->return->timeWindowEnd()),    
+                                                ],
+                                                'address'       =>  [
+                                                                        'name'          =>  $task->return->nameOfAddress(),
+                                                                        'country'       =>  $task->return->country(),
+                                                                        'city'          =>  $task->return->city(),
+                                                                        'postalCode'    =>  $task->return->postalCode(),
+                                                                        'addressLine'   =>  $task->return->addressLine(),
+                                                ],
+                                                'is_flexible'   =>  $task->return->is_flexible,
+                                            ]
+                                            :'none',
                 ]);
         }
 

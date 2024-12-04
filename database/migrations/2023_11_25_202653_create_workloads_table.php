@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('capacity');
-            $table->timestamp('date');
+            $table->timestamp('date')->nullable();
             $table->unsignedBigInteger('day_id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('bike_id');

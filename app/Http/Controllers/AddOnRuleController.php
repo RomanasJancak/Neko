@@ -47,6 +47,7 @@ class AddOnRuleController extends Controller
      */
     public function store(StoreAddOnRuleRequest $request)
     {
+        try{
             $addOnRule = new AddOnRule();
             $addOnRule->begin_date = $request->input('begin_date');
             $addOnRule->end_date = $request->input('end_date');
@@ -60,12 +61,12 @@ class AddOnRuleController extends Controller
             }
             $addOnRule->save();
             return response()->json($addOnRule);
-            return response()->json($request->input('priceField'));
-        // }
-    
-
-    
-        
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }        
     }
 
     /**
