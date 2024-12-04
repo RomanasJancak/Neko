@@ -16,6 +16,8 @@ return new class extends Migration
             $table->timestamps();
             $table->string('origin_address')->nullable();
             $table->string('destination_address')->nullable();
+            $table->string('origin_address_id')->nullable();
+            $table->string('destination_address_id')->nullable();
             $table->double('origin_lat')->nullable();
             $table->double('origin_lng')->nullable();
             $table->double('destination_lat')->nullable();
