@@ -23,7 +23,6 @@ return new class extends Migration
             $table->bigInteger('price_adjustment_number')->default(0);
             $table->bigInteger('fixedPrice')->default(0);
             $table->date('date');
-
             $table->json('pickuptask_data');
             $table->json('dropOffs_data');
             $table->json('return_data');

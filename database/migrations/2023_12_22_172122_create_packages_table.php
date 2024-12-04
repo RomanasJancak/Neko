@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('weight');
             $table->string('dimensions');
             $table->string('quantity');
+            $table->unsignedBigInteger('address_id')->nullable();
             $table->string('dropoff_adress_line')->nullable();//CSV
             $table->string('dropoff_postal_code')->nullable();//CSV
             $table->string('dropoff_city')->nullable();//CSV

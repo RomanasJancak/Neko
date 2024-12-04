@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('status_id');
             $table->dateTime('pickup_time_begin');
             $table->dateTime('pickup_time_end');
+            $table->unsignedBigInteger('address_id')->nullable();
             $table->string('pickupclientname');
             $table->string('pickupclientaddressline');                        
             $table->string('pickupclientcity');

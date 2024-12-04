@@ -16,6 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('task_id');
             $table->unsignedBigInteger('status_id');
+            $table->unsignedBigInteger('address_id')->nullable();
             $table->string('name')->nullable();
             $table->string('adress_line')->nullable();//CSV
             $table->string('postal_code')->nullable();//CSV
