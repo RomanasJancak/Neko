@@ -23,7 +23,6 @@ return new class extends Migration
             $table->string('website')->nullable();//CSV
             $table->string('private_notes')->nullable();//CSV
             $table->string('phone')->nullable();//CSV
-            $table->unsignedBigInteger('address_id')->nullable();
             $table->string('address_line')->nullable();
             $table->string('postal_code')->nullable();//CSV
             $table->string('city')->nullable();//CSV

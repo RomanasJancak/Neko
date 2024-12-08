@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+{{-- dd($clients[0]->createAndAddNewAddress("name","type","addr1","addr2","N7 0LT","city","country",)) --}}
 <div class="container">
     <div class="row">
         <div class="col-md-12">
@@ -86,7 +87,7 @@
                         <div class="col">
                             <input type="hidden" name="clientid" id="clientid" value="">
                             <label for="nameField">Name : </label>
-                            <input type="text" name="name" id="nameField" value="" >
+                            <input type="text" name="clientname" id="nameField" value="" >
                         </div>
                         <div class="col">
                             <label for="nameField">Short name : </label>
@@ -97,10 +98,10 @@
                         <div class="col form-group" id="reg-adress-section">
                             <div class="row">
                                 <label for="reg-adress-section-adress-country-field">Registration adress : </label>
-                                <input type="text" name="address_line" id="reg-adress-section-adress-addressline-field" value="" placeholder="Address line">
-                                <input type="text" name="postal_code" id="reg-adress-section-adress-postalcode-field" value="" placeholder="Postal code">
-                                <input type="text" name="city" id="reg-adress-section-adress-city-field" value="" placeholder="City">
-                                <input type="text" name="country" id="reg-adress-section-adress-country-field" value="" placeholder="Country">    
+                                <input type="text" name="reg-addr-address_line" id="reg-adress-section-adress-addressline-field" value="" placeholder="Address line">
+                                <input type="text" name="reg-addr-postal_code" id="reg-adress-section-adress-postalcode-field" value="" placeholder="Postal code">
+                                <input type="text" name="reg-addr-city" id="reg-adress-section-adress-city-field" value="" placeholder="City">
+                                <input type="text" name="reg-addr-country" id="reg-adress-section-adress-country-field" value="" placeholder="Country">    
                             </div>
                         </div>
                         <div class="col form-group" id="pu-adress-section">
@@ -111,6 +112,15 @@
                                 <input type="text" name="pickup_city" id="pu-adress-section-adress-city-field" value="" placeholder="City">
                                 <input type="text" name="pickup_country" id="pu-adress-section-adress-country-field" value="" placeholder="Country">                                                                
                             </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12" id="container-addresses"></div>
+                        <div class="col-12">
+                            <span>Add address</span>
+                            <button type="button" class="btn btn-success btn-xs text-success" style="background: none; border: none;" id='button-add-address'>
+                                <i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="row">
@@ -136,6 +146,60 @@
 
 @section('scripts')
 <script>
+    function deleteAddress(address_id = null) {
+
+        
+
+        const container = document.getElementById('container-addresses');
+        const addressElement = document.querySelector(`input[name="address_id[]"][value="${address_id}"]`);
+        if(addressElement) {
+            container.removeChild(addressElement.parentElement.parentElement);
+        }
+        if(address_id) {
+            const routeUrl = `{{ route('address.delete', ['address' => ':addressId']) }}`.replace(':addressId', address_id);
+            fetch(routeUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response =>{
+                return response.json();
+            })    .then(data => {
+
+                console.log(data);
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting address. Please try again.');
+            });
+        }else{
+            container.removeChild(event.target.parentElement.parentElement.parentElement);
+        }
+    }
+    function populateWithAddresses(addresses){
+        const container = document.getElementById('container-addresses');
+        container.innerHTML = '';
+        console.log(addresses);
+        addresses.forEach(address => {
+        const addressRow = `
+        <div class="row">
+            <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control" value="${address.id}"></div>
+            <div class="col address-input-field"><input style="font-size: 0.8em;" type="text" name="name[]" class="form-control" value="${address.name}" placeholder="Name" ></div>
+            <div class="col address-input-field"><input type="text" name="type[]" class="form-control" value="${address.type}" placeholder="Type"></div>
+            <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" value="${address.address_line_1}" placeholder="Address line 1"></div>
+            <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" value="${address.address_line_2}" placeholder="Address line 1"></div>
+            <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" value="${address.postal_code}" placeholder="Postal code"></div>
+            <div class="col address-input-field"><input type="text" name="city[]" class="form-control" value="${address.city}" placeholder="City"></div>
+            <div class="col address-input-field"><input type="text" name="country[]" class="form-control" value="${address.country}" placeholder="Country"></div>
+            <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="${address.id}" onclick="deleteAddress(${address.id})">
+                <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', addressRow);
+        });
+    }
     function editClient(clientId) {
         const form = document.querySelector('#statusForm');
         if (form) {
@@ -161,6 +225,7 @@
                         document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
 
                         document.getElementById('phoneNumberField').value = data.phone;
+                        populateWithAddresses(data.addresses);
                     }
                 })
                 .catch(error => {
@@ -231,7 +296,28 @@
         $('#modalWindow').modal('show');
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('button-add-address').addEventListener('click', function(e) {
+            e.preventDefault();
+            const container = document.getElementById('container-addresses');
+            const address = `
+                <div class="row">
+                    <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control"></div>
+                    <div class="col address-input-field"><input type="text" name="name[]" class="form-control" placeholder="Name"></div>
+                    <div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
+                    <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" placeholder="Address line 1"></div>
+                    <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" placeholder="Address line 2"></div>
+                    <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" placeholder="Postal code"></div>
+                    <div class="col address-input-field"><input type="text" name="city[]" class="form-control" placeholder="City"></div>
+                    <div class="col address-input-field"><input type="text" name="country[]" class="form-control" placeholder="Country"></div>
+                    <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="" onclick="deleteAddress()">
+                        <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', address);
+        });
         document.querySelectorAll('.create-btn').forEach(button => {
             button.addEventListener('click', () => {
                 const form = document.querySelector(`#statusForm`);
@@ -261,7 +347,7 @@
             xhr.onload = function() {
                 // Process the response if needed
                 console.log(xhr.responseText);
-                parsedMessage = JSON.parse(xhr.responseText).message;
+                //parsedMessage = JSON.parse(xhr.responseText).message;
                 // Handle the response based on the message
             };
 
@@ -300,7 +386,6 @@
                 if (xhr.status === 200) {
                     const data = JSON.parse(xhr.responseText);
                     document.getElementById('clientsTableBody').innerHTML = '';
-                    console.log(data);
                     data.clients.data.forEach(client => {
                         const clientRow = `
                             <tr>

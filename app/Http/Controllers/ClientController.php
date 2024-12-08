@@ -38,21 +38,31 @@ class ClientController extends Controller
     public function store(StoreClientRequest $request)
     {
         try {
-            $validatedData = $request->validate([
-                'name' => 'required|string|max:255',
-                'shortenedName'     =>  'max:255',
-                'country' => 'required|string|max:255',
-                'city' => 'required|string|max:255',
-                'postal_code' => 'required|string|max:255',
-                'address_line' => 'required|string|max:255',
-                'pickup_country' => 'max:255',
-                'pickup_city' => 'max:255',
-                'pickup_postal_code' => 'max:255',
-                'pickup_adress_line' => 'max:255',
-                'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
-            ]);
-
-            $client = Client::create($validatedData);
+            $client = new Client();
+            $client->name = $request->input('clientname');
+            $client->shortenedName = $request->input('shortenedName');
+            $client->country = $request->input('reg-addr-country');
+            $client->city = $request->input('reg-addr-city');
+            $client->city = $request->input('reg-addr-postal_code');
+            $client->city = $request->input('reg-addr-address_line');
+            //address_id
+            if($request->name ?? false){
+                foreach($request->name as $key => $value){
+                    if (isset(
+                            $request->type[$key], 
+                            $request->postal_code[$key], 
+                            $request->city[$key], 
+                            $request->country[$key]
+                            )&&
+                            ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
+                        {
+                        $client->createAndAddNewAddress($request->address_id[$key],$value, $request->type[$key], $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                        }
+                }
+            }
+    
+    
+            $client->save();
 
             return response()->json(['message' => 'Client created successfully', 'client' => $client], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -104,39 +114,41 @@ class ClientController extends Controller
         try {
         $client = Client::find($request->clientid);
         
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'shortenedName'     =>  'max:255',
+        $client->name = $request->input('clientname');
+        $client->shortenedName = $request->input('shortenedName');
+        $client->country = $request->input('reg-addr-country');
+        $client->city = $request->input('reg-addr-city');
+        $client->city = $request->input('reg-addr-postal_code');
+        $client->city = $request->input('reg-addr-address_line');
+        //address_id
+        if($request->name ?? false){
+            foreach($request->name as $key => $value){
+                if (isset(
+                        $request->type[$key], 
+                        $request->postal_code[$key], 
+                        $request->city[$key], 
+                        $request->country[$key]
+                        )&&
+                        ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
+                    {
+                    $client->createAndAddNewAddress($request->address_id[$key],$value, $request->type[$key], $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                    }
+            }
+        }
 
-
-            
-            'country' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'postal_code' => 'required|string|max:255',
-            'address_line' => 'required|string|max:255',
-
-            'pickup_country' => 'max:255',
-            'pickup_city' => 'max:255',
-            'pickup_postal_code' => 'max:255',
-            'pickup_adress_line' => 'max:255',
-            
-
-            'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
-        ]);
-
-        $client->update($validatedData);
-        $client->shortenedName = $request->shortenedName;
 
         $client->save();
 
         //return response()->json(['message' => $request->name]);
         return response()->json([
+            'request' => $request->all(),
             'after_update_client' => $client,
-            '$request->phone'   =>$request->phone,
             ]);
-        } catch (\Exception $e) {
-        // Handle other types of exceptions as needed
-            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
         }
     
     }
@@ -178,10 +190,11 @@ class ClientController extends Controller
     }
     public function getClientInfo($clientId)
     {
-        // Fetch the client's information based on the $clientId
-        $client = Client::find($clientId);
+        try{
+            // Fetch the client's information based on the $clientId
+            $client = Client::find($clientId);
 
-        if ($client) {
+            if ($client) {
             return response()->json([
                 'id'                    => $client->id,
                 'name'                  => $client->name,
@@ -189,6 +202,18 @@ class ClientController extends Controller
                 'email'                 => $client->email,
                 'country'               => $client->country,
                 'city'                  => $client->city,
+                'addresses'             => $client->getAllAddresses()->map(function ($address) {
+                                            return [
+                                                'id' => $address->id,
+                                                'name' => $address->name,
+                                                'type' => $address->type,
+                                                'address_line_1' => $address->address_line_1,
+                                                'address_line_2' => $address->address_line_2,
+                                                'postal_code' => $address->postalCode->postal_code,
+                                                'city' => $address->city,
+                                                'country' => $address->country,
+                                            ];
+                                        }),
                 'postal_code'                  => $client->postal_code,
                 'address_line'                  => $client->address_line,
                 'pickup_country'                  => $client->pickup_country,
@@ -206,9 +231,15 @@ class ClientController extends Controller
                                         }),
                 'phone'                 =>  $client->phone,
                 ]);
-        }
+            }
 
-        return response()->json(['error' => 'Client not found'], 404);
+            return response()->json(['error' => 'Client not found'], 404);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
     public function searchClients(Request $request)
     {

@@ -18,6 +18,7 @@ use App\Http\Controllers\PostalCodeController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\JobTemplateController;
 use App\Http\Controllers\ApprovedPostalCodeAreaController;
+use App\Http\Controllers\AddressController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -209,4 +210,7 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
     Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
     Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+});
+Route::group(['prefix'  => 'addresses'],function(){
+    Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
 });

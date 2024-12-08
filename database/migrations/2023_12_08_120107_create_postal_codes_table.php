@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name')->nullable();
             // Postal code components
-            $table->string('postal_code', 8)->unique()->nullable(); // Full postal code with a max length of 8 characters
+            $table->string('postal_code', 8)->nullable(); // Full postal code with a max length of 8 characters
             $table->string('outward_code', 4)->nullable(); // Outward part of the postal code
             $table->string('inward_code', 4)->nullable(); // Inward part of the postal code
 

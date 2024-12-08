@@ -61,6 +61,18 @@ class AddressController extends Controller
      */
     public function destroy(Address $address)
     {
-        //
+        try{
+            $address->delete();
+            return response()->json([
+                'message' => 'Address deleted successfully',
+                //'address_id' => $address,
+            ], 201);
+        } catch (\Exception $e){
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 }

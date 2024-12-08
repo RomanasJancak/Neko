@@ -57,4 +57,52 @@ class Client extends Model
         $normalizedStr2 = $normalize($address);
         return $normalizedStr1 === $normalizedStr2;
     }
+    public function getAllAddresses(){
+        return $this->hasMany(Address::class,'model_id')->where('model','App\Models\Client')->get();
+    }
+    public function getPickupAddress(){
+        return $this->hasOne(Address::class,'model_id')->where('model','App\Models\Client')->where('type','pickup')->get();
+    }
+    public function getDropoffAddress(){
+        return $this->hasOne(Address::class,'model_id')->where('model','App\Models\Client')->where('type','dropoff')->get();
+    }
+    public function getBillingAddress(){
+        return $this->hasOne(Address::class,'model_id')->where('model','App\Models\Client')->where('type','billing')->get();
+    }
+    public function getInvoiceAddress(){
+        return $this->hasOne(Address::class,'model_id')->where('model','App\Models\Client')->where('type','invoice')->get();
+    }
+    public function getAddressesByType($type){
+        return $this->hasMany(Address::class,'model_id')->where('model','App\Models\Client')->where('type',$type)->get();
+    }
+    public function addNewAddress($address){
+        $address->model = 'App\Models\Client';
+        $address->model_id = $this->id;
+        $address->save();
+    }
+    public function createAndAddNewAddress($id = false,$name,$type,$address_line_1,$address_line_2,$postalCode,$city,$country,){
+        if($id){
+            $address = Address::find($id);
+            if (!$address) {
+            $address = new Address();
+            }
+        }else{    
+            $address = new Address();
+        }
+        
+        $address->name = $name;
+        $address->type = $type;
+        $address->address_line_1 = $address_line_1;
+        $address->address_line_2 = $address_line_2;
+        $address->city = $city;
+        $address->country = $country;
+        if(!isset($address->postalCode)){
+            $address->addNewPostalCode($postalCode);
+        }elseif($address->postalCode->postal_code != $postalCode){
+            $address->postalCode->delete();
+            $address->addNewPostalCode($postalCode);
+        }
+        $this->addNewAddress($address);
+        return 'success';
+    }
 }
