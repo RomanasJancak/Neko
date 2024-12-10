@@ -78,7 +78,7 @@
 @endsection
 @section('content')
 <div class="container container-content">
-    <div class="d-flex justify-content-center mt-3">
+    <div class="d-flex justify-content-center mt-3" id="paginationLinks_top">
             {!! $jobs->links() !!}
     </div>
     <form method="POST" action="{{ route('job.createBackup') }}">
@@ -228,7 +228,7 @@
             @endforeach
         </tbody>
     </table>
-    <div class="d-flex justify-content-center mt-3" id='paginationLinks'>
+    <div class="d-flex justify-content-center mt-3" id='paginationLinks_bottom'>
         {!! $jobs->links() !!}
     </div>
 <!-- Modal job begin -->
@@ -1038,7 +1038,7 @@ function setJobValues(jobId,buttonClicked){
             total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
             addon_time_sunday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
             addon_time_bankholiday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_bankholiday.price/100,2);
-            addon_package_oversize_price_DisplayField.innerHTML = parseFloat(data.price.price_oversize_value/100,2);
+            addon_package_oversize_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.oversizePrice/100,2);
             addon_time_samedayreturn_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_sameDayReturn.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
             pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
@@ -1173,7 +1173,6 @@ function fetchJobs(page = 1) {
             document.getElementById('jobsTableBody').innerHTML = '';
             data.jobs.forEach(job => {
                 let packageCounter = 1;
-                console.log(job);
                 let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
                 let addressNameToDisplay = isAddressSameAsClientAdress 
                                             ? (job.clientToBill.shortenedName !=='') 
@@ -1224,11 +1223,83 @@ function fetchJobs(page = 1) {
                 `;
                 document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
             });
-            document.getElementById('paginationLinks').innerHTML = data.links;
+            document.getElementById('paginationLinks_bottom').innerHTML = data.links;
+            document.getElementById('paginationLinks_top').innerHTML = data.links;
+            addPaginationEventListeners();
+            
         }
     };
     xhr.send();
 }
+function addPaginationEventListeners() {
+                document.querySelectorAll('#paginationLinks_bottom a, #paginationLinks_top a').forEach(link => {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const url = this.href;
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('jobsTableBody').innerHTML = '';
+                                data.jobs.forEach(job => {
+                                    let packageCounter = 1;
+                                    let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
+                                    let addressNameToDisplay = isAddressSameAsClientAdress 
+                                                                ? (job.clientToBill.shortenedName !=='') 
+                                                                ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
+                                                                    :job.clientToBill.name
+                                                                : job.pickup.namdeOfAddress;
+                                    const jobRow = `
+                                        <tr>
+                                            <td>${job.id}</td>
+                                            <td class="no-padding">
+                                                <img src='${job.urlToLogo}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
+                                                <span>${job.clientName}</span>
+                                            </td>
+                                            <td>${job.date}</td>
+                                            <td>
+                                                <div>
+                                                    <span>${addressNameToDisplay}</span>
+                                                    <span class="info-icon">
+                                                        <i class="bi bi-info-circle-fill"></i>
+                                                        <span class="tooltip">
+                                                            ${job.pickup.fullAddress}
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                ${job.tasks.map(
+                                                    task => task.package 
+                                                                ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
+                                                                        ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
+                                                                </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
+                                                                        : '')
+                                                    .join('')}
+                                            </td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>
+                                                <button class="btn btn-success view-btn" onclick="viewJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-eye"></i></button>
+                                                <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>
+                                                <button 
+                                                    class="btn btn-danger delete-btn"
+                                                    onclick="deleteJob(${job.id})"
+                                                    data-jobid="${job.id}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                    document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
+                                });
+                                document.getElementById('paginationLinks_bottom').innerHTML = data.links;
+                                document.getElementById('paginationLinks_top').innerHTML = data.links;
+                                addPaginationEventListeners();
+                            })
+                            .catch(error => console.error('Error fetching data:', error));
+                    });
+                });
+            }
 function addEventListenerToSortButton(button){
     button.addEventListener('click', function() {
         const icon  =   button.querySelector('i');
