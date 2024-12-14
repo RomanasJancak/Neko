@@ -367,6 +367,7 @@ class Job extends Model
             }
             
             if (!$isInside) {
+                //dd($task->postalCode());
                 $price = $outOfZonePrice;
                 break;
             }
@@ -799,8 +800,6 @@ class Job extends Model
         $price+=$this->price_bankHoliday()['price'];
         $price+=$this->oversizePrice();
         $price+=$this->price_sameDayReturn()['price'];
-        //$price+=$this->price_distance();
-        //$price+=$this->price_outsidePostalCodeZone();//TBD
         return [
             'breakdownOfPrice' => [
                 'price_distance'        =>  $this->price_distance()['price'],
@@ -813,12 +812,6 @@ class Job extends Model
                 'price_sameDayReturn'   =>  $this->price_sameDayReturn(),
                 'oversizePrice'         =>  $this->oversizePrice(),
             ],
-            //'test'              =>  (strpos($this->addOns[0]['name'], 'postalcodes-') === 0),
-            //  'addOns'            =>  $this->addOns,
-            // 'addOns_distance'   =>  $this->addOns_distance,
-            //'addOns_weight'     =>  $this->addOns_weight,
-            //'addOns_time'       =>  $this->addOns_time,
-            //'addOns_postalCode' =>  $this->addOns_postalCode,
             'totalPrice'            =>  $price,
             'price_Distance'        =>  $this->price_distance(),
             'price_OutOfZone'       =>  $this->price_outsidePostalCodeZone(),
