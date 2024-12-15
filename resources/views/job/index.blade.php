@@ -1712,6 +1712,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    const taskPostalCodeField =  document.getElementById('taskPostalCodeField');
+    taskPostalCodeField.addEventListener('input',function(e){
+        // Pakeičia visus "white space" simbolius į paprastą tarpą
+        e.target.value = e.target.value.replace(/[\u00A0\u2000-\u200D\u202F\u205F\u3000]/g, ' ');
+    });
 });
 
 </script>
