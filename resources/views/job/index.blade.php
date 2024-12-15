@@ -212,7 +212,7 @@
                 @endforeach
                 </td>
                 <td></td>
-                <td></td>
+                <td><span>&#163;</span>{{ number_format($job->price()['totalPrice'] / 100, 2) }}</td>
                 <td>
                     <button class="btn btn-success view-btn" data-jobid="{{ $job->id }}">
                         <i class="bi bi-eye"></i>
@@ -1208,7 +1208,7 @@ function fetchJobs(page = 1) {
                                 .join('')}
                         </td>
                         <td></td>
-                        <td></td>
+                        <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}</span></td>
                         <td>
                             <button class="btn btn-success view-btn" onclick="viewJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-eye"></i></button>
                             <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>

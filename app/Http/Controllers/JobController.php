@@ -542,6 +542,7 @@ class JobController extends Controller
                                 'fullAddress'   =>  $job->getPickupTask()->pickupAddressFull(),
                             ]:'',
                         'clientToBill'  =>  $job->clientToBill,
+                        'price' =>  $job->price()['totalPrice'],
                     ];
                 }),
                 'links' => (string) $jobs->links(),
