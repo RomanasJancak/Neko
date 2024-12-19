@@ -1137,14 +1137,6 @@ function updateTask(data,route){
         return response.json();
     })
     .then(data => {
-        // Optionally handle the response data, e.g., update UI
-        console.log('Function : updateTask(data,route)');
-        console.log('Function parameters begin.:');
-        console.log(data);
-        console.log('-=-=-=-=-')
-        console.log(route);
-        console.log('Function parameters end.')
-        console.log('document.getElementById(`idField`).value :'+ document.getElementById('idField').value);
         setJobValues(
                 document.getElementById('idField').value,
                 global_typeOfButtonClickedToOpenJobModal

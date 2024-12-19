@@ -124,11 +124,9 @@ class TaskController extends Controller
                 'dropOff'       =>  $request->input('type') === 'dropOff' ? $package : 'doesNotExist',
             ]);
         } catch (\Exception $e){
-                return response()->json([
-                'location' =>  'TaskController : Store',
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),], 500);
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
         }
     }
 
@@ -255,7 +253,9 @@ class TaskController extends Controller
     {
         try{
         $task = Task::findOrFail($request->id);
-        $task->typeOfTask()->delete();
+        if ($task->typeOfTask()) {
+            $task->typeOfTask()->delete();
+        }
         $task->delete();
         $task->job->save();
 
