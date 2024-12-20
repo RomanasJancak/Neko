@@ -424,6 +424,7 @@ class JobController extends Controller
                     ];
                 }),
                 'returns'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
+                'return'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'date'                  =>  $job->date,
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [

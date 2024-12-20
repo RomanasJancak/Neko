@@ -296,8 +296,8 @@
                                 <div class="col">
                                     <button type="button" id="createNewTask" data-option="create" class="btn btn-primary ">Create new Task</button>
                                     <button type="button" id="createNewPickup"data-type="specifictask" data-option="pickup" class="btn btn-primary">+Pickup</button>
-                                    <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+DropOff</button>
-                                    <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+Return</button>
+                                    <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+DropOff</button>
+                                    <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+Return</button>                                    
                                 </div>
                             </div>
                         </form>
@@ -550,8 +550,6 @@ function cleanTaskCreateWindow(){
     let taskAddressLineField =   document.getElementById('taskAddressLineField');
     let taskTimeBegin =   document.getElementById('taskTimeBegin');
     let taskTimeEnd =   document.getElementById('taskTimeEnd');
-    // let selectTypeField =   document.getElementById('taskTypeField');
-    // let selectTypeField =   document.getElementById('taskTypeField');
     selectStatusField.selectedIndex = -1;
     selectTypeField.selectedIndex = -1;
     selectTypeField.disabled = false;
@@ -648,6 +646,46 @@ function createJob(){
             console.error('Error:', error.message);
         });
 }
+function addEventListenerToTasksCreationButtons(button){
+    button.addEventListener('click', (e) => {
+        $('#jobModalWindow').modal('hide');
+        let taskTypeField = document.getElementById('taskTypeField');
+        let container_return = document.getElementById('return-info');
+        switch(button.id){
+            case 'createNewPickup':
+                setReadOnlyToFieldsOfTaskModal(false);                    
+                cleanTaskCreateWindow();
+                document.getElementById('taskIdField').disabled = true;
+                taskTypeField.selectedIndex = 0;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'hidden';
+                break;
+            case 'createNewDropOff':
+                setReadOnlyToFieldsOfTaskModal(false);
+                document.getElementById('taskIdField').disabled = true;
+                cleanTaskCreateWindow();
+                taskTypeField.selectedIndex = 1;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'hidden';
+                break;
+            case 'createNewReturn':
+                setReadOnlyToFieldsOfTaskModal(false);
+                document.getElementById('taskIdField').disabled = true;
+                cleanTaskCreateWindow();
+                taskTypeField.selectedIndex = 2;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'visible';
+                break;
+        }
+        if(taskTypeField.value === 'dropOff'){
+            addInfoAboutPackageToTaskModal();
+        }else{
+            const container =   document.getElementById('package-info');
+            container.innerHTML = '';
+        }
+        $('#taskModalWindow').modal('show');
+    });
+}
 function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
@@ -709,7 +747,6 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    // Process the fetched data and pass it to the typeahead
                     process(data);
                 })
                 .catch(error => {
@@ -745,7 +782,6 @@ function addTypeHeadSearchToTaskWindow(searchInput){
     });
     }
 }
-
 function addInfoAboutPackageToTaskModal(package){  
     if(!package){
         package = {
@@ -879,6 +915,7 @@ function setTaskValues(taskId){
                 checkbox.addEventListener('change', function() {
                     if (this.checked) {
                         container_taskTimeDate.style.visibility = 'visible';
+                        console.log('checked');
                     } else {
                         container_taskTimeDate.style.visibility = 'hidden';
                     }
@@ -977,6 +1014,28 @@ function appendTaskToContainer(container,task,buttonClicked){
     }
      
 }
+function setPickupCreationButtonVisibility(isEnabled){
+    const createNewPickupButton = document.getElementById('createNewPickup');
+    createNewPickupButton.disabled = !isEnabled;
+    if(isEnabled){
+        createNewPickupButton.classList.remove('btn-secondary');
+        createNewPickupButton.classList.add('btn-primary');
+    }else{
+        createNewPickupButton.classList.remove('btn-primary');
+        createNewPickupButton.classList.add('btn-secondary');
+    }
+}
+function setReturnCretionButtonVisibility(isEnabled){
+    const createNewReturnButton = document.getElementById('createNewReturn');
+    createNewReturnButton.style.disabled = !isEnabled;
+    if(isEnabled){
+        createNewReturnButton.classList.remove('btn-secondary');
+        createNewReturnButton.classList.add('btn-primary');
+    }else{
+        createNewReturnButton.classList.remove('btn-primary');
+        createNewReturnButton.classList.add('btn-secondary');
+    }
+}
 function setJobValues(jobId,buttonClicked){
     const courierIdField    =   document.getElementById('courierIdField');
     const statusIdField    =   document.getElementById('statusIdField');
@@ -1008,6 +1067,9 @@ function setJobValues(jobId,buttonClicked){
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
+            console.log('data_begin');
+            console.log(data);
+            console.log('data_end');
             if(data.courierId === 'none'){
                 courierIdField.value = 0;
             }else{
@@ -1055,8 +1117,8 @@ function setJobValues(jobId,buttonClicked){
             string = '';
             //console.log(data.price.timing_price.dropOff_value.type());
             dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
-
-                          
+            setPickupCreationButtonVisibility(data.pickup === 'none');
+            setReturnCretionButtonVisibility(data.return === 'none');              
         })
         .catch(error => {
             console.error(error);
@@ -1120,7 +1182,7 @@ function addTypeHeadSearch(searchInput){
 function updateTask(data,route){
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     // Send a POST request to the server using the generated route
-    fetch(route, { // Blade syntax to generate the route URL
+    fetch(route, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1405,19 +1467,34 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
-function disable_CreateNewTaskButton(){
+function toggle_CreateNewTaskButton(enable = true){
     createNewTaskButton = document.getElementById('createNewTask');
-    createNewTaskButton.classList.remove('btn-primary');
-    createNewTaskButton.classList.add('btn-secondary');
-    createNewTaskButton.disabled = true;
-    //createNewTaskButton.style.visibility = 'hidden';
-}
-function undisable_CreateNewTaskButton(){
-    createNewTaskButton = document.getElementById('createNewTask');
-    createNewTaskButton.classList.remove('btn-secondary');
-    createNewTaskButton.classList.add('btn-primary');
-    createNewTaskButton.disabled = false;
-    //createNewTaskButton.style.visibility = 'visible';
+    createNewPickupButton = document.getElementById('createNewPickup');
+    createNewDropOffButton = document.getElementById('createNewDropOff');
+    createNewReturnButton = document.getElementById('createNewReturn');
+    if(enable){
+        createNewTaskButton.classList.remove('btn-secondary');
+        createNewPickupButton.classList.remove('btn-secondary');
+        createNewDropOffButton.classList.remove('btn-secondary');
+        createNewReturnButton.classList.remove('btn-secondary');
+        createNewTaskButton.classList.add('btn-primary');
+        createNewPickupButton.classList.add('btn-primary');
+        createNewDropOffButton.classList.add('btn-primary');
+        createNewReturnButton.classList.add('btn-primary');
+    } else {
+        createNewTaskButton.classList.remove('btn-primary');
+        createNewPickupButton.classList.remove('btn-primary');
+        createNewDropOffButton.classList.remove('btn-primary');
+        createNewReturnButton.classList.remove('btn-primary');
+        createNewTaskButton.classList.add('btn-secondary');
+        createNewPickupButton.classList.add('btn-secondary');
+        createNewDropOffButton.classList.add('btn-secondary');
+        createNewReturnButton.classList.add('btn-secondary');
+    }
+    createNewTaskButton.disabled = !enable;
+    createNewPickupButton.disabled = !enable;
+    createNewDropOffButton.disabled = !enable;
+    createNewReturnButton.disabled = !enable;
 }
 function add_CreateNewTaskButtonHidder_EventListener_toInput(input){
     input.addEventListener('input', function() {
@@ -1427,9 +1504,9 @@ function add_CreateNewTaskButtonHidder_EventListener_toInput(input){
         if(document.getElementById('clientSearchField').value == ''){status = false;}
         if(document.getElementById('jobDateField').value == ''){status = false;}
         if(status){
-            undisable_CreateNewTaskButton();
+            toggle_CreateNewTaskButton(true);
         }else{
-            disable_CreateNewTaskButton();
+            toggle_CreateNewTaskButton(false);
         }
 
     });
@@ -1463,7 +1540,12 @@ document.addEventListener('DOMContentLoaded', function() {
     add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
     addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
-    addEventListenerToButton(document.getElementById(`createNewTask`));  
+    //----BEGIN task creation buttons
+    addEventListenerToButton(document.getElementById(`createNewTask`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewPickup`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewReturn`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewDropOff`));
+    //----END   task creation buttons
     sortButton_clientName   =   document.getElementById('button-sort-clientName');
     sortButton_date   =   document.getElementById('button-sort-date');
     sortButton_id   =   document.getElementById('button-sort-id');
@@ -1494,6 +1576,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.style.visibility = 'visible';
                 createNewTaskButton.style.visibility = 'visible';
             }
+            toggle_CreateNewTaskButton(true);
             $('#jobModalWindow').modal('show');
         });
     });
@@ -1522,6 +1605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.style.visibility = 'visible';
                 createNewTaskButton.style.visibility = 'hidden';
             }
+            toggle_CreateNewTaskButton(false);
             $('#jobModalWindow').modal('show');
         });
     });
@@ -1550,6 +1634,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 createNewTaskButton.style.visibility = 'hidden';
 
             }
+            toggle_CreateNewTaskButton(false);
             $('#jobModalWindow').modal('show');
         });
     });
@@ -1557,7 +1642,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             const createNewTaskButton   =   document.getElementById('createNewTask');
             createNewTaskButton.style.visibility = 'visible';
-            //addEventListenerToButton(createNewTaskButton);
             const jobIdField    =   document.getElementById('idField');                
             jobIdField.disabled = true;
             const form = document.querySelector(`#jobForm`);
@@ -1581,9 +1665,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
                 if(!checkIf_All_JobCreationFields_HaveInputs()){
-                    disable_CreateNewTaskButton();
+                    toggle_CreateNewTaskButton(false);
                 }else{
-                    undisable_CreateNewTaskButton();
+                    toggle_CreateNewTaskButton(true);
                 }
                 add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('courierIdField'));
                 add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('statusIdField'));
