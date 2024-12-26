@@ -245,9 +245,9 @@ class ClientController extends Controller
     {
         $query = $request->input('query');
 
-        // Perform a search query to retrieve client data based on the user's input
+        
         $clients = Client::where('name', 'like', '%' . $query . '%')
-            ->select('id', 'name') // Add the fields you want to include
+            ->select('id', 'name') 
             ->get();
 
         return response()->json($clients);

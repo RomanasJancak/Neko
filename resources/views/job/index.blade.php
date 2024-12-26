@@ -452,6 +452,12 @@
                             <input type="hidden" name="clientId" id="task_clientIdField" value="">
                         </div>
                         <div class="col-auto">
+                            <label for="taskTypeField">Addr. types</label>
+                            <!-- <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value=""> -->
+                            <select class="form-control" name="taskTypename" id="taskWindow_addressSelectField">
+                            </select>
+                        </div>
+                        <div class="col-auto">
                             <label for="taskCountryField">Country</label>
                             <input class="form-control" type="text" name="id" id="taskCountryField" value="">
                         </div>
@@ -756,7 +762,7 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         autoSelect: true,
         minLength: 2, // Minimum characters required before searching
         displayText: function(item) {
-            return item.name; // Adjust this based on your client data structure
+            return item.name;
         },
         afterSelect: function(item) {
             // Handle the selection here (e.g., redirect to client details page)
@@ -767,12 +773,30 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             .then(response => response.json())
             .then(data => {
                 if (data) {
+                    const addressSelect = document.getElementById('taskWindow_addressSelectField');
+                    addressSelect.innerHTML = '';
                     document.getElementById('task_clientIdField').value = data.id;
                     document.getElementById('taskCountryField').value = data.pickup_country; 
                     document.getElementById('taskCityField').value = data.pickup_city;
                     document.getElementById('taskPostalCodeField').value = data.pickup_postal_code;
-                    document.getElementById('taskAddressLineField').value = data.pickup_adress_line;
-                          
+                    document.getElementById('taskAddressLineField').value = data.pickup_adress_line;     
+                if (data.addresses && data.addresses.length > 0) {                   
+                    addressSelect.style.visibility = 'visible';
+                    data.addresses.forEach(address => {
+                        const option = document.createElement('option');
+                        option.value = address.id;
+                        option.text = `${address.type} :: ${address.name}`;
+                        option.setAttribute('data-country', address.country);
+                        option.setAttribute('data-city', address.city);
+                        option.setAttribute('data-postal-code', address.postal_code);
+                        option.setAttribute('data-address-line-1', address.address_line_1);
+                        option.setAttribute('data-address-line-2', address.address_line_2);
+                        addressSelect.appendChild(option);
+                    });
+                }else{
+                    const addressSelect = document.getElementById('taskWindow_addressSelectField');
+                    addressSelect.style.visibility = 'hidden';
+                }
                 }
             })
             .catch(error => {
@@ -781,6 +805,14 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         }
     });
     }
+}
+function populateTaksWindowAddressWithSelectedOptionOfAddressNames(){
+    const addressSelect = document.getElementById('taskWindow_addressSelectField');
+    const selectedOption = addressSelect.options[addressSelect.selectedIndex];
+    document.getElementById('taskCountryField').value = selectedOption.getAttribute('data-country');
+    document.getElementById('taskCityField').value = selectedOption.getAttribute('data-city');
+    document.getElementById('taskPostalCodeField').value = selectedOption.getAttribute('data-postal-code');
+    document.getElementById('taskAddressLineField').value = selectedOption.getAttribute('data-address-line-1');
 }
 function addInfoAboutPackageToTaskModal(package){  
     if(!package){
@@ -1199,14 +1231,11 @@ function updateTask(data,route){
         return response.json();
     })
     .then(data => {
-        setJobValues(
-                document.getElementById('idField').value,
-                global_typeOfButtonClickedToOpenJobModal
-            );
+
+        setJobValues(document.getElementById('idField').value,global_typeOfButtonClickedToOpenJobModal);
     })
     .catch(error => {
-        console.error('Error:', error.message); // Log any errors
-        // Optionally handle errors, e.g., display an error message
+        console.error('Error:', error.message);
     });
 }
 function fetchJobs(page = 1) {
@@ -1537,6 +1566,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetchJobs();
             });
         });
+    document.getElementById('taskWindow_addressSelectField').addEventListener('change', function(event) {
+        populateTaksWindowAddressWithSelectedOptionOfAddressNames();
+    });
     add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
     addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
