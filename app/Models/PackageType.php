@@ -18,7 +18,12 @@ class PackageType extends Model
         return $this->hasMany(Package::class);
     }
     public function addOnRules()
-{
+    {
     return $this->belongsToMany(AddOnRule::class)->withTimestamps();
-}
+    }
+    public function extras()
+    {
+        return $this->hasMany(AddOn::class, 'model_id')
+                    ->where('model_type', '=', self::class);
+    }
 }
