@@ -98,15 +98,33 @@ class PackageTypeController extends Controller
             $packageType->clients()->attach($selected_client);
         }
         $packageType->addOnRules()->detach();
-        isset($request->selected_addOnRules) ? $packageType->addOnRules()->detach() : null;        
-        foreach($request->selected_addOnRules as $selected_addOnRule ){
-            $packageType->addOnRules()->attach($selected_addOnRule);
+        isset($request->selected_extras) ? $packageType->extras()->delete() : null;
+        
+        //$packageType->extras->find(
+        if ($request->has('selected_extras')) {
+            $selectedExtras = $request->input('selected_extras');
+            $currentExtras = $packageType->extras->pluck('id')->toArray();
+
+            // Detach extras that are not in the selected extras
+            $extrasToDetach = array_diff($currentExtras, $selectedExtras);
+            if (!empty($extrasToDetach)) {
+            $packageType->extras()->detach($extrasToDetach);
+            }
+
+            // Attach new extras
+            // $extrasToAttach = array_diff($selectedExtras, $currentExtras);
+            // if (!empty($extrasToAttach)) {
+            // $packageType->extras()->attach($extrasToAttach);
+            // }
         }
         $packageType->save();
-
         return response()->json([
             'message' => 'PackageType updated successfully',
-            'addOns' => $request->all(),
+            //'request' => $request->all(),
+            //'extras_request' => $request->selected_extras,
+            'extras_package' => $packageType->extras,
+            '1' => $packageType->extras->find(1),
+            '2' => $packageType->extras->find(2),
         ]);
         }         catch (\Exception $e){
         return response()->json(['error' => $e->getMessage(),
@@ -153,6 +171,13 @@ class PackageTypeController extends Controller
                         'name' => $addOn->name,
                     ];
                 }),
+                'extras' => is_null($packageType->extras) ? 'none' : $packageType->extras->map(function ($extra) {
+                    return [
+                        'id'    => $extra->id,
+                        'name' => $extra->name,
+                    ];
+                }),
+                'e' => $packageType->extras,
                 ]);
         }
 

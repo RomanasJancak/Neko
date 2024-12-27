@@ -23,7 +23,8 @@ class PackageType extends Model
     }
     public function extras()
     {
-        return $this->hasMany(AddOn::class, 'model_id')
-                    ->where('model_type', '=', self::class);
+        return $this->hasMany(Extra::class, 'model_id')
+                    ->where('model_type', '=', self::class)
+                    ;
     }
 }

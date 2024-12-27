@@ -26,7 +26,10 @@
                     @foreach($packageTypes as $packageType)
                     <tr>
                         <td>{{ $packageType->id }}</td>
-                        <td>{{ $packageType->name }}</td>
+                        <td>{{ $packageType->name }}@if($packageType->extras->contains('name', 'food'))
+                            <i class="fa-solid fa-burger"></i><i class="fa-solid fa-glass-water"></i>
+                        @endif</td>
+                        
                         <td>{{ number_format($packageType->price / 100, 2) }}</td>
                         <td>{{ $packageType->baseQuantityThreshold }}</td>
                         <td>{{ $packageType->maxQuantityThreshold }}</td>
@@ -125,12 +128,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12" id="addoncontainer">
-                        
-                        <input hidden type="text" name="addOnNameField" id="addOnNameField" value="" placeholder="Search for client">
+                    <!-- <div class="col-12" id="addoncontainer">
                             @foreach ($addOnRules as $addOnRule)
                                 <div class="col-md-4 client-item" data-client-id="{{ $addOnRule->id }}">
-                                    <label>
                                         <input type="checkbox" name="selected_addOnRules[]"  value="{{ $addOnRule->id }}" {{ $addOnRule->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
                                         <?php $maxLengthOfAddOnRuleName = 100;?>
                                         @if(strlen($addOnRule->name) > $maxLengthOfCLientName)
@@ -142,10 +142,10 @@
                                                 {{ $addOnRule->name }}
                                             </span>
                                         @endif
-                                    </label>
                                 </div>
                             @endforeach
-                    </div>
+                    </div> -->
+                    <div class="col-12" id="container-extras"></div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -160,6 +160,7 @@
 <script>
     
 document.addEventListener('DOMContentLoaded', function() {
+    const container_extras = document.getElementById('container-extras');
 //===========================================================================================
 var clientLists = document.querySelectorAll('.client-list');
 
@@ -289,15 +290,23 @@ clientLists.forEach(function(clientList) {
                                         checkbox.removeAttribute('disabled');  
                                     });
                                 });
-                                data.addOns.forEach(function(addonrule) {
-                                    var checkbox = document.querySelector('input[name="selected_addOnRules[]"][value="' + addonrule.id + '"]');
-                                    if (checkbox) {
-                                        checkbox.checked = true;
-                                    }
-                                    var checkboxes = document.querySelectorAll('input[name="selected_addOnRules[]"]');
-                                    checkboxes.forEach(function(checkBox){      
-                                        checkbox.removeAttribute('disabled');  
-                                    });
+                                container_extras.innerHTML = '';
+                                data.extras.forEach(function(extra) {
+                                    let div_container = document.createElement('div');
+                                    let label = document.createElement('label');
+                                    let span = document.createElement('span');
+                                    div_container.classList.add('col-md-4');
+                                    div_container.setAttribute('data-extra-id', extra.id);
+                                    
+                                    let input_ = document.createElement('input');
+                                    input_.setAttribute('type', 'checkbox');
+                                    input_.setAttribute('name', 'selected_extras[]');
+                                    input_.setAttribute('value', extra.id);
+                                    span.innerHTML = extra.name;
+                                    label.appendChild(input_);
+                                    label.appendChild(span);
+                                    div_container.appendChild(label);
+                                    container_extras.appendChild(div_container);
                                 });
                                 var clientDivs = document.querySelectorAll('.client-item');
                                 clientDivs.forEach(function(clientDiv){
