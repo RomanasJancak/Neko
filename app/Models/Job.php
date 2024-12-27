@@ -22,6 +22,7 @@ class Job extends Model
     private $price_oversize     =   0;
     private $price_oversize_status     =   0;
     private $sameDayReturnAddOnPrice = 0;
+    private $addon_food_price         =   0;
 
     private $bankHolidays = [
         ['date' => '2024-01-01', 'nameOfHoliday' => 'New Year’s Day'],
@@ -744,6 +745,9 @@ class Job extends Model
             if (strpos($addOn['name'], 'time-sameDayReturn') === 0) {
                 $this->sameDayReturnAddOnPrice = $addOn['price'];
             }
+            if (strpos($addOn['name'], 'package-food') === 0) {
+                $this->addon_food_price = $addOn['price'];
+            }
         }
     }
     public function price_sunday(){
@@ -786,10 +790,25 @@ class Job extends Model
             'isApplicable' => false,
         ];
     }
+    public function price_food(){
+        foreach($this->getDropOffTasks() as $task){
+            if($task->package->packageType->extras->contains('name', 'food')){
+                return [
+                    'price' => $this->addon_food_price,
+                    'isApplicable' => true,
+                ];
+            }
+        }
+        return [
+            'price' => 0,
+            'isApplicable' => false,
+        ];
+    }
     public function price(){
         $this->populateVariables();
 
         $price = 0;
+        $price+=$this->price_food()['price'];
         $price+=$this->price_distance()['price'];
         $price+=$this->price_outsidePostalCodeZone();
         $price+=$this->price_weight()['price'];
@@ -800,6 +819,7 @@ class Job extends Model
         $price+=$this->price_bankHoliday()['price'];
         $price+=$this->oversizePrice();
         $price+=$this->price_sameDayReturn()['price'];
+
         return [
             'breakdownOfPrice' => [
                 'price_distance'        =>  $this->price_distance()['price'],
@@ -811,6 +831,7 @@ class Job extends Model
                 'price_bankHoliday'     =>  $this->price_bankHoliday()['price'],
                 'price_sameDayReturn'   =>  $this->price_sameDayReturn(),
                 'oversizePrice'         =>  $this->oversizePrice(),
+                'price_food'            =>  $this->price_food()['price'],
             ],
             'totalPrice'            =>  $price,
             'price_Distance'        =>  $this->price_distance(),

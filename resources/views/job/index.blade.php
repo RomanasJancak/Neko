@@ -338,6 +338,9 @@
                         <div class="col-12">
                             <span>Price from oversize : </span><span>&#163;</span><span id="addon_package_oversize_price_DisplayField">0.00</span>
                         </div>
+                        <div class="col-12">
+                            <span>Price from food : </span><span>&#163;</span><span id="addon_package_food_price_DisplayField">0.00</span>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-12" id='packages_price_base_DisplayField'>
@@ -1081,6 +1084,7 @@ function setJobValues(jobId,buttonClicked){
     const price_distance_field      =   document.getElementById('total_distance_price_DisplayField');
     const price_weight_field        =   document.getElementById('total_weight_price_DisplayField');
     const addon_package_oversize_price_DisplayField = document.getElementById('addon_package_oversize_price_DisplayField');
+    const addon_package_food_price_DisplayField = document.getElementById('addon_package_food_price_DisplayField');
     const weight_total_field        =   document.getElementById('total_weight_DisplayField');
     const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
     const total_timing_price_DisplayField   =   document.getElementById('total_timing_price_DisplayField');
@@ -1133,6 +1137,7 @@ function setJobValues(jobId,buttonClicked){
             addon_time_sunday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
             addon_time_bankholiday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_bankholiday.price/100,2);
             addon_package_oversize_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.oversizePrice/100,2);
+            addon_package_food_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_food/100,2);
             addon_time_samedayreturn_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_sameDayReturn.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
             pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
