@@ -151,6 +151,9 @@
                                     <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
                                     </li>
                                     <li>
+                                    <a class="dropdown-item " href="{{route('extratype.index')}}">Addon types</a>
+                                    </li>
+                                    <li>
                                     <a class="dropdown-item " href="{{route('addonrule.index')}}">AddOnRules</a>
                                     </li>
                                     <li>

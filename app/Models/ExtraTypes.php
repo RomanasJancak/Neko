@@ -5,18 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Extra extends Model
+class ExtraTypes extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'model_type',
-        'model_id',
         'name',
-        'extra_type_id',
     ];
-    public function type()
+    public function extras()
     {
-        return $this->belongsTo(ExtraType::class, 'extra_type_id');
+        return $this->hasMany(Extra::class);
     }
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\JobTemplateController;
 use App\Http\Controllers\ApprovedPostalCodeAreaController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\ExtraTypesController;   
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -213,4 +214,11 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
 });
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
+});
+Route::group(['prefix' => 'extratypes'], function(){
+    Route::get('',                  [ExtraTypesController::class, 'index'])->name('extratype.index')->middleware('auth');
+    Route::post('store',            [ExtraTypesController::class, 'store'])->name('extratype.store')->middleware('auth');
+    Route::post('update',           [ExtraTypesController::class, 'update'])->name('extratype.update')->middleware('auth');
+    Route::post('delete',           [ExtraTypesController::class, 'destroy'])->name('extratype.delete')->middleware('auth');
+    Route::get('getExtraTypeInfo/{id}', [ExtraTypesController::class, 'getExtraTypeInfo'])->name('extratype.getExtraTypeInfo')->middleware('auth');
 });
