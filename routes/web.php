@@ -220,5 +220,5 @@ Route::group(['prefix' => 'extratypes'], function(){
     Route::post('store',            [ExtraTypesController::class, 'store'])->name('extratype.store')->middleware('auth');
     Route::post('update',           [ExtraTypesController::class, 'update'])->name('extratype.update')->middleware('auth');
     Route::post('delete',           [ExtraTypesController::class, 'destroy'])->name('extratype.delete')->middleware('auth');
-    Route::get('getExtraTypeInfo/{id}', [ExtraTypesController::class, 'getExtraTypeInfo'])->name('extratype.getExtraTypeInfo')->middleware('auth');
+    Route::get('fetch',             [ExtraTypesController::class, 'fetch'])->name('extratype.fetch')->middleware('auth');
 });

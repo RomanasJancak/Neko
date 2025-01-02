@@ -13,7 +13,7 @@ class ExtraTypesController extends Controller
 
 public function index()
 {
-    $extraTypes = ExtraTypes::all();
+    $extraTypes = ExtraTypes::paginate(10);
     return view('extratypes.index', compact('extraTypes'));
 }
 

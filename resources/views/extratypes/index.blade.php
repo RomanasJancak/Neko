@@ -2,13 +2,25 @@
 
 @section('content')
 <div class="container">
-  <h1>Extra Types</h1>
-  <a href="{{ route('extratypes.create') }}" class="btn btn-primary">Add New Extra Type</a>
+  <h1>AddOn Types</h1>
+  <a href="" class="btn btn-primary">Add New AddOn Type</a>
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <input type="text" id="search-id" class="form-control" placeholder="Search by ID">
+    </div>
+    <div class="col-md-4">
+      <input type="text" id="search-name" class="form-control" placeholder="Search by Name">
+    </div>
+    <div class="col-md-4">
+      <input type="text" id="search-description" class="form-control" placeholder="Search by Description">
+    </div>
+  </div>
   <table class="table table-bordered mt-3">
     <thead>
       <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Type</th>
         <th>Description</th>
         <th>Actions</th>
       </tr>
@@ -20,8 +32,8 @@
         <td>{{ $extraType->name }}</td>
         <td>{{ $extraType->description }}</td>
         <td>
-          <a href="{{ route('extratypes.edit', $extraType->id) }}" class="btn btn-warning">Edit</a>
-          <form action="{{ route('extratypes.destroy', $extraType->id) }}" method="POST" style="display:inline-block;">
+          <a href="" class="btn btn-warning">Edit</a>
+          <form action="" method="POST" style="display:inline-block;">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger">Delete</button>
@@ -43,7 +55,7 @@
     document.querySelectorAll('form').forEach(form => {
       form.addEventListener('submit', function(event) {
         event.preventDefault();
-        if (confirm('Are you sure you want to delete this extra type?')) {
+        if (confirm('Are you sure you want to delete this \'Addon\' type?')) {
           form.submit();
         }
       });
@@ -69,7 +81,7 @@
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', `{{ route('extratypes.fetch') }}?id=${id}&name=${name}&description=${description}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+      xhr.open('GET', `{{ route('extratype.fetch') }}?id=${id}&name=${name}&description=${description}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
       xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
       xhr.onload = function() {
@@ -84,8 +96,8 @@
                 <td>${extraType.name}</td>
                 <td>${extraType.description}</td>
                 <td>
-                  <a href="{{ route('extratypes.edit', '${extraType.id}') }}" class="btn btn-warning">Edit</a>
-                  <form action="{{ route('extratypes.destroy', '${extraType.id}') }}" method="POST" style="display:inline-block;">
+                  <a href="" class="btn btn-warning">Edit</a>
+                  <form action="" method="POST" style="display:inline-block;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Delete</button>
