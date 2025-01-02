@@ -76,6 +76,7 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('show/{client}',     [ClientController::class, 'show'])->name('client.show')->middleware('auth');
     Route::post('createBackup', [ClientController::class, 'createBackup'])->name('client.createBackup')->middleware('auth'); 
     Route::get('searchClients',    [ClientController::class, 'searchClients'])->name('client.searchClients')->middleware('auth');
+    Route::get('searchClientAddresses',    [ClientController::class, 'searchClientAddresses'])->name('client.searchClientAddresses')->middleware('auth');
     Route::get('fetchClientsPaginate', [ClientController::class, 'fetchClientsPaginate'])->name('client.fetch')->middleware('auth');
 });
 Route::group(['prefix' => 'jobs'], function(){
@@ -214,6 +215,7 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
 });
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
+    Route::get('getAddressInfo/{id}',         [AddressController::class, 'getAddressInfo'])->name('address.getAddressInfo')->middleware('auth');    
 });
 Route::group(['prefix' => 'extratypes'], function(){
     Route::get('',                  [ExtraTypesController::class, 'index'])->name('extratype.index')->middleware('auth');

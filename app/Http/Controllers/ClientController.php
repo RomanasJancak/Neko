@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Address;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
@@ -251,6 +252,19 @@ class ClientController extends Controller
             ->get();
 
         return response()->json($clients);
+    }
+    public function searchClientAddresses(Request $request)
+    {
+        $query = $request->input('query');
+        $clientId = $request->input('client_id');
+
+        $addresses = Address::where('model', 'App\Models\Client')
+            ->where('model_id', $clientId)
+            ->where('name', 'like', '%' . $query . '%')
+            ->select('id', 'name') 
+            ->get();
+
+        return response()->json($addresses);
     }
     public function fetchClientsPaginate(Request $request)
     {

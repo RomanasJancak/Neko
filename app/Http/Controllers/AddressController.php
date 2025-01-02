@@ -75,4 +75,25 @@ class AddressController extends Controller
             ], 500);
         }
     }
+    public function getAddressInfo($addressId){
+        try{
+            $address = Address::find($addressId);
+            return response()->json([
+                    'id' => $address->id,
+                    'name' => $address->name,
+                    'type' => $address->type,
+                    'address_line_1' => $address->address_line_1,
+                    'address_line_2' => $address->address_line_2,
+                    'postal_code' => $address->postalCode->postal_code,
+                    'city' => $address->city,
+                    'country' => $address->country,
+            ], 201);
+        } catch (\Exception $e){
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
+    }
 }

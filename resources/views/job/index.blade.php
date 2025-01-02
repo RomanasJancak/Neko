@@ -762,7 +762,11 @@ function addTypeHeadSearchToTaskWindow(searchInput){
     if (searchInput.length > 0) {
         searchInput.typeahead({
         source: function(query, process) {
-            var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+            let client_id = document.getElementById('clientIdField').value;
+            //console.log("client_id : ",client_id);
+            var apiUrl = "{{ route('client.searchClientAddresses') }}?query=" + query + "&client_id=" + client_id;
+            //var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
+            console.log(apiUrl);
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
@@ -780,36 +784,22 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         afterSelect: function(item) {
             // Handle the selection here (e.g., redirect to client details page)
             //fetch(`/get-client-info/${item.id}`)
-            const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
-            const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
+            const clientInfoUrlTemplate = "{{ route('address.getAddressInfo', ['id' => ':addressId']) }}";
+            const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
             fetch(clientInfoUrl)
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    addressSelect.innerHTML = '';
-                    document.getElementById('task_clientIdField').value = data.id;
-                    document.getElementById('taskCountryField').value = data.pickup_country; 
-                    document.getElementById('taskCityField').value = data.pickup_city;
-                    document.getElementById('taskPostalCodeField').value = data.pickup_postal_code;
-                    document.getElementById('taskAddressLineField').value = data.pickup_adress_line;     
-                if (data.addresses && data.addresses.length > 0) {                   
-                    addressSelect.style.visibility = 'visible';
-                    data.addresses.forEach(address => {
-                        const option = document.createElement('option');
-                        option.value = address.id;
-                        option.text = `${address.type} :: ${address.name}`;
-                        option.setAttribute('data-country', address.country);
-                        option.setAttribute('data-city', address.city);
-                        option.setAttribute('data-postal-code', address.postal_code);
-                        option.setAttribute('data-address-line-1', address.address_line_1);
-                        option.setAttribute('data-address-line-2', address.address_line_2);
-                        addressSelect.appendChild(option);
-                    });
-                }else{
-                    const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    addressSelect.style.visibility = 'hidden';
-                }
+                    console.log(data);
+                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
+                    // addressSelect.innerHTML = '';
+                    // document.getElementById('task_clientIdField').value = data.id;
+                     document.getElementById('taskCountryField').value = data.country; 
+                     document.getElementById('taskCityField').value = data.city;
+                     document.getElementById('taskPostalCodeField').value = data.postal_code;
+                     document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
+                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
+                    // addressSelect.style.visibility = 'hidden';
                 }
             })
             .catch(error => {
