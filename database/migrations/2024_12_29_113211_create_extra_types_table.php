@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name');
             $table->string('model_type');
-            $table->unsignedBigInteger('model_id');
+            $table->unsignedBigInteger('model_id')->nullable();
             $table->string('description')->nullable();
             $table->string('icon')->nullable();
             $table->string('color')->nullable();
