@@ -91,7 +91,8 @@ class Client extends Model
         }
         
         $address->name = $name;
-        $address->type = $type;
+        //$address->type = $type;
+        $address->type = 'all';
         $address->address_line_1 = $address_line_1;
         $address->address_line_2 = $address_line_2;
         $address->city = $city;

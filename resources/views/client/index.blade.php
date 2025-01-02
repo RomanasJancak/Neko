@@ -180,6 +180,7 @@
     }
     function populateWithAddresses(addresses){
         const container = document.getElementById('container-addresses');
+        //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" value="${address.type}" placeholder="Type"></div>
         container.innerHTML = '';
         console.log(addresses);
         addresses.forEach(address => {
@@ -187,7 +188,7 @@
         <div class="row">
             <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control" value="${address.id}"></div>
             <div class="col address-input-field"><input style="font-size: 0.8em;" type="text" name="name[]" class="form-control" value="${address.name}" placeholder="Name" ></div>
-            <div class="col address-input-field"><input type="text" name="type[]" class="form-control" value="${address.type}" placeholder="Type"></div>
+            
             <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" value="${address.address_line_1}" placeholder="Address line 1"></div>
             <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" value="${address.address_line_2}" placeholder="Address line 1"></div>
             <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" value="${address.postal_code}" placeholder="Postal code"></div>
@@ -299,12 +300,13 @@
 document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('button-add-address').addEventListener('click', function(e) {
             e.preventDefault();
+            //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
             const container = document.getElementById('container-addresses');
             const address = `
                 <div class="row">
                     <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control"></div>
                     <div class="col address-input-field"><input type="text" name="name[]" class="form-control" placeholder="Name"></div>
-                    <div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
+                    
                     <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" placeholder="Address line 1"></div>
                     <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" placeholder="Address line 2"></div>
                     <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" placeholder="Postal code"></div>

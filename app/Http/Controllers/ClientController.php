@@ -49,14 +49,14 @@ class ClientController extends Controller
             if($request->name ?? false){
                 foreach($request->name as $key => $value){
                     if (isset(
-                            $request->type[$key], 
+                            //$request->type[$key], 
                             $request->postal_code[$key], 
                             $request->city[$key], 
                             $request->country[$key]
                             )&&
                             ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
                         {
-                        $client->createAndAddNewAddress($request->address_id[$key],$value, $request->type[$key], $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                        $client->createAndAddNewAddress($request->address_id[$key],$value, '$request->type[$key]', $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
                         }
                 }
             }
@@ -124,14 +124,14 @@ class ClientController extends Controller
         if($request->name ?? false){
             foreach($request->name as $key => $value){
                 if (isset(
-                        $request->type[$key], 
+                        //$request->type[$key], 
                         $request->postal_code[$key], 
                         $request->city[$key], 
                         $request->country[$key]
                         )&&
                         ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
                     {
-                    $client->createAndAddNewAddress($request->address_id[$key],$value, $request->type[$key], $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                    $client->createAndAddNewAddress($request->address_id[$key],$value, '$request->type[$key]', $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
                     }
             }
         }
