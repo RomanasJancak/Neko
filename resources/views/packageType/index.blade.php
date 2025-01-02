@@ -101,6 +101,8 @@
                             <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
                         </div>
                         <hr class="my-divider">
+                        <div class="col-12" id="container-extras"></div>
+                        <hr class="my-divider">
                         <div class="row">
                             <!-- <label for="clientNameField">Used by : </label> -->
                             <input hidden type="text" name="clientNameField" id="clientNameField" value="" placeholder="Search for client">
@@ -127,25 +129,7 @@
                                 <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
                             </div>
                         </div>
-                    </div>
-                    <!-- <div class="col-12" id="addoncontainer">
-                            @foreach ($addOnRules as $addOnRule)
-                                <div class="col-md-4 client-item" data-client-id="{{ $addOnRule->id }}">
-                                        <input type="checkbox" name="selected_addOnRules[]"  value="{{ $addOnRule->id }}" {{ $addOnRule->id == 1 ? 'checked' : '' }} onclick="if(this.value == 1) { return false; }">
-                                        <?php $maxLengthOfAddOnRuleName = 100;?>
-                                        @if(strlen($addOnRule->name) > $maxLengthOfCLientName)
-                                            <span data-toggle="tooltip" data-placement="top" title="{{ $addOnRule->name }}">
-                                                {{ substr($addOnRule->name, 0, $maxLengthOfAddOnRuleName) }}...
-                                            </span>
-                                        @else
-                                            <span data-toggle="tooltip" data-placement="top" title="{{ $addOnRule->name }}">
-                                                {{ $addOnRule->name }}
-                                            </span>
-                                        @endif
-                                </div>
-                            @endforeach
-                    </div> -->
-                    <div class="col-12" id="container-extras"></div>
+                    </div>                    
                 </form>
             </div>
             <div class="modal-footer">
@@ -291,7 +275,7 @@ clientLists.forEach(function(clientList) {
                                     });
                                 });
                                 container_extras.innerHTML = '';
-                                data.extras.forEach(function(extra) {
+                                data.extraTypes.forEach(function(extra) {
                                     let div_container = document.createElement('div');
                                     let label = document.createElement('label');
                                     let span = document.createElement('span');
@@ -307,6 +291,12 @@ clientLists.forEach(function(clientList) {
                                     label.appendChild(span);
                                     div_container.appendChild(label);
                                     container_extras.appendChild(div_container);
+                                });
+                                data.extras.forEach(function(extra) {
+                                    var checkbox = document.querySelector('input[name="selected_extras[]"][value="' + extra.type + '"]');
+                                    if (checkbox) {
+                                        checkbox.checked = true;
+                                    }
                                 });
                                 var clientDivs = document.querySelectorAll('.client-item');
                                 clientDivs.forEach(function(clientDiv){

@@ -6,6 +6,7 @@ use App\Models\PackageType;
 use App\Models\AddOnRule;
 use App\Models\Client;
 use App\Models\ClientPackageType;
+use App\Models\Extra;use App\Models\ExtraTypes;
 use App\Http\Requests\StorePackageTypeRequest;
 use App\Http\Requests\UpdatePackageTypeRequest;
 
@@ -101,30 +102,28 @@ class PackageTypeController extends Controller
         isset($request->selected_extras) ? $packageType->extras()->delete() : null;
         
         //$packageType->extras->find(
-        if ($request->has('selected_extras')) {
-            $selectedExtras = $request->input('selected_extras');
-            $currentExtras = $packageType->extras->pluck('id')->toArray();
-
-            // Detach extras that are not in the selected extras
-            $extrasToDetach = array_diff($currentExtras, $selectedExtras);
-            if (!empty($extrasToDetach)) {
-            $packageType->extras()->detach($extrasToDetach);
-            }
-
-            // Attach new extras
-            // $extrasToAttach = array_diff($selectedExtras, $currentExtras);
-            // if (!empty($extrasToAttach)) {
-            // $packageType->extras()->attach($extrasToAttach);
-            // }
+        foreach($packageType->extras as $extra){
+                $extra->delete();
         }
+        if ($request->has('selected_extras')) {
+            //$packageType->extras()->delete();
+
+            foreach ($request->selected_extras as $extra) {
+                $newExtra = new Extra([
+                    'name' => ExtraTypes::findOrFail($extra)->name,
+                    'extra_type_id' => $extra,
+                    'model_type' => 'App\Models\PackageType',
+                    'model_id' => $packageType->id,
+                ]);
+                $newExtra->save();
+            }
+        }
+
         $packageType->save();
         return response()->json([
-            'message' => 'PackageType updated successfully',
             //'request' => $request->all(),
-            //'extras_request' => $request->selected_extras,
+            'extras_request' => $request->selected_extras,
             'extras_package' => $packageType->extras,
-            '1' => $packageType->extras->find(1),
-            '2' => $packageType->extras->find(2),
         ]);
         }         catch (\Exception $e){
         return response()->json(['error' => $e->getMessage(),
@@ -175,6 +174,14 @@ class PackageTypeController extends Controller
                     return [
                         'id'    => $extra->id,
                         'name' => $extra->name,
+                        'type' => $extra->type->id,
+                        'type_name' => $extra->type->name,
+                    ];
+                }),
+                'extraTypes' => is_null($packageType->extraTypes()) ? 'none' : $packageType->extraTypes()->map(function ($extraType) {
+                    return [
+                        'id'   => $extraType->id,
+                        'name' => $extraType->name,
                     ];
                 }),
                 'e' => $packageType->extras,

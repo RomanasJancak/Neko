@@ -27,4 +27,8 @@ class PackageType extends Model
                     ->where('model_type', '=', self::class)
                     ;
     }
+    public function extraTypes()
+    {
+        return ExtraTypes::where('model_type', '=', self::class)->get();
+    }
 }

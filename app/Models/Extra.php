@@ -17,6 +17,6 @@ class Extra extends Model
     ];
     public function type()
     {
-        return $this->belongsTo(ExtraType::class, 'extra_type_id');
+        return $this->belongsTo(ExtraTypes::class, 'extra_type_id');
     }
 }
