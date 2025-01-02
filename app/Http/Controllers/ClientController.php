@@ -253,59 +253,59 @@ class ClientController extends Controller
         return response()->json($clients);
     }
     public function fetchClientsPaginate(Request $request)
-{
-    try {
-        $id = $request->get('id', '');
-        $name = $request->get('name', '');
-        $address = $request->get('address', '');
-        $sortField = $request->get('sortField', 'id');
-        $sortOrder = $request->get('sortOrder', 'asc');
+    {
+        try {
+            $id = $request->get('id', '');
+            $name = $request->get('name', '');
+            $address = $request->get('address', '');
+            $sortField = $request->get('sortField', 'id');
+            $sortOrder = $request->get('sortOrder', 'asc');
 
-        $clients = Client::when($id, function ($queryBuilder) use ($id) {
-                $queryBuilder->where('id', 'like', '%' . $id . '%');
-            })
-            ->when($name, function ($queryBuilder) use ($name) {
-                $queryBuilder->where(function ($query) use ($name) {
-                    $query->where('name', 'like', '%' . $name . '%')
-                          ->orWhere('shortenedName', 'like', '%' . $name . '%');
-                });
-            })
-            ->when($address, function ($queryBuilder) use ($address) {
-                $queryBuilder->where(function ($query) use ($address) {
-                    $query->where('country', 'like', '%' . $address . '%')
-                          ->orWhere('city', 'like', '%' . $address . '%')
-                          ->orWhere('postal_code', 'like', '%' . $address . '%')
-                          ->orWhere('address_line', 'like', '%' . $address . '%')
-                          ->orWhere('pickup_country', 'like', '%' . $address . '%')
-                          ->orWhere('pickup_city', 'like', '%' . $address . '%')
-                          ->orWhere('pickup_postal_code', 'like', '%' . $address . '%')
-                          ->orWhere('pickup_adress_line', 'like', '%' . $address . '%');
-                });
-            })
-            ->orderBy($sortField, $sortOrder)
-            ->paginate(10);
+            $clients = Client::when($id, function ($queryBuilder) use ($id) {
+                    $queryBuilder->where('id', 'like', '%' . $id . '%');
+                })
+                ->when($name, function ($queryBuilder) use ($name) {
+                    $queryBuilder->where(function ($query) use ($name) {
+                        $query->where('name', 'like', '%' . $name . '%')
+                            ->orWhere('shortenedName', 'like', '%' . $name . '%');
+                    });
+                })
+                ->when($address, function ($queryBuilder) use ($address) {
+                    $queryBuilder->where(function ($query) use ($address) {
+                        $query->where('country', 'like', '%' . $address . '%')
+                            ->orWhere('city', 'like', '%' . $address . '%')
+                            ->orWhere('postal_code', 'like', '%' . $address . '%')
+                            ->orWhere('address_line', 'like', '%' . $address . '%')
+                            ->orWhere('pickup_country', 'like', '%' . $address . '%')
+                            ->orWhere('pickup_city', 'like', '%' . $address . '%')
+                            ->orWhere('pickup_postal_code', 'like', '%' . $address . '%')
+                            ->orWhere('pickup_adress_line', 'like', '%' . $address . '%');
+                    });
+                })
+                ->orderBy($sortField, $sortOrder)
+                ->paginate(10);
 
-        $clients->appends([
-            'id' => $id,
-            'name' => $name,
-            'address' => $address,
-            'sortField' => $sortField,
-            'sortOrder' => $sortOrder
-        ]);
+            $clients->appends([
+                'id' => $id,
+                'name' => $name,
+                'address' => $address,
+                'sortField' => $sortField,
+                'sortOrder' => $sortOrder
+            ]);
 
-        return response()->json([
-            'clients'   =>  $clients,
-            'links'     =>  (string) $clients->links(),
-        ]);
-    } catch (QueryException $e) {
-        return response()->json(['error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),], 500);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),], 500);
+            return response()->json([
+                'clients'   =>  $clients,
+                'links'     =>  (string) $clients->links(),
+            ]);
+        } catch (QueryException $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
     }
-}
 
 }
