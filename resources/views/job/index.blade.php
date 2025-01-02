@@ -257,7 +257,8 @@
                                             <option value="0">none</option>
                                             @foreach($couriers as $courier)
                                             <option value="{{ $courier->id }}">{{ $courier->name }}</option>
-                                            @endforeach                                  
+                                            @endforeach
+                                                                              
                                         </select>
                                     </div>
                                 </div>
@@ -527,6 +528,10 @@
 
 var global_typeOfButtonClickedToOpenJobModal = 'create';//create/edit/view/delete
 
+var global_taskWindow_defaultValue_time_pickup  = [ '08:00', '16:00'];
+var global_taskWindow_defaultValue_time_dropoff = [ '08:00', '17:00'];
+var global_taskWindow_defaultValue_time_return  = [ '08:00', '17:00'];
+
 function showPackageDiv(status){
     const container =   document.getElementById('package-info');
     if(status){
@@ -551,7 +556,7 @@ function setReadOnlyToFieldsOfTaskModal(status){
         field.disabled = status;
     });
 }
-function cleanTaskCreateWindow(){
+function cleanTaskCreateWindow(type = 'none'){
     let selectStatusField =   document.getElementById('taskStatusIdField');
     let selectTypeField =   document.getElementById('taskTypeField');
     let taskClientNameField =   document.getElementById('taskClientNameField');
@@ -559,14 +564,30 @@ function cleanTaskCreateWindow(){
     let taskAddressLineField =   document.getElementById('taskAddressLineField');
     let taskTimeBegin =   document.getElementById('taskTimeBegin');
     let taskTimeEnd =   document.getElementById('taskTimeEnd');
-    selectStatusField.selectedIndex = -1;
+    selectStatusField.selectedIndex = 0;
     selectTypeField.selectedIndex = -1;
     selectTypeField.disabled = false;
     taskClientNameField.value   =   '';
     taskPostalCodeField.value   =   '';
     taskAddressLineField.value   =   '';
-    taskTimeBegin.value   =   '';
-    taskTimeEnd.value   =   '';
+    switch(type){
+        case 'pickup':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_pickup[1];
+            break;
+        case 'dropOff':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
+            break;
+        case 'return':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_return[1];
+            break;
+        default:
+            taskTimeBegin.value = '';
+            taskTimeEnd.value = '';
+            break;
+    }
 }
 function set_Some_JobCreationFields_ToDefaultValues(){
     let statusIdField_SelectElement = document.getElementById('statusIdField');
@@ -575,7 +596,7 @@ function set_Some_JobCreationFields_ToDefaultValues(){
     let clientIdField = document.getElementById('clientIdField');
     let jobDateField = document.getElementById('jobDateField');
     statusIdField_SelectElement.value = 10; //unassigned
-    courierIdField_SelectElement.value = 4;
+    courierIdField_SelectElement.value = 0;
     jobDateField.value = "2024-08-19";
 
 }
@@ -663,7 +684,7 @@ function addEventListenerToTasksCreationButtons(button){
         switch(button.id){
             case 'createNewPickup':
                 setReadOnlyToFieldsOfTaskModal(false);                    
-                cleanTaskCreateWindow();
+                cleanTaskCreateWindow('pickup');
                 document.getElementById('taskIdField').disabled = true;
                 taskTypeField.selectedIndex = 0;
                 taskTypeField.disabled = true;
@@ -672,7 +693,7 @@ function addEventListenerToTasksCreationButtons(button){
             case 'createNewDropOff':
                 setReadOnlyToFieldsOfTaskModal(false);
                 document.getElementById('taskIdField').disabled = true;
-                cleanTaskCreateWindow();
+                cleanTaskCreateWindow('dropOff');
                 taskTypeField.selectedIndex = 1;
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'hidden';
@@ -680,7 +701,7 @@ function addEventListenerToTasksCreationButtons(button){
             case 'createNewReturn':
                 setReadOnlyToFieldsOfTaskModal(false);
                 document.getElementById('taskIdField').disabled = true;
-                cleanTaskCreateWindow();
+                cleanTaskCreateWindow('return');
                 taskTypeField.selectedIndex = 2;
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'visible';
@@ -701,17 +722,6 @@ function addEventListenerToButton(button){
         $('#jobModalWindow').modal('hide');
         let submitButton = document.getElementById('submitTaskform');
         if(button.id === 'createNewTask'){
-            setReadOnlyToFieldsOfTaskModal(false);
-            document.getElementById('taskIdField').disabled = true;
-            cleanTaskCreateWindow();
-            button.setAttribute('data-option', 'create');            
-            submitButton.setAttribute('data-option', 'create');
-            submitButton.textContent  = 'Confirm creation';
-            let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
-            if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
-                createJob();
-            }
-        }else if(false){
             setReadOnlyToFieldsOfTaskModal(false);
             document.getElementById('taskIdField').disabled = true;
             cleanTaskCreateWindow();
