@@ -3,14 +3,47 @@
 @section('content')
 <div class="container">
   <div class="row">
+    <div class="col">
+      <h1>Approved Postal Code Areas</h1><button class="btn btn-secondary create-btn" >Add new Postal Code Area</button> 
+    </div>
+  </div>
+  <div class="row">
     <div class="col-md-12">
-      <h1>Approved Postal Code Areas</h1><button class="btn btn-secondary create-btn" >Add new Postal Code Area</button>        
+      @foreach($approvedPostalCodeAreas as $postalcodearea)
+        @if($postalcodearea->parent_id === 0)
+        <div class="row" style="border: 0.001rem solid rgb(128, 128, 128);">
+        <div class="col-12 d-flex justify-content-center align-items-center">{{$postalcodearea->area()}}</div>
+          @if($postalcodearea->children->isEmpty())                     
+          @else
+            @foreach ($postalcodearea->children as $postalcodedistrict)              
+              @if($postalcodedistrict->children->isEmpty())                    
+                  <div class="col-6" data-id="{{$postalcodedistrict->id}}">
+                    {{$postalcodedistrict->district()}}
+                  </div>
+              @else
+                @foreach ($postalcodedistrict->children as $postalcodeSubDistrict)
+                  @if($postalcodeSubDistrict->children->isEmpty())
+                  @endif
+                @endforeach
+                @endif
+              @endforeach
+              @endif
+        </div>
+        @endif
+      @endforeach
+    </div>
+    <div class="col-md-12">
       <table class="table">
         <thead>
           <tr>
+            <input type="text" id="search-id" class="form-control" placeholder="Search by ID">
+            <input type="text" id="search-name" class="form-control" placeholder="Search by Code">
+            <input type="text" id="search-address" class="form-control" placeholder="Search by Type">
+          </tr>
+          <tr>
             <th>ID</th>
-            <th>Code</th>
             <th>Type</th>
+            <th>Code</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -18,8 +51,8 @@
           @foreach($approvedPostalCodeAreas as $postalcodearea)
           <tr>
             <td>{{ $postalcodearea->id }}</td>
-            <td>{{ $postalcodearea->name }}</td>
             <td>{{ $postalcodearea->type }}</td>
+            <td>{{ $postalcodearea->name }}</td>
             <td>
               <button class="btn btn-primary edit-btn" data-postalcodeareaid="{{ $postalcodearea->id }}"><i class="bi bi-pen"></i></button>
               <button class="btn btn-danger delete-btn" data-postalcodeareaid="{{ $postalcodearea->id }}"><i class="bi bi-trash"></i></button>
@@ -32,7 +65,7 @@
   </div>
 
   <div class="d-flex justify-content-center mt-3">
-    {!! $approvedPostalCodeAreas->links() !!}
+    {--!! $approvedPostalCodeAreas->links() !!--}
   </div>
 </div>
 

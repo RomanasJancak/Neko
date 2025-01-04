@@ -15,7 +15,7 @@ class ApprovedPostalCodeAreaController extends Controller
      */
     public function index()
     {
-        $approvedPostalCodeAreas = ApprovedPostalCodeArea::paginate(10);
+        $approvedPostalCodeAreas = ApprovedPostalCodeArea::all();
         return view('approvedpostalcodearea.index', compact('approvedPostalCodeAreas'));
     }
 
