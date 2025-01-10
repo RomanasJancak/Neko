@@ -509,6 +509,7 @@ class Job extends Model
         });
         // ================
         //echo count($this->tasks);
+        //dd($dropOff_price_array);
         foreach($this->tasks as $task){
             //echo $task->type();
             if($task->type() ==='pickup'){
@@ -542,11 +543,12 @@ class Job extends Model
                     }
                 }
                 if ($dropOff_price_array === []) {
-                    $dropOff_price_array = end($timeArray_dropoff)['price'];
+                    $dropOff_price_array[] = end($timeArray_dropoff)['price'];
                 }
             }
         }
         $dropOff_price = 0;
+        //dd($dropOff_price_array);
         foreach($dropOff_price_array as $price){
             $dropOff_price += $price;
         }
