@@ -681,6 +681,9 @@ function addEventListenerToTasksCreationButtons(button){
         $('#jobModalWindow').modal('hide');
         let taskTypeField = document.getElementById('taskTypeField');
         let container_return = document.getElementById('return-info');
+        if(document.getElementById('jobid').value == ''){
+            createJob();
+        }
         switch(button.id){
             case 'createNewPickup':
                 setReadOnlyToFieldsOfTaskModal(false);                    
