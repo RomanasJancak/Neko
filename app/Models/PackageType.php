@@ -31,4 +31,8 @@ class PackageType extends Model
     {
         return ExtraTypes::where('model_type', '=', self::class)->get();
     }
+    public function hasWeight()
+    {
+        return $this->extras()->where('extra_type_id', 2)->exists();
+    }
 }
