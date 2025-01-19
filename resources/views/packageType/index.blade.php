@@ -26,10 +26,16 @@
                     @foreach($packageTypes as $packageType)
                     <tr>
                         <td>{{ $packageType->id }}</td>
-                        <td>{{ $packageType->name }}@if($packageType->extras->contains('name', 'food'))
-                            <i class="fa-solid fa-burger"></i><i class="fa-solid fa-glass-water"></i>
-                        @endif</td>
-                        
+                        <td>
+                            <span>{{ $packageType->name }}</span>
+                            <span>
+                            @if($packageType->extras->count() !== 0)
+                                @foreach($packageType->extras as $extra)
+                                    {!! $extra->type->icon !!}
+                                @endforeach
+                            @endif
+                            </span>
+                        </td>
                         <td>{{ number_format($packageType->price / 100, 2) }}</td>
                         <td>{{ $packageType->baseQuantityThreshold }}</td>
                         <td>{{ $packageType->maxQuantityThreshold }}</td>
