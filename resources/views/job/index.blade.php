@@ -417,7 +417,7 @@
                     </div>
                     <div class="row justify-content-md-center">
                         <div class="col-2">
-                            <div class="row">
+                            <div class="row" style="display: none;">
                                 <input type="hidden" name="taskid" id="taskid" value="">
                                 <label for="taskIdField">Id</label>
                                 <input class="form-control" type="text" name="id" id="taskIdField" value="">
