@@ -227,7 +227,14 @@ class ClientController extends Controller
                                                 'name' => $packageType->name,
                                                 'price' => $packageType->price,
                                                 'baseQuantityThreshold' => $packageType->baseQuantityThreshold, 
-                                                'maxQuantityThreshold' => $packageType->maxQuantityThreshold,  
+                                                'maxQuantityThreshold' => $packageType->maxQuantityThreshold,
+                                                'extras' => $packageType->extras->map(function ($extra) {
+                                                    return [
+                                                        'type' => $extra->type,
+
+                                                    ];
+                                                }),
+                                                'hasWeight' => $packageType->hasWeight(),
                                             ];
                                         }),
                 'phone'                 =>  $client->phone,
