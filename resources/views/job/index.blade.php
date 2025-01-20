@@ -826,7 +826,8 @@ function addInfoAboutPackageToTaskModal(package){
                 type: {
                 id: 1, // Set the id for the type
                 },
-                quantity: 1 // Set the quantity
+                quantity: 1, // Set the quantity
+                weight:0,
         };
     } 
     const container =   document.getElementById('package-info');
@@ -861,6 +862,7 @@ function addInfoAboutPackageToTaskModal(package){
 
                 const label = document.createElement('label');
                 label.setAttribute('for', 'weight'); // Set the 'for' attribute
+                label.setAttribute('id', 'weightInputLabel');
                 label.textContent = 'Weight:';
                 container.appendChild(label);
 
@@ -875,9 +877,9 @@ function addInfoAboutPackageToTaskModal(package){
                 inputWeight.setAttribute('required', '');          // Set the input to be required
                 container.appendChild(inputWeight);
                 const labelForWeight = document.createElement('span');
+                labelForWeight.setAttribute('id', 'labelForWeightInput');
                 labelForWeight.textContent = 'Kg';
                 container.appendChild(labelForWeight);
-
                 let submitButton = document.getElementById('submitTaskform');
                 if(submitButton.getAttribute('data-option') === 'edit'){
                     document.getElementById('packageTypeSelect').disabled = false;
@@ -889,8 +891,39 @@ function addInfoAboutPackageToTaskModal(package){
                     document.getElementById('packageTypeSelect').disabled = true;
                     document.getElementById('quantityInput').disabled = true;
                 }
+                inputWeight.style.display = 'none';
+                labelForWeight.style.display = 'none';
+                label.style.display = 'none';
             }
             
+        }).then(()=>{
+            let selectElement = document.getElementById('packageTypeSelect');
+            selectElement.addEventListener('change', function(event) {
+                const selectedValue = event.target.value;
+            const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
+            fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    let inputWeight = document.getElementById('weightInput');
+                    let labelForWeight = document.getElementById('labelForWeightInput');
+                    let label = document.getElementById('weightInputLabel');
+
+                    if (data.extras && data.extras.length > 0) {
+                        data.extras.forEach(extra => {
+                            if (extra.name === 'weight') {
+                                inputWeight.removeAttribute('style');
+                                inputWeight.value = package.weight;
+                                labelForWeight.removeAttribute('style');
+                                label.removeAttribute('style');
+                            }
+                        });
+                    }else{
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching package type info:', error);
+                });
+            });
         })
         .catch(error => {
             console.error(error);
@@ -929,7 +962,7 @@ function setTaskValues(taskId){
             console.log(timeBeginField.value);
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{
-                    document.getElementById('weightInput').value = data.package.weight;
+                    //document.getElementById('weightInput').value = data.package.weight;
                 });
                 showPackageDiv(true);
 
