@@ -898,10 +898,20 @@ function addInfoAboutPackageToTaskModal(package){
             
         }).then(()=>{
             let selectElement = document.getElementById('packageTypeSelect');
+            console.log('Current package type:', selectElement.value);
+            setPackageWeightChoosingAbility(selectElement.value);
             selectElement.addEventListener('change', function(event) {
                 const selectedValue = event.target.value;
-            const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
-            fetch(routeUrl)
+                setPackageWeightChoosingAbility(selectedValue);
+            });
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
+function setPackageWeightChoosingAbility(selectedValue){
+    const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
+        fetch(routeUrl)
                 .then(response => response.json())
                 .then(data => {
                     let inputWeight = document.getElementById('weightInput');
@@ -909,25 +919,28 @@ function addInfoAboutPackageToTaskModal(package){
                     let label = document.getElementById('weightInputLabel');
 
                     if (data.extras && data.extras.length > 0) {
-                        data.extras.forEach(extra => {
-                            if (extra.name === 'weight') {
-                                inputWeight.removeAttribute('style');
-                                inputWeight.value = package.weight;
-                                labelForWeight.removeAttribute('style');
-                                label.removeAttribute('style');
-                            }
-                        });
+                        const hasWeight = data.extras.some(extra => extra.name === 'weight');
+                        if (hasWeight) {
+                            inputWeight.removeAttribute('style');
+                            inputWeight.value = 0;
+                            labelForWeight.removeAttribute('style');
+                            label.removeAttribute('style');
+                        }else{
+                            inputWeight.style.display = 'none';
+                            labelForWeight.style.display = 'none';
+                            label.style.display = 'none';
+                            inputWeight.value = 0;
+                        }
                     }else{
+                        inputWeight.style.display = 'none';
+                        labelForWeight.style.display = 'none';
+                        label.style.display = 'none';
+                        inputWeight.value = 0;
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching package type info:', error);
                 });
-            });
-        })
-        .catch(error => {
-            console.error(error);
-    });
 }
 function setTaskValues(taskId){
     const idField    =   document.getElementById('taskIdField');
