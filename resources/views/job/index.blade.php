@@ -147,7 +147,18 @@
             </tr>
             <tr>
                 <th>Pickup</th>
-                <th>Drops</th>
+                <th>
+                    <span>Drops</span>
+                    <span class="input-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <select id="search-package" class="form-control">
+                                <option value="">Select Package Type</option>
+                                @foreach($packageTypes as $packageType)
+                                    <option value="{{ $packageType->id }}">{{ $packageType->name }}</option>
+                                @endforeach
+                            </select>
+                    </span>
+                </th>
                 <th>Custom</th>
                 <th>Price</th>
             </tr>
@@ -1296,12 +1307,13 @@ function fetchJobs(page = 1) {
     const id = document.getElementById('search-id').value;
     const clientName = document.getElementById('search-clientName').value;
     const date = document.getElementById('search-date').value;
+    const package = document.getElementById('search-package').value;
     const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
     const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', `{{ route('job.fetch') }}?id=${id}&clientName=${clientName}&date=${date}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+    xhr.open('GET', `{{ route('job.fetch') }}?id=${id}&clientName=${clientName}&date=${date}&package=${package}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
     xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
     xhr.onload = function() {
@@ -1338,7 +1350,7 @@ function fetchJobs(page = 1) {
                         <td>
                             ${job.tasks.map(
                                 task => task.package 
-                                            ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6><span>${task.package.package_type.extras.some(extra => extra.name === 'food') ? '<i class="fa-solid fa-burger" style="color:rgb(0, 114, 221);"></i><i class="fa-solid fa-glass-water" style="color:rgb(0, 114, 221);"></i>' : ''}</span>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
+                                            ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
                                                     
                                                     ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
                                             </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
@@ -1611,7 +1623,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInputs = [
             { id: 'search-id', field: 'id' },
             { id: 'search-clientName', field: 'name' },
-            { id: 'search-date', field: 'date' }
+            { id: 'search-date', field: 'date' },
+            { id: 'search-package', field: 'package' }
         ];
 
         searchInputs.forEach(input => {

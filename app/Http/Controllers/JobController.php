@@ -51,9 +51,10 @@ class JobController extends Controller
             $day = Day::first();
             $couriers = User::getCouriersWithWorkload($day);
             $statuses = Status::all();
+            $packageTypes = PackageType::all();
             
 
-        return view('job.index', compact('jobs','couriers','statuses'));
+        return view('job.index', compact('jobs','couriers','statuses','packageTypes'));
     }
     /**
      * Show the form for creating a new resource.
@@ -496,28 +497,34 @@ class JobController extends Controller
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');
             $date = $request->get('date', '');
+            $package = $request->get('package', '');
             $sortField = $request->get('sortField', 'id');
             $sortOrder = $request->get('sortOrder', 'asc');
+
     
             $jobs = Job::with(['clientToBill', 'tasks'])
-                ->when($id, function ($queryBuilder) use ($id) {
-                    $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
-                })
-                ->when($date, function ($queryBuilder) use ($date) {
-                    $queryBuilder->where('jobs.date', 'like', '%' . $date . '%');
-                })
-                ->when($clientName, function ($queryBuilder) use ($clientName) {
-                    $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
-                        $query->where('name', 'like', '%' . $clientName . '%');
-                    });
-                })
-                // ->when($date, function ($queryBuilder) use ($date) {
-                //     $queryBuilder->whereDate('pickup_time_begin', $date);
-                // })
-                ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
-                ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
-                ->select('jobs.*') // Ensure you only select the fields from jobs table
-                ->paginate(10);
+            ->when($id, function ($queryBuilder) use ($id) {
+                $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
+            })
+            ->when($date, function ($queryBuilder) use ($date) {
+                $queryBuilder->where('jobs.date', 'like', '%' . $date . '%');
+            })
+            ->when($clientName, function ($queryBuilder) use ($clientName) {
+                $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
+                    $query->where('name', 'like', '%' . $clientName . '%');
+                });
+            })
+            ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
+            ->join('packages', 'packages.task_id', '=', 'tasks.id')
+            ->join('package_types', 'package_types.id', '=', 'packages.packageType_id')
+            ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+            ->when($package, function ($queryBuilder) use ($package) {
+                $queryBuilder->where('package_types.id', $package);
+            })
+            ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
+            ->distinct() // Ensure distinct results
+            ->select('jobs.*') // Select only fields from the jobs table
+            ->paginate(10);
     
             $jobs->appends([
                 'id' => $id,
