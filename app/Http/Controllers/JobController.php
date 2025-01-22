@@ -516,10 +516,13 @@ class JobController extends Controller
             })
             ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
             ->join('packages', 'packages.task_id', '=', 'tasks.id')
-            ->join('package_types', 'package_types.id', '=', 'packages.packageType_id')
             ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
             ->when($package, function ($queryBuilder) use ($package) {
-                $queryBuilder->where('package_types.id', $package);
+                $queryBuilder->where(function ($query) use ($package) {
+                    $query->where('packages.dropoff_adress_line', 'like', '%' . $package . '%')
+                          ->orWhere('packages.dropoff_postal_code', 'like', '%' . $package . '%')
+                          ->orWhere('packages.dropoff_name', 'like', '%' . $package . '%');
+                });
             })
             ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
             ->distinct() // Ensure distinct results
@@ -535,6 +538,7 @@ class JobController extends Controller
             ]);
     
             return response()->json([
+                'request'   =>  $request->all(),
                 'jobs' =>  $jobs->map(function ($job) {
                     return[
                         'id'    =>  $job->id,

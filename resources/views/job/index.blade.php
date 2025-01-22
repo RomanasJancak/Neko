@@ -149,15 +149,10 @@
                 <th>Pickup</th>
                 <th>
                     <span>Drops</span>
-                    <span class="input-container">
+                    <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <select id="search-package" class="form-control">
-                                <option value="">Select Package Type</option>
-                                @foreach($packageTypes as $packageType)
-                                    <option value="{{ $packageType->id }}">{{ $packageType->name }}</option>
-                                @endforeach
-                            </select>
-                    </span>
+                            <input type="text" id="search-package" class="form-control" placeholder="Search...">
+                    </div>
                 </th>
                 <th>Custom</th>
                 <th>Price</th>
