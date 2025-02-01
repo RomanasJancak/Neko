@@ -464,6 +464,31 @@ class JobController extends Controller
             'jobId' => $jobId,
         ], 404);
     }
+    public function update_price_adjustment_number(UpdateJobRequest $request){
+        try {
+            $job = Job::findOrFail($request->id);
+            $job->price_adjustment_number = $request->input('price_adjustment_number');
+            $job->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Price adjustment number updated successfully.',
+                'job' => $job,
+            ]);
+        } catch (QueryException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
+    }
     public function updateJobAjax(UpdateJobRequest $request)
     {
         try{

@@ -263,8 +263,7 @@
                                             <option value="0">none</option>
                                             @foreach($couriers as $courier)
                                             <option value="{{ $courier->id }}">{{ $courier->name }}</option>
-                                            @endforeach
-                                                                              
+                                            @endforeach                                                                              
                                         </select>
                                     </div>
                                 </div>
@@ -398,6 +397,21 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <span>Price from dropOff : </span><span>&#163;</span><span id="dropoff_timing_price_DisplayField">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span>"Magic number" : </span><span>&#163;</span><span contenteditable="true" id="price_magicNumber_DisplayField" style="min-width: 5ch; display: inline-block;">0.00</span>
+                                        <span id="magic_number_actions" style="display: none;">
+                                            <button type="button" id="confirmMagicNumber" class="btn btn-success btn-sm">
+                                                <i class="bi bi-check"></i>
+                                            </button>
+                                            <button type="button" id="cancelMagicNumber" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -1148,6 +1162,7 @@ function setJobValues(jobId,buttonClicked){
     const pickup_timing_price_DisplayField   =   document.getElementById('pickup_timing_price_DisplayField');
     const pickup_timing_value_DisplayField  =   document.getElementById('pickup_timing_value_DisplayField');
     const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
+    const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
     const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
     const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
@@ -1196,6 +1211,7 @@ function setJobValues(jobId,buttonClicked){
             addon_time_samedayreturn_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_sameDayReturn.price/100,2);
             pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
             pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
+            price_magicNumber_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_adjustment_number/100,2);
             dropOff_timing_value_DisplayField.innerHTM='';
             string = '';
             data.price.timing_price.dropOff_value.forEach(function(value){
@@ -1615,6 +1631,70 @@ function add_TaskTypeSelect_EventListener_OnChange(selectElement){
 }
 //==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
+    const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
+    price_magicNumber_DisplayField.addEventListener('input', function(event) {
+
+    });
+
+    price_magicNumber_DisplayField.addEventListener('focus', function(event) {
+        document.getElementById('magic_number_actions').removeAttribute('style');
+    });
+
+    price_magicNumber_DisplayField.addEventListener('blur', function(event) {
+        setTimeout(() => {
+            if (!document.getElementById('confirmMagicNumber').clicked) {
+                document.getElementById('magic_number_actions').style.display = 'none';
+                let jobId = document.getElementById('idField').value;
+                setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
+            }
+        }, 500);
+    });
+    document.getElementById('confirmMagicNumber').addEventListener('click', function(event) {
+        event.preventDefault();
+        const inputValue = parseFloat(document.getElementById('price_magicNumber_DisplayField').textContent);
+        if (!isNaN(inputValue)) {
+            document.getElementById('price_magicNumber_DisplayField').textContent = inputValue.toFixed(2);
+        } else {
+            document.getElementById('price_magicNumber_DisplayField').textContent = '0.00';
+        }
+        const jobId = document.getElementById('idField').value;
+        const priceAdjustmentNumber = parseFloat(price_magicNumber_DisplayField.textContent) * 100; // Convert to cents
+
+        const updateData = {
+            id: jobId,
+            price_adjustment_number: priceAdjustmentNumber
+        };
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ route('job.update_price_adjustment_number') }}", {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+            document.getElementById('magic_number_actions').style.display = 'none';
+            setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
+            } else {
+            console.error('Error updating price adjustment number:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+    document.getElementById('cancelMagicNumber').addEventListener('click', function(event) {
+        event.preventDefault();
+        document.getElementById('magic_number_actions').style.display = 'none';
+        let jobId = document.getElementById('idField').value;
+        setJobValues(jobId,global_typeOfButtonClickedToOpenJobModal);
+    });
+
+
     const searchInputs = [
             { id: 'search-id', field: 'id' },
             { id: 'search-clientName', field: 'name' },

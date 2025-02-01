@@ -86,6 +86,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
     Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');
+    Route::post('update_price_adjustment_number/',[JobController::class, 'update_price_adjustment_number'])->name('job.update_price_adjustment_number')->middleware('auth');
     Route::post('delete',   [JobController::class, 'destroy'])->name('job.delete')->middleware('auth');
     Route::post('createBackup',     [JobController::class, 'createBackup'])->name('job.createBackup')->middleware('auth');
     Route::get('show/{job}',        [JobController::class, 'show'])->name('job.show')->middleware('auth');

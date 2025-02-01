@@ -821,6 +821,7 @@ class Job extends Model
         $price+=$this->price_bankHoliday()['price'];
         $price+=$this->oversizePrice();
         $price+=$this->price_sameDayReturn()['price'];
+        $price+=$this->price_adjustment_number;
 
         return [
             'breakdownOfPrice' => [
@@ -834,6 +835,8 @@ class Job extends Model
                 'price_sameDayReturn'   =>  $this->price_sameDayReturn(),
                 'oversizePrice'         =>  $this->oversizePrice(),
                 'price_food'            =>  $this->price_food()['price'],
+                'price_adjustment_number' => $this->price_adjustment_number,
+                'price'                 =>  $this->price,
             ],
             'totalPrice'            =>  $price,
             'price_Distance'        =>  $this->price_distance(),
