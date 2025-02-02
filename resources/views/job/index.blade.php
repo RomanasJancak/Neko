@@ -3,10 +3,10 @@
 <style>
 .container-content{
     /* border-style: double; */
-}
+    }
 .no-padding {
     padding: 0 !important;
-}
+    }
 .info-icon {
             position: relative;
             display: inline-block;
@@ -58,13 +58,12 @@
 .input-container {
     position: relative;
     width: 100%;
-}
-
+    }
 .input-container input {
     width: 100%;
     padding: 10px 10px 10px 1.5rem; 
     box-sizing: border-box;
-}
+    }
 
 .input-container .fa-magnifying-glass {
     position: absolute;
@@ -72,7 +71,7 @@
     left: 1rem;
     transform: translateY(-50%);
     color: #aaa; 
-}
+    }
 
 </style>
 @endsection
