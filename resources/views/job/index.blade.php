@@ -236,9 +236,10 @@
     <div class="d-flex justify-content-center mt-3" id='paginationLinks_bottom'>
         {!! $jobs->links() !!}
     </div>
-<!-- Modal job begin -->
+
 
 </div>
+<!-- Modal job begin -->
 <div class="modal fade" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -422,8 +423,10 @@
     </div>
 </div>
 <!-- Modal job end -->
+ @include('task.show')
 <!-- Modal task begin -->
-<div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+
+<!-- <div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -454,7 +457,7 @@
                         </div>
                         <div class="col">
                             <label for="taskTypeField">Type</label>
-                            <!-- <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value=""> -->
+                            
                             <select class="form-control" name="taskTypename" id="taskTypeField">
                                 <option value="pickup">Pickup</option>
                                 <option value="dropOff">DropOff</option>
@@ -476,7 +479,7 @@
                         </div>
                         <div class="col-auto">
                             <label for="taskTypeField">Addr. types</label>
-                            <!-- <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value=""> -->
+                            
                             <select class="form-control" name="taskTypename" id="taskWindow_addressSelectField">
                             </select>
                         </div>
@@ -539,7 +542,8 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
+
 <!-- Modal task end -->
 @endsection
 @section('scripts')

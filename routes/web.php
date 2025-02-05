@@ -96,6 +96,15 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::get('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
 });
+Route::group(['prefix'  =>  'tasks'],function(){
+    Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
+    Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
+    Route::post('update',           [TaskController::class, 'update'])->name('task.update')->middleware('auth');
+    Route::post('delete',           [TaskController::class, 'destroy'])->name('task.delete')->middleware('auth');
+    Route::post('createBackup',     [TaskController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
+    Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
+    Route::get('show/{id}',         [TaskController::class, 'show'])->name('task.show')->middleware('auth');
+});
 Route::group(['prefix' => 'days'], function(){
     Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');
     // Route::get('create',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
@@ -175,14 +184,6 @@ Route::group(['prefix'  => 'packageTypes'],function(){
     Route::post('store',            [PackageTypeController::class, 'store'])->name('packageType.store')->middleware('auth');
     Route::post('createBackup',     [PackageTypeController::class, 'createBackup'])->name('packageType.createBackup')->middleware('auth');
     Route::get('getPackageTypeInfo/{id}',     [PackageTypeController::class, 'getPackageTypeInfo'])->name('packageType.getPackageTypeInfo')->middleware('auth');
-});
-Route::group(['prefix'  => 'tasks'],function(){
-    Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
-    Route::post('update',           [TaskController::class, 'update'])->name('task.update')->middleware('auth');
-    Route::post('delete',           [TaskController::class, 'destroy'])->name('task.delete')->middleware('auth');
-    Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
-    Route::post('createBackup',     [TaskController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
-    Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 });
 Route::group(['prefix'  => 'postalCode'],function(){
     Route::get('',                  [PostalCodeController::class, 'index'])->name('postalCode.index')->middleware('auth');

@@ -6,6 +6,8 @@ use App\Models\Task;
 use App\Models\Pickuptask;
 use App\Models\ReturnTask;
 use App\Models\Package;
+use App\Models\Job;
+use App\Models\Status;
 use App\Models\PackageType;
 use App\Models\CustomTask;
 use App\Http\Requests\StoreTaskRequest;
@@ -133,9 +135,17 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show($task)
     {
-        //
+        try {
+            $statuses   =   Status::all();
+            $task = Task::findOrFail($task);
+            return view('task.show', compact('task','statuses'));
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
 
     /**
@@ -316,6 +326,6 @@ class TaskController extends Controller
                 ]);
         }
 
-        return response()->json(['error' => 'Job not found'], 404);
+        return response()->json(['error' => 'Job task not found'], 404);
     }
 }
