@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Returntask extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'name',
+        'country',
+        'city',
+        'postal_code',
+        'adress_line',
+        'time_begin',
+        'time_end',
+        'task_id'
+    ];
     public function task()
     {
         return $this->belongsTo(Task::class);

@@ -176,11 +176,11 @@ class Job extends Model
         }
         return false;
     }
-    public function addOns()
-    {
-        return $this->hasMany(AddOn::class, 'model_id')
-                    ->where('model_type', '=', 'app/models/Job');
-    }
+    // public function addOns()
+    // {
+    //     return $this->hasMany(AddOn::class, 'model_id')
+    //                 ->where('model_type', '=', 'app/models/Job');
+    // }
     public function calculateShortestRoute($start, $points, $end = null)
     {
         //dd(!$start);

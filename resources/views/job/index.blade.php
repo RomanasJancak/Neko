@@ -228,6 +228,7 @@
                     <button class="btn btn-danger delete-btn" data-jobid="{{ $job->id }}">
                         <i class="bi bi-trash"></i>
                     </button>
+                    <button class="btn btn-info copy-btn" onclick="copyJob({{ $job->id }})"  data-jobid="{{ $job->id }}"><i class="fa-solid fa-copy"></i></button>
                 </td>   
             </tr>
             @endforeach
@@ -545,6 +546,26 @@
 </div> -->
 
 <!-- Modal task end -->
+<!-- Modal job copy window begin-->
+<div class="modal fade" id="jobCopyModalWindow" tabindex="-1" aria-labelledby="jobCopyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobCopyModalLabel">Copy Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to copy this job?</p>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" name="jobIdToCopy" id="jobIdToCopy" value="">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmCopyJob">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal job copy window end-->
 @endsection
 @section('scripts')
 <script>
@@ -1373,15 +1394,7 @@ function fetchJobs(page = 1) {
                         </td>
                         <td></td>
                         <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}</span></td>
-                        <td>
-                            <button class="btn btn-success view-btn" onclick="viewJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>
-                            <button 
-                                class="btn btn-danger delete-btn"
-                                onclick="deleteJob(${job.id})"
-                                data-jobid="${job.id}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                        <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
                         </td>
                     </tr>
                 `;
@@ -1442,15 +1455,7 @@ function addPaginationEventListeners() {
                                             </td>
                                             <td></td>
                                             <td></td>
-                                            <td>
-                                                <button class="btn btn-success view-btn" onclick="viewJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-eye"></i></button>
-                                                <button class="btn btn-primary edit-btn" onclick="editJob(${job.id})" data-jobid="${job.id}"><i class="bi bi-pen"></i></button>
-                                                <button 
-                                                    class="btn btn-danger delete-btn"
-                                                    onclick="deleteJob(${job.id})"
-                                                    data-jobid="${job.id}">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                            <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
                                             </td>
                                         </tr>
                                     `;
@@ -1491,6 +1496,14 @@ function addEventListenerToSortButton(button){
         });
         fetchJobs();
     });
+}
+function getHtmlOfActionButtonsForTheJob(jobId){
+    return `
+        <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-primary edit-btn" onclick="editJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
+        <button class="btn btn-danger delete-btn" onclick="deleteJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-info copy-btn" onclick="copyJob(${jobId})" data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
+    `;
 }
 //==================---------------------==============----------------------
 function viewJob(jobId) {
@@ -1577,6 +1590,10 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
+function copyJob(jobId){
+    document.getElementById('jobIdToCopy').value = jobId;
+    $('#jobCopyModalWindow').modal('show');
+}
 function toggle_CreateNewTaskButton(enable = true){
     createNewTaskButton = document.getElementById('createNewTask');
     createNewPickupButton = document.getElementById('createNewPickup');
@@ -1635,6 +1652,33 @@ function add_TaskTypeSelect_EventListener_OnChange(selectElement){
 //==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
+    const confirmCopyJob    =   document.getElementById('confirmCopyJob');
+    confirmCopyJob.addEventListener('click',function(event){
+        event.preventDefault();
+        const jobId = document.getElementById('jobIdToCopy').value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ route('job.copy') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({id: jobId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#jobCopyModalWindow').modal('hide');
+                editJob(data.data.NewJobId);
+            } else {
+                console.error('Error copying job:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
     price_magicNumber_DisplayField.addEventListener('input', function(event) {
 
     });

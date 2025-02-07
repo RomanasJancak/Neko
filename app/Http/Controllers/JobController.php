@@ -397,7 +397,58 @@ class JobController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
+    public function copy(Request $request,Job $job){
+        try{
+            //dd($request->all());
+            $job = Job::find($request->id);
+            $newJob = $job->replicate()->fill([
+                //'eilesNumeris'  =>  0,
+                //'status_id'     =>  $job->status_id,
 
+            ]);
+            $newJob->save();
+            foreach($job->tasks as $task){
+                $newTask = $task->replicate()->fill([
+                    'job_id'    =>  $newJob->id,
+                ]);
+                $newTask->save();
+                if(isset($task->pickup)){
+
+                    $newPickup = $task->pickup->replicate()->fill([
+                        'task_id'   =>  $newTask->id,
+                    ]);
+                    $newPickup->save();
+                }
+                if(isset($task->package)){
+                    $newPackage = $task->package->replicate()->fill([
+                        'task_id'   =>  $newTask->id,
+                    ]);
+                    $newPackage->save();
+                }
+                if(isset($task->return)){
+                    $newReturn = $task->return->replicate()->fill([
+                        'task_id'   =>  $newTask->id,
+                    ]);
+                    $newReturn->save();
+                }
+            }
+            
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Job copied successfully. ',
+                'data'      => [
+                    'NewJobId'   =>  $newJob->id,
+                ],
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+
+            ], 500);
+        
+        }
+    }
     public function getJobInfo($jobId)
     {
         // Fetch the client's information based on the $clientId

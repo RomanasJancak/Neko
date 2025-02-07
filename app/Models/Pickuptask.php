@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Pickuptask extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'pickupclientname',
+        'pickupclientcountry',
+        'pickupclientcity',
+        'pickupclientpostalcode',
+        'pickupclientaddressline',
+        'pickup_time_begin',
+        'pickup_time_end',
+        'task_id',
+    ];
     public function nameOfAddress(){
         return $this->pickupclientname;
     }

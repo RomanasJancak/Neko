@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Package extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'dropoff_name',
+        'dropoff_country',
+        'dropoff_city',
+        'dropoff_postal_code',
+        'dropoff_adress_line',
+        'packagedropofftimebegin',
+        'packagedropofftimeend',
+        'quantity',
+        'status_id',
+        'packageType_id',
+        'job_id',
+        'task_id'
+    ];
 
     public function job()
     {
