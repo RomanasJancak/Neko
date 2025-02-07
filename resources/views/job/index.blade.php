@@ -1967,6 +1967,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 courierId   :   document.getElementById('courierIdField').value,
                 status_id    :   document.getElementById('statusIdField').value,
                 clientId    :   document.getElementById('clientIdField').value,
+                date        :   document.getElementById('jobDateField').value,
             }
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             // Send a POST request to the server using the generated route

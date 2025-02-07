@@ -339,7 +339,7 @@ class JobController extends Controller
             }else{
                 $job->courrier_id   =   $request->courierId;                    
             }
-            $job->date  =   $request->input('common_date');
+            $job->date  =   $request->input('common_date') === null ?$request->input('date'):$request->input('common_date');
             $job->status_id =   $request->input('status_id');
             $job->clientToBill_id   =   $request->clientId;
             $job->save();
@@ -352,8 +352,8 @@ class JobController extends Controller
             return response()->json(['error' => $e->getMessage(),
             'file' => $e->getFile(),
             'line' => $e->getLine(),
-            '$request->courierId'   =>  $request->courierId,
-            '$request->clientId'   =>  $request->clientId,
+            'requests'  =>  $request->all(),
+            'common_date'   =>  $request->input('common_date'),
             ], 500);
             
         }
