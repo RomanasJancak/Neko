@@ -814,7 +814,6 @@ class Job extends Model
         $price+=$this->price_distance()['price'];
         $price+=$this->price_outsidePostalCodeZone();
         $price+=$this->price_weight()['price'];
-        //$price+=$this->price_timing()['price'];
         $price+=$this->new_price_timing()['price'];
         $price+=$this->price_packages()['price'];
         $price+=$this->price_sunday()['price'];
@@ -825,31 +824,30 @@ class Job extends Model
 
         return [
             'breakdownOfPrice' => [
-                'price_distance'        =>  $this->price_distance()['price'],
-                'price_outsidePostalCodeZone'   =>  $this->price_outsidePostalCodeZone(),
-                'price_weight'          =>  $this->price_weight()['price'],
-                'price_timing'          =>  $this->new_price_timing()['price'],
-                'price_packages'        =>  $this->price_packages()['price'],
-                'price_sunday'          =>  $this->price_sunday()['price'],
-                'price_bankHoliday'     =>  $this->price_bankHoliday()['price'],
-                'price_sameDayReturn'   =>  $this->price_sameDayReturn(),
-                'oversizePrice'         =>  $this->oversizePrice(),
-                'price_food'            =>  $this->price_food()['price'],
-                'price_adjustment_number' => $this->price_adjustment_number,
-                'price'                 =>  $this->price,
+                'price_distance'        =>  $this->fixed_price === 0?$this->price_distance()['price']:0,
+                'price_outsidePostalCodeZone'   =>  $this->fixed_price === 0?$this->price_outsidePostalCodeZone():0,
+                'price_weight'          =>  $this->fixed_price === 0?$this->price_weight()['price']:0,
+                'price_timing'          =>  $this->fixed_price === 0?$this->new_price_timing()['price']:0,
+                'price_packages'        =>  $this->fixed_price === 0?$this->price_packages()['price']:0,
+                'price_sunday'          =>  $this->fixed_price === 0?$this->price_sunday()['price']:0,
+                'price_bankHoliday'     =>  $this->fixed_price === 0?$this->price_bankHoliday()['price']:0,
+                'price_sameDayReturn'   =>  $this->fixed_price === 0?$this->price_sameDayReturn():0,
+                'oversizePrice'         =>  $this->fixed_price === 0?$this->oversizePrice():0,
+                'price_food'            =>  $this->fixed_price === 0?$this->price_food()['price']:0,
+                'price_adjustment_number' => $this->fixed_price === 0?$this->price_adjustment_number:0,
+                'price'                 =>  $this->fixed_price === 0?$this->price:$this->fixed_price,
             ],
-            'totalPrice'            =>  $price,
-            'price_Distance'        =>  $this->price_distance(),
-            'price_OutOfZone'       =>  $this->price_outsidePostalCodeZone(),
-            'weight_price'          =>  $this->price_weight(),
-            //'old_timing_price'          =>  $this->price_timing(),
-            'price-packages' =>  $this->price_packages(),
-            'price_oversize_added'  =>  $this->oversizePrice(),
-            'price_oversize_value'  =>  $this->price_oversize,
-            'price_package_oversize'        =>  $this->oversizePrice(),
-            'timing_price'          =>  $this->new_price_timing(),
-            'price_time_sunday'     =>  $this->price_sunday(),
-            'price_time_bankholiday'     =>  $this->price_bankHoliday(),
+            'totalPrice'            =>  $this->fixed_price === 0?$price:0,
+            'price_Distance'        =>  $this->fixed_price === 0?$this->price_distance():0,
+            'price_OutOfZone'       =>  $this->fixed_price === 0?$this->price_outsidePostalCodeZone():0,
+            'weight_price'          =>  $this->fixed_price === 0?$this->price_weight():0,
+            'price-packages' =>  $this->fixed_price === 0?$this->price_packages():0,
+            'price_oversize_added'  =>  $this->fixed_price === 0?$this->oversizePrice():0,
+            'price_oversize_value'  =>  $this->fixed_price === 0?$this->price_oversize:0,
+            'price_package_oversize'        =>  $this->fixed_price === 0?$this->oversizePrice():0,
+            'timing_price'          =>  $this->fixed_price === 0?$this->new_price_timing():0,
+            'price_time_sunday'     =>  $this->fixed_price === 0?$this->price_sunday():0,
+            'price_time_bankholiday'     =>  $this->fixed_price === 0?$this->price_bankHoliday():0,
             
         ];
     }
