@@ -33,6 +33,7 @@ return new class extends Migration
             $table->bigInteger('price_adjustment_number')->default(0);
             $table->unsignedBigInteger('jobTemplate_id')->nullable();
             $table->date('date');
+            $table->bigInteger('fixed_price')->default(0);
         });
     }
 
