@@ -631,6 +631,8 @@ class JobController extends Controller
                             ]:'',
                         'clientToBill'  =>  $job->clientToBill,
                         'price' =>  $job->price()['totalPrice'],
+                        'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
+                        'fixed_price'           =>  $job->fixed_price === 0,
                     ];
                 }),
                 'links' => (string) $jobs->links(),

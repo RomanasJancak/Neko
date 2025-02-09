@@ -217,7 +217,7 @@
                 @endforeach
                 </td>
                 <td></td>
-                <td><span>&#163;</span>{{ number_format($job->price()['totalPrice'] / 100, 2) }}</td>
+                <td><span>&#163;</span>@if($job->fixed_price === 0){{ number_format($job->price()['totalPrice'] / 100, 2) }}@else {{ number_format($job->fixed_price / 100, 2) }}@endif<span>@if($job->fixed_price !== 0) <i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>@endif</span></td>
                 <td>
                     <button class="btn btn-success view-btn" data-jobid="{{ $job->id }}">
                         <i class="bi bi-eye"></i>
@@ -1393,7 +1393,8 @@ function fetchJobs(page = 1) {
                                 .join('')}
                         </td>
                         <td></td>
-                        <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}</span></td>
+                        <td><span>&#163;</span>@if($job->fixed_price === 0){{ number_format($job->price()['totalPrice'] / 100, 2) }}@else {{ number_format($job->fixed_price / 100, 2) }}@endif<span>@if($job->fixed_price !== 0) <i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>@endif</span></td>
+                        <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}${job.fixed_price ?'':'<i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>'}</span></td>
                         <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
                         </td>
                     </tr>
@@ -1454,7 +1455,7 @@ function addPaginationEventListeners() {
                                                     .join('')}
                                             </td>
                                             <td></td>
-                                            <td></td>
+                                            <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}</span></td>
                                             <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
                                             </td>
                                         </tr>

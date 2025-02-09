@@ -836,6 +836,7 @@ class Job extends Model
                 'price_food'            =>  $this->fixed_price === 0?$this->price_food()['price']:0,
                 'price_adjustment_number' => $this->fixed_price === 0?$this->price_adjustment_number:0,
                 'price'                 =>  $this->fixed_price === 0?$this->price:$this->fixed_price,
+                'fixed_price'           =>  $this->fixed_price === 0,
             ],
             'totalPrice'            =>  $this->fixed_price === 0?$price:0,
             'price_Distance'        =>  $this->fixed_price === 0?$this->price_distance():0,
