@@ -660,7 +660,7 @@ class JobController extends Controller
             $jobTemplate->notes = $job->notes;
             $jobTemplate->price = $job->price()['totalPrice'];
             //$jobTemplate->distance = $job->distance();
-            // $jobTemplate->price_adjustment_number = $job->price_adjustment_number;
+            $jobTemplate->price_adjustment_number = $job->price_adjustment_number;
             // $jobTemplate->fixedPrice = $job->fixedPrice;
             $jobTemplate->date = $job->date;
             $jobTemplate->pickuptask_data = json_encode($job->getPickupTask());
