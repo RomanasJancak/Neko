@@ -231,6 +231,7 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script> -->
     <!-- Include additional JavaScript libraries or your custom scripts -->
     @yield('scripts')
+    @stack('scripts')
     <script>
            var roleSelect = document.getElementById('role');
 
