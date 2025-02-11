@@ -116,9 +116,10 @@
         </div>
     </div>
 </div>
-
+@push('scripts')
 <script>
     function somethingUseful() {
         console.log('I am doing something useful');
     }
 </script>
+@endpush
