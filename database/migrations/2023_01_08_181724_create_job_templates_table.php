@@ -14,18 +14,17 @@ return new class extends Migration
         Schema::create('job_templates', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-
-            $table->unsignedBigInteger('clientToBill_id');
-            $table->unsignedBigInteger('status_id');
+            $table->unsignedBigInteger('clientToBill_id')->nullable();
+            $table->unsignedBigInteger('status_id')->nullable();
             $table->string('notes')->nullable();
             $table->unsignedBigInteger('price')->nullable();
             $table->unsignedBigInteger('distance')->nullable();
             $table->bigInteger('price_adjustment_number')->default(0);
             $table->bigInteger('fixedPrice')->default(0);
-            $table->date('date');
-            $table->json('pickuptask_data');
-            $table->json('dropOffs_data');
-            $table->json('return_data');
+            $table->date('date')->nullable();
+            $table->json('pickuptask_data')->nullable();
+            $table->json('dropOffs_data')->nullable();
+            $table->json('return_data')->nullable();
         });
     }
 

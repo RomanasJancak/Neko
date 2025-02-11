@@ -101,4 +101,20 @@ class JobTemplateController extends Controller
     {
         //
     }
+    public function getJobTemplateInfo($id)
+    {
+        try{
+            $jobTemplate = JobTemplate::findOrFail($id);
+            return response()->json([
+                'template'  =>  json_decode($jobTemplate),
+                //'template - tasks' => $jobTemplate->tasks(),
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+        }
+    }
 }

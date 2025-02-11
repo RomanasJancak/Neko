@@ -1,3 +1,4 @@
+
 <div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -115,3 +116,9 @@
         </div>
     </div>
 </div>
+
+<script>
+    function somethingUseful() {
+        console.log('I am doing something useful');
+    }
+</script>
