@@ -117,9 +117,5 @@
     </div>
 </div>
 @push('scripts')
-<script>
-    function somethingUseful() {
-        console.log('I am doing something useful');
-    }
-</script>
+@vite('resources/js/task/show.js')
 @endpush
