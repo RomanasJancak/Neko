@@ -1200,33 +1200,7 @@ function addTypeHeadSearch(searchInput){
     });
     }
 }
-function updateTask(data,route){
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    // Send a POST request to the server using the generated route
-    fetch(route, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json', // Set Accept header
-            // Add any additional headers if needed
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        // if (!response.ok) {
-        //     throw new Error('Failed to update job');
-        // }
-        return response.json();
-    })
-    .then(data => {
 
-        setJobValues(document.getElementById('idField').value,global_typeOfButtonClickedToOpenJobModal);
-    })
-    .catch(error => {
-        console.error('Error:', error.message);
-    });
-}
 function fetchJobs(page = 1) {
     const id = document.getElementById('search-id').value;
     const clientName = document.getElementById('search-clientName').value;

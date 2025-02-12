@@ -1,3 +1,42 @@
+function updateTask(data,route){
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  // Send a POST request to the server using the generated route
+  fetch(route, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', // Set Accept header
+          // Add any additional headers if needed
+          'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(data)
+  })
+  .then(response => {
+      // if (!response.ok) {
+      //     throw new Error('Failed to update job');
+      // }
+      return response.json();
+  })
+  .then(data => {
+
+      setJobValues(document.getElementById('idField').value,global_typeOfButtonClickedToOpenJobModal);
+  })
+  .catch(error => {
+      console.error('Error:', error.message);
+  });
+}
+function setTaskFormSubmitButtonDataOptionToView(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'view');
+}
+function setTaskFormSubmitButtonDataOptionToDelete(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'delete');
+}
+function setTaskFormSubmitButtonDataOptionToUpdate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'update');
+}
+function setTaskFormSubmitButtonDataOptionToCreate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'create');
+}
 document.getElementById('submitTaskform').addEventListener('click', function(event) {
   event.preventDefault();
   const   typeField   =   document.getElementById('taskTypeField');
@@ -11,7 +50,7 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
   }else if(this.getAttribute('data-option') === 'create'){
       route = '{{ route("task.store") }}';
   } 
-  updateData = {
+  data = {
       jobId       :   document.getElementById('idField').value,
       id          :   document.getElementById('taskIdField').value,
       status_id   :   document.getElementById('taskStatusIdField').value,
@@ -31,19 +70,19 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
          
   }
   if(typeField.value == 'dropOff'){
-      updateData.package = {
+      data.package = {
           type        : document.getElementById('packageTypeSelect').value,
           quantity    : document.getElementById('quantityInput').value,
           weight      : document.getElementById('weightInput').value,
       }
   }
   if(typeField.value == 'return'){
-      updateData.returnTask = {
+      data.returnTask = {
           is_flexible : document.getElementById('returnTask_isFlexible').checked,
           date    : document.getElementById('taskTimeDate').value,
       }
   }
-  updateTask(updateData,route);
-  $('#jobModalWindow').modal('show');
-  $('#taskModalWindow').modal('hide');
+  updateTask(data,route);
+  document.getElementById('jobModalWindow').style.display = 'block';
+  document.getElementById('taskModalWindow').style.display = 'none';
 });
