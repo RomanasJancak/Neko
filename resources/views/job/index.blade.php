@@ -426,7 +426,24 @@
 <!-- Modal job end -->
 
 <!-- Modal task begin -->
-@include('task.show', ['section' => 'content'])
+<div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                @include('task.show')
+            </div>
+            <div class="modal-footer">
+                <div class="col-12">
+                    <div class="form-group d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="taskModalWindowCloseButton">Close</button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Modal task end -->
 <!-- Modal job copy window begin-->
@@ -598,7 +615,6 @@ function createJob(){
             document.getElementById('jobid').value = data.job.id;
         })
         .catch(error => {
-            console.log('Errors');
             console.error('Error:', error.message);
         });
 }
@@ -692,10 +708,8 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         searchInput.typeahead({
         source: function(query, process) {
             let client_id = document.getElementById('clientIdField').value;
-            //console.log("client_id : ",client_id);
+
             var apiUrl = "{{ route('client.searchClientAddresses') }}?query=" + query + "&client_id=" + client_id;
-            //var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
-            console.log(apiUrl);
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
@@ -719,7 +733,6 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    console.log(data);
                     // const addressSelect = document.getElementById('taskWindow_addressSelectField');
                     // addressSelect.innerHTML = '';
                     // document.getElementById('task_clientIdField').value = data.id;
@@ -824,7 +837,7 @@ function addInfoAboutPackageToTaskModal(package){
             
         }).then(()=>{
             let selectElement = document.getElementById('packageTypeSelect');
-            console.log('Current package type:', selectElement.value);
+
             setPackageWeightChoosingAbility(selectElement.value);
             selectElement.addEventListener('change', function(event) {
                 const selectedValue = event.target.value;
@@ -898,7 +911,7 @@ function setTaskValues(taskId){
             const dateEnd = new Date(data.time.end);
             timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
             timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
-            console.log(timeBeginField.value);
+
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{
                     //document.getElementById('weightInput').value = data.package.weight;
@@ -925,7 +938,7 @@ function setTaskValues(taskId){
                 checkbox.addEventListener('change', function() {
                     if (this.checked) {
                         container_taskTimeDate.style.visibility = 'visible';
-                        console.log('checked');
+
                     } else {
                         container_taskTimeDate.style.visibility = 'hidden';
                     }
@@ -1079,9 +1092,6 @@ function setJobValues(jobId,buttonClicked){
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            console.log('data_begin');
-            console.log(data);
-            console.log('data_end');
             if(data.courierId === 'none'){
                 courierIdField.value = 0;
             }else{
@@ -1129,7 +1139,6 @@ function setJobValues(jobId,buttonClicked){
             });
             dropOff_timing_value_DisplayField.innerHTML=string;
             string = '';
-            //console.log(data.price.timing_price.dropOff_value.type());
             dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
             setPickupCreationButtonVisibility(data.pickup === 'none');
             setReturnCretionButtonVisibility(data.return === 'none');              
@@ -1139,12 +1148,10 @@ function setJobValues(jobId,buttonClicked){
         });
 }
 function formatMinutesToHoursAndMinutes(minutes) {
-    console.log('minutes :'+minutes);
+
                 const hours = Math.floor(minutes / 60);
                 const remainingMinutes = minutes % 60;
                 if (hours > 0) {
-                    console.log('hours :'+hours);
-                    console.log('remainingMinutes :'+remainingMinutes);
                     if (remainingMinutes > 0) {
                         return `${hours}h ${remainingMinutes}min`;
                     } else {
@@ -1786,58 +1793,9 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#jobModalWindow').modal('show');
         $('#taskModalWindow').modal('hide');
     });
-    document.getElementById('submitTaskform').addEventListener('click', function(event) {
-        event.preventDefault();
-        const   typeField   =   document.getElementById('taskTypeField');
-        var     route       = '';
-        if(this.getAttribute('data-option') === 'delete'){
-            route = '{{ route("task.delete") }}';
-        }else if(this.getAttribute('data-option') === 'edit'){
-            route = '{{ route("task.update") }}';
-        }else if(this.getAttribute('data-option') === 'view'){
-            return;
-        }else if(this.getAttribute('data-option') === 'create'){
-            route = '{{ route("task.store") }}';
-        } 
-        updateData = {
-            jobId       :   document.getElementById('idField').value,
-            id          :   document.getElementById('taskIdField').value,
-            status_id   :   document.getElementById('taskStatusIdField').value,
-            type        :   typeField.value,
-            address     :   {
-                name            :   document.getElementById('taskClientNameField').value,
-                country         :   document.getElementById('taskCountryField').value,
-                city            :   document.getElementById('taskCityField').value,
-                postalCode      :   document.getElementById('taskPostalCodeField').value,
-                addressLine     :   document.getElementById('taskAddressLineField').value,
-            },
-            time        :   {
-                begin   :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeBegin').value,
-                end     :   document.getElementById('jobDateField').value+' '+document.getElementById('taskTimeEnd').value,
-            },
-            date        :   document.getElementById('jobDateField').value,
-               
-        }
-        if(typeField.value == 'dropOff'){
-            updateData.package = {
-                type        : document.getElementById('packageTypeSelect').value,
-                quantity    : document.getElementById('quantityInput').value,
-                weight      : document.getElementById('weightInput').value,
-            }
-        }
-        if(typeField.value == 'return'){
-            updateData.returnTask = {
-                is_flexible : document.getElementById('returnTask_isFlexible').checked,
-                date    : document.getElementById('taskTimeDate').value,
-            }
-        }
-        updateTask(updateData,route);
-        $('#jobModalWindow').modal('show');
-        $('#taskModalWindow').modal('hide');
-    });
     document.getElementById('submitform').addEventListener('click', function(event) {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
-        //console.log(document.getElementById('jobForm'));        
+      
         if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
             createJob();
         }else {
