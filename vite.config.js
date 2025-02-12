@@ -13,4 +13,8 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    server: {
+        // Make sure this is not active in production
+        //hmr: false, // Disable HMR (Hot Module Replacement) in production
+      },
 });
