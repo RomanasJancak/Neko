@@ -34,7 +34,8 @@ return new class extends Migration
             $table->bigInteger('price')->nullable();
             $table->unsignedBigInteger('baseQuantityThreshold')->nullable();
             $table->unsignedBigInteger('maxQuantityThreshold')->nullable();
-            $table->string('notes')->nullable(); 
+            $table->string('notes')->nullable();
+            $table->boolean('hasReturn')->default(false);
         });
     }
 
