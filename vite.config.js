@@ -6,7 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/js/task/show.js',
-                
+                'resources/js/routes.js',
                 'resources/sass/app.scss',
                 'resources/js/app.js',                
             ],

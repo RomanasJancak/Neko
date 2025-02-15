@@ -247,73 +247,13 @@
             <div class="row g-0">
                 <div class="col-9 border rounded d-flex flex-column "> <!--Left side -->
                     <div class="modal-body">
-                        <form id="jobForm" action="" method="POST">
-                            @csrf
-                            <div class="row justify-content-md-center">
-                                <div class="col-2">
-                                    <div class="row">
-                                        <input type="hidden" name="jobid" id="jobid" value="">
-                                        <label for="idField">Id</label>
-                                        <input class="form-control" type="text" name="id" id="idField" value="">
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="row">
-                                        <label for="courierIdField">Courier</label>
-                                        <select id="courierIdField" name="courierId" class="form-control" >
-                                            <option value="0">none</option>
-                                            @foreach($couriers as $courier)
-                                            <option value="{{ $courier->id }}">{{ $courier->name }}</option>
-                                            @endforeach                                                                              
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="row">
-                                        <label for="statusIdField">Status</label>
-                                        <select id="statusIdField" name="statusId" class="form-control">
-                                        @foreach($statuses as $status)
-                                            <option value="{{ $status->id }}">{{ $status->name }}</option>
-                                        @endforeach 
-                                    </select>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="row">
-                                        <label for="clientSearchField">Client</label>
-                                        <input type="text" id="clientSearchField" name="clientName" class="form-control" placeholder="Search for clients">
-                                        <input type="hidden" name="clientId" id="clientIdField" value="">
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="row">
-                                        <label for="jobDateField">Date</label>
-                                        <input type="date" id="jobDateField" name="jobDate" class="form-control" placeholder="Search for clients">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row justify-content-md-center">
-                                Tasks
-                            </div>
-                            <div class="row justify-content-md-center border rounded border-info" >
-                                <div class="col" id="container-tasks">
-                                </div>                        
-                            </div>
-                            <div class="row justify-content-md-center">
-                                <div class="col">
-                                    <button type="button" id="createNewTask" data-option="create" class="btn btn-primary ">Create new Task</button>
-                                    <button type="button" id="createNewPickup"data-type="specifictask" data-option="pickup" class="btn btn-primary">+Pickup</button>
-                                    <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+DropOff</button>
-                                    <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+Return</button>                                    
-                                </div>
-                            </div>
-                        </form>
+                        @include('job.show')
                     </div>
                     <div class="modal-footer ">
                         <!-- <div class="row"> -->
                             <div class="col-12">
                                 <div class="form-group d-flex justify-content-between">
-                                    <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
+                                    
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Cancel</button>
                                 </div>
                             </div>
@@ -484,55 +424,8 @@ function showPackageDiv(status){
         container.style.visibility = 'hidden';
     }
 }
-function setReadOnlyToFieldsOfTaskModal(status){
-    let fields = [];
-    //fields.push(document.getElementById('taskIdField'));
-    fields.push(document.getElementById('taskStatusIdField'));
-    fields.push(document.getElementById('taskClientNameField'));
-    fields.push(document.getElementById('taskCountryField'));
-    fields.push(document.getElementById('taskCityField'));
-    fields.push(document.getElementById('taskPostalCodeField'));
-    fields.push(document.getElementById('taskAddressLineField'));
-    fields.push(document.getElementById('taskTimeBegin'));
-    fields.push(document.getElementById('taskTimeEnd'));
-    fields.push(document.getElementById('taskTimeDate'));
-    fields.forEach(function(field){
-        field.disabled = status;
-    });
-}
-function cleanTaskCreateWindow(type = 'none'){
-    let selectStatusField =   document.getElementById('taskStatusIdField');
-    let selectTypeField =   document.getElementById('taskTypeField');
-    let taskClientNameField =   document.getElementById('taskClientNameField');
-    let taskPostalCodeField =   document.getElementById('taskPostalCodeField');
-    let taskAddressLineField =   document.getElementById('taskAddressLineField');
-    let taskTimeBegin =   document.getElementById('taskTimeBegin');
-    let taskTimeEnd =   document.getElementById('taskTimeEnd');
-    selectStatusField.selectedIndex = 0;
-    selectTypeField.selectedIndex = -1;
-    selectTypeField.disabled = false;
-    taskClientNameField.value   =   '';
-    taskPostalCodeField.value   =   '';
-    taskAddressLineField.value   =   '';
-    switch(type){
-        case 'pickup':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_pickup[1];
-            break;
-        case 'dropOff':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
-            break;
-        case 'return':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_return[1];
-            break;
-        default:
-            taskTimeBegin.value = '';
-            taskTimeEnd.value = '';
-            break;
-    }
-}
+
+
 function set_Some_JobCreationFields_ToDefaultValues(){
     let statusIdField_SelectElement = document.getElementById('statusIdField');
     let courierIdField_SelectElement = document.getElementById('courierIdField');
@@ -683,7 +576,7 @@ function addEventListenerToButton(button){
             if(button.id.match(/task-(\d+)-button-edit/)){
                 setReadOnlyToFieldsOfTaskModal(false);
                 button.setAttribute('data-option', 'edit');            
-                submitButton.setAttribute('data-option', 'edit');
+                submitButton.setAttribute('data-option', 'update');
                 submitButton.textContent  = 'Confirm edit';
             }
             if(button.id.match(/task-(\d+)-button-delete/)){
@@ -820,7 +713,7 @@ function addInfoAboutPackageToTaskModal(package){
                 labelForWeight.textContent = 'Kg';
                 container.appendChild(labelForWeight);
                 let submitButton = document.getElementById('submitTaskform');
-                if(submitButton.getAttribute('data-option') === 'edit'){
+                if(submitButton.getAttribute('data-option') === 'update'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
                 }else if(submitButton.getAttribute('data-option') === 'create'){
@@ -1732,9 +1625,6 @@ document.addEventListener('DOMContentLoaded', function() {
             jobIdField.disabled = true;
             const form = document.querySelector(`#jobForm`);
             if (form) {
-                // if(jobIdField.value){               
-                //     setJobValues(jobIdField.value,'create');
-                // }
                 global_typeOfButtonClickedToOpenJobModal = 'create';
                 set_Some_JobCreationFields_ToDefaultValues();
 

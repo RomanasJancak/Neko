@@ -161,10 +161,11 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
+        try{
         $task = Task::findOrFail($request->id);
         $task->date             =   $request->input('date');
         $task->order_number     =   0;
-        $task->job_id           =   $request->input('jobId');
+        //$task->job_id           =   $request->input('jobId');
         $task->status_id        =   $request->input('status_id');
         $task->save();
         
@@ -254,6 +255,12 @@ class TaskController extends Controller
             'taskTypeObject'    =>   $taskTypeObject,
             'requestData' =>  $request->all(),
         ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage(),
+        'requests' => $request->all(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),], 500);
+    }
     }
 
     /**
