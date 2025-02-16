@@ -1,7 +1,6 @@
-function updateTask(data,route){
+function updateTask(data,url){
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  // Send a POST request to the server using the generated route
-  fetch(route, {
+  fetch(url, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
@@ -22,66 +21,6 @@ function updateTask(data,route){
   .catch(error => {
       console.error('Error:', error.message);
   });
-}
-function setTaskFormSubmitButtonDataOptionToView(){
-  document.getElementById('submitTaskform').setAttribute('data-option', 'view');
-}
-function setTaskFormSubmitButtonDataOptionToDelete(){
-  document.getElementById('submitTaskform').setAttribute('data-option', 'delete');
-}
-function setTaskFormSubmitButtonDataOptionToUpdate(){
-  document.getElementById('submitTaskform').setAttribute('data-option', 'update');
-}
-function setTaskFormSubmitButtonDataOptionToCreate(){
-  document.getElementById('submitTaskform').setAttribute('data-option', 'create');
-}
-function setReadOnlyToFieldsOfTaskModal(status){
-    let fields = [];
-    fields.push(document.getElementById('taskStatusIdField'));
-    fields.push(document.getElementById('taskClientNameField'));
-    fields.push(document.getElementById('taskCountryField'));
-    fields.push(document.getElementById('taskCityField'));
-    fields.push(document.getElementById('taskPostalCodeField'));
-    fields.push(document.getElementById('taskAddressLineField'));
-    fields.push(document.getElementById('taskTimeBegin'));
-    fields.push(document.getElementById('taskTimeEnd'));
-    fields.push(document.getElementById('taskTimeDate'));
-    fields.forEach(function(field){
-        field.disabled = status;
-    });
-}
-function cleanTaskCreateWindow(type = 'none'){
-    let selectStatusField =   document.getElementById('taskStatusIdField');
-    let selectTypeField =   document.getElementById('taskTypeField');
-    let taskClientNameField =   document.getElementById('taskClientNameField');
-    let taskPostalCodeField =   document.getElementById('taskPostalCodeField');
-    let taskAddressLineField =   document.getElementById('taskAddressLineField');
-    let taskTimeBegin =   document.getElementById('taskTimeBegin');
-    let taskTimeEnd =   document.getElementById('taskTimeEnd');
-    selectStatusField.selectedIndex = 0;
-    selectTypeField.selectedIndex = -1;
-    selectTypeField.disabled = false;
-    taskClientNameField.value   =   '';
-    taskPostalCodeField.value   =   '';
-    taskAddressLineField.value   =   '';
-    switch(type){
-        case 'pickup':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_pickup[1];
-            break;
-        case 'dropOff':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
-            break;
-        case 'return':
-            taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
-            taskTimeEnd.value = global_taskWindow_defaultValue_time_return[1];
-            break;
-        default:
-            taskTimeBegin.value = '';
-            taskTimeEnd.value = '';
-            break;
-    }
 }
 document.getElementById('submitTaskform').addEventListener('click', function(event) {
     event.preventDefault();
@@ -129,3 +68,4 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
   }
   updateTask(taskSubmitData,route);
 });
+
