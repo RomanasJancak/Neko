@@ -1,4 +1,5 @@
 @extends('layouts.app')
+
 @section('style')
 <style>
 .container-content{
@@ -407,6 +408,9 @@
 </div>
 <!-- Modal job copy window end-->
 @endsection
+@push('scripts')
+@vite('resources/js/job/index.js')
+@endpush
 @section('scripts')
 <script>
 
@@ -596,61 +600,40 @@ function addEventListenerToButton(button){
         $('#taskModalWindow').modal('show');
     });
 }
-function addTypeHeadSearchToTaskWindow(searchInput){
-    if (searchInput.length > 0) {
-        searchInput.typeahead({
-        source: function(query, process) {
-            let client_id = document.getElementById('clientIdField').value;
 
-            var apiUrl = "{{ route('client.searchClientAddresses') }}?query=" + query + "&client_id=" + client_id;
-            fetch(apiUrl)
+
+function setPackageWeightChoosingAbility(selectedValue){
+    const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
+        fetch(routeUrl)
                 .then(response => response.json())
                 .then(data => {
-                    process(data);
+                    let inputWeight = document.getElementById('weightInput');
+                    let labelForWeight = document.getElementById('labelForWeightInput');
+                    let label = document.getElementById('weightInputLabel');
+
+                    if (data.extras && data.extras.length > 0) {
+                        const hasWeight = data.extras.some(extra => extra.name === 'weight');
+                        if (hasWeight) {
+                            inputWeight.removeAttribute('style');
+                            inputWeight.value = 0;
+                            labelForWeight.removeAttribute('style');
+                            label.removeAttribute('style');
+                        }else{
+                            inputWeight.style.display = 'none';
+                            labelForWeight.style.display = 'none';
+                            label.style.display = 'none';
+                            inputWeight.value = 0;
+                        }
+                    }else{
+                        inputWeight.style.display = 'none';
+                        labelForWeight.style.display = 'none';
+                        label.style.display = 'none';
+                        inputWeight.value = 0;
+                    }
                 })
                 .catch(error => {
-                    console.error('Error fetching client data:', error);
+                    console.error('Error fetching package type info:', error);
                 });
-        },
-        autoSelect: true,
-        minLength: 2, // Minimum characters required before searching
-        displayText: function(item) {
-            return item.name;
-        },
-        afterSelect: function(item) {
-            // Handle the selection here (e.g., redirect to client details page)
-            //fetch(`/get-client-info/${item.id}`)
-            const clientInfoUrlTemplate = "{{ route('address.getAddressInfo', ['id' => ':addressId']) }}";
-            const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
-            fetch(clientInfoUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    // addressSelect.innerHTML = '';
-                    // document.getElementById('task_clientIdField').value = data.id;
-                     document.getElementById('taskCountryField').value = data.country; 
-                     document.getElementById('taskCityField').value = data.city;
-                     document.getElementById('taskPostalCodeField').value = data.postal_code;
-                     document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
-                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    // addressSelect.style.visibility = 'hidden';
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-        }
-    });
-    }
-}
-function populateTaksWindowAddressWithSelectedOptionOfAddressNames(){
-    const addressSelect = document.getElementById('taskWindow_addressSelectField');
-    const selectedOption = addressSelect.options[addressSelect.selectedIndex];
-    document.getElementById('taskCountryField').value = selectedOption.getAttribute('data-country');
-    document.getElementById('taskCityField').value = selectedOption.getAttribute('data-city');
-    document.getElementById('taskPostalCodeField').value = selectedOption.getAttribute('data-postal-code');
-    document.getElementById('taskAddressLineField').value = selectedOption.getAttribute('data-address-line-1');
 }
 function addInfoAboutPackageToTaskModal(package){  
     if(!package){
@@ -741,39 +724,6 @@ function addInfoAboutPackageToTaskModal(package){
             console.error(error);
     });
 }
-function setPackageWeightChoosingAbility(selectedValue){
-    const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
-        fetch(routeUrl)
-                .then(response => response.json())
-                .then(data => {
-                    let inputWeight = document.getElementById('weightInput');
-                    let labelForWeight = document.getElementById('labelForWeightInput');
-                    let label = document.getElementById('weightInputLabel');
-
-                    if (data.extras && data.extras.length > 0) {
-                        const hasWeight = data.extras.some(extra => extra.name === 'weight');
-                        if (hasWeight) {
-                            inputWeight.removeAttribute('style');
-                            inputWeight.value = 0;
-                            labelForWeight.removeAttribute('style');
-                            label.removeAttribute('style');
-                        }else{
-                            inputWeight.style.display = 'none';
-                            labelForWeight.style.display = 'none';
-                            label.style.display = 'none';
-                            inputWeight.value = 0;
-                        }
-                    }else{
-                        inputWeight.style.display = 'none';
-                        labelForWeight.style.display = 'none';
-                        label.style.display = 'none';
-                        inputWeight.value = 0;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching package type info:', error);
-                });
-}
 function setTaskValues(taskId){
     const idField    =   document.getElementById('taskIdField');
     const typeField    =   document.getElementById('taskTypeField');
@@ -807,7 +757,6 @@ function setTaskValues(taskId){
 
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{
-                    //document.getElementById('weightInput').value = data.package.weight;
                 });
                 showPackageDiv(true);
 
@@ -1094,77 +1043,7 @@ function addTypeHeadSearch(searchInput){
     }
 }
 
-function fetchJobs(page = 1) {
-    const id = document.getElementById('search-id').value;
-    const clientName = document.getElementById('search-clientName').value;
-    const date = document.getElementById('search-date').value;
-    const package = document.getElementById('search-package').value;
-    const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
-    const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', `{{ route('job.fetch') }}?id=${id}&clientName=${clientName}&date=${date}&package=${package}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
-    xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
-
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            const data = JSON.parse(xhr.responseText);
-            document.getElementById('jobsTableBody').innerHTML = '';
-            data.jobs.forEach(job => {
-                let packageCounter = 1;
-                let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
-                let addressNameToDisplay = isAddressSameAsClientAdress 
-                                            ? (job.clientToBill.shortenedName !=='') 
-                                            ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
-                                                :job.clientToBill.name
-                                            : job.pickup.namdeOfAddress;
-                const jobRow = `
-                    <tr>
-                        <td>${job.id}</td>
-                        <td class="no-padding">
-                            <img src='${job.urlToLogo}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
-                            <span>${job.clientName}</span>
-                        </td>
-                        <td>${job.date}</td>
-                        <td>
-                            <div>
-                                <span>${addressNameToDisplay}</span>
-                                <span class="info-icon">
-                                    <i class="bi bi-info-circle-fill"></i>
-                                    <span class="tooltip">
-                                        ${job.pickup.fullAddress}
-                                    </span>
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            ${job.tasks.map(
-                                task => task.package 
-                                            ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
-                                                    
-                                                    ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
-                                            </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
-                                                    : '')
-                                .join('')}
-                        </td>
-                        <td></td>
-                        <td><span>&#163;</span>@if($job->fixed_price === 0){{ number_format($job->price()['totalPrice'] / 100, 2) }}@else {{ number_format($job->fixed_price / 100, 2) }}@endif<span>@if($job->fixed_price !== 0) <i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>@endif</span></td>
-                        <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}${job.fixed_price ?'':'<i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>'}</span></td>
-                        <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
-                        </td>
-                    </tr>
-                `;
-                document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
-            });
-            document.getElementById('paginationLinks_bottom').innerHTML = data.links;
-            document.getElementById('paginationLinks_top').innerHTML = data.links;
-            addPaginationEventListeners();
-            
-        }
-    };
-    xhr.send();
-}
 function addPaginationEventListeners() {
                 document.querySelectorAll('#paginationLinks_bottom a, #paginationLinks_top a').forEach(link => {
                     link.addEventListener('click', function(event) {
@@ -1226,34 +1105,7 @@ function addPaginationEventListeners() {
                     });
                 });
             }
-function addEventListenerToSortButton(button){
-    button.addEventListener('click', function() {
-        const icon  =   button.querySelector('i');
-        if (icon.classList.contains('fa-up-down')) {
-            icon.classList.remove('fa-up-down');
-            icon.classList.add('fa-up-long');
-            button.dataset.sortOrder = 'asc';
-        } else if(icon.classList.contains('fa-up-long')){
-            icon.classList.remove('fa-up-long');
-            icon.classList.add('fa-down-long');
-            button.dataset.sortOrder = 'desc';
-        } else {
-            icon.classList.remove('fa-down-long');
-            icon.classList.add('fa-up-long');
-            button.dataset.sortOrder = 'asc';
-        } 
-        document.querySelectorAll('.sort-btn').forEach(btn => {
-            if(btn.id === button.id){
-                btn.classList.add('active');
-            }else{
-                btn.classList.remove('active');
-                btn.dataset.sortOrder = 'asc';
-                btn.querySelector('i').className   =   btn.querySelector('i').getAttribute('data-default-class');
-            }
-        });
-        fetchJobs();
-    });
-}
+
 function getHtmlOfActionButtonsForTheJob(jobId){
     return `
         <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
@@ -1407,7 +1259,116 @@ function add_TaskTypeSelect_EventListener_OnChange(selectElement){
     });
 }
 //==================---------------------==============----------------------
+
+//==================---------------------==============----------------------
+function setTaskFormSubmitButtonDataOptionToView(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'view');
+}
+function setTaskFormSubmitButtonDataOptionToDelete(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'delete');
+}
+function setTaskFormSubmitButtonDataOptionToUpdate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'update');
+}
+function setTaskFormSubmitButtonDataOptionToCreate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'create');
+}
+function setReadOnlyToFieldsOfTaskModal(status){
+    let fields = [];
+    fields.push(document.getElementById('taskStatusIdField'));
+    fields.push(document.getElementById('taskClientNameField'));
+    fields.push(document.getElementById('taskCountryField'));
+    fields.push(document.getElementById('taskCityField'));
+    fields.push(document.getElementById('taskPostalCodeField'));
+    fields.push(document.getElementById('taskAddressLineField'));
+    fields.push(document.getElementById('taskTimeBegin'));
+    fields.push(document.getElementById('taskTimeEnd'));
+    fields.push(document.getElementById('taskTimeDate'));
+    fields.forEach(function(field){
+        field.disabled = status;
+    });
+}
+function cleanTaskCreateWindow(type = 'none'){
+    let selectStatusField =   document.getElementById('taskStatusIdField');
+    let selectTypeField =   document.getElementById('taskTypeField');
+    let taskClientNameField =   document.getElementById('taskClientNameField');
+    let taskPostalCodeField =   document.getElementById('taskPostalCodeField');
+    let taskAddressLineField =   document.getElementById('taskAddressLineField');
+    let taskTimeBegin =   document.getElementById('taskTimeBegin');
+    let taskTimeEnd =   document.getElementById('taskTimeEnd');
+    selectStatusField.selectedIndex = 0;
+    selectTypeField.selectedIndex = -1;
+    selectTypeField.disabled = false;
+    taskClientNameField.value   =   '';
+    taskPostalCodeField.value   =   '';
+    taskAddressLineField.value   =   '';
+    switch(type){
+        case 'pickup':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_pickup[1];
+            break;
+        case 'dropOff':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
+            break;
+        case 'return':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_return[1];
+            break;
+        default:
+            taskTimeBegin.value = '';
+            taskTimeEnd.value = '';
+            break;
+    }
+}
+function addTypeHeadSearchToTaskWindow(searchInput){
+    if (searchInput.length > 0) {
+        searchInput.typeahead({
+        source: function(query, process) {
+            let client_id = document.getElementById('clientIdField').value;
+
+            var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES;
+            var apiUrl = apiUrl.replace(':query', query);
+            var apiUrl = apiUrl.replace(':client_id', client_id);
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    process(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching client data:', error);
+                });
+        },
+        autoSelect: true,
+        minLength: 2, // Minimum characters required before searching
+        displayText: function(item) {
+            return item.name;
+        },
+        afterSelect: function(item) {
+            // Handle the selection here (e.g., redirect to client details page)
+            //fetch(`/get-client-info/${item.id}`)
+            const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
+            const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
+            fetch(clientInfoUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                     document.getElementById('taskCountryField').value = data.country; 
+                     document.getElementById('taskCityField').value = data.city;
+                     document.getElementById('taskPostalCodeField').value = data.postal_code;
+                     document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }
+    });
+    }
+}
+//==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
+
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');
     confirmCopyJob.addEventListener('click',function(event){
@@ -1499,38 +1460,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    const searchInputs = [
-            { id: 'search-id', field: 'id' },
-            { id: 'search-clientName', field: 'name' },
-            { id: 'search-date', field: 'date' },
-            { id: 'search-package', field: 'package' }
-        ];
 
-        searchInputs.forEach(input => {
-            const inputElement = document.getElementById(input.id);
-
-            inputElement.addEventListener('input', function() {
-                fetchJobs();
-            });
-        });
-    document.getElementById('taskWindow_addressSelectField').addEventListener('change', function(event) {
-        populateTaksWindowAddressWithSelectedOptionOfAddressNames();
-    });
     add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
-    addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
+    
     //----BEGIN task creation buttons
     addEventListenerToButton(document.getElementById(`createNewTask`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewPickup`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewReturn`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewDropOff`));
     //----END   task creation buttons
-    sortButton_clientName   =   document.getElementById('button-sort-clientName');
-    sortButton_date   =   document.getElementById('button-sort-date');
-    sortButton_id   =   document.getElementById('button-sort-id');
-    addEventListenerToSortButton(sortButton_clientName);
-    addEventListenerToSortButton(sortButton_date);
-    addEventListenerToSortButton(sortButton_id);
+
+
     document.querySelectorAll('.edit-btn').forEach(button => {
         button.addEventListener('click', () => {
             const jobid         =   button.dataset.jobid;
@@ -1722,6 +1663,5 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.value = e.target.value.replace(/[\u00A0\u2000-\u200D\u202F\u205F\u3000]/g, ' ');
     });
 });
-
 </script>
 @endsection
