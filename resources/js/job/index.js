@@ -1,11 +1,14 @@
+function getHtmlOfActionButtonsForTheJob(jobId){
+    return `
+        <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-primary edit-btn" onclick="editJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
+        <button class="btn btn-danger delete-btn" onclick="deleteJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-info copy-btn" onclick="copyJob(${jobId})" data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
+    `;
+}
 function addPaginationEventListeners() {
-    if (typeof window.paginationEventCounter === 'undefined') {
-        window.paginationEventCounter = 0;
-    }
     document.querySelectorAll('#paginationLinks_bottom a, #paginationLinks_top a').forEach(link => {
         link.addEventListener('click', function(event) {
-            window.paginationEventCounter++;
-            console.log(`addPaginationEventListeners has been invoked ${window.paginationEventCounter} times`);
             event.preventDefault();
             const url = this.href;
             fetch(url)
