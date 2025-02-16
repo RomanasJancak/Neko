@@ -1,3 +1,69 @@
+function addPaginationEventListeners() {
+    if (typeof window.paginationEventCounter === 'undefined') {
+        window.paginationEventCounter = 0;
+    }
+    document.querySelectorAll('#paginationLinks_bottom a, #paginationLinks_top a').forEach(link => {
+        link.addEventListener('click', function(event) {
+            window.paginationEventCounter++;
+            console.log(`addPaginationEventListeners has been invoked ${window.paginationEventCounter} times`);
+            event.preventDefault();
+            const url = this.href;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('jobsTableBody').innerHTML = '';
+                    data.jobs.forEach(job => {
+                        let packageCounter = 1;
+                        let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
+                        let addressNameToDisplay = isAddressSameAsClientAdress 
+                                                    ? (job.clientToBill.shortenedName !=='') 
+                                                    ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
+                                                        :job.clientToBill.name
+                                                    : job.pickup.namdeOfAddress;
+                        const jobRow = `
+                            <tr>
+                                <td>${job.id}</td>
+                                <td class="no-padding">
+                                    <img src='${job.urlToLogo}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
+                                    <span>${job.clientName}</span>
+                                </td>
+                                <td>${job.date}</td>
+                                <td>
+                                    <div>
+                                        <span>${addressNameToDisplay}</span>
+                                        <span class="info-icon">
+                                            <i class="bi bi-info-circle-fill"></i>
+                                            <span class="tooltip">
+                                                ${job.pickup.fullAddress}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    ${job.tasks.map(
+                                        task => task.package 
+                                                    ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
+                                                            ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
+                                                    </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
+                                                            : '')
+                                        .join('')}
+                                </td>
+                                <td></td>
+                                <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}</span></td>
+                                <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
+                                </td>
+                            </tr>
+                        `;
+                        document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
+                    });
+                    document.getElementById('paginationLinks_bottom').innerHTML = data.links;
+                    document.getElementById('paginationLinks_top').innerHTML = data.links;
+                    addPaginationEventListeners();
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
+    });
+}
 function fetchJobs(page = 1) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;

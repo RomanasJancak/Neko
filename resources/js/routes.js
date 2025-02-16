@@ -12,7 +12,7 @@ window.ROUTES = {
         FETCH:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/fetchJobsPaginate',
       },
       CLIENT:{
-        SEARCHADDRESSES:  window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClientAddresses?query=:query&client_id=:client_id',
+        SEARCHADDRESSES:  window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClientAddresses',
       },
       ADDRESS:{
         GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/address/getAddressInfo/:addressId',

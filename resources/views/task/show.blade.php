@@ -1,8 +1,18 @@
 <form id="taskForm" action="" method="POST">
     @csrf
     <div class="row justify-content-md-center">
-        <div class="col">
+        <div class="col-10">
             <h5 id="taskWIndow_name">Task creation window</h5>
+        </div>
+        <div class="col-2">
+            <div class="form-check form-switch">
+
+                <input class="form-check-input" type="checkbox" id="crateCollection" name="crateCollection">
+                
+                
+                <label class="form-check-label" for="crateCollection">Crate Collection</label>
+                
+            </div>
         </div>
     </div>
     <div class="row justify-content-md-center">
@@ -13,6 +23,7 @@
                 <input class="form-control" type="text" name="id" id="taskIdField" value="">
             </div>
         </div>
+
         <div class="col">
             <div class="row">
                 <label for="statusIdField">Status</label>
@@ -46,12 +57,6 @@
             <input type="hidden" name="clientId" id="task_clientIdField" value="">
         </div>
         <div class="col-auto">
-            <label for="taskTypeField">Addr. types</label>
-            <!-- <input class="form-control" type="text" name="taskTypename" id="taskTypeField" value=""> -->
-            <select class="form-control" name="taskTypename" id="taskWindow_addressSelectField">
-            </select>
-        </div>
-        <div class="col-auto">
             <label for="taskCountryField">Country</label>
             <input class="form-control" type="text" name="id" id="taskCountryField" value="">
         </div>
@@ -64,7 +69,7 @@
             <input class="form-control" type="text" name="id" id="taskPostalCodeField" value="">
         </div>
         <div class="col-auto">
-            <label for="taskAddressLineField">Adsress line</label>
+            <label for="taskAddressLineField">Address line</label>
             <input class="form-control" type="text" name="id" id="taskAddressLineField" value="">
         </div>
     </div>
