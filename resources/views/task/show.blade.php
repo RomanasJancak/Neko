@@ -4,7 +4,7 @@
         <div class="col-10">
             <h5 id="taskWIndow_name">Task creation window</h5>
         </div>
-        <div class="col-2">
+        <div class="col-2" id="divForTaskFormCrateCollection"style="display: none;">
             <div class="form-check form-switch">
 
                 <input class="form-check-input" type="checkbox" id="crateCollection" name="crateCollection">

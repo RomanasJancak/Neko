@@ -225,6 +225,7 @@ class TaskController extends Controller
                 $request->input('address.addressLine'),
             );
             $returnTask->save();
+            $taskTypeObject = $pickupTask;
         }
         
         if($request->input('type') === 'dropOff'){
@@ -244,6 +245,50 @@ class TaskController extends Controller
                 $request->input('address.postalCode'),
                 $request->input('address.addressLine'),
             );
+            if($request->input('hasCrateCollection')){
+                $package->hasReturn = $request->input('hasCrateCollection');
+                if(!$task->job->hasReturn()){
+                    $returnTask = new ReturnTask();
+                    $taskForReturn = new Task();
+                    $taskForReturn->date             =   $request->input('date');
+                    $taskForReturn->order_number     =   0;
+                    $taskForReturn->job_id           =   $task->job->id;
+                    $taskForReturn->status_id        =   $request->input('status_id');
+                    $taskForReturn->save();
+                    $returnTask->task_id = $taskForReturn->id;
+                    $returnTask->status_id = $taskForReturn->status_id;
+                    $returnTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+                    $returnTask->is_flexible = false;
+                    $returnTaskDate = Carbon::parse($request->input('date'));
+                    $timeBegin = Carbon::parse($request->input('time.begin'));
+                    $timeEnd = Carbon::parse($request->input('time.end'));
+                    $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                    $returnTask->setTimeWindow(
+                        $timeBegin->toDateTimeString(),
+                        $timeEnd->toDateTimeString()
+                    );
+                    if($task->job->getPickupTask()){
+                        $returnTask->setAddress(
+                            $task->job->getPickupTask()->nameOfAddress(),
+                            $task->job->getPickupTask()->country(),
+                            $task->job->getPickupTask()->city(),
+                            $task->job->getPickupTask()->postalCode(),
+                            $task->job->getPickupTask()->addressLine(),
+                        );
+                    }else{
+                        $returnTask->setAddress(
+                            $request->input('address.name'),
+                            $request->input('address.country'),
+                            $request->input('address.city'),
+                            $request->input('address.postalCode'),
+                            $request->input('address.addressLine'),
+                        );
+                    }
+                    $returnTask->save();
+                }
+
+            }
             $package->save();
 
             $taskTypeObject = $package;
@@ -312,6 +357,7 @@ class TaskController extends Controller
                                                 'quantity'      =>  $task->package->quantity,
                                                 'weight'        =>  $task->package->weight,
                                                 'dimensions'    =>  $task->package->dimensions,
+                                                'hasCollection' =>  $task->package->hasReturn,
                                             ]
                                             :'none',
                 'returnTask'        =>  isset($task->return)

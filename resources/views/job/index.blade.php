@@ -735,6 +735,7 @@ function setTaskValues(taskId){
     const addressAddressLineField   =   document.getElementById('taskAddressLineField');
     const timeBeginField   =   document.getElementById('taskTimeBegin');
     const timeEndField   =   document.getElementById('taskTimeEnd');
+    const crateCollection   =   document.getElementById('crateCollection');
     idField.value = taskId;
     idField.disabled =  true;
     typeField.disabled =  true;
@@ -758,10 +759,12 @@ function setTaskValues(taskId){
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{
                 });
+                crateCollection.checked = data.package.hasCollection;
                 showPackageDiv(true);
-
+                    divForTaskFormCrateCollection.style.display = 'block';
             }else{
                 showPackageDiv(false);
+                divForTaskFormCrateCollection.style.display = 'none';
             }
             container_return = document.getElementById('return-info');
             if(data.returnTask !== 'none'){
@@ -1236,12 +1239,14 @@ function cleanTaskCreateWindow(type = 'none'){
     let taskAddressLineField =   document.getElementById('taskAddressLineField');
     let taskTimeBegin =   document.getElementById('taskTimeBegin');
     let taskTimeEnd =   document.getElementById('taskTimeEnd');
+    let divForTaskFormCrateCollection  = document.getElementById('divForTaskFormCrateCollection');
     selectStatusField.selectedIndex = 0;
     selectTypeField.selectedIndex = -1;
     selectTypeField.disabled = false;
     taskClientNameField.value   =   '';
     taskPostalCodeField.value   =   '';
     taskAddressLineField.value   =   '';
+    divForTaskFormCrateCollection.style.display = 'none';
     switch(type){
         case 'pickup':
             taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
@@ -1250,6 +1255,7 @@ function cleanTaskCreateWindow(type = 'none'){
         case 'dropOff':
             taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
             taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
+            divForTaskFormCrateCollection.style.display = 'block';
             break;
         case 'return':
             taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
