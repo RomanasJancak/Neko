@@ -1397,14 +1397,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error:', error);
         });
     });
-    price_magicNumber_DisplayField.addEventListener('input', function(event) {
-
-    });
-
     price_magicNumber_DisplayField.addEventListener('focus', function(event) {
         document.getElementById('magic_number_actions').removeAttribute('style');
     });
-
     price_magicNumber_DisplayField.addEventListener('blur', function(event) {
         setTimeout(() => {
             if (!document.getElementById('confirmMagicNumber').clicked) {
@@ -1595,8 +1590,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
-        $('#jobModalWindow').modal('show');
+        setJobValues(document.getElementById('idField').value, global_typeOfButtonClickedToOpenJobModal);
         $('#taskModalWindow').modal('hide');
+        $('#jobModalWindow').modal('show');        
     });
     document.getElementById('submitform').addEventListener('click', function(event) {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;

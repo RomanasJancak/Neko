@@ -1,4 +1,3 @@
-console.log('Begin index.js');
 function fetchJobs(page = 1) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
@@ -103,20 +102,18 @@ const searchInputs = [
   { id: 'search-date', field: 'date' },
   { id: 'search-package', field: 'package' }
 ];
+var sortButton_clientName   =   document.getElementById('button-sort-clientName');
+var sortButton_date   =   document.getElementById('button-sort-date');
+var sortButton_id   =   document.getElementById('button-sort-id');
 
 searchInputs.forEach(input => {
-  const inputElement = document.getElementById(input.id);
-
-  inputElement.addEventListener('input', function() {
-      fetchJobs();
+    const inputElement = document.getElementById(input.id);
+  
+    inputElement.addEventListener('input', function() {
+        fetchJobs();
+    });
   });
-});
-//document.addEventListener('DOMContentLoaded', function() {
-  var sortButton_clientName   =   document.getElementById('button-sort-clientName');
-  var sortButton_date   =   document.getElementById('button-sort-date');
-  var sortButton_id   =   document.getElementById('button-sort-id');
-  addEventListenerToSortButton(sortButton_clientName);
-  addEventListenerToSortButton(sortButton_date);
-  addEventListenerToSortButton(sortButton_id);
-//});
-console.log('End index.js');
+
+addEventListenerToSortButton(sortButton_clientName);
+addEventListenerToSortButton(sortButton_date);
+addEventListenerToSortButton(sortButton_id);
