@@ -229,12 +229,12 @@
 
     @stack('scripts')
     <script>
-           var roleSelect = document.getElementById('role');
-
-// Add an event listener to submit the form when the select element changes
-roleSelect.addEventListener('change', function() {
-    document.getElementById('rolechangeForm').submit(); // Submit the form
-}); 
+        var roleSelect = document.getElementById('role');
+        if(roleSelect){
+            roleSelect.addEventListener('change', function() {
+            document.getElementById('rolechangeForm').submit(); // Submit the form
+        }); 
+        }
     </script>
 </body>
 </html>
