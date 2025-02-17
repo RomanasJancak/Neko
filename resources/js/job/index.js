@@ -8,7 +8,7 @@ function viewJob(jobId) {
     const form = document.querySelector('#jobForm');
 
     if (form) {
-        form.setAttribute('action', "{{ route('job.view') }}");
+        form.setAttribute('action', window.ROUTES.WEB.JOB.VIEW);
         jobIdField.value = jobId;
         jobIdField.disabled = true;
         courierIdField.disabled = true;
@@ -37,7 +37,7 @@ function editJob(jobId) {
     const form = document.querySelector('#jobForm');
 
     if (form) {
-        form.setAttribute('action', "{{ route('job.update') }}");
+        form.setAttribute('action', window.ROUTES.WEB.JOB.UPDATE);
         jobIdField.value = jobId;
         jobIdField.disabled = true;
         courierIdField.disabled = false;
@@ -65,7 +65,7 @@ function deleteJob(jobId) {
     const form = document.querySelector('#jobForm');
 
     if (form) {
-        form.setAttribute('action', "{{ route('job.delete') }}");
+        form.setAttribute('action', window.ROUTES.WEB.JOB.DELETE);
         jobIdField.value = jobId;
         jobIdField.disabled = true;
         courierIdField.disabled = true;
