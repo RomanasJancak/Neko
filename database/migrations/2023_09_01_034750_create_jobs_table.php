@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('pickupclientcountry')->nullable();
             $table->string('pickupclientpostalcode')->nullable();
             $table->unsignedBigInteger('manager_id');
-            $table->string('notes')->nullable();
+            $table->string('note')->nullable();
             $table->unsignedBigInteger('price')->nullable();
             $table->unsignedBigInteger('distance')->nullable();
             $table->unsignedBigInteger('invoice_id')->nullable();

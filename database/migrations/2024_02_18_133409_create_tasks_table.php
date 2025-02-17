@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('status_id');
             $table->unsignedBigInteger('job_id');
             $table->unsignedBigInteger('order_number');
-            
+            $table->string('note')->nullable();
         });
     }
 
