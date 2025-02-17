@@ -1,3 +1,168 @@
+function viewJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.view') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = true;
+        statusIdField.disabled = true;
+        clientSearchField.disabled = true;
+        jobDateField.disabled = true;
+        document.getElementById('jobid').value = jobId;
+        
+        setJobValues(jobId, 'view');
+        global_typeOfButtonClickedToOpenJobModal = 'view';
+
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+        submitButton.style.visibility = 'hidden';
+        createNewTaskButton.style.visibility = 'hidden';
+    }
+    $('#jobModalWindow').modal('show');
+}
+function editJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.update') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = false;
+        statusIdField.disabled = false;
+        clientSearchField.disabled = false;
+        jobDateField.disabled = false;
+        
+        setJobValues(jobId, 'edit');
+        global_typeOfButtonClickedToOpenJobModal = 'edit';
+        
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+        submitButton.style.visibility = 'visible';
+        createNewTaskButton.style.visibility = 'visible';
+    }
+    $('#jobModalWindow').modal('show');
+}
+function deleteJob(jobId) {
+    const jobIdField = document.getElementById('idField');
+    const courierIdField = document.getElementById('courierIdField');
+    const statusIdField = document.getElementById('statusIdField');
+    const clientSearchField = document.getElementById('clientSearchField');
+    const jobDateField = document.getElementById('jobDateField');
+    const createNewTaskButton = document.getElementById('createNewTask');
+    const form = document.querySelector('#jobForm');
+
+    if (form) {
+        form.setAttribute('action', "{{ route('job.delete') }}");
+        jobIdField.value = jobId;
+        jobIdField.disabled = true;
+        courierIdField.disabled = true;
+        statusIdField.disabled = true;
+        clientSearchField.disabled = true;
+        jobDateField.disabled = true;
+        
+        setJobValues(jobId, 'delete');
+        global_typeOfButtonClickedToOpenJobModal = 'delete';
+        const submitButton = document.getElementById('submitform');
+        submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+        submitButton.style.visibility = 'visible';
+        createNewTaskButton.style.visibility = 'hidden';
+    }
+    $('#jobModalWindow').modal('show');
+}
+function createJob(){
+    const form = document.getElementById('jobForm');
+    updateData  =   {
+        id          :   document.getElementById('idField').value,
+        courierId   :   document.getElementById('courierIdField').value,
+        status_id    :   document.getElementById('statusIdField').value,
+        billingClientId    :   document.getElementById('clientIdField').value,
+        common_date : document.getElementById('jobDateField').value,
+        isJobCreationFromIndexPage : true,
+    }
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch(form.action, { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json', 
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify(updateData)
+    })
+    .then(response => {
+        return response.json();
+    })
+    .then(data => { 
+        if(data.errors){
+            let errorsMessage = '';
+            for (const key in data.errors) {
+                if (data.errors.hasOwnProperty(key)) {
+                    errorsMessage+=(`${data.errors[key]}\n`);
+                    if (key === "common_date") {
+                        const jobDateField = document.getElementById('jobDateField');
+                        jobDateField.classList.add('border', 'border-danger');
+                        setTimeout(() => {
+                            jobDateField.classList.remove('border', 'border-danger');
+                        }, 3000);
+                    }
+
+                }
+            }
+        }else{
+            let submitButton = document.getElementById('submitform');
+            submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+        }
+        document.getElementById('idField').value = data.job.id;
+        document.getElementById('jobid').value = data.job.id;
+    })
+    .catch(error => {
+        console.error('Error:', error.message);
+    });
+}
+function set_Some_JobCreationFields_ToDefaultValues(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let clientSearchField = document.getElementById('clientSearchField');
+    let clientIdField = document.getElementById('clientIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    statusIdField_SelectElement.value = 10; //10 - unassigned
+    courierIdField_SelectElement.value = 0;
+    jobDateField.value = "2024-08-19";
+
+}
+function checkIf_All_JobCreationFields_HaveInputs(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    let return_value = true;
+    if(statusIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(courierIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(jobDateField.value == ''){
+        return_value = false;
+        return return_value;
+    }
+
+}
 function getHtmlOfActionButtonsForTheJob(jobId){
     return `
         <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
