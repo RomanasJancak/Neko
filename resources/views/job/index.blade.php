@@ -414,7 +414,7 @@
 @section('scripts')
 <script>
 
-var global_typeOfButtonClickedToOpenJobModal = 'create';//create/edit/view/delete
+var global_typeOfButtonClickedToOpenJobModal = 'create';
 
 var global_taskWindow_defaultValue_time_pickup  = [ '08:00', '16:00'];
 var global_taskWindow_defaultValue_time_dropoff = [ '08:00', '17:00'];
@@ -436,7 +436,7 @@ function set_Some_JobCreationFields_ToDefaultValues(){
     let clientSearchField = document.getElementById('clientSearchField');
     let clientIdField = document.getElementById('clientIdField');
     let jobDateField = document.getElementById('jobDateField');
-    statusIdField_SelectElement.value = 10; //unassigned
+    statusIdField_SelectElement.value = 10; //10 - unassigned
     courierIdField_SelectElement.value = 0;
     jobDateField.value = "2024-08-19";
 
@@ -482,9 +482,6 @@ function createJob(){
             body: JSON.stringify(updateData)
         })
         .then(response => {
-            // if (!response.ok) {
-            //     throw new Error('Failed to update job');
-            // }
             return response.json();
         })
         .then(data => { 
@@ -503,7 +500,6 @@ function createJob(){
 
                     }
                 }
-                //alert(errorsMessage);
             }else{
                 let submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-pen'></i>";
@@ -600,8 +596,6 @@ function addEventListenerToButton(button){
         $('#taskModalWindow').modal('show');
     });
 }
-
-
 function setPackageWeightChoosingAbility(selectedValue){
     const routeUrl = `{{ route('packageType.getPackageTypeInfo', ['id' => ':id']) }}`.replace(':id', selectedValue);
         fetch(routeUrl)
@@ -639,9 +633,9 @@ function addInfoAboutPackageToTaskModal(package){
     if(!package){
         package = {
                 type: {
-                id: 1, // Set the id for the type
+                id: 1, 
                 },
-                quantity: 1, // Set the quantity
+                quantity: 1, 
                 weight:0,
         };
     } 
@@ -670,26 +664,26 @@ function addInfoAboutPackageToTaskModal(package){
                 const inputQuantity = document.createElement('input');
                 inputQuantity.type = 'number';
                 inputQuantity.id = 'quantityInput';
-                inputQuantity.min = '1'; // Only allow positive integers
+                inputQuantity.min = '1';
                 inputQuantity.placeholder = 'Enter quantity';
                 inputQuantity.value = package.quantity;
                 container.appendChild(inputQuantity);
 
                 const label = document.createElement('label');
-                label.setAttribute('for', 'weight'); // Set the 'for' attribute
+                label.setAttribute('for', 'weight');
                 label.setAttribute('id', 'weightInputLabel');
                 label.textContent = 'Weight:';
                 container.appendChild(label);
 
                 const inputWeight = document.createElement('input');
-                inputWeight.setAttribute('type', 'number');        // Set the type to 'number'
-                inputWeight.setAttribute('id', 'weightInput');          // Set the id
-                inputWeight.setAttribute('name', 'weight');        // Set the name attribute
-                inputWeight.setAttribute('min', '0');              // Set the minimum value
-                inputWeight.setAttribute('max', '500');            // Set the maximum value
-                inputWeight.setAttribute('step', '0.1');           // Set the step value
-                inputWeight.setAttribute('placeholder', 'Enter weight'); // Set the placeholder text
-                inputWeight.setAttribute('required', '');          // Set the input to be required
+                inputWeight.setAttribute('type', 'number');        
+                inputWeight.setAttribute('id', 'weightInput');          
+                inputWeight.setAttribute('name', 'weight');        
+                inputWeight.setAttribute('min', '0');              
+                inputWeight.setAttribute('max', '500');            
+                inputWeight.setAttribute('step', '0.1');           
+                inputWeight.setAttribute('placeholder', 'Enter weight'); 
+                inputWeight.setAttribute('required', '');          
                 container.appendChild(inputWeight);
                 const labelForWeight = document.createElement('span');
                 labelForWeight.setAttribute('id', 'labelForWeightInput');
@@ -739,7 +733,6 @@ function setTaskValues(taskId){
     idField.value = taskId;
     idField.disabled =  true;
     typeField.disabled =  true;
-    //statusIdField.disabled = true;
     const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
     return fetch(routeUrl)
         .then(response => response.json())
@@ -851,17 +844,17 @@ function formatDateTimeStringTo12HourFormat(dateString) {
             const minutes = date.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
-            hours = hours ? hours : 12; // the hour '0' should be '12'
+            hours = hours ? hours : 12;
             const minutesStr = minutes < 10 ? '0' + minutes : minutes;
             return hours + ':' + minutesStr + ' ' + ampm;
         }
 function appendTaskToContainer(container,task,buttonClicked){
-    // Create the main 'row' div
+
     let taskRow = document.createElement('div');
     taskRow.className = 'row';
     taskRow.id = 'container-task-'+task.id;
 
-    // Create and append each column to the row
+
     taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task,buttonClicked),task.id));
     taskRow.appendChild(createColumn('type', task.name,task.id));
     taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
@@ -1014,7 +1007,6 @@ function addTypeHeadSearch(searchInput){
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    // Process the fetched data and pass it to the typeahead
                     process(data);
                 })
                 .catch(error => {
@@ -1022,13 +1014,11 @@ function addTypeHeadSearch(searchInput){
                 });
         },
         autoSelect: true,
-        minLength: 2, // Minimum characters required before searching
+        minLength: 2, 
         displayText: function(item) {
-            return item.name; // Adjust this based on your client data structure
+            return item.name; 
         },
         afterSelect: function(item) {
-            // Handle the selection here (e.g., redirect to client details page)
-            //fetch(`/get-client-info/${item.id}`)
             const clientInfoUrlTemplate = "{{ route('getClientInfo', ['clientId' => ':clientId']) }}";
             const clientInfoUrl = clientInfoUrlTemplate.replace(':clientId', item.id);
             fetch(clientInfoUrl)
@@ -1045,19 +1035,6 @@ function addTypeHeadSearch(searchInput){
     });
     }
 }
-
-
-
-
-function getHtmlOfActionButtonsForTheJob(jobId){
-    return `
-        <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
-        <button class="btn btn-primary edit-btn" onclick="editJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
-        <button class="btn btn-danger delete-btn" onclick="deleteJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
-        <button class="btn btn-info copy-btn" onclick="copyJob(${jobId})" data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
-    `;
-}
-//==================---------------------==============----------------------
 function viewJob(jobId) {
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
@@ -1201,9 +1178,7 @@ function add_TaskTypeSelect_EventListener_OnChange(selectElement){
         }
     });
 }
-//==================---------------------==============----------------------
 
-//==================---------------------==============----------------------
 function setTaskFormSubmitButtonDataOptionToView(){
   document.getElementById('submitTaskform').setAttribute('data-option', 'view');
 }
@@ -1286,13 +1261,11 @@ function addTypeHeadSearchToTaskWindow(searchInput){
                 });
         },
         autoSelect: true,
-        minLength: 2, // Minimum characters required before searching
+        minLength: 2, 
         displayText: function(item) {
             return item.name;
         },
         afterSelect: function(item) {
-            // Handle the selection here (e.g., redirect to client details page)
-            //fetch(`/get-client-info/${item.id}`)
             const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
             const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
             fetch(clientInfoUrl)
@@ -1312,7 +1285,6 @@ function addTypeHeadSearchToTaskWindow(searchInput){
     });
     }
 }
-//==================---------------------==============----------------------
 document.addEventListener('DOMContentLoaded', function() {
 
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
@@ -1364,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('price_magicNumber_DisplayField').textContent = '0.00';
         }
         const jobId = document.getElementById('idField').value;
-        const priceAdjustmentNumber = parseFloat(price_magicNumber_DisplayField.textContent) * 100; // Convert to cents
+        const priceAdjustmentNumber = parseFloat(price_magicNumber_DisplayField.textContent) * 100;
 
         const updateData = {
             id: jobId,
@@ -1405,12 +1377,11 @@ document.addEventListener('DOMContentLoaded', function() {
     add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
     
-    //----BEGIN task creation buttons
+
     addEventListenerToButton(document.getElementById(`createNewTask`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewPickup`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewReturn`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewDropOff`));
-    //----END   task creation buttons
 
 
     document.querySelectorAll('.edit-btn').forEach(button => {
@@ -1515,8 +1486,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('statusIdField').disabled = false;
                 document.getElementById('clientSearchField').disabled = false;
                 document.getElementById('jobDateField').disabled = false;
-                //document.getElementById('courierIdField').value = 0;
-                //document.getElementById('statusIdField').value = '';
                 document.getElementById('clientSearchField').value = '';
                 document.getElementById('jobDateField').value = ''; 
                 form.setAttribute('action', "{{ route('job.store') }}");
@@ -1558,21 +1527,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 date        :   document.getElementById('jobDateField').value,
             }
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            // Send a POST request to the server using the generated route
-            fetch(form.action, { // Blade syntax to generate the route URL
+            fetch(form.action, { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json', // Set Accept header
-                    // Add any additional headers if needed
+                    'Accept': 'application/json', 
                     'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify(updateData)
             })
             .then(response => {
-                // if (!response.ok) {
-                //     throw new Error('Failed to update job');
-                // }
                 return response.json();
             })
             .then(data => {
@@ -1587,7 +1551,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
                 if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
                     $('#jobModalWindow').modal('hide');
-                    //jobTableRow_4
                     row = document.getElementById('jobTableRow_'+updateData.id);
                     if(row){
                         row.parentNode.removeChild(row);
