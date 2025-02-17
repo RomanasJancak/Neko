@@ -6,6 +6,7 @@ window.ROUTES = {
           STORE:  window.location.href.split('/').slice(0, -1).join('/')+'/tasks/store',
       },
       JOB: {
+        VIEW  : window.location.href.split('/').slice(0, -1).join('/')+'/jobs/view',
         UPDATE: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/update',
         DELETE: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/delete',
         STORE:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/store',
