@@ -1,3 +1,82 @@
+function showPackageDiv(status){
+    const container =   document.getElementById('package-info');
+    if(status){
+        container.style.visibility = 'visible';
+    }else{
+        container.style.visibility = 'hidden';
+    }
+}
+function setTaskValues(taskId){
+    const idField    =   document.getElementById('taskIdField');
+    const typeField    =   document.getElementById('taskTypeField');
+    const statusIdField     =   document.getElementById('taskStatusIdField');
+    const clientNameField   =   document.getElementById('taskClientNameField');
+    const addressCountryField   =   document.getElementById('taskCountryField');
+    const addressCityField   =   document.getElementById('taskCityField');
+    const addressPostalCodeField   =   document.getElementById('taskPostalCodeField');
+    const addressAddressLineField   =   document.getElementById('taskAddressLineField');
+    const timeBeginField   =   document.getElementById('taskTimeBegin');
+    const timeEndField   =   document.getElementById('taskTimeEnd');
+    const crateCollection   =   document.getElementById('crateCollection');
+    idField.value = taskId;
+    idField.disabled =  true;
+    typeField.disabled =  true;
+    const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
+    return fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            typeField.value                 =   data.type;
+            statusIdField.value             =   data.statusId;
+            clientNameField.value           =   data.address.name;
+            addressCountryField.value       =   data.address.country;
+            addressCityField.value          =   data.address.city;
+            addressPostalCodeField.value    =   data.address.postalCode;
+            addressAddressLineField.value   =   data.address.addressLine;
+            const dateBegin = new Date(data.time.begin);
+            const dateEnd = new Date(data.time.end);
+            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
+            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
+
+            if(data.package !== 'none'){
+                addInfoAboutPackageToTaskModal(data.package).then(()=>{
+                });
+                crateCollection.checked = data.package.hasCollection;
+                showPackageDiv(true);
+                    divForTaskFormCrateCollection.style.display = 'block';
+            }else{
+                showPackageDiv(false);
+                divForTaskFormCrateCollection.style.display = 'none';
+            }
+            container_return = document.getElementById('return-info');
+            if(data.returnTask !== 'none'){
+                taskTimeDate = document.getElementById('taskTimeDate');
+                taskTimeDate.value  = `${dateBegin.getUTCFullYear()}-${String(dateBegin.getUTCMonth() + 1).padStart(2, '0')}-${String(dateBegin.getUTCDate()).padStart(2, '0')}`;
+                
+                checkbox  = document.getElementById('returnTask_isFlexible');
+                if (checkbox.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                container_return.style.visibility = 'visible';
+                
+                
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                });
+            }else{
+                container_return.style.visibility = 'hidden';
+            }
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
 function updateTask(data,url){
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   fetch(url, {
@@ -21,6 +100,21 @@ function updateTask(data,url){
   .catch(error => {
       console.error('Error:', error.message);
   });
+}
+function setReadOnlyToFieldsOfTaskModal(status){
+    let fields = [];
+    fields.push(document.getElementById('taskStatusIdField'));
+    fields.push(document.getElementById('taskClientNameField'));
+    fields.push(document.getElementById('taskCountryField'));
+    fields.push(document.getElementById('taskCityField'));
+    fields.push(document.getElementById('taskPostalCodeField'));
+    fields.push(document.getElementById('taskAddressLineField'));
+    fields.push(document.getElementById('taskTimeBegin'));
+    fields.push(document.getElementById('taskTimeEnd'));
+    fields.push(document.getElementById('taskTimeDate'));
+    fields.forEach(function(field){
+        field.disabled = status;
+    });
 }
 function addTypeHeadSearchToTaskWindow(searchInput){
     if (searchInput.length > 0) {

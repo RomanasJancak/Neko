@@ -420,14 +420,7 @@ var global_taskWindow_defaultValue_time_pickup  = [ '08:00', '16:00'];
 var global_taskWindow_defaultValue_time_dropoff = [ '08:00', '17:00'];
 var global_taskWindow_defaultValue_time_return  = [ '08:00', '17:00'];
 
-function showPackageDiv(status){
-    const container =   document.getElementById('package-info');
-    if(status){
-        container.style.visibility = 'visible';
-    }else{
-        container.style.visibility = 'hidden';
-    }
-}
+
 function addEventListenerToTasksCreationButtons(button){
     button.addEventListener('click', (e) => {
         $('#jobModalWindow').modal('hide');
@@ -630,77 +623,6 @@ function addInfoAboutPackageToTaskModal(package){
                 const selectedValue = event.target.value;
                 setPackageWeightChoosingAbility(selectedValue);
             });
-        })
-        .catch(error => {
-            console.error(error);
-    });
-}
-function setTaskValues(taskId){
-    const idField    =   document.getElementById('taskIdField');
-    const typeField    =   document.getElementById('taskTypeField');
-    const statusIdField     =   document.getElementById('taskStatusIdField');
-    const clientNameField   =   document.getElementById('taskClientNameField');
-    const addressCountryField   =   document.getElementById('taskCountryField');
-    const addressCityField   =   document.getElementById('taskCityField');
-    const addressPostalCodeField   =   document.getElementById('taskPostalCodeField');
-    const addressAddressLineField   =   document.getElementById('taskAddressLineField');
-    const timeBeginField   =   document.getElementById('taskTimeBegin');
-    const timeEndField   =   document.getElementById('taskTimeEnd');
-    const crateCollection   =   document.getElementById('crateCollection');
-    idField.value = taskId;
-    idField.disabled =  true;
-    typeField.disabled =  true;
-    const routeUrl = "{{ route('task.getTaskInfo', ['id' => ':id']) }}".replace(':id', taskId);
-    return fetch(routeUrl)
-        .then(response => response.json())
-        .then(data => {
-            typeField.value                 =   data.type;
-            statusIdField.value             =   data.statusId;
-            clientNameField.value           =   data.address.name;
-            addressCountryField.value       =   data.address.country;
-            addressCityField.value          =   data.address.city;
-            addressPostalCodeField.value    =   data.address.postalCode;
-            addressAddressLineField.value   =   data.address.addressLine;
-            const dateBegin = new Date(data.time.begin);
-            const dateEnd = new Date(data.time.end);
-            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
-            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
-
-            if(data.package !== 'none'){
-                addInfoAboutPackageToTaskModal(data.package).then(()=>{
-                });
-                crateCollection.checked = data.package.hasCollection;
-                showPackageDiv(true);
-                    divForTaskFormCrateCollection.style.display = 'block';
-            }else{
-                showPackageDiv(false);
-                divForTaskFormCrateCollection.style.display = 'none';
-            }
-            container_return = document.getElementById('return-info');
-            if(data.returnTask !== 'none'){
-                taskTimeDate = document.getElementById('taskTimeDate');
-                taskTimeDate.value  = `${dateBegin.getUTCFullYear()}-${String(dateBegin.getUTCMonth() + 1).padStart(2, '0')}-${String(dateBegin.getUTCDate()).padStart(2, '0')}`;
-                
-                checkbox  = document.getElementById('returnTask_isFlexible');
-                if (checkbox.checked) {
-                        container_taskTimeDate.style.visibility = 'visible';
-                    } else {
-                        container_taskTimeDate.style.visibility = 'hidden';
-                    }
-                container_return.style.visibility = 'visible';
-                
-                
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        container_taskTimeDate.style.visibility = 'visible';
-
-                    } else {
-                        container_taskTimeDate.style.visibility = 'hidden';
-                    }
-                });
-            }else{
-                container_return.style.visibility = 'hidden';
-            }
         })
         .catch(error => {
             console.error(error);
@@ -1025,21 +947,7 @@ function setTaskFormSubmitButtonDataOptionToUpdate(){
 function setTaskFormSubmitButtonDataOptionToCreate(){
   document.getElementById('submitTaskform').setAttribute('data-option', 'create');
 }
-function setReadOnlyToFieldsOfTaskModal(status){
-    let fields = [];
-    fields.push(document.getElementById('taskStatusIdField'));
-    fields.push(document.getElementById('taskClientNameField'));
-    fields.push(document.getElementById('taskCountryField'));
-    fields.push(document.getElementById('taskCityField'));
-    fields.push(document.getElementById('taskPostalCodeField'));
-    fields.push(document.getElementById('taskAddressLineField'));
-    fields.push(document.getElementById('taskTimeBegin'));
-    fields.push(document.getElementById('taskTimeEnd'));
-    fields.push(document.getElementById('taskTimeDate'));
-    fields.forEach(function(field){
-        field.disabled = status;
-    });
-}
+
 function cleanTaskCreateWindow(type = 'none'){
     let selectStatusField =   document.getElementById('taskStatusIdField');
     let selectTypeField =   document.getElementById('taskTypeField');
@@ -1076,49 +984,7 @@ function cleanTaskCreateWindow(type = 'none'){
             break;
     }
 }
-function addTypeHeadSearchToTaskWindow(searchInput){
-    if (searchInput.length > 0) {
-        searchInput.typeahead({
-        source: function(query, process) {
-            let client_id = document.getElementById('clientIdField').value;
 
-            var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES;
-            var apiUrl = apiUrl.replace(':query', query);
-            var apiUrl = apiUrl.replace(':client_id', client_id);
-            fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    process(data);
-                })
-                .catch(error => {
-                    console.error('Error fetching client data:', error);
-                });
-        },
-        autoSelect: true,
-        minLength: 2, 
-        displayText: function(item) {
-            return item.name;
-        },
-        afterSelect: function(item) {
-            const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
-            const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
-            fetch(clientInfoUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                     document.getElementById('taskCountryField').value = data.country; 
-                     document.getElementById('taskCityField').value = data.city;
-                     document.getElementById('taskPostalCodeField').value = data.postal_code;
-                     document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-        }
-    });
-    }
-}
 document.addEventListener('DOMContentLoaded', function() {
 
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
