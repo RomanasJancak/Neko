@@ -102,6 +102,12 @@
             <label for="returnTask_isFlexible">Flexible Return</label>
         </div>          
     </div>
+    <div class="row">
+        <div class="col">
+            <label for="taskNoteField">Note</label>
+            <input class="form-control" type="text" name="taskNote" id="taskNoteField" value="">
+        </div>
+    </div>
 </form>
 <button type="button" id="submitTaskform" data-option="create" class="btn btn-primary">Apply</button>
 @push('scripts')
