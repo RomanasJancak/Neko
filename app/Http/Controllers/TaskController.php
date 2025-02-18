@@ -46,6 +46,7 @@ class TaskController extends Controller
             $task->order_number     =   0;
             $task->job_id           =   $request->input('jobId');
             $task->status_id        =   $request->input('status_id');
+            $task->note             =   $request->input('note');
             $task->save();
             if($request->input('type') === 'pickup'){
                 $pickupTask = new PickupTask();
@@ -167,6 +168,7 @@ class TaskController extends Controller
         $task->order_number     =   0;
         //$task->job_id           =   $request->input('jobId');
         $task->status_id        =   $request->input('status_id');
+        $task->note             =   $request->input('note');
         $task->save();
         
         $taskTypeObject = null;
@@ -332,12 +334,12 @@ class TaskController extends Controller
     }
     public function getTaskInfo($taskId)
     {
-        // Fetch the client's information based on the $clientId
         $task = Task::find($taskId);
         if ($task) {
             return response()->json([
                 'id'                =>  $task->id,
                 'date'              =>  $task->job->date,
+                'note'              =>  $task->note,
                 'time'          =>  [
                                             'begin' =>  Carbon::parse($task->timeWindowBegin()),
                                             'end'   =>  Carbon::parse($task->timeWindowEnd()),    

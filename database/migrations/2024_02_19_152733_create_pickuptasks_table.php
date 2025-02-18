@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('pickupclientcity')->nullable();
             $table->string('pickupclientcountry')->nullable();
             $table->string('pickupclientpostalcode')->nullable();
-            $table->string('notes')->nullable();
+            $table->string('note')->nullable();
             $table->unsignedBigInteger('price')->nullable();
         });
     }

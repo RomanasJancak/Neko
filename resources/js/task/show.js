@@ -104,6 +104,7 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
     },
     date        :   document.getElementById('jobDateField').value,
     hasCrateCollection  :   document.getElementById('crateCollection').checked,
+    note    : document.getElementById('taskNoteField').value,
   } 
   if(typeField.value == 'dropOff'){
       taskSubmitData.package = {
