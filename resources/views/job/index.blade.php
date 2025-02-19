@@ -1318,6 +1318,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 status_id    :   document.getElementById('statusIdField').value,
                 clientId    :   document.getElementById('clientIdField').value,
                 date        :   document.getElementById('jobDateField').value,
+                note        :   document.getElementById('jobNoteField').value,
             }
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             fetch(form.action, { 

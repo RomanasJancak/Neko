@@ -58,5 +58,11 @@
             <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+Return</button>                                    
         </div>
     </div>
+    <div class="row">
+        <div class="col">
+            <label for="jobNoteField">Note</label>
+            <input class="form-control" type="text" name="jobNote" id="jobNoteField" value="">
+        </div>
+    </div>
 </form>
 <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
