@@ -95,6 +95,7 @@ class JobController extends Controller
                 $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
                 $job->clientToBill_id   =   $request->input('billingClientId');
                 $job->date              =   $request->input('common_date');
+                $job->note  =   $request->input('note');
                 $job->save();
 
 
@@ -341,7 +342,8 @@ class JobController extends Controller
             }
             $job->date  =   $request->input('common_date') === null ?$request->input('date'):$request->input('common_date');
             $job->status_id =   $request->input('status_id');
-            $job->clientToBill_id   =   $request->clientId;
+            $job->clientToBill_id   =   $request->input('clientId');
+            $job->note  =   $request->input('note');
             $job->save();
             return response()->json([
                 'message'   => 'Job updated successfully. ',
