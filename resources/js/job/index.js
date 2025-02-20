@@ -82,6 +82,26 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
+
+function checkIf_All_JobCreationFields_HaveInputs(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    let return_value = true;
+    if(statusIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(courierIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(jobDateField.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    return return_value;
+}
 function createJob(){
     const form = document.getElementById('jobForm');
     updateData  =   {
@@ -132,36 +152,6 @@ function createJob(){
     .catch(error => {
         console.error('Error:', error.message);
     });
-}
-function set_Some_JobCreationFields_ToDefaultValues(){
-    let statusIdField_SelectElement = document.getElementById('statusIdField');
-    let courierIdField_SelectElement = document.getElementById('courierIdField');
-    let clientSearchField = document.getElementById('clientSearchField');
-    let clientIdField = document.getElementById('clientIdField');
-    let jobDateField = document.getElementById('jobDateField');
-    statusIdField_SelectElement.value = 10; //10 - unassigned
-    courierIdField_SelectElement.value = 0;
-    jobDateField.value = "2024-08-19";
-
-}
-function checkIf_All_JobCreationFields_HaveInputs(){
-    let statusIdField_SelectElement = document.getElementById('statusIdField');
-    let courierIdField_SelectElement = document.getElementById('courierIdField');
-    let jobDateField = document.getElementById('jobDateField');
-    let return_value = true;
-    if(statusIdField_SelectElement.value == ''){
-        return_value = false;
-        return return_value;
-    }
-    if(courierIdField_SelectElement.value == ''){
-        return_value = false;
-        return return_value;
-    }
-    if(jobDateField.value == ''){
-        return_value = false;
-        return return_value;
-    }
-
 }
 function getHtmlOfActionButtonsForTheJob(jobId){
     return `

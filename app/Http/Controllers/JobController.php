@@ -460,6 +460,7 @@ class JobController extends Controller
             return response()->json([
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
+                'note'              =>  $job->note,
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
