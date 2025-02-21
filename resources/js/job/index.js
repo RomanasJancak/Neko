@@ -82,29 +82,9 @@ function deleteJob(jobId) {
     }
     $('#jobModalWindow').modal('show');
 }
-
-function checkIf_All_JobCreationFields_HaveInputs(){
-    let statusIdField_SelectElement = document.getElementById('statusIdField');
-    let courierIdField_SelectElement = document.getElementById('courierIdField');
-    let jobDateField = document.getElementById('jobDateField');
-    let return_value = true;
-    if(statusIdField_SelectElement.value == ''){
-        return_value = false;
-        return return_value;
-    }
-    if(courierIdField_SelectElement.value == ''){
-        return_value = false;
-        return return_value;
-    }
-    if(jobDateField.value == ''){
-        return_value = false;
-        return return_value;
-    }
-    return return_value;
-}
 function createJob(){
     const form = document.getElementById('jobForm');
-    updateData  =   {
+    let updateData  =   {
         id          :   document.getElementById('idField').value,
         courierId   :   document.getElementById('courierIdField').value,
         status_id    :   document.getElementById('statusIdField').value,
@@ -158,7 +138,7 @@ function getHtmlOfActionButtonsForTheJob(jobId){
         <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
         <button class="btn btn-primary edit-btn" onclick="editJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
         <button class="btn btn-danger delete-btn" onclick="deleteJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
-        <button class="btn btn-info copy-btn" onclick="copyJob(${jobId})" data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
+        <button class="btn btn-info job-copy-btn"  data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
     `;
 }
 function addPaginationEventListeners() {
@@ -341,3 +321,1005 @@ searchInputs.forEach(input => {
 addEventListenerToSortButton(sortButton_clientName);
 addEventListenerToSortButton(sortButton_date);
 addEventListenerToSortButton(sortButton_id);
+//==================================
+
+var global_typeOfButtonClickedToOpenJobModal = 'create';
+
+var global_taskWindow_defaultValue_time_pickup  = [ '08:00', '16:00'];
+var global_taskWindow_defaultValue_time_dropoff = [ '08:00', '17:00'];
+var global_taskWindow_defaultValue_time_return  = [ '08:00', '17:00'];
+
+
+function addEventListenerToTasksCreationButtons(button){
+    button.addEventListener('click', (e) => {
+        $('#jobModalWindow').modal('hide');
+        let taskTypeField = document.getElementById('taskTypeField');
+        let container_return = document.getElementById('return-info');
+        if(document.getElementById('jobid').value == ''){
+            createJob();
+        }
+        switch(button.id){
+            case 'createNewPickup':
+                setReadOnlyToFieldsOfTaskModal(false);                    
+                cleanTaskCreateWindow('pickup');
+                document.getElementById('taskIdField').disabled = true;
+                taskTypeField.selectedIndex = 0;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'hidden';
+                break;
+            case 'createNewDropOff':
+                setReadOnlyToFieldsOfTaskModal(false);
+                document.getElementById('taskIdField').disabled = true;
+                cleanTaskCreateWindow('dropOff');
+                taskTypeField.selectedIndex = 1;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'hidden';
+                break;
+            case 'createNewReturn':
+                setReadOnlyToFieldsOfTaskModal(false);
+                document.getElementById('taskIdField').disabled = true;
+                cleanTaskCreateWindow('return');
+                taskTypeField.selectedIndex = 2;
+                taskTypeField.disabled = true;
+                container_return.style.visibility = 'visible';
+                break;
+        }
+        if(taskTypeField.value === 'dropOff'){
+            addInfoAboutPackageToTaskModal();
+        }else{
+            const container =   document.getElementById('package-info');
+            container.innerHTML = '';
+        }
+        $('#taskModalWindow').modal('show');
+    });
+}
+function showPackageDiv(status){
+    const container =   document.getElementById('package-info');
+    if(status){
+        container.style.visibility = 'visible';
+    }else{
+        container.style.visibility = 'hidden';
+    }
+}
+function setReadOnlyToFieldsOfTaskModal(status){
+    let fields = [];
+    fields.push(document.getElementById('taskStatusIdField'));
+    fields.push(document.getElementById('taskClientNameField'));
+    fields.push(document.getElementById('taskCountryField'));
+    fields.push(document.getElementById('taskCityField'));
+    fields.push(document.getElementById('taskPostalCodeField'));
+    fields.push(document.getElementById('taskAddressLineField'));
+    fields.push(document.getElementById('taskTimeBegin'));
+    fields.push(document.getElementById('taskTimeEnd'));
+    fields.push(document.getElementById('taskTimeDate'));
+    fields.forEach(function(field){
+        field.disabled = status;
+    });
+}
+function addEventListenerToButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        $('#jobModalWindow').modal('hide');
+        let submitButton = document.getElementById('submitTaskform');
+        if(button.id === 'createNewTask'){
+            setReadOnlyToFieldsOfTaskModal(false);
+            document.getElementById('taskIdField').disabled = true;
+            cleanTaskCreateWindow();
+            button.setAttribute('data-option', 'create');            
+            submitButton.setAttribute('data-option', 'create');
+            submitButton.textContent  = 'Confirm creation';
+            let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
+            if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+                createJob();
+            }
+        }else{
+            let taskId  =   parseInt(button.id.match(/task-(\d+)-button/)[1],10);
+            setTaskValues(taskId).then(() =>{
+            if(button.id.match(/task-(\d+)-button-edit/)){
+                setReadOnlyToFieldsOfTaskModal(false);
+                button.setAttribute('data-option', 'edit');            
+                submitButton.setAttribute('data-option', 'update');
+                submitButton.textContent  = 'Confirm edit';
+            }
+            if(button.id.match(/task-(\d+)-button-delete/)){
+                setReadOnlyToFieldsOfTaskModal(true);
+                button.setAttribute('data-option', 'delete');
+                submitButton.setAttribute('data-option', 'delete');
+                submitButton.textContent  = 'Confirm delete';
+            }
+            if(button.id.match(/task-(\d+)-button-view/)){
+                setReadOnlyToFieldsOfTaskModal(true);
+                button.setAttribute('data-option', 'view');
+                submitButton.setAttribute('data-option', 'view');
+                submitButton.textContent  = 'Confirm view';
+            }
+            });
+        }
+        $('#taskModalWindow').modal('show');
+    });
+}
+function setPackageWeightChoosingAbility(selectedValue){
+    const routeUrl = window.ROUTES.WEB.PACKAGETYPE.GETINFO.replace(':id', selectedValue);
+        fetch(routeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    let inputWeight = document.getElementById('weightInput');
+                    let labelForWeight = document.getElementById('labelForWeightInput');
+                    let label = document.getElementById('weightInputLabel');
+
+                    if (data.extras && data.extras.length > 0) {
+                        const hasWeight = data.extras.some(extra => extra.name === 'weight');
+                        if (hasWeight) {
+                            inputWeight.removeAttribute('style');
+                            inputWeight.value = 0;
+                            labelForWeight.removeAttribute('style');
+                            label.removeAttribute('style');
+                        }else{
+                            inputWeight.style.display = 'none';
+                            labelForWeight.style.display = 'none';
+                            label.style.display = 'none';
+                            inputWeight.value = 0;
+                        }
+                    }else{
+                        inputWeight.style.display = 'none';
+                        labelForWeight.style.display = 'none';
+                        label.style.display = 'none';
+                        inputWeight.value = 0;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching package type info:', error);
+                });
+}
+function addInfoAboutPackageToTaskModal(pakuote){  
+    if(!pakuote){
+        pakuote = {
+                type: {
+                id: 1, 
+                },
+                quantity: 1, 
+                weight:0,
+        };
+    } 
+    const container =   document.getElementById('package-info');
+    container.innerHTML = '';
+    const select = document.createElement('select');
+    const clientIdField =   document.getElementById('clientIdField');
+    const routeUrl = window.ROUTES.WEB.CLIENT.GETINFO.replace(':id', clientIdField.value);
+    return fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            if(data.packageTypes !== 'none'){
+                
+                const select = document.createElement('select');
+                select.id = 'packageTypeSelect';
+                container.appendChild(select);
+                data.packageTypes.forEach(packageType => {
+                    const option = document.createElement('option');
+                    option.value = packageType.id;
+                    option.text = packageType.name;
+                    select.appendChild(option);
+                    if(option.value == pakuote.type.id){
+                        option.selected = true;
+                    }
+                });
+                const inputQuantity = document.createElement('input');
+                inputQuantity.type = 'number';
+                inputQuantity.id = 'quantityInput';
+                inputQuantity.min = '1';
+                inputQuantity.placeholder = 'Enter quantity';
+                inputQuantity.value = pakuote.quantity;
+                container.appendChild(inputQuantity);
+
+                const label = document.createElement('label');
+                label.setAttribute('for', 'weight');
+                label.setAttribute('id', 'weightInputLabel');
+                label.textContent = 'Weight:';
+                container.appendChild(label);
+
+                const inputWeight = document.createElement('input');
+                inputWeight.setAttribute('type', 'number');        
+                inputWeight.setAttribute('id', 'weightInput');          
+                inputWeight.setAttribute('name', 'weight');        
+                inputWeight.setAttribute('min', '0');              
+                inputWeight.setAttribute('max', '500');            
+                inputWeight.setAttribute('step', '0.1');           
+                inputWeight.setAttribute('placeholder', 'Enter weight'); 
+                inputWeight.setAttribute('required', '');          
+                container.appendChild(inputWeight);
+                const labelForWeight = document.createElement('span');
+                labelForWeight.setAttribute('id', 'labelForWeightInput');
+                labelForWeight.textContent = 'Kg';
+                container.appendChild(labelForWeight);
+                let submitButton = document.getElementById('submitTaskform');
+                if(submitButton.getAttribute('data-option') === 'update'){
+                    document.getElementById('packageTypeSelect').disabled = false;
+                    document.getElementById('quantityInput').disabled = false;
+                }else if(submitButton.getAttribute('data-option') === 'create'){
+                    document.getElementById('packageTypeSelect').disabled = false;
+                    document.getElementById('quantityInput').disabled = false;
+                }else{
+                    document.getElementById('packageTypeSelect').disabled = true;
+                    document.getElementById('quantityInput').disabled = true;
+                }
+                inputWeight.style.display = 'none';
+                labelForWeight.style.display = 'none';
+                label.style.display = 'none';
+            }
+            
+        }).then(()=>{
+            let selectElement = document.getElementById('packageTypeSelect');
+
+            setPackageWeightChoosingAbility(selectElement.value);
+            selectElement.addEventListener('change', function(event) {
+                const selectedValue = event.target.value;
+                setPackageWeightChoosingAbility(selectedValue);
+            });
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
+function appendButtonsToTaskRowColumn(task,buttonClicked){
+    let colView = document.createElement('div');
+    let colEdit = document.createElement('div');
+    let colDelete = document.createElement('div');
+    
+    let row = document.createElement('div');
+    let editButton  =   document.createElement('button');
+    let deleteButton  =   document.createElement('button');
+    let viewButton  =   document.createElement('button');
+
+    editButton.textContent = 'Edit';
+    editButton.className = 'btn btn-primary';
+    editButton.id = `task-${task.id}-button-edit`;
+    deleteButton.textContent = 'Delete';
+    deleteButton.className = 'btn btn-danger';
+    deleteButton.id = `task-${task.id}-button-delete`;
+    viewButton.textContent = 'View';
+    viewButton.className = 'btn btn-success';
+    viewButton.id = `task-${task.id}-button-view`;
+    colView.appendChild(viewButton);
+    colEdit.appendChild(editButton);
+    colDelete.appendChild(deleteButton);
+
+    colEdit.className = 'col border ';
+    colDelete.className = 'col border ';
+    row.className = 'row border ';
+    row.id = `container-task-buttons-${task.id}`;
+    if(buttonClicked === 'view'){
+        row.appendChild(colView);
+    }else if(buttonClicked === 'edit'){
+        row.appendChild(colView);
+        row.appendChild(colEdit);
+        row.appendChild(colDelete);
+    }else if(buttonClicked === 'delete'){
+        row.appendChild(colView);
+    }
+    return row;
+}
+function createColumn(idSuffix, content,id) {
+    let col = document.createElement('div');
+    col.className = 'col border';
+    col.id = `container-task-${id}-${idSuffix}`;
+    if (content instanceof HTMLElement) {
+        col.appendChild(content);
+    } else {
+        col.textContent = content;
+    }
+    return col;
+}
+function formatDateTimeStringTo12HourFormat(dateString) {
+            const date = new Date(dateString);
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutesStr + ' ' + ampm;
+        }
+function appendTaskToContainer(container,task,buttonClicked){
+
+    let taskRow = document.createElement('div');
+    taskRow.className = 'row';
+    taskRow.id = 'container-task-'+task.id;
+
+
+    taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task,buttonClicked),task.id));
+    taskRow.appendChild(createColumn('type', task.name,task.id));
+    taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
+    taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
+    taskRow.appendChild(createColumn('timeWindow', formatDateTimeStringTo12HourFormat(task.timeWindow.begin)+' / '+formatDateTimeStringTo12HourFormat(task.timeWindow.end),task.id));
+    if(task.name === 'dropoff'){
+        taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
+    }
+    container.appendChild(taskRow);
+    if(document.getElementById(`task-${task.id}-button-view`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-view`));
+    }
+    if(document.getElementById(`task-${task.id}-button-edit`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-edit`));
+    }
+    if(document.getElementById(`task-${task.id}-button-delete`)){
+        addEventListenerToButton(document.getElementById(`task-${task.id}-button-delete`));   
+    }
+     
+}
+function setPickupCreationButtonVisibility(isEnabled){
+    const createNewPickupButton = document.getElementById('createNewPickup');
+    createNewPickupButton.disabled = !isEnabled;
+    if(isEnabled){
+        createNewPickupButton.classList.remove('btn-secondary');
+        createNewPickupButton.classList.add('btn-primary');
+    }else{
+        createNewPickupButton.classList.remove('btn-primary');
+        createNewPickupButton.classList.add('btn-secondary');
+    }
+}
+function setReturnCretionButtonVisibility(isEnabled){
+    const createNewReturnButton = document.getElementById('createNewReturn');
+    createNewReturnButton.style.disabled = !isEnabled;
+    if(isEnabled){
+        createNewReturnButton.classList.remove('btn-secondary');
+        createNewReturnButton.classList.add('btn-primary');
+    }else{
+        createNewReturnButton.classList.remove('btn-primary');
+        createNewReturnButton.classList.add('btn-secondary');
+    }
+}
+function setJobValues(jobId,buttonClicked){
+    const courierIdField    =   document.getElementById('courierIdField');
+    const statusIdField    =   document.getElementById('statusIdField');
+    const clientSearchField =   document.getElementById('clientSearchField');
+    const clientIdField =   document.getElementById('clientIdField');
+    const jobDateField =   document.getElementById('jobDateField');
+    const containerTasks =   document.getElementById('container-tasks');
+
+    const price_total_field         =   document.getElementById('total_Price_DisplayField');
+    const distance_total_field      =   document.getElementById('total_distance_DisplayField');
+    const price_distance_field      =   document.getElementById('total_distance_price_DisplayField');
+    const price_weight_field        =   document.getElementById('total_weight_price_DisplayField');
+    const addon_package_oversize_price_DisplayField = document.getElementById('addon_package_oversize_price_DisplayField');
+    const addon_package_food_price_DisplayField = document.getElementById('addon_package_food_price_DisplayField');
+    const weight_total_field        =   document.getElementById('total_weight_DisplayField');
+    const price_postalCode_field    =   document.getElementById('total_outsideZone_price_DisplayField');
+    const total_timing_price_DisplayField   =   document.getElementById('total_timing_price_DisplayField');
+    const addon_time_sunday_price_DisplayField   =   document.getElementById('addon_time_sunday_price_DisplayField');
+    const addon_time_bankholiday_price_DisplayField   =   document.getElementById('addon_time_bankholiday_price_DisplayField');
+    const pickup_timing_price_DisplayField   =   document.getElementById('pickup_timing_price_DisplayField');
+    const pickup_timing_value_DisplayField  =   document.getElementById('pickup_timing_value_DisplayField');
+    const dropoff_timing_price_DisplayField   =   document.getElementById('dropoff_timing_price_DisplayField');
+    const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
+    const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
+    const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
+    const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
+
+    const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
+    containerTasks.innerHTML = "";
+    if(jobId === 0){return;}
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            if(data.courierId === 'none'){
+                courierIdField.value = 0;
+            }else{
+                courierIdField.value = data.courierId;
+            }
+            if(data.statusId === 'none'){
+                statusIdField.value = 0;
+            }else{
+                statusIdField.value = data.statusId;
+            }
+            if(data.clientId === 'none'){
+                clientSearchField.value = 'none';
+                clientIdField = 'none';
+            }else{
+                clientSearchField.value =   data.clientName;
+                clientIdField.value     =   data.clientId;
+            }
+            jobDateField.value = data.date;
+            data.tasks.forEach(function(task){
+                appendTaskToContainer(containerTasks,task,buttonClicked);
+            });
+            price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
+            distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
+            price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
+            price_weight_field.innerHTML = parseFloat(data.price.weight_price.price/100);
+            weight_total_field.innerHTML = parseFloat(data.price.weight_price.value).toFixed(3);
+            price_postalCode_field.innerHTML = parseFloat(data.price.price_OutOfZone/100,2);
+            total_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.price/100,2);
+            addon_time_sunday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_sunday.price/100,2);
+            addon_time_bankholiday_price_DisplayField.innerHTML = parseFloat(data.price.price_time_bankholiday.price/100,2);
+            addon_package_oversize_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.oversizePrice/100,2);
+            addon_package_food_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_food/100,2);
+            addon_time_samedayreturn_price_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_sameDayReturn.price/100,2);
+            pickup_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.pickup_price/100,2);
+            pickup_timing_value_DisplayField.innerHTML = formatMinutesToHoursAndMinutes(data.price.timing_price.pickup_value);
+            price_magicNumber_DisplayField.innerHTML = parseFloat(data.price.breakdownOfPrice.price_adjustment_number/100,2);
+            dropOff_timing_value_DisplayField.innerHTM='';
+            let string = '';
+            data.price.timing_price.dropOff_value.forEach(function(value){
+                string+= '<span style="color: green;">'+formatMinutesToHoursAndMinutes(value)+'</span><br>';
+            });
+            packages_price_base_DisplayField.innerHTML = "";
+            data.dropoffs.forEach(function(dropoff){
+                packages_price_base_DisplayField.innerHTML += '<span style="color: green";><span>Package base price : </span><span>&#163;'+parseFloat(dropoff.packageType_price/100,2)+'</span></span><br>';
+            });
+            dropOff_timing_value_DisplayField.innerHTML=string;
+            string = '';
+            dropoff_timing_price_DisplayField.innerHTML = parseFloat(data.price.timing_price.dropOff_price/100,2);
+            setPickupCreationButtonVisibility(data.pickup === 'none');
+            setReturnCretionButtonVisibility(data.return === 'none');              
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+function formatMinutesToHoursAndMinutes(minutes) {
+
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                if (hours > 0) {
+                    if (remainingMinutes > 0) {
+                        return `${hours}h ${remainingMinutes}min`;
+                    } else {
+                        return `${hours}h`;
+                    }
+                } else {
+                    return `${remainingMinutes}min`;
+                }
+            }
+function addTypeHeadSearch(searchInput){
+    if (searchInput.length > 0) {
+        searchInput.typeahead({
+        source: function(query, process) {
+            var apiUrl = window.ROUTES.WEB.CLIENT.SEARCH+"?query=" + query;
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    process(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching client data:', error);
+                });
+        },
+        autoSelect: true,
+        minLength: 2, 
+        displayText: function(item) {
+            return item.name; 
+        },
+        afterSelect: function(item) {
+            const clientInfoUrlTemplate = window.ROUTES.WEB.CLIENT.GETINFO;
+            const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
+            fetch(clientInfoUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('clientIdField').value = data.id;       
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        }
+    });
+    }
+}
+
+function copyJob(jobId){
+    document.getElementById('jobIdToCopy').value = jobId;
+    $('#jobCopyModalWindow').modal('show');
+}
+function addEventListenerToCopyJobButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        copyJob(jobId);
+    });
+}
+function addEventListenerToDeleteJobButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        deleteJob(jobId)
+    });
+}
+function toggle_CreateNewTaskButton(enable = true){
+    let createNewTaskButton = document.getElementById('createNewTask');
+    let createNewPickupButton = document.getElementById('createNewPickup');
+    let createNewDropOffButton = document.getElementById('createNewDropOff');
+    let createNewReturnButton = document.getElementById('createNewReturn');
+    if(enable){
+        createNewTaskButton.classList.remove('btn-secondary');
+        createNewPickupButton.classList.remove('btn-secondary');
+        createNewDropOffButton.classList.remove('btn-secondary');
+        createNewReturnButton.classList.remove('btn-secondary');
+        createNewTaskButton.classList.add('btn-primary');
+        createNewPickupButton.classList.add('btn-primary');
+        createNewDropOffButton.classList.add('btn-primary');
+        createNewReturnButton.classList.add('btn-primary');
+    } else {
+        createNewTaskButton.classList.remove('btn-primary');
+        createNewPickupButton.classList.remove('btn-primary');
+        createNewDropOffButton.classList.remove('btn-primary');
+        createNewReturnButton.classList.remove('btn-primary');
+        createNewTaskButton.classList.add('btn-secondary');
+        createNewPickupButton.classList.add('btn-secondary');
+        createNewDropOffButton.classList.add('btn-secondary');
+        createNewReturnButton.classList.add('btn-secondary');
+    }
+    createNewTaskButton.disabled = !enable;
+    createNewPickupButton.disabled = !enable;
+    createNewDropOffButton.disabled = !enable;
+    createNewReturnButton.disabled = !enable;
+}
+function add_CreateNewTaskButtonHidder_EventListener_toInput(input){
+    input.addEventListener('input', function() {
+        let status = true;
+        if(document.getElementById('courierIdField').value == ''){status = false;}
+        if(document.getElementById('statusIdField').value == ''){status = false;}
+        if(document.getElementById('clientSearchField').value == ''){status = false;}
+        if(document.getElementById('jobDateField').value == ''){status = false;}
+        if(status){
+            toggle_CreateNewTaskButton(true);
+        }else{
+            toggle_CreateNewTaskButton(false);
+        }
+
+    });
+}
+function checkIf_All_JobCreationFields_HaveInputs(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    let return_value = true;
+    if(statusIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(courierIdField_SelectElement.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    if(jobDateField.value == ''){
+        return_value = false;
+        return return_value;
+    }
+    return return_value;
+}
+function add_TaskTypeSelect_EventListener_OnChange(selectElement){
+    selectElement.addEventListener('change', function(event) {
+        const selectedValue = event.target.value;
+        if(selectedValue === 'dropOff'){
+            addInfoAboutPackageToTaskModal();
+        }else{
+            const container =   document.getElementById('package-info');
+            container.innerHTML = '';
+        }
+    });
+}
+
+function setTaskFormSubmitButtonDataOptionToView(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'view');
+}
+function setTaskFormSubmitButtonDataOptionToDelete(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'delete');
+}
+function setTaskFormSubmitButtonDataOptionToUpdate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'update');
+}
+function setTaskFormSubmitButtonDataOptionToCreate(){
+  document.getElementById('submitTaskform').setAttribute('data-option', 'create');
+}
+
+function cleanTaskCreateWindow(type = 'none'){
+    let selectStatusField =   document.getElementById('taskStatusIdField');
+    let selectTypeField =   document.getElementById('taskTypeField');
+    let taskClientNameField =   document.getElementById('taskClientNameField');
+    let taskPostalCodeField =   document.getElementById('taskPostalCodeField');
+    let taskAddressLineField =   document.getElementById('taskAddressLineField');
+    let taskTimeBegin =   document.getElementById('taskTimeBegin');
+    let taskTimeEnd =   document.getElementById('taskTimeEnd');
+    let divForTaskFormCrateCollection  = document.getElementById('divForTaskFormCrateCollection');
+    selectStatusField.selectedIndex = 0;
+    selectTypeField.selectedIndex = -1;
+    selectTypeField.disabled = false;
+    taskClientNameField.value   =   '';
+    taskPostalCodeField.value   =   '';
+    taskAddressLineField.value   =   '';
+    divForTaskFormCrateCollection.style.display = 'none';
+    switch(type){
+        case 'pickup':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_pickup[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_pickup[1];
+            break;
+        case 'dropOff':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_dropoff[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_dropoff[1];
+            divForTaskFormCrateCollection.style.display = 'block';
+            break;
+        case 'return':
+            taskTimeBegin.value = global_taskWindow_defaultValue_time_return[0];
+            taskTimeEnd.value = global_taskWindow_defaultValue_time_return[1];
+            break;
+        default:
+            taskTimeBegin.value = '';
+            taskTimeEnd.value = '';
+            break;
+    }
+}
+function setTaskValues(taskId){
+    const idField    =   document.getElementById('taskIdField');
+    const typeField    =   document.getElementById('taskTypeField');
+    const statusIdField     =   document.getElementById('taskStatusIdField');
+    const clientNameField   =   document.getElementById('taskClientNameField');
+    const addressCountryField   =   document.getElementById('taskCountryField');
+    const addressCityField   =   document.getElementById('taskCityField');
+    const addressPostalCodeField   =   document.getElementById('taskPostalCodeField');
+    const addressAddressLineField   =   document.getElementById('taskAddressLineField');
+    const timeBeginField   =   document.getElementById('taskTimeBegin');
+    const timeEndField   =   document.getElementById('taskTimeEnd');
+    const crateCollection   =   document.getElementById('crateCollection');
+    idField.value = taskId;
+    idField.disabled =  true;
+    typeField.disabled =  true;
+    const routeUrl = window.ROUTES.WEB.TASK.GETINFO.replace(':id', taskId);
+    return fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            typeField.value                 =   data.type;
+            statusIdField.value             =   data.statusId;
+            clientNameField.value           =   data.address.name;
+            addressCountryField.value       =   data.address.country;
+            addressCityField.value          =   data.address.city;
+            addressPostalCodeField.value    =   data.address.postalCode;
+            addressAddressLineField.value   =   data.address.addressLine;
+            const dateBegin = new Date(data.time.begin);
+            const dateEnd = new Date(data.time.end);
+            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
+            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
+
+            if(data.package !== 'none'){
+                addInfoAboutPackageToTaskModal(data.package).then(()=>{
+                });
+                crateCollection.checked = data.package.hasCollection;
+                showPackageDiv(true);
+                    divForTaskFormCrateCollection.style.display = 'block';
+            }else{
+                showPackageDiv(false);
+                divForTaskFormCrateCollection.style.display = 'none';
+            }
+            let container_return = document.getElementById('return-info');
+            if(data.returnTask !== 'none'){
+                taskTimeDate = document.getElementById('taskTimeDate');
+                taskTimeDate.value  = `${dateBegin.getUTCFullYear()}-${String(dateBegin.getUTCMonth() + 1).padStart(2, '0')}-${String(dateBegin.getUTCDate()).padStart(2, '0')}`;
+                
+                checkbox  = document.getElementById('returnTask_isFlexible');
+                if (checkbox.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                container_return.style.visibility = 'visible';
+                
+                
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        container_taskTimeDate.style.visibility = 'visible';
+
+                    } else {
+                        container_taskTimeDate.style.visibility = 'hidden';
+                    }
+                });
+            }else{
+                container_return.style.visibility = 'hidden';
+            }
+        })
+        .catch(error => {
+            console.error(error);
+    });
+}
+// Function that do not work in js vite
+ 
+function set_Some_JobCreationFields_ToDefaultValues(){
+    let statusIdField_SelectElement = document.getElementById('statusIdField');
+    let courierIdField_SelectElement = document.getElementById('courierIdField');
+    let clientSearchField = document.getElementById('clientSearchField');
+    let clientIdField = document.getElementById('clientIdField');
+    let jobDateField = document.getElementById('jobDateField');
+    statusIdField_SelectElement.value = 10; //10 - unassigned
+    courierIdField_SelectElement.value = 0;
+    jobDateField.value = "2024-08-19";
+
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.job-copy-btn').forEach(button => {
+        addEventListenerToCopyJobButton(button);
+    });
+    document.querySelectorAll('.job-delete-btn').forEach(button => {
+        addEventListenerToDeleteJobButton(button);
+    });
+    const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
+    const confirmCopyJob    =   document.getElementById('confirmCopyJob');
+    confirmCopyJob.addEventListener('click',function(event){
+        event.preventDefault();
+        const jobId = document.getElementById('jobIdToCopy').value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(window.ROUTES.WEB.JOB.COPY, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({id: jobId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#jobCopyModalWindow').modal('hide');
+                editJob(data.data.NewJobId);
+            } else {
+                console.error('Error copying job:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+    price_magicNumber_DisplayField.addEventListener('focus', function(event) {
+        document.getElementById('magic_number_actions').removeAttribute('style');
+    });
+    price_magicNumber_DisplayField.addEventListener('blur', function(event) {
+        setTimeout(() => {
+            if (!document.getElementById('confirmMagicNumber').clicked) {
+                document.getElementById('magic_number_actions').style.display = 'none';
+                let jobId = document.getElementById('idField').value;
+                setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
+            }
+        }, 500);
+    });
+    document.getElementById('confirmMagicNumber').addEventListener('click', function(event) {
+        event.preventDefault();
+        const inputValue = parseFloat(document.getElementById('price_magicNumber_DisplayField').textContent);
+        if (!isNaN(inputValue)) {
+            document.getElementById('price_magicNumber_DisplayField').textContent = inputValue.toFixed(2);
+        } else {
+            document.getElementById('price_magicNumber_DisplayField').textContent = '0.00';
+        }
+        const jobId = document.getElementById('idField').value;
+        const priceAdjustmentNumber = parseFloat(price_magicNumber_DisplayField.textContent) * 100;
+
+        const updateData = {
+            id: jobId,
+            price_adjustment_number: priceAdjustmentNumber
+        };
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(window.ROUTES.WEB.JOB.UPDATE_PRICEADJUSTMENTNUMBER, {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+            document.getElementById('magic_number_actions').style.display = 'none';
+            setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
+            } else {
+            console.error('Error updating price adjustment number:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+    document.getElementById('cancelMagicNumber').addEventListener('click', function(event) {
+        event.preventDefault();
+        document.getElementById('magic_number_actions').style.display = 'none';
+        let jobId = document.getElementById('idField').value;
+        setJobValues(jobId,global_typeOfButtonClickedToOpenJobModal);
+    });
+
+
+
+    add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
+    addTypeHeadSearch($('#clientSearchField'));
+    
+
+    addEventListenerToButton(document.getElementById(`createNewTask`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewPickup`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewReturn`));
+    addEventListenerToTasksCreationButtons(document.getElementById(`createNewDropOff`));
+
+
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const jobid         =   button.dataset.jobid;
+            const jobIdField    =   document.getElementById('idField');
+            const courierIdField    =   document.getElementById('courierIdField');
+            const jobName        =   button.dataset.name;
+            const createNewTaskButton   =   document.getElementById('createNewTask'); 
+            const form = document.querySelector(`#jobForm`);
+            if (form) {
+                form.setAttribute('action', window.ROUTES.WEB.JOB.UPDATE);
+                jobIdField.value = jobid;
+                jobIdField.disabled = true;
+                courierIdField.disabled = false;
+                document.getElementById('statusIdField').disabled = false;
+                document.getElementById('clientSearchField').disabled = false;
+                document.getElementById('jobDateField').disabled = false;
+                
+                setJobValues(jobid,'edit');
+                global_typeOfButtonClickedToOpenJobModal = 'edit';
+                let submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-pen'></i>";
+                submitButton.style.visibility = 'visible';
+                createNewTaskButton.style.visibility = 'visible';
+            }
+            toggle_CreateNewTaskButton(true);
+            $('#jobModalWindow').modal('show');
+        });
+    });
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const jobid = button.dataset.jobid;
+            const jobName = button.dataset.name;
+            const jobIdField    =   document.getElementById('idField');
+            const courierIdField    =   document.getElementById('courierIdField');
+            const createNewTaskButton   =   document.getElementById('createNewTask');
+            const form = document.querySelector(`#jobForm`);
+            if (form) {
+                form.setAttribute('action', window.ROUTES.WEB.JOB.DELETE);
+                console.log(form.getAttribute('action'));
+                jobIdField.value = jobid;
+                jobIdField.disabled = true;
+                document.getElementById('courierIdField').disabled = true;
+                document.getElementById('statusIdField').disabled = true;
+                document.getElementById('clientSearchField').disabled = true;
+                document.getElementById('jobDateField').disabled = true;
+                document.getElementById('jobid').value = jobid;
+                setJobValues(jobid,'delete');
+                global_typeOfButtonClickedToOpenJobModal = 'delete';
+
+                let submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+                submitButton.style.visibility = 'visible';
+                createNewTaskButton.style.visibility = 'hidden';
+            }
+            toggle_CreateNewTaskButton(false);
+            $('#jobModalWindow').modal('show');
+        });
+    });
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const jobid = button.dataset.jobid;
+            const jobName = button.dataset.name;
+            const jobIdField    =   document.getElementById('idField');
+            const courierIdField    =   document.getElementById('courierIdField');
+            const createNewTaskButton   =   document.getElementById('createNewTask');
+            const form = document.querySelector(`#jobForm`);
+            if (form) {
+                form.setAttribute('action', "");
+                jobIdField.value = jobid;
+                jobIdField.disabled = true;
+                document.getElementById('courierIdField').disabled = true;
+                document.getElementById('statusIdField').disabled = true;
+                document.getElementById('clientSearchField').disabled = true;
+                document.getElementById('jobDateField').disabled = true;
+                document.getElementById('jobid').value = jobid;
+                setJobValues(jobid,'view');
+                global_typeOfButtonClickedToOpenJobModal = 'view';
+                let submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+                submitButton.style.visibility = 'hidden';
+                createNewTaskButton.style.visibility = 'hidden';
+
+            }
+            toggle_CreateNewTaskButton(false);
+            $('#jobModalWindow').modal('show');
+        });
+    });
+    document.querySelectorAll('.create-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const createNewTaskButton   =   document.getElementById('createNewTask');
+            createNewTaskButton.style.visibility = 'visible';
+            const jobIdField    =   document.getElementById('idField');                
+            jobIdField.disabled = true;
+            const form = document.querySelector(`#jobForm`);
+            if (form) {
+                global_typeOfButtonClickedToOpenJobModal = 'create';
+                set_Some_JobCreationFields_ToDefaultValues();
+
+                document.getElementById('idField').value = '';
+                document.getElementById('courierIdField').disabled = false;
+                document.getElementById('statusIdField').disabled = false;
+                document.getElementById('clientSearchField').disabled = false;
+                document.getElementById('jobDateField').disabled = false;
+                document.getElementById('clientSearchField').value = '';
+                document.getElementById('jobDateField').value = ''; 
+                form.setAttribute('action', window.ROUTES.WEB.JOB.STORE);
+                let submitButton = document.getElementById('submitform');
+                submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                if(!checkIf_All_JobCreationFields_HaveInputs()){
+                    toggle_CreateNewTaskButton(false);
+                }else{
+                    toggle_CreateNewTaskButton(true);
+                }
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('courierIdField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('statusIdField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('clientSearchField'));
+                add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('jobDateField'));
+            }
+            $('#jobModalWindow').modal('show');
+        });
+    });
+    document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
+        setJobValues(document.getElementById('idField').value, global_typeOfButtonClickedToOpenJobModal);
+        $('#taskModalWindow').modal('hide');
+        $('#jobModalWindow').modal('show');        
+    });
+    document.getElementById('submitform').addEventListener('click', function(event) {
+        let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
+      
+        if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+            createJob();
+        }else {
+
+        
+            event.preventDefault();
+            const form = document.getElementById('jobForm');
+            let updateData  =   {
+                id          :   document.getElementById('idField').value,
+                courierId   :   document.getElementById('courierIdField').value,
+                status_id    :   document.getElementById('statusIdField').value,
+                clientId    :   document.getElementById('clientIdField').value,
+                date        :   document.getElementById('jobDateField').value,
+                note        :   document.getElementById('jobNoteField').value,
+            }
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(form.action, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json', 
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(updateData)
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                if(data.errors){
+                    let errorsMessage = '';
+                    for (const key in data.errors) {
+                        if (data.errors.hasOwnProperty(key)) {
+                            errorsMessage+=(`${data.errors[key]}\n`);
+                        }
+                    }
+                    alert(errorsMessage);
+                };
+                if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
+                    $('#jobModalWindow').modal('hide');
+                    let row = document.getElementById('jobTableRow_'+updateData.id);
+                    if(row){
+                        row.parentNode.removeChild(row);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error.message);
+            });
+        }
+    });
+    const taskPostalCodeField =  document.getElementById('taskPostalCodeField');
+    taskPostalCodeField.addEventListener('input',function(e){
+        // Pakeičia visus "white space" simbolius į paprastą tarpą
+        e.target.value = e.target.value.replace(/[\u00A0\u2000-\u200D\u202F\u205F\u3000]/g, ' ');
+    });
+});

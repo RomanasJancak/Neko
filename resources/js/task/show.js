@@ -121,5 +121,7 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
   }
   updateTask(taskSubmitData,route);
 });
-addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
 
+document.addEventListener('DOMContentLoaded', function() {
+    addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
+});
