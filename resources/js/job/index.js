@@ -135,10 +135,10 @@ function createJob(){
 }
 function getHtmlOfActionButtonsForTheJob(jobId){
     return `
-        <button class="btn btn-success view-btn" onclick="viewJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
-        <button class="btn btn-primary edit-btn" onclick="editJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
-        <button class="btn btn-danger delete-btn" onclick="deleteJob(${jobId})" data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
-        <button class="btn btn-info job-copy-btn"  data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
+        <button class="btn btn-success view-btn job-view-btn"  data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-primary edit-btn job-edit-btn"  data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
+        <button class="btn btn-danger delete-btn job-delete-btn"  data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
+        <button class="btn btn-info copy-btn job-copy-btn"  data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
     `;
 }
 function addPaginationEventListeners() {
@@ -197,6 +197,20 @@ function addPaginationEventListeners() {
                     document.getElementById('paginationLinks_bottom').innerHTML = data.links;
                     document.getElementById('paginationLinks_top').innerHTML = data.links;
                     addPaginationEventListeners();
+
+                    document.querySelectorAll('.job-copy-btn').forEach(button => {
+                        addEventListenerToCopyJobButton(button);
+                    });
+                    document.querySelectorAll('.job-delete-btn').forEach(button => {
+                        addEventListenerToDeleteJobButton(button);
+                    });
+                    document.querySelectorAll('.job-edit-btn').forEach(button => {
+                        addEventListenerToEditJobButton(button);
+                    });
+                    document.querySelectorAll('.job-view-btn').forEach(button => {
+                        addEventListenerToViewJobButton(button);
+                    });
+
                 })
                 .catch(error => console.error('Error fetching data:', error));
         });
@@ -267,7 +281,18 @@ function fetchJobs(page = 1) {
           document.getElementById('paginationLinks_bottom').innerHTML = data.links;
           document.getElementById('paginationLinks_top').innerHTML = data.links;
           addPaginationEventListeners();
-          
+              document.querySelectorAll('.job-copy-btn').forEach(button => {
+        addEventListenerToCopyJobButton(button);
+    });
+    document.querySelectorAll('.job-delete-btn').forEach(button => {
+        addEventListenerToDeleteJobButton(button);
+    });
+    document.querySelectorAll('.job-edit-btn').forEach(button => {
+        addEventListenerToEditJobButton(button);
+    });
+    document.querySelectorAll('.job-view-btn').forEach(button => {
+        addEventListenerToViewJobButton(button);
+    });
       }
   };
   xhr.send();
@@ -825,6 +850,20 @@ function addEventListenerToDeleteJobButton(button){
         deleteJob(jobId)
     });
 }
+function addEventListenerToEditJobButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        editJob(jobId)
+    });
+}
+function addEventListenerToViewJobButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        viewJob(jobId)
+    });
+}
 function toggle_CreateNewTaskButton(enable = true){
     let createNewTaskButton = document.getElementById('createNewTask');
     let createNewPickupButton = document.getElementById('createNewPickup');
@@ -1039,6 +1078,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('.job-delete-btn').forEach(button => {
         addEventListenerToDeleteJobButton(button);
+    });
+    document.querySelectorAll('.job-edit-btn').forEach(button => {
+        addEventListenerToEditJobButton(button);
+    });
+    document.querySelectorAll('.job-view-btn').forEach(button => {
+        addEventListenerToViewJobButton(button);
     });
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');

@@ -52,7 +52,7 @@
     </div>
     <div class="row justify-content-md-center">
         <div class="col">
-            <button type="button" id="createNewTask" data-option="create" class="btn btn-primary ">Create new Task</button>
+            <button type="button" id="createNewTask" data-option="create" class="btn btn-primary d-none">Create new Task</button>
             <button type="button" id="createNewPickup"data-type="specifictask" data-option="pickup" class="btn btn-primary">+Pickup</button>
             <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+DropOff</button>
             <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+Return</button>                                    
