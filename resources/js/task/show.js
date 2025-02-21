@@ -28,9 +28,7 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         searchInput.typeahead({
         source: function(query, process) {
             let client_id = document.getElementById('clientIdField').value;
-            //console.log("client_id : ",client_id);
             var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES+"?query=" + query + "&client_id=" + client_id;
-            //var apiUrl = "{{ route('client.searchClients') }}?query=" + query;
             fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
@@ -41,29 +39,22 @@ function addTypeHeadSearchToTaskWindow(searchInput){
                 });
         },
         autoSelect: true,
-        minLength: 2, // Minimum characters required before searching
+        minLength: 2, 
         displayText: function(item) {
             return item.name;
         },
         afterSelect: function(item) {
-            // Handle the selection here (e.g., redirect to client details page)
-            //fetch(`/get-client-info/${item.id}`)
             const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
             const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
             fetch(clientInfoUrl)
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    console.log(data);
-                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    // addressSelect.innerHTML = '';
-                    // document.getElementById('task_clientIdField').value = data.id;
+
                      document.getElementById('taskCountryField').value = data.country; 
                      document.getElementById('taskCityField').value = data.city;
                      document.getElementById('taskPostalCodeField').value = data.postal_code;
                      document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
-                    // const addressSelect = document.getElementById('taskWindow_addressSelectField');
-                    // addressSelect.style.visibility = 'hidden';
                 }
             })
             .catch(error => {
