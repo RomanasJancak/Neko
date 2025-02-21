@@ -48,8 +48,8 @@ function addTypeHeadSearchToTaskWindow(searchInput){
         afterSelect: function(item) {
             // Handle the selection here (e.g., redirect to client details page)
             //fetch(`/get-client-info/${item.id}`)
-            const clientInfoUrlTemplate = "{{ route('address.getAddressInfo', ['id' => ':addressId']) }}";
-            const clientInfoUrl = clientInfoUrlTemplate.replace(':addressId', item.id);
+            const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
+            const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
             fetch(clientInfoUrl)
             .then(response => response.json())
             .then(data => {

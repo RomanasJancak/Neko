@@ -22,7 +22,7 @@ window.ROUTES = {
         SEARCH: window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClients',
       },
       ADDRESS:{
-        GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/address/getAddressInfo/:addressId',
+        GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/addresses/getAddressInfo/:id',
       },
       PACKAGETYPE:{
         GETINFO: window.location.href.split('/').slice(0, -1).join('/')+'/packageTypes/getPackageTypeInfo/:id',
