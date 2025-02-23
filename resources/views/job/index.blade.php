@@ -140,7 +140,7 @@
                 <th rowspan="2">Actions</th>
                 <th rowspan="2" style="text-align:center;width:100px;">
                     <span>Create Job</span>
-                    <button type="button" class="btn btn-success btn-xs text-success create-btn job-create-btn" style="background: none; border: none;" id="createJobButton"> >
+                    <button type="button" class="btn btn-success btn-xs text-success create-btn job-create-btn" style="background: none; border: none;" id="createJobButton"> 
                         <i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>
                     </button>
                 </th>
