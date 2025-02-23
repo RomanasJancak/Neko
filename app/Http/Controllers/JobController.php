@@ -581,7 +581,7 @@ class JobController extends Controller
             $sortOrder = $request->get('sortOrder', 'asc');
 
     
-            $jobs = Job::with(['clientToBill', 'tasks'])
+            $jobIdsQuery = Job::with(['clientToBill', 'tasks'])
             ->when($id, function ($queryBuilder) use ($id) {
                 $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
             })
@@ -599,15 +599,16 @@ class JobController extends Controller
             ->when($package, function ($queryBuilder) use ($package) {
                 $queryBuilder->where(function ($query) use ($package) {
                     $query->where('packages.dropoff_adress_line', 'like', '%' . $package . '%')
-                          ->orWhere('packages.dropoff_postal_code', 'like', '%' . $package . '%')
-                          ->orWhere('packages.dropoff_name', 'like', '%' . $package . '%');
+                        ->orWhere('packages.dropoff_postal_code', 'like', '%' . $package . '%')
+                        ->orWhere('packages.dropoff_name', 'like', '%' . $package . '%');
                 });
             })
-            ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
-            ->distinct() // Ensure distinct results
-            ->select('jobs.*') // Select only fields from the jobs table
-            ->paginate(10);
-    
+            ->distinct()
+            ->select('jobs.id');
+
+            $jobs = Job::whereIn('id', $jobIdsQuery)
+                ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
+                ->paginate(10);
             $jobs->appends([
                 'id' => $id,
                 'clientName' => $clientName,
