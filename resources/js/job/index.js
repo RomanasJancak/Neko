@@ -1334,8 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() {
             $('#jobModalWindow').modal('show');
         });
     });
-    document.querySelectorAll('.create-btn').forEach(button => {
-        button.addEventListener('click', () => {
+    document.getElementById('createJobButton').addEventListener('click', () => {
             const createNewTaskButton   =   document.getElementById('createNewTask');
             createNewTaskButton.style.visibility = 'visible';
             const jobIdField    =   document.getElementById('idField');                
@@ -1366,8 +1365,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 add_CreateNewTaskButtonHidder_EventListener_toInput(document.getElementById('jobDateField'));
             }
             $('#jobModalWindow').modal('show');
-        });
     });
+
     document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
         setJobValues(document.getElementById('idField').value, global_typeOfButtonClickedToOpenJobModal);
         $('#taskModalWindow').modal('hide');
