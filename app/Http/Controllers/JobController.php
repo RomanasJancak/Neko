@@ -603,11 +603,12 @@ class JobController extends Controller
                         ->orWhere('packages.dropoff_name', 'like', '%' . $package . '%');
                 });
             })
+            ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
             ->distinct()
             ->select('jobs.id');
 
             $jobs = Job::whereIn('id', $jobIdsQuery)
-                ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
+                
                 ->paginate(10);
             $jobs->appends([
                 'id' => $id,
