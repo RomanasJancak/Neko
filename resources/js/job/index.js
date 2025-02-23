@@ -362,7 +362,6 @@ function fetchJobs(page = 1, url) {
           paginationLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
                     event.preventDefault();
-                    console.log(event.target.href);
                     fetchJobs(undefined, event.target.href);
                 });
           });
