@@ -154,7 +154,13 @@ class Job extends Model
         return $returnValue;
     }
     public function urlToLogo(){
-        return asset('files/logos/'.$this->clientToBill->id.".png");
+        $returnValue = '';
+        if (!file_exists(public_path('files/logos/'.$this->clientToBill->id.".png"))) {
+            $returnValue    =   asset('files/logos/0.png');
+        }else{
+            $returnValue =  asset('files/logos/'.$this->clientToBill->id.".png");
+        }
+        return $returnValue;
     }
     public function getDate(){
         $returnValue = '';
