@@ -199,16 +199,16 @@ function addPaginationEventListeners() {
                     addPaginationEventListeners();
 
                     document.querySelectorAll('.job-copy-btn').forEach(button => {
-                        addEventListenerToCopyJobButton(button);
+                        addEventListenerToCopyJobButton_click(button);
                     });
                     document.querySelectorAll('.job-delete-btn').forEach(button => {
-                        addEventListenerToDeleteJobButton(button);
+                        addEventListenerToDeleteJobButton_click(button);
                     });
                     document.querySelectorAll('.job-edit-btn').forEach(button => {
-                        addEventListenerToEditJobButton(button);
+                        addEventListenerToEditJobButton_click(button);
                     });
                     document.querySelectorAll('.job-view-btn').forEach(button => {
-                        addEventListenerToViewJobButton(button);
+                        addEventListenerToViewJobButton_click(button);
                     });
 
                 })
@@ -216,7 +216,7 @@ function addPaginationEventListeners() {
         });
     });
 }
-function fetchJobs(page = 1) {
+function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
   const date = document.getElementById('search-date').value;
@@ -226,7 +226,12 @@ function fetchJobs(page = 1) {
 
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const xhr = new XMLHttpRequest();
-  xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&date=${date}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+  if(url){
+    xhr.open('GET', url, true);
+  }else{
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&date=${date}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+  }
+  
   xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
 
   xhr.onload = function() {
@@ -241,58 +246,128 @@ function fetchJobs(page = 1) {
                                           ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
                                               :job.clientToBill.name
                                           : job.pickup.namdeOfAddress;
-              const jobRow = `
-                  <tr>
-                      <td>${job.id}</td>
-                      <td class="no-padding">
-                          <img src='${job.urlToLogo}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
-                          <span>${job.clientName}</span>
-                      </td>
-                      <td>${job.date}</td>
-                      <td>
-                          <div>
-                              <span>${addressNameToDisplay}</span>
-                              <span class="info-icon">
-                                  <i class="bi bi-info-circle-fill"></i>
-                                  <span class="tooltip">
-                                      ${job.pickup.fullAddress}
-                                  </span>
-                              </span>
-                          </div>
-                      </td>
-                      <td>
-                          ${job.tasks.map(
-                              task => task.package 
-                                          ? `<div class="row"><div class="col"><blockquote class="blockquote border"><h6>Package No [${packageCounter++}]</h6><p class="mb-0">${task.package.dropoff_name}
-                                                  
-                                                  ${job.hasReturn ? '<i class="bi bi-arrow-counterclockwise" style="color: #00DD00;"></i>' : ''}
-                                          </p><footer class="blockquote-footer"><cite title="Source Title">${task.package.dropoff_adress_line}${task.package.dropoff_postal_code}</cite></footer></blockquote></div></div>` 
-                                                  : '')
-                              .join('')}
-                      </td>
-                      <td></td>
-                      <td><span>&#163;</span><span>${parseFloat(job.price/100,2)}${job.fixed_price ?'':'<i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>'}</span></td>
-                      <td>`+getHtmlOfActionButtonsForTheJob(job.id)+`
-                      </td>
-                  </tr>
-              `;
-              document.getElementById('jobsTableBody').insertAdjacentHTML('beforeend', jobRow);
+            let row = document.createElement('tr');
+            let columnForId =  document.createElement('td');
+            columnForId.textContent = job.id;
+            row.appendChild(columnForId);
+            
+            let columnForLogoAndClientName =  document.createElement('td');
+            columnForLogoAndClientName.className = 'no-padding';
+            let img = document.createElement('img');
+            img.src = job.urlToLogo;
+            img.style.maxWidth = '2rem';
+            img.style.height = 'auto';
+            let span = document.createElement('span');
+            span.textContent = job.clientName;
+            columnForLogoAndClientName.appendChild(img);
+            columnForLogoAndClientName.appendChild(span);
+            row.appendChild(columnForLogoAndClientName);
+            let columnForDate =  document.createElement('td');
+            columnForDate.textContent = job.date;
+            row.appendChild(columnForDate);
+            let columnForAddress =  document.createElement('td');
+            let div = document.createElement('div');
+            let spanAddressName = document.createElement('span');
+            spanAddressName.textContent = addressNameToDisplay;
+            let spanInfoIcon = document.createElement('span');
+            spanInfoIcon.className = 'info-icon';
+            let i = document.createElement('i');
+            i.className = 'bi bi-info-circle-fill';
+            let spanTooltip = document.createElement('span');
+            spanTooltip.className = 'tooltip';
+            spanTooltip.textContent = job.pickup.fullAddress;
+            spanInfoIcon.appendChild(i);
+            spanInfoIcon.appendChild(spanTooltip);
+            div.appendChild(spanAddressName);
+            div.appendChild(spanInfoIcon);
+            columnForAddress.appendChild(div);
+            row.appendChild(columnForAddress);
+            let columnForDropOffs =  document.createElement('td');
+            job.tasks.forEach(task => {
+                if(task.package){
+                    let div = document.createElement('div');
+                    div.className = 'row';
+                    let div2 = document.createElement('div');
+                    div2.className = 'col';
+                    let blockquote = document.createElement('blockquote');
+                    blockquote.className = 'blockquote border';
+                    let h6 = document.createElement('h6');
+                    h6.textContent = `Package No [${packageCounter++}]`;
+                    let p = document.createElement('p');
+                    p.className = 'mb-0';
+                    p.textContent = task.package.dropoff_name;
+                    if(job.hasReturn){
+                        let i = document.createElement('i');
+                        i.className = 'bi bi-arrow-counterclockwise';
+                        i.style.color = '#00DD00';
+                        p.appendChild(i);
+                    }
+                    let footer = document.createElement('footer');
+                    footer.className = 'blockquote-footer';
+                    let cite = document.createElement('cite');
+                    cite.title = 'Source Title';
+                    cite.textContent = task.package.dropoff_adress_line+task.package.dropoff_postal_code;
+                    footer.appendChild(cite);
+                    blockquote.appendChild(h6);
+                    blockquote.appendChild(p);
+                    blockquote.appendChild(footer);
+                    div2.appendChild(blockquote);
+                    div.appendChild(div2);
+                    columnForDropOffs.appendChild(div);
+                }
+            });
+            row.appendChild(columnForDropOffs);
+            let columnForPrice =  document.createElement('td');
+            let span1 = document.createElement('span');
+            span1.textContent = '£';
+            let span2 = document.createElement('span');
+            span2.textContent = parseFloat(job.price/100,2);
+            columnForPrice.appendChild(span1);
+            columnForPrice.appendChild(span2);
+            row.appendChild(columnForPrice);
+            let columnForActions =  document.createElement('td');
+            let jobViewButton   =   document.createElement('button');
+            jobViewButton.className = 'btn btn-success view-btn job-view-btn';
+            jobViewButton.dataset.jobid = job.id;
+            jobViewButton.innerHTML = '<i class="bi bi-eye"></i>';
+            let jobEditButton   =   document.createElement('button');
+            jobEditButton.className = 'btn btn-primary edit-btn job-edit-btn';
+            jobEditButton.dataset.jobid = job.id;
+            jobEditButton.innerHTML = '<i class="bi bi-pen"></i>';
+            let jobDeleteButton   =   document.createElement('button');
+            jobDeleteButton.className = 'btn btn-danger delete-btn job-delete-btn';
+            jobDeleteButton.dataset.jobid = job.id;
+            jobDeleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+            let jobCopyButton   =   document.createElement('button');
+            jobCopyButton.className = 'btn btn-info copy-btn job-copy-btn';
+            jobCopyButton.dataset.jobid = job.id;
+            jobCopyButton.innerHTML = '<i class="fa-solid fa-copy"></i>';
+            columnForActions.appendChild(jobViewButton);
+            columnForActions.appendChild(jobEditButton);
+            columnForActions.appendChild(jobDeleteButton);
+            columnForActions.appendChild(jobCopyButton);
+            row.appendChild(columnForActions);                   
+            document.getElementById('jobsTableBody').appendChild(row);
+            addEventListenerToCopyJobButton_click(jobCopyButton);
+            addEventListenerToDeleteJobButton_click(jobDeleteButton);
+            addEventListenerToEditJobButton_click(jobEditButton);
+            addEventListenerToViewJobButton_click(jobViewButton);
           });
-          document.getElementById('paginationLinks_bottom').innerHTML = data.links;
-          document.getElementById('paginationLinks_top').innerHTML = data.links;
-          addPaginationEventListeners();
-              document.querySelectorAll('.job-copy-btn').forEach(button => {
-        addEventListenerToCopyJobButton(button);
-    });
-    document.querySelectorAll('.job-delete-btn').forEach(button => {
-        addEventListenerToDeleteJobButton(button);
-    });
-    document.querySelectorAll('.job-edit-btn').forEach(button => {
-        addEventListenerToEditJobButton(button);
-    });
-    document.querySelectorAll('.job-view-btn').forEach(button => {
-        addEventListenerToViewJobButton(button);
-    });
+          let botoomPagination = document.getElementById('paginationLinks_bottom');
+          let topPagination = document.getElementById('paginationLinks_top');
+          botoomPagination.innerHTML = data.links;
+          topPagination.innerHTML = data.links;
+          let paginationLinks = botoomPagination.querySelectorAll('a');
+          paginationLinks = [...paginationLinks, ...topPagination.querySelectorAll('a')];
+          paginationLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    console.log(event.target.href);
+                    fetchJobs(undefined, event.target.href);
+                });
+          });
+                
+        //addPaginationEventListeners();
       }
   };
   xhr.send();
@@ -339,9 +414,12 @@ searchInputs.forEach(input => {
     const inputElement = document.getElementById(input.id);
   
     inputElement.addEventListener('input', function() {
-        fetchJobs();
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+            fetchJobs();
+        }, 300);
     });
-  });
+});
 
 addEventListenerToSortButton(sortButton_clientName);
 addEventListenerToSortButton(sortButton_date);
@@ -836,28 +914,28 @@ function copyJob(jobId){
     document.getElementById('jobIdToCopy').value = jobId;
     $('#jobCopyModalWindow').modal('show');
 }
-function addEventListenerToCopyJobButton(button){
+function addEventListenerToCopyJobButton_click(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         const jobId = button.getAttribute('data-jobid');
         copyJob(jobId);
     });
 }
-function addEventListenerToDeleteJobButton(button){
+function addEventListenerToDeleteJobButton_click(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         const jobId = button.getAttribute('data-jobid');
         deleteJob(jobId)
     });
 }
-function addEventListenerToEditJobButton(button){
+function addEventListenerToEditJobButton_click(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         const jobId = button.getAttribute('data-jobid');
         editJob(jobId)
     });
 }
-function addEventListenerToViewJobButton(button){
+function addEventListenerToViewJobButton_click(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         const jobId = button.getAttribute('data-jobid');
@@ -927,18 +1005,6 @@ function checkIf_All_JobCreationFields_HaveInputs(){
     }
     return return_value;
 }
-function add_TaskTypeSelect_EventListener_OnChange(selectElement){
-    selectElement.addEventListener('change', function(event) {
-        const selectedValue = event.target.value;
-        if(selectedValue === 'dropOff'){
-            addInfoAboutPackageToTaskModal();
-        }else{
-            const container =   document.getElementById('package-info');
-            container.innerHTML = '';
-        }
-    });
-}
-
 function setTaskFormSubmitButtonDataOptionToView(){
   document.getElementById('submitTaskform').setAttribute('data-option', 'view');
 }
@@ -1058,9 +1124,7 @@ function setTaskValues(taskId){
         .catch(error => {
             console.error(error);
     });
-}
-// Function that do not work in js vite
- 
+} 
 function set_Some_JobCreationFields_ToDefaultValues(){
     let statusIdField_SelectElement = document.getElementById('statusIdField');
     let courierIdField_SelectElement = document.getElementById('courierIdField');
@@ -1072,18 +1136,23 @@ function set_Some_JobCreationFields_ToDefaultValues(){
     jobDateField.value = "2024-08-19";
 
 }
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.job-copy-btn').forEach(button => {
-        addEventListenerToCopyJobButton(button);
+        addEventListenerToCopyJobButton_click(button);
     });
     document.querySelectorAll('.job-delete-btn').forEach(button => {
-        addEventListenerToDeleteJobButton(button);
+        addEventListenerToDeleteJobButton_click(button);
     });
     document.querySelectorAll('.job-edit-btn').forEach(button => {
-        addEventListenerToEditJobButton(button);
+        addEventListenerToEditJobButton_click(button);
     });
     document.querySelectorAll('.job-view-btn').forEach(button => {
-        addEventListenerToViewJobButton(button);
+        addEventListenerToViewJobButton_click(button);
     });
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');
@@ -1171,8 +1240,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-
-    add_TaskTypeSelect_EventListener_OnChange(document.getElementById('taskTypeField'));
     addTypeHeadSearch($('#clientSearchField'));
     
 
@@ -1209,7 +1276,7 @@ document.addEventListener('DOMContentLoaded', function() {
             toggle_CreateNewTaskButton(true);
             $('#jobModalWindow').modal('show');
         });
-    });
+    });    
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', () => {
             const jobid = button.dataset.jobid;
@@ -1220,7 +1287,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector(`#jobForm`);
             if (form) {
                 form.setAttribute('action', window.ROUTES.WEB.JOB.DELETE);
-                console.log(form.getAttribute('action'));
                 jobIdField.value = jobid;
                 jobIdField.disabled = true;
                 document.getElementById('courierIdField').disabled = true;
