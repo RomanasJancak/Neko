@@ -133,14 +133,7 @@ function createJob(){
         console.error('Error:', error.message);
     });
 }
-function getHtmlOfActionButtonsForTheJob(jobId){
-    return `
-        <button class="btn btn-success view-btn job-view-btn"  data-jobid="${jobId}"><i class="bi bi-eye"></i></button>
-        <button class="btn btn-primary edit-btn job-edit-btn"  data-jobid="${jobId}"><i class="bi bi-pen"></i></button>
-        <button class="btn btn-danger delete-btn job-delete-btn"  data-jobid="${jobId}"><i class="bi bi-trash"></i></button>
-        <button class="btn btn-info copy-btn job-copy-btn"  data-jobid="${jobId}"><i class="fa-solid fa-copy"></i></button>
-    `;
-}
+
 
 function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
@@ -325,15 +318,11 @@ function addEventListenerToSortButton(button){
   });
 }
 const searchInputs = [
-  { id: 'search-id', field: 'id' },
-  { id: 'search-clientName', field: 'name' },
-  { id: 'search-date', field: 'date' },
-  { id: 'search-package', field: 'package' }
+  { id: 'search-id'},
+  { id: 'search-clientName'},
+  { id: 'search-date'},
+  { id: 'search-package'},
 ];
-var sortButton_clientName   =   document.getElementById('button-sort-clientName');
-var sortButton_date   =   document.getElementById('button-sort-date');
-var sortButton_id   =   document.getElementById('button-sort-id');
-
 searchInputs.forEach(input => {
     const inputElement = document.getElementById(input.id);
   
@@ -344,11 +333,15 @@ searchInputs.forEach(input => {
         }, 300);
     });
 });
-
-addEventListenerToSortButton(sortButton_clientName);
-addEventListenerToSortButton(sortButton_date);
-addEventListenerToSortButton(sortButton_id);
-//==================================
+const sortButtons = [
+    { id: 'button-sort-clientName'},
+    { id: 'button-sort-date'},
+    { id: 'button-sort-id'},
+];
+sortButtons.forEach(input => {
+    const inputElement = document.getElementById(input.id);
+    addEventListenerToSortButton(inputElement);
+});
 
 var global_typeOfButtonClickedToOpenJobModal = 'create';
 
