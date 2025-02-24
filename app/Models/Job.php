@@ -189,7 +189,6 @@ class Job extends Model
     // }
     public function calculateShortestRoute($start, $points, $end = null)
     {
-        //dd(!$start);
         if(!$start){
             return [
                 'distance' => 0,
@@ -256,7 +255,6 @@ class Job extends Model
                 $return = $task;
             }
         }
-        //dd($return->fullAddress());
         return $this->calculateShortestRoute($pickup, $dropOffs, $return);
     }
     public function price_distance(){
@@ -374,7 +372,6 @@ class Job extends Model
             }
             
             if (!$isInside) {
-                //dd($task->postalCode());
                 $price = $outOfZonePrice;
                 break;
             }
@@ -515,7 +512,6 @@ class Job extends Model
         });
         // ================
         //echo count($this->tasks);
-        //dd($dropOff_price_array);
         foreach($this->tasks as $task){
             //echo $task->type();
             if($task->type() ==='pickup'){
@@ -554,7 +550,6 @@ class Job extends Model
             }
         }
         $dropOff_price = 0;
-        //dd($dropOff_price_array);
         foreach($dropOff_price_array as $price){
             $dropOff_price += $price;
         }
