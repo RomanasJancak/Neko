@@ -104,15 +104,6 @@
                                 <input type="text" name="reg-addr-country" id="reg-adress-section-adress-country-field" value="" placeholder="Country">    
                             </div>
                         </div>
-                        <div class="col form-group" id="pu-adress-section">
-                            <div class="row">
-                                <label for="pu-adress-section-adress-country-field">Pickup adress : </label>
-                                <input type="text" name="pickup_adress_line" id="pu-adress-section-adress-addressline-field" value="" placeholder="Address line">
-                                <input type="text" name="pickup_postal_code" id="pu-adress-section-adress-postalcode-field" value="" placeholder="Postal code">                                
-                                <input type="text" name="pickup_city" id="pu-adress-section-adress-city-field" value="" placeholder="City">
-                                <input type="text" name="pickup_country" id="pu-adress-section-adress-country-field" value="" placeholder="Country">                                                                
-                            </div>
-                        </div>
                     </div>
                     <div class="row">
                         <div class="col-12" id="container-addresses"></div>
@@ -220,11 +211,6 @@
                         document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
                         document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
 
-                        document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
-                        document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
-                        document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
-                        document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
-
                         document.getElementById('phoneNumberField').value = data.phone;
                         populateWithAddresses(data.addresses);
                     }
@@ -238,10 +224,6 @@
             document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
             document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
             document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
-            document.getElementById('pu-adress-section-adress-country-field').readOnly = false;
-            document.getElementById('pu-adress-section-adress-city-field').readOnly = false;
-            document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = false;
-            document.getElementById('pu-adress-section-adress-addressline-field').readOnly = false;
             document.getElementById('phoneNumberField').readOnly = false;
 
             const submitButton = document.getElementById('submitform');
@@ -267,11 +249,6 @@
                         document.getElementById('reg-adress-section-adress-city-field').value = data.city;
                         document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
                         document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-
-                        document.getElementById('pu-adress-section-adress-country-field').value = data.pickup_country;
-                        document.getElementById('pu-adress-section-adress-city-field').value = data.pickup_city;
-                        document.getElementById('pu-adress-section-adress-postalcode-field').value = data.pickup_postal_code;
-                        document.getElementById('pu-adress-section-adress-addressline-field').value = data.pickup_adress_line;
 
                         document.getElementById('phoneNumberField').value = data.phone;
                     }
