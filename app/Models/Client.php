@@ -79,6 +79,7 @@ class Client extends Model
         $address->model = 'App\Models\Client';
         $address->model_id = $this->id;
         $address->save();
+        return $address;
     }
     public function createAndAddNewAddress($id = false,$name,$type,$address_line_1,$address_line_2,$postalCode,$city,$country,){
         if($id){
@@ -103,7 +104,6 @@ class Client extends Model
             $address->postalCode->delete();
             $address->addNewPostalCode($postalCode);
         }
-        $this->addNewAddress($address);
-        return 'success';
+        return $this->addNewAddress($address);
     }
 }

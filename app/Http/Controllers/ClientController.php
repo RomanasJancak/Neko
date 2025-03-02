@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Address;
+use App\Models\AddOnRule;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
@@ -44,10 +45,11 @@ class ClientController extends Controller
             $client->shortenedName = $request->input('shortenedName');
             $client->country = $request->input('reg-addr-country');
             $client->city = $request->input('reg-addr-city');
-            $client->city = $request->input('reg-addr-postal_code');
-            $client->city = $request->input('reg-addr-address_line');
-            //address_id
+            $client->postal_code = $request->input('reg-addr-postal_code');
+            $client->address_line = $request->input('reg-addr-address_line');
+            $client->save();
             if($request->name ?? false){
+                
                 foreach($request->name as $key => $value){
                     if (isset(
                             //$request->type[$key], 
@@ -57,15 +59,24 @@ class ClientController extends Controller
                             )&&
                             ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
                         {
-                        $client->createAndAddNewAddress($request->address_id[$key],$value, '$request->type[$key]', $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                            
+                            $client->createAndAddNewAddress($request->address_id[$key],$value, '$request->type[$key]', $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                            
                         }
                 }
             }
     
-    
+            
+            $client->addOnRules()->attach(AddOnRule::all()->pluck('id')->toArray());
             $client->save();
 
-            return response()->json(['message' => 'Client created successfully', 'client' => $client], 201);
+            return response()->json([
+                    'message' => 'Client created successfully',
+                    'client' => $client,
+                    'addresses' => $client->getAllAddresses(),
+                ],
+                201
+            );
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
         } catch (\Exception $e) {
@@ -119,8 +130,8 @@ class ClientController extends Controller
         $client->shortenedName = $request->input('shortenedName');
         $client->country = $request->input('reg-addr-country');
         $client->city = $request->input('reg-addr-city');
-        $client->city = $request->input('reg-addr-postal_code');
-        $client->city = $request->input('reg-addr-address_line');
+        $client->postal_code = $request->input('reg-addr-postal_code');
+        $client->address_line = $request->input('reg-addr-address_line');
         //address_id
         if($request->name ?? false){
             foreach($request->name as $key => $value){
