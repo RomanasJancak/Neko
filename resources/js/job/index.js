@@ -21,10 +21,11 @@ function viewJob(jobId) {
         global_typeOfButtonClickedToOpenJobModal = 'view';
 
         const submitButton = document.getElementById('submitform');
-        submitButton.innerHTML = "<i class='bi bi-trash'></i>";
+        submitButton.innerHTML = "<i class='bi bi-eye'></i>";
         submitButton.style.visibility = 'hidden';
         createNewTaskButton.style.visibility = 'hidden';
     }
+    toggle_CreateNewTaskButton(false);
     $('#jobModalWindow').modal('show');
 }
 function editJob(jobId) {
@@ -53,6 +54,7 @@ function editJob(jobId) {
         submitButton.style.visibility = 'visible';
         createNewTaskButton.style.visibility = 'visible';
     }
+    toggle_CreateNewTaskButton(true);
     $('#jobModalWindow').modal('show');
 }
 function deleteJob(jobId) {
@@ -72,6 +74,7 @@ function deleteJob(jobId) {
         statusIdField.disabled = true;
         clientSearchField.disabled = true;
         jobDateField.disabled = true;
+        document.getElementById('jobid').value = jobId;
         
         setJobValues(jobId, 'delete');
         global_typeOfButtonClickedToOpenJobModal = 'delete';
@@ -80,6 +83,7 @@ function deleteJob(jobId) {
         submitButton.style.visibility = 'visible';
         createNewTaskButton.style.visibility = 'hidden';
     }
+    toggle_CreateNewTaskButton(false);
     $('#jobModalWindow').modal('show');
 }
 function createJob(){
@@ -133,8 +137,6 @@ function createJob(){
         console.error('Error:', error.message);
     });
 }
-
-
 function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
@@ -689,6 +691,7 @@ function setReturnCretionButtonVisibility(isEnabled){
     }
 }
 function setJobValues(jobId,buttonClicked){
+    if(jobId === 0){return;}
     const courierIdField    =   document.getElementById('courierIdField');
     const statusIdField    =   document.getElementById('statusIdField');
     const clientSearchField =   document.getElementById('clientSearchField');
@@ -716,8 +719,7 @@ function setJobValues(jobId,buttonClicked){
     const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
 
     const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
-    containerTasks.innerHTML = "";
-    if(jobId === 0){return;}
+    containerTasks.innerHTML = ""; 
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
@@ -1164,94 +1166,6 @@ document.addEventListener('DOMContentLoaded', function() {
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewPickup`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewReturn`));
     addEventListenerToTasksCreationButtons(document.getElementById(`createNewDropOff`));
-
-
-    document.querySelectorAll('.edit-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const jobid         =   button.dataset.jobid;
-            const jobIdField    =   document.getElementById('idField');
-            const courierIdField    =   document.getElementById('courierIdField');
-            const jobName        =   button.dataset.name;
-            const createNewTaskButton   =   document.getElementById('createNewTask'); 
-            const form = document.querySelector(`#jobForm`);
-            if (form) {
-                form.setAttribute('action', window.ROUTES.WEB.JOB.UPDATE);
-                jobIdField.value = jobid;
-                jobIdField.disabled = true;
-                courierIdField.disabled = false;
-                document.getElementById('statusIdField').disabled = false;
-                document.getElementById('clientSearchField').disabled = false;
-                document.getElementById('jobDateField').disabled = false;
-                
-                setJobValues(jobid,'edit');
-                global_typeOfButtonClickedToOpenJobModal = 'edit';
-                let submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "<i class='bi bi-pen'></i>";
-                submitButton.style.visibility = 'visible';
-                createNewTaskButton.style.visibility = 'visible';
-            }
-            toggle_CreateNewTaskButton(true);
-            $('#jobModalWindow').modal('show');
-        });
-    });    
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const jobid = button.dataset.jobid;
-            const jobName = button.dataset.name;
-            const jobIdField    =   document.getElementById('idField');
-            const courierIdField    =   document.getElementById('courierIdField');
-            const createNewTaskButton   =   document.getElementById('createNewTask');
-            const form = document.querySelector(`#jobForm`);
-            if (form) {
-                form.setAttribute('action', window.ROUTES.WEB.JOB.DELETE);
-                jobIdField.value = jobid;
-                jobIdField.disabled = true;
-                document.getElementById('courierIdField').disabled = true;
-                document.getElementById('statusIdField').disabled = true;
-                document.getElementById('clientSearchField').disabled = true;
-                document.getElementById('jobDateField').disabled = true;
-                document.getElementById('jobid').value = jobid;
-                setJobValues(jobid,'delete');
-                global_typeOfButtonClickedToOpenJobModal = 'delete';
-
-                let submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
-                submitButton.style.visibility = 'visible';
-                createNewTaskButton.style.visibility = 'hidden';
-            }
-            toggle_CreateNewTaskButton(false);
-            $('#jobModalWindow').modal('show');
-        });
-    });
-    document.querySelectorAll('.view-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            const jobid = button.dataset.jobid;
-            const jobName = button.dataset.name;
-            const jobIdField    =   document.getElementById('idField');
-            const courierIdField    =   document.getElementById('courierIdField');
-            const createNewTaskButton   =   document.getElementById('createNewTask');
-            const form = document.querySelector(`#jobForm`);
-            if (form) {
-                form.setAttribute('action', "");
-                jobIdField.value = jobid;
-                jobIdField.disabled = true;
-                document.getElementById('courierIdField').disabled = true;
-                document.getElementById('statusIdField').disabled = true;
-                document.getElementById('clientSearchField').disabled = true;
-                document.getElementById('jobDateField').disabled = true;
-                document.getElementById('jobid').value = jobid;
-                setJobValues(jobid,'view');
-                global_typeOfButtonClickedToOpenJobModal = 'view';
-                let submitButton = document.getElementById('submitform');
-                submitButton.innerHTML = "<i class='bi bi-trash'></i>";
-                submitButton.style.visibility = 'hidden';
-                createNewTaskButton.style.visibility = 'hidden';
-
-            }
-            toggle_CreateNewTaskButton(false);
-            $('#jobModalWindow').modal('show');
-        });
-    });
     document.getElementById('createJobButton').addEventListener('click', () => {
             const createNewTaskButton   =   document.getElementById('createNewTask');
             createNewTaskButton.style.visibility = 'visible';
@@ -1261,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (form) {
                 global_typeOfButtonClickedToOpenJobModal = 'create';
                 set_Some_JobCreationFields_ToDefaultValues();
-
+                document.getElementById('container-tasks').innerHTML = '';
                 document.getElementById('idField').value = '';
                 document.getElementById('courierIdField').disabled = false;
                 document.getElementById('statusIdField').disabled = false;
@@ -1294,6 +1208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
       
         if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
+            console.log('is creatin job');
             createJob();
         }else {
 
