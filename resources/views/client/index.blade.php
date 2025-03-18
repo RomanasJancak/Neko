@@ -77,55 +77,50 @@
 </div>
 
 <!-- Edit Modal -->
-<div class="modal fade" id="modalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal" id="modalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="ModalLabel">Edit Client</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body">
-                <form id="statusForm" action="" method="POST">
-                    @csrf
-                    <div class="row">
-                        <div class="col">
-                            <input type="hidden" name="clientid" id="clientid" value="">
-                            <label for="nameField">Name : </label>
-                            <input type="text" name="clientname" id="nameField" value="" >
-                        </div>
-                        <div class="col">
-                            <label for="nameField">Short name : </label>
-                            <input type="text" name="shortenedName" id="shortenedNameField" value="" >
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col form-group" id="reg-adress-section">
-                            <div class="row">
-                                <label for="reg-adress-section-adress-country-field">Registration adress : </label>
-                                <input type="text" name="reg-addr-address_line" id="reg-adress-section-adress-addressline-field" value="" placeholder="Address line">
-                                <input type="text" name="reg-addr-postal_code" id="reg-adress-section-adress-postalcode-field" value="" placeholder="Postal code">
-                                <input type="text" name="reg-addr-city" id="reg-adress-section-adress-city-field" value="" placeholder="City">
-                                <input type="text" name="reg-addr-country" id="reg-adress-section-adress-country-field" value="" placeholder="Country">    
+                <div class="container-fluid">
+                    <form class="row" id="statusForm" action="" method="POST">
+                        @csrf
+                        <input type="hidden" name="clientid" id="clientid" value="">
+                        <div class="col-lg-4 order-lg-1">
+                            <div class="mb-0">
+                                <label for="nameField" class="form-label">Name:</label>
+                                <input type="text" name="clientname" id="nameField" class="form-control" value="">
+                            </div>
+                            <div class="mb-3">
+                                <label for="shortenedNameField" class="form-label">Short name:</label>
+                                <input type="text" name="shortenedName" id="shortenedNameField" class="form-control" value="">
+                            </div>
+                            <div class="mb-3">
+                                <label for="reg-adress-section-adress-addressline-field" class="form-label">Registration address:</label>
+                                <input type="text" name="reg-addr-address_line" id="reg-adress-section-adress-addressline-field" class="form-control mb-2" value="" placeholder="Address line">
+                                <input type="text" name="reg-addr-postal_code" id="reg-adress-section-adress-postalcode-field" class="form-control mb-2" value="" placeholder="Postal code">
+                                <input type="hidden" name="reg-addr-city" id="reg-adress-section-adress-city-field" class="form-control mb-2" value="London" placeholder="City">
+                                <input type="hidden" name="reg-addr-country" id="reg-adress-section-adress-country-field" class="form-control mb-2" value="United Kingdom" placeholder="Country">
+                            </div>
+                            <div class="mb-3">
+                                <label for="phoneNumberField" class="form-label"><i class="fa-solid fa-phone"></i>:</label>
+                                <input type="text" name="phone" id="phoneNumberField" class="form-control" value="">
+                            </div>
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-success btn-sm" id="button-add-address">
+                                    <i class="fa fa-plus-circle"></i> Add address
+                                </button>
+                            </div>
+                            <div class="mb-3">
+                                <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12" id="container-addresses"></div>
-                        <div class="col-12">
-                            <span>Add address</span>
-                            <button type="button" class="btn btn-success btn-xs text-success" style="background: none; border: none;" id='button-add-address'>
-                                <i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <label for="phoneNumberField"><i class="fa-solid fa-phone"></i> : </label>
-                            <input type="text" name="phone" id="phoneNumberField" value="" >
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
-                        </div>
-                    </div>
-                </form>
+                        <div class="col-lg-8 order-lg-2 mb-3" id="container-addresses"></div>
+                    </form>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -133,6 +128,7 @@
         </div>
     </div>
 </div>
+
 @endsection
 
 @section('scripts')
@@ -250,6 +246,7 @@
                         document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
                         document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
 
+
                         document.getElementById('phoneNumberField').value = data.phone;
                     }
                 })
@@ -275,6 +272,7 @@
     }
 
 document.addEventListener('DOMContentLoaded', function() {
+    $('#modalWindow').modal('show');
         document.getElementById('button-add-address').addEventListener('click', function(e) {
             e.preventDefault();
             //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
