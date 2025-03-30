@@ -368,6 +368,7 @@ function addEventListenerToTasksCreationButtons(button){
                 taskTypeField.selectedIndex = 0;
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'hidden';
+                document.getElementById('submitTaskform').setAttribute('data-option', 'create');
                 break;
             case 'createNewDropOff':
                 setReadOnlyToFieldsOfTaskModal(false);
@@ -376,6 +377,8 @@ function addEventListenerToTasksCreationButtons(button){
                 taskTypeField.selectedIndex = 1;
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'hidden';
+                document.getElementById('submitTaskform').setAttribute('data-option', 'create');
+                console.log('this');
                 break;
             case 'createNewReturn':
                 setReadOnlyToFieldsOfTaskModal(false);
@@ -384,6 +387,7 @@ function addEventListenerToTasksCreationButtons(button){
                 taskTypeField.selectedIndex = 2;
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'visible';
+                document.getElementById('submitTaskform').setAttribute('data-option', 'create');
                 break;
         }
         if(taskTypeField.value === 'dropOff'){
