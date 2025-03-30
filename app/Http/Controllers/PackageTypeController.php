@@ -194,9 +194,9 @@ class PackageTypeController extends Controller
     {
         try{
             $client = Client::findOrFail($request->clientId);
-
+            $packageTypes = $client->packageTypes;
             return response()->json([
-                'message' => 'Client found successfully.'
+                'packageTypes' => $packageTypes
             ]);
         } catch (\Exception $e){
             return response()->json(['error' => $e->getMessage(),
@@ -204,5 +204,13 @@ class PackageTypeController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
+    public function fetchPackageTypes(Request $request)
+    {
+        $packageTypes = PackageType::orderBy('id', 'asc')->get();
+        return response()->json([
+            'packageTypes' => $packageTypes
+        ]);
+    }
+    
 
 }

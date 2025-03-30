@@ -20,6 +20,10 @@ window.ROUTES = {
         SEARCHADDRESSES:  window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClientAddresses',
         GETINFO: window.location.href.split('/').slice(0, -1).join('/')+'/get-client-info/:id',
         SEARCH: window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClients',
+        FETCHPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchPackageTypes/:id',
+        FETCHUNASSIGNEDPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchUnassignedPackageTypes/:id',
+        ADDPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/addPackageType',
+        REMOVEPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/removePackageType',
       },
       ADDRESS:{
         GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/addresses/getAddressInfo/:id',

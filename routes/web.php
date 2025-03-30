@@ -78,6 +78,10 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('searchClients',    [ClientController::class, 'searchClients'])->name('client.searchClients')->middleware('auth');
     Route::get('searchClientAddresses',    [ClientController::class, 'searchClientAddresses'])->name('client.searchClientAddresses')->middleware('auth');
     Route::get('fetchClientsPaginate', [ClientController::class, 'fetchClientsPaginate'])->name('client.fetch')->middleware('auth');
+    Route::get('fetchPackageTypes/{id}', [ClientController::class, 'fetchPackageTypes'])->name('client.fetchPackageTypes')->middleware('auth');
+    Route::get('fetchUnassignedPackageTypes/{client}', [ClientController::class, 'fetchUnassignedPackageTypes'])->name('client.fetchUnassignedPackageTypes')->middleware('auth');
+    Route::post('addPackageType', [ClientController::class, 'addPackageType'])->name('client.addPackageType')->middleware('auth');
+    Route::post('removePackageType', [ClientController::class, 'removePackageType'])->name('client.removePackageType')->middleware('auth');
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');

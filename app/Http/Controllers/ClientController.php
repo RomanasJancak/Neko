@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\Address;
 use App\Models\AddOnRule;
+use App\Models\PackageType;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
@@ -21,9 +22,9 @@ class ClientController extends Controller
     public function index()
     {
         $clients = Client::latest()->paginate(10);
-
+        $packageTypes = PackageType::all();
         return view('client.index'
-        , compact('clients'));
+        , compact('clients', 'packageTypes'));
     }
 
     /**
@@ -347,5 +348,63 @@ class ClientController extends Controller
                 'line' => $e->getLine(),], 500);
         }
     }
+    public function fetchPackageTypes(Client $id)
+    {
+        try {
+            return response()->json([
+                'packageTypes' => $id->packageTypes,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
+    }
+    public function fetchUnassignedPackageTypes(Client $client)
+    {
+        try {
+            $assignedPackageTypeIds = $client->packageTypes->pluck('id')->toArray();
+            $unassignedPackageTypes = PackageType::whereNotIn('id', $assignedPackageTypeIds)->get();
 
+            return response()->json([
+                'packageTypes' => $unassignedPackageTypes,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
+    }
+    public function addPackageType(Request $request)
+    {
+        try {
+            $client = Client::find($request->client_id);
+            $client->packageTypes()->attach($request->package_type_id);
+
+            return response()->json([
+                'message' => 'Package type added successfully.',
+                'request' => $request->all(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
+    }
+    public function removePackageType(Request $request)
+    {
+        try {
+            $client = Client::find($request->client_id);
+            $client->packageTypes()->detach($request->package_type_id);
+
+            return response()->json([
+                'message' => 'Package type removed successfully.',
+                'request' => $request->all(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
+    }
 }

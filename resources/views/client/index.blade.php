@@ -76,7 +76,7 @@
     </div>
 </div>
 
-<!-- Edit Modal -->
+<!-- Client windwo Modal -->
 <div class="modal" id="modalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -113,6 +113,9 @@
                                 <button type="button" class="btn btn-success btn-sm" id="button-add-address">
                                     <i class="fa fa-plus-circle"></i> Add address
                                 </button>
+                                <button type="button" class="btn btn-info btn-sm" id="button-view-packages">
+                                    View packages
+                                </button>
                             </div>
                             <div class="mb-3">
                                 <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
@@ -128,7 +131,47 @@
         </div>
     </div>
 </div>
-
+<!-- Packages view window-->
+<div class="modal" id="modalWindow-packages" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="ModalLabel">Packages</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Packages view window-->
+<!-- Add new package from selection modal window-->
+<div class="modal" id="modalWindow-packages-addNewFromList" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="ModalLabel">Add new Package</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="packageTypeSelect">Select Package Type:</label>
+                    <select id="packageTypeSelect" class="form-control">
+                        <option value="0" disabled selected>Select a package type</option>
+                    </select>
+                </div>
+                <button class="btn btn-secondary" id="button_addSelectedPackageType" disabled>Add selected packageType</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div> 
+<!-- End of Add new package from selection modal window-->
 @endsection
 
 @section('scripts')
@@ -154,7 +197,6 @@
                 return response.json();
             })    .then(data => {
 
-                console.log(data);
 
             })
             .catch(error => {
@@ -169,7 +211,6 @@
         const container = document.getElementById('container-addresses');
         //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" value="${address.type}" placeholder="Type"></div>
         container.innerHTML = '';
-        console.log(addresses);
         addresses.forEach(address => {
         const addressRow = `
         <div class="row">
@@ -270,9 +311,138 @@
         }
         $('#modalWindow').modal('show');
     }
+    function fetchPackageTypes(clientId){
+        const routeUrl = window.ROUTES.WEB.CLIENT.FETCHPACKAGETYPES.replace(':id', clientId);
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    populate_Container_withPackageTypes(data.packageTypes);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+    function populate_Container_withPackageTypes(packageTypes){
+        const modalBody = document.getElementById('modalWindow-packages').querySelector('.modal-body');
+        modalBody.innerHTML = '';
+        const container = document.createElement('div');
+        container.className = 'container-fluid d-flex flex-wrap';
+        modalBody.appendChild(container);
+        container.innerHTML = '';
+        packageTypes.forEach(packageType => {
+            const packageTypeCard = `
+                <div class="card m-2" style="flex: 1 1 calc(33.333% - 1rem); max-width: calc(33.333% - 1rem);">
+                    <div class="card-header">
+                        ${packageType.name} <button class="btn btn-danger">
+                                                <i class="fa fa-circle-minus packageTypeRemovalButton" data-packagetypeid = ${packageType.id} aria-hidden="true" style="color: inherit;"></i>
+                                            </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-auto">
+                                <p><strong>Price:</strong> ${packageType.price}</p>
+                            </div>
+                            <div class="col-auto">
+                                <p><strong>Max before oversize :</strong> ${packageType.baseQuantityThreshold}</p>
+                            </div>
+                            <div class="col-auto">
+                                <p><strong>Maximum allowed to order in a job :</strong> ${packageType.maxQuantityThreshold}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', packageTypeCard);
+        });
+        document.querySelectorAll('.packageTypeRemovalButton').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const clientId = document.getElementById('clientid').value;
+                const packageTypeId = e.target.getAttribute('data-packagetypeid');
+                if(clientId){
+                    removePackageTypeFromClient(clientId, packageTypeId);
+                }
+            });
+        });
+        const addNewPackageCard = document.createElement('div');
+        addNewPackageCard.className = 'card m-2';
+        addNewPackageCard.style.flex = '1 1 calc(33.333% - 1rem)';
+        addNewPackageCard.style.maxWidth = 'calc(33.333% - 1rem)';
 
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'card-header';
+        cardHeader.textContent = 'Add new package';
+
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+
+        const addButton = document.createElement('button');
+        addButton.className = 'btn btn-primary';
+        addButton.innerHTML = '<i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>';
+
+        cardBody.appendChild(addButton);
+        addNewPackageCard.appendChild(cardHeader);
+        addNewPackageCard.appendChild(cardBody);
+
+        container.appendChild(addNewPackageCard);
+        addClickListenerToAddNewPackageButton(addButton);
+    }
+    function populateSelectionOfUnassignedPackageTypes(packageTypes){
+        const selectELement = document.getElementById('packageTypeSelect');
+        selectELement.innerHTML = '<option value="" disabled selected>Select a package type</option>';
+        packageTypes.forEach(packageType => {
+            const option = document.createElement('option');
+            option.value = packageType.id;
+            option.textContent = packageType.name;
+            selectELement.appendChild(option);
+        });
+    }
+    function addClickListenerToAddNewPackageButton(button) {
+            button.addEventListener('click', function(e){
+                const clientId = document.getElementById('clientid').value;
+                fetch_UnassignedPackageTypes(clientId);
+            });
+    }
+    function fetch_UnassignedPackageTypes(clientId){
+        const routeUrl = window.ROUTES.WEB.CLIENT.FETCHUNASSIGNEDPACKAGETYPES.replace(':id', clientId);
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    populateSelectionOfUnassignedPackageTypes(data.packageTypes);
+                    $('#modalWindow-packages-addNewFromList').modal('show');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+    function removePackageTypeFromClient(clientId, packageTypeId){
+        const routeUrl = window.ROUTES.WEB.CLIENT.REMOVEPACKAGETYPE;
+        fetch(routeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                    package_type_id: packageTypeId,
+                    client_id : clientId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data){
+                fetchPackageTypes(clientId);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
 document.addEventListener('DOMContentLoaded', function() {
-    $('#modalWindow').modal('show');
+        document.getElementById('button_addSelectedPackageType').setAttribute('disabled', 'disabled');
         document.getElementById('button-add-address').addEventListener('click', function(e) {
             e.preventDefault();
             //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
@@ -307,7 +477,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#modalWindow').modal('show');
             });
         });
-
+        document.getElementById('button-view-packages').addEventListener('click',function(e){
+            const clientId = document.getElementById('clientid').value;
+            fetchPackageTypes(clientId);
+            $('#modalWindow-packages').modal('show');
+        });
         document.getElementById('submitform').addEventListener('click', function() {
             // Get form data
             const form = document.getElementById('statusForm');
@@ -318,12 +492,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Define the request type, URL, and set up the request
             xhr.open('POST', form.action, true);
-            xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}'); // Replace with your CSRF token if not using Blade
+            xhr.setRequestHeader('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
             // Handle the response
             xhr.onload = function() {
                 // Process the response if needed
-                console.log(xhr.responseText);
                 //parsedMessage = JSON.parse(xhr.responseText).message;
                 // Handle the response based on the message
             };
@@ -332,7 +505,42 @@ document.addEventListener('DOMContentLoaded', function() {
             xhr.send(formData);
             $('#modalWindow').modal('hide');
         });
-
+        document.getElementById('packageTypeSelect').addEventListener('change', function(e){
+            console.log('change');
+            const button = document.getElementById('button_addSelectedPackageType');
+            if(e.target.value){
+                button.removeAttribute('disabled');
+            }else{
+                button.setAttribute('disabled', 'disabled');
+            }
+        });
+        document.getElementById('button_addSelectedPackageType').addEventListener('click', function(e){
+            const clientId = document.getElementById('clientid').value;
+            const packageTypeId = document.getElementById('packageTypeSelect').value;
+            const routeUrl = window.ROUTES.WEB.CLIENT.ADDPACKAGETYPE;
+            fetch(routeUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    package_type_id: packageTypeId,
+                    client_id : clientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data){
+                    fetchPackageTypes(clientId);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+            $('#modalWindow-packages-addNewFromList').modal('hide');
+            button.setAttribute('disabled', 'disabled');
+        });
         const searchInputs = [
             { id: 'search-id', field: 'id' },
             { id: 'search-name', field: 'name' },
