@@ -116,6 +116,9 @@
                                 <button type="button" class="btn btn-info btn-sm" id="button-view-packages">
                                     View packages
                                 </button>
+                                <button type="button" class="btn btn-info btn-sm" id="button-view-addons">
+                                    View AddOns
+                                </button>
                             </div>
                             <div class="mb-3">
                                 <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
@@ -148,6 +151,21 @@
     </div>
 </div>
 <!-- End of Packages view window-->
+<!-- AddOns view window-->
+<div class="modal" id="modalWindow-addons" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="ModalLabel">AddOns</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 <!-- Add new package from selection modal window-->
 <div class="modal" id="modalWindow-packages-addNewFromList" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -324,6 +342,19 @@
                 console.error(error);
             });
     }
+    function fetchAddOns(clientId){
+        const routeUrl = window.ROUTES.WEB.CLIENT.FETCHADDONS.replace(':id', clientId);
+        fetch(routeUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    //populate_Container_withPackageTypes(data.packageTypes);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
     function populate_Container_withPackageTypes(packageTypes){
         const modalBody = document.getElementById('modalWindow-packages').querySelector('.modal-body');
         modalBody.innerHTML = '';
@@ -481,6 +512,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const clientId = document.getElementById('clientid').value;
             fetchPackageTypes(clientId);
             $('#modalWindow-packages').modal('show');
+        });
+        document.getElementById('button-view-addons').addEventListener('click',function(e){
+            const clientId = document.getElementById('clientid').value;
+            //fetchAddOns(clientId);
+            $('#modalWindow-addons').modal('show');
         });
         document.getElementById('submitform').addEventListener('click', function() {
             // Get form data

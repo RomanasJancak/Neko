@@ -360,6 +360,18 @@ class ClientController extends Controller
                 'line' => $e->getLine(),], 500);
         }
     }
+    public function fetchAddOns(Client $id)
+    {
+        try {
+            return response()->json([
+                'addOns' => $id->addOnRules,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),], 500);
+        }
+    }
     public function fetchUnassignedPackageTypes(Client $client)
     {
         try {

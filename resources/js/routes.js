@@ -21,6 +21,7 @@ window.ROUTES = {
         GETINFO: window.location.href.split('/').slice(0, -1).join('/')+'/get-client-info/:id',
         SEARCH: window.location.href.split('/').slice(0, -1).join('/')+'/clients/searchClients',
         FETCHPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchPackageTypes/:id',
+        FETCHADDONS: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchAddOns/:id',
         FETCHUNASSIGNEDPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchUnassignedPackageTypes/:id',
         ADDPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/addPackageType',
         REMOVEPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/removePackageType',

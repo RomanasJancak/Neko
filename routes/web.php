@@ -82,6 +82,10 @@ Route::group(['prefix' => 'clients'], function(){
     Route::get('fetchUnassignedPackageTypes/{client}', [ClientController::class, 'fetchUnassignedPackageTypes'])->name('client.fetchUnassignedPackageTypes')->middleware('auth');
     Route::post('addPackageType', [ClientController::class, 'addPackageType'])->name('client.addPackageType')->middleware('auth');
     Route::post('removePackageType', [ClientController::class, 'removePackageType'])->name('client.removePackageType')->middleware('auth');
+    Route::get('fetchAddOns/{id}', [ClientController::class, 'fetchAddOns'])->name('client.fetchAddOns')->middleware('auth');
+    Route::get('fetchUnassignedAddOns/{client}', [ClientController::class, 'fetchUnassignedAddOns'])->name('client.fetchUnassignedAddOns')->middleware('auth');
+    Route::post('addAddOn', [ClientController::class, 'addAddOn'])->name('client.addAddOn')->middleware('auth');
+    Route::post('removeAddOn', [ClientController::class, 'removeAddOn'])->name('client.removeAddOn')->middleware('auth');
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
