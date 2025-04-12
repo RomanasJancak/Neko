@@ -43,7 +43,7 @@ class TaskController extends Controller
         try{
             $task   =   new Task();
             $task->date             =   $request->input('date');
-            $task->order_number     =   0;
+            $task->order_number = Task::where('job_id', $request->input('jobId'))->max('order_number') + 1;
             $task->job_id           =   $request->input('jobId');
             $task->status_id        =   $request->input('status_id');
             $task->note             =   $request->input('note');
