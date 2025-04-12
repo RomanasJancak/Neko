@@ -257,8 +257,23 @@ class Job extends Model
         }
         return $this->calculateShortestRoute($pickup, $dropOffs, $return);
     }
+    private function calculateDistanceBasedOnTasksOrder()
+    {
+        $tasks = $this->tasks()->orderBy('order_number')->get();
+        $totalDistance = 0;
+
+        for ($i = 0; $i < $tasks->count() - 1; $i++) {
+            $totalDistance += Distance::getDistance(
+                $tasks[$i]->fullAddress(),
+                $tasks[$i + 1]->fullAddress()
+            );
+        }
+
+        return $totalDistance;
+    }
     public function price_distance(){
         $distance = $this->findShortestDistance()['distance']*0.0006213712;
+        $distance = $this->calculateDistanceBasedOnTasksOrder()*0.0006213712;;
         $thresholds = [];
         
         foreach($this->addOns_distance as $addOn){

@@ -34,6 +34,7 @@ return new class extends Migration
             $table->unsignedBigInteger('jobTemplate_id')->nullable();
             $table->date('date');
             $table->bigInteger('fixed_price')->default(0);
+            $table->string('distance_calculation_method')->default('optimal');
         });
     }
 
