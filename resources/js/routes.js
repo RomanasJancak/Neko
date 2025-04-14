@@ -5,6 +5,7 @@ window.ROUTES = {
           DELETE: window.location.href.split('/').slice(0, -1).join('/')+'/tasks/delete',
           STORE:  window.location.href.split('/').slice(0, -1).join('/')+'/tasks/store',
           GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/tasks/getTaskInfo/:id',
+          SWAP_ORDER: window.location.href.split('/').slice(0, -1).join('/')+'/tasks/swap_order',
       },
       JOB: {
         VIEW  : window.location.href.split('/').slice(0, -1).join('/')+'/jobs/view',
