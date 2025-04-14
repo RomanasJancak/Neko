@@ -26,6 +26,7 @@ window.ROUTES = {
         FETCHUNASSIGNEDPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchUnassignedPackageTypes/:id',
         ADDPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/addPackageType',
         REMOVEPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/removePackageType',
+        UPDATEDISTANCERULES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/updateDistanceRules',
       },
       ADDRESS:{
         GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/addresses/getAddressInfo/:id',

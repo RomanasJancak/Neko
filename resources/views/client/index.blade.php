@@ -159,7 +159,9 @@
                 <h6 class="modal-title" id="ModalLabel">AddOns</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="addonsContainer">
+                <div class="col" id="addonsContainer-distanceRules">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -287,7 +289,6 @@
         }
         $('#modalWindow').modal('show');
     }
-
     function deleteClient(clientId) {
         const form = document.querySelector('#statusForm');
         if (form) {
@@ -343,12 +344,124 @@
                 console.error(error);
             });
     }
+    function submitUpdatedDistanceRules(){
+        list = document.querySelectorAll('.list-group-item-distance-rules');
+        const rulesArray = Array.from(list).map(item => {
+            const id = item.id.split('-')[3];
+            const name = item.querySelector('input.n_ames').value;
+            const price = item.querySelector('input.p_rices').value;
+            const display_name = item.querySelector('input.dn_ames').value;
+            const begin_date = item.querySelector('input.begin_dates').value;
+            const end_date = item.querySelector('input.end_dates').value;
+            return { id,name, price, display_name, end_date, begin_date };
+        });
+        const routeUrl = window.ROUTES.WEB.CLIENT.UPDATEDISTANCERULES;
+        fetch(routeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id: document.getElementById('clientid').value,
+                rules: rulesArray
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data){
+                console.log(data);
+                //fetchAddOns(document.getElementById('clientid').value);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+    function makeDistanceRulesEditable(rules){
+        list = document.querySelectorAll('.list-group-item-distance-rules');
+        list.forEach(item => {
+            const itemId = item.id.split('-')[3];
+            const rule = rules.find(rule => rule.id == itemId);
+            item.innerHTML = '<input type="text" class="n_ames form-control " value="'+rule.name+'">';
+            item.innerHTML += '<input type="text" class="p_rices form-control w-25" value="'+rule.price+'">';
+            item.innerHTML += '<input type="text" class="dn_ames form-control " value="'+rule.display_name+'">';
+            item.innerHTML += '<input type="text" class="begin_dates form-control " value="'+rule.begin_date+'">';
+            item.innerHTML += '<input type="text" class="end_dates form-control " value="'+rule.end_date+'">';
+        });
+        editButton = document.getElementById('edit-distance-rules');
+        const saveButton = editButton.cloneNode(true);
+        saveButton.className = 'btn bi bi-save';
+        editButton.replaceWith(saveButton);
+        saveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitUpdatedDistanceRules();
+        });       
+    }
+    function displayDistanceRules(rules){
+        
+        rules = Object.keys(rules).map(key => rules[key]);
+        rules.sort((a, b) => a.name.localeCompare(b.name));
+        const distanceRules = document.getElementById('addonsContainer-distanceRules');
+        const distanceRulesContainer = document.createElement('div');
+        distanceRulesContainer.className = 'alert alert-info';
+        distanceRulesContainer.role = 'alert';
+        const strongElement = document.createElement('strong');
+        const textNode = document.createTextNode("Distance rules:");
+        strongElement.appendChild(textNode);
+        const editbutton = document.createElement('i');
+        editbutton.className = 'btn bi bi-pencil';
+        editbutton.id = 'edit-distance-rules';
+        editbutton.addEventListener('click', function() {
+            makeDistanceRulesEditable(rules);
+        });
+        distanceRulesContainer.appendChild(strongElement);
+        distanceRulesContainer.appendChild(editbutton);   
+        const ulElement = document.createElement('ul');
+        rules.forEach(rule => {
+            const liElement = document.createElement('li');
+            liElement.id = 'list-group-item-'+rule.id;
+            liElement.className = 'list-group-item-distance-rules d-flex';
+            //liElement.style = 'display: flex; justify-content: space-between;';
+            if (rules.indexOf(rule) < rules.length - 1) {
+                
+                const from = rule.name.split('-')[2]; 
+                const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4];
+                const price_based_text = price === 0 ? 'Free' : `each ${step} mile £${price} `;
+                liElement.innerHTML = `${from} - ${to} miles : ${price_based_text}`;
+            }else{
+                const from = rule.name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4]; 
+                liElement.innerHTML = `${from}+ miles : each ${step} mile £${price} `;
+            }
+            ulElement.appendChild(liElement);
+        });
+        distanceRulesContainer.appendChild(ulElement);
+        distanceRules.innerHTML = '';
+        distanceRules.appendChild(distanceRulesContainer);
+        // distanceRules.innerHTML = `
+        //     <div class="alert alert-info" role="alert">
+        //         <strong>Distance rules:</strong> 
+        //         <ul>
+        //             <li>0-5 miles: £10</li>
+        //             <li>5-10 miles: £20</li>
+        //             <li>10-15 miles: £30</li>
+        //             <li>15+ miles: £40</li>
+        //         </ul>
+        //     </div>
+        // `;
+    }
     function fetchAddOns(clientId){
         const routeUrl = window.ROUTES.WEB.CLIENT.FETCHADDONS.replace(':id', clientId);
         fetch(routeUrl)
             .then(response => response.json())
             .then(data => {
                 if (data) {
+                    console.log(data['addOns']);
+                    displayDistanceRules(data.addOns.distanceRules);
                     //populate_Container_withPackageTypes(data.packageTypes);
                 }
             })
@@ -516,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('button-view-addons').addEventListener('click',function(e){
             const clientId = document.getElementById('clientid').value;
-            //fetchAddOns(clientId);
+            fetchAddOns(clientId);
             $('#modalWindow-addons').modal('show');
         });
         document.getElementById('submitform').addEventListener('click', function() {
