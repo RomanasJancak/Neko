@@ -157,7 +157,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h6 class="modal-title" id="ModalLabel">AddOns</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
             </div>
@@ -166,6 +166,7 @@
             </div>
         </div>
     </div>
+</div>
 <!-- Add new package from selection modal window-->
 <div class="modal" id="modalWindow-packages-addNewFromList" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
