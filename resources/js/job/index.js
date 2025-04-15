@@ -396,6 +396,7 @@ function addEventListenerToTasksCreationButtons(button){
             const container =   document.getElementById('package-info');
             container.innerHTML = '';
         }
+        document.getElementById('submitTaskform').disabled = false;
         $('#taskModalWindow').modal('show');
     });
 }
@@ -460,6 +461,7 @@ function addEventListenerToButton(button){
                 submitButton.textContent  = 'Confirm view';
             }
             });
+            document.getElementById('submitTaskform').disabled = false;
         }
         $('#taskModalWindow').modal('show');
     });

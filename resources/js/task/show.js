@@ -66,16 +66,20 @@ function addTypeHeadSearchToTaskWindow(searchInput){
 }
 document.getElementById('submitTaskform').addEventListener('click', function(event) {
     event.preventDefault();
-  const   typeField   =   document.getElementById('taskTypeField');
-  var     route       = '';
-  if(this.getAttribute('data-option') === 'delete'){
-      route = window.ROUTES.WEB.TASK.DELETE;
-  }else if(this.getAttribute('data-option') === 'update'){
-      route = window.ROUTES.WEB.TASK.UPDATE;
-  }else if(this.getAttribute('data-option') === 'view'){
-      return;
-  }else if(this.getAttribute('data-option') === 'create'){
-    route = window.ROUTES.WEB.TASK.STORE;
+    let submitButton = event.target;
+    const   typeField   =   document.getElementById('taskTypeField');
+    var     route       = '';
+    if(this.getAttribute('data-option') === 'delete'){
+        route = window.ROUTES.WEB.TASK.DELETE;
+        submitButton.disabled = true;
+    }else if(this.getAttribute('data-option') === 'update'){
+        route = window.ROUTES.WEB.TASK.UPDATE;
+        submitButton.disabled = true;
+    }else if(this.getAttribute('data-option') === 'view'){
+        return;
+    }else if(this.getAttribute('data-option') === 'create'){
+        route = window.ROUTES.WEB.TASK.STORE;
+        submitButton.disabled = true;
   }
   var  taskSubmitData = {
     jobId       :   document.getElementById('idField').value,
