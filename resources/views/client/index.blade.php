@@ -42,11 +42,6 @@
                             {{$client->postal_code}}<br>
                             {{$client->city}},{{ $client->country }}         
                         </td>
-                        <td>{{$client->pickup_adress_line}}<br>
-                            {{$client->pickup_postal_code}}<br>
-                            {{$client->pickup_city}},{{ $client->pickup_country }} 
-                            
-                        </td>
                         <td>
                             @if($client->phone !== '')
                                 {{$client->phone}}    
