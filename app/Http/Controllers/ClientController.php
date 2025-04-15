@@ -48,6 +48,7 @@ class ClientController extends Controller
             $client->city = $request->input('reg-addr-city');
             $client->postal_code = $request->input('reg-addr-postal_code');
             $client->address_line = $request->input('reg-addr-address_line');
+            $client->phone  =   $request->input('phone');
             $client->save();
             if (!empty($request->name)) {
                 
@@ -141,7 +142,7 @@ class ClientController extends Controller
         $client->city = $request->input('reg-addr-city');
         $client->postal_code = $request->input('reg-addr-postal_code');
         $client->address_line = $request->input('reg-addr-address_line');
-        //address_id
+        $client->phone  =   $request->input('phone');
         if (!empty($request->name)) {
             foreach($request->name as $key => $value){
                 if (isset(
