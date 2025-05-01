@@ -28,7 +28,6 @@
                             <button class="sort-btn" data-sort-field="name" data-sort-order="asc">Sort</button>
                         </th>
                         <th scope="col" data-column="address">Billing Address</th>
-                        <th scope="col" data-column="pickup_address">PU. Address</th>
                         <th scope="col" data-column="phone">Phone number</th>
                         <th scope="col">Actions</th>
                     </tr>
@@ -724,10 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td>${client.address_line}<br>
                                     ${client.postal_code}<br>
                                     ${client.city},${client.country}
-                                </td>
-                                <td>${client.pickup_adress_line}<br>
-                                    ${client.pickup_postal_code}<br>
-                                    ${client.pickup_city},${client.pickup_country}
                                 </td>
                                 <td>
                                     ${client.phone !== '' ? `${client.phone}
