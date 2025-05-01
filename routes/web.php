@@ -87,6 +87,8 @@ Route::group(['prefix' => 'clients'], function(){
     Route::post('addAddOn', [ClientController::class, 'addAddOn'])->name('client.addAddOn')->middleware('auth');
     Route::post('removeAddOn', [ClientController::class, 'removeAddOn'])->name('client.removeAddOn')->middleware('auth');
     Route::post('updateDistanceRules',[ClientController::class, 'updateDistanceRules'])->name('client.updateDistanceRules')->middleware('auth');
+    Route::post('updateWeightRules',[ClientController::class, 'updateWeightRules'])->name('client.updateWeightRules')->middleware('auth');
+
 });
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');

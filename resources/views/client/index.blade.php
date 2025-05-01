@@ -156,6 +156,8 @@
             <div class="modal-body" id="addonsContainer">
                 <div class="col" id="addonsContainer-distanceRules">
                 </div>
+                <div class="col" id="addonsContainer-weightRules">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -338,6 +340,40 @@
                 console.error(error);
             });
     }
+    function submitUpdateWeightRules(){
+        list = document.querySelectorAll('.list-group-item-weight-rules');
+        const rulesArray = Array.from(list).map(item => {
+            const id = item.id.split('-')[3];
+            const name = item.querySelector('input.n_ames').value;
+            const price = item.querySelector('input.p_rices').value;
+            const display_name = item.querySelector('input.dn_ames').value;
+            const begin_date = item.querySelector('input.begin_dates').value;
+            const end_date = item.querySelector('input.end_dates').value;
+            return { id,name, price, display_name, end_date, begin_date };
+        });
+        const routeUrl = window.ROUTES.WEB.CLIENT.UPDATEWEIGHTRULES;
+        fetch(routeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id: document.getElementById('clientid').value,
+                rules: rulesArray
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data){
+                console.log(data);
+                //fetchAddOns(document.getElementById('clientid').value);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });    
+    }
     function submitUpdatedDistanceRules(){
         list = document.querySelectorAll('.list-group-item-distance-rules');
         const rulesArray = Array.from(list).map(item => {
@@ -391,6 +427,69 @@
             e.preventDefault();
             submitUpdatedDistanceRules();
         });       
+    }
+    function makeWeightRulesEditable(rules){
+        list = document.querySelectorAll('.list-group-item-weight-rules');
+        list.forEach(item => {
+            const itemId = item.id.split('-')[3];
+            const rule = rules.find(rule => rule.id == itemId);
+            item.innerHTML = '<input type="text" class="n_ames form-control " value="'+rule.name+'">';
+            item.innerHTML += '<input type="text" class="p_rices form-control w-25" value="'+rule.price+'">';
+            item.innerHTML += '<input type="text" class="dn_ames form-control " value="'+rule.display_name+'">';
+            item.innerHTML += '<input type="text" class="begin_dates form-control " value="'+rule.begin_date+'">';
+            item.innerHTML += '<input type="text" class="end_dates form-control " value="'+rule.end_date+'">';
+        });
+        editButton = document.getElementById('edit-weight-rules');
+        const saveButton = editButton.cloneNode(true);
+        saveButton.className = 'btn bi bi-save';
+        editButton.replaceWith(saveButton);
+        saveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitUpdateWeightRules();
+        });       
+    }
+    function displayWeighteRules(rules){
+        rules = Object.keys(rules).map(key => rules[key]);
+        rules.sort((a, b) => a.name.localeCompare(b.name));
+        const distanceRules = document.getElementById('addonsContainer-weightRules');
+        const distanceRulesContainer = document.createElement('div');
+        distanceRulesContainer.className = 'alert alert-info';
+        distanceRulesContainer.role = 'alert';
+        const strongElement = document.createElement('strong');
+        const textNode = document.createTextNode("Weight rules:");
+        strongElement.appendChild(textNode);
+        const editbutton = document.createElement('i');
+        editbutton.className = 'btn bi bi-pencil';
+        editbutton.id = 'edit-weight-rules';
+        editbutton.addEventListener('click', function() {
+            makeWeightRulesEditable(rules);
+        });
+        distanceRulesContainer.appendChild(strongElement);
+        distanceRulesContainer.appendChild(editbutton);   
+        const ulElement = document.createElement('ul');
+        rules.forEach(rule => {
+            const liElement = document.createElement('li');
+            liElement.id = 'list-group-item-'+rule.id;
+            liElement.className = 'list-group-item-weight-rules d-flex';
+            if (rules.indexOf(rule) < rules.length - 1) {
+                
+                const from = rule.name.split('-')[2]; 
+                const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4];
+                const price_based_text = price === 0 ? 'Free' : `each ${step} kg £${price} `;
+                liElement.innerHTML = `${from} - ${to} kg : ${price_based_text}`;
+            }else{
+                const from = rule.name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4]; 
+                liElement.innerHTML = `${from}+ kg : each ${step} kg £${price} `;
+            }
+            ulElement.appendChild(liElement);
+        });
+        distanceRulesContainer.appendChild(ulElement);
+        distanceRules.innerHTML = '';
+        distanceRules.appendChild(distanceRulesContainer);
     }
     function displayDistanceRules(rules){
         
@@ -456,7 +555,7 @@
                 if (data) {
                     console.log(data['addOns']);
                     displayDistanceRules(data.addOns.distanceRules);
-                    //populate_Container_withPackageTypes(data.packageTypes);
+                    displayWeighteRules(data.addOns.weightRules);
                 }
             })
             .catch(error => {
