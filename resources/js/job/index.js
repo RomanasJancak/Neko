@@ -479,20 +479,20 @@ function setPackageWeightChoosingAbility(selectedValue){
                         const hasWeight = data.extras.some(extra => extra.name === 'weight');
                         if (hasWeight) {
                             inputWeight.removeAttribute('style');
-                            inputWeight.value = 0;
+                            //inputWeight.value = 0;
                             labelForWeight.removeAttribute('style');
                             label.removeAttribute('style');
                         }else{
                             inputWeight.style.display = 'none';
                             labelForWeight.style.display = 'none';
                             label.style.display = 'none';
-                            inputWeight.value = 0;
+                            //inputWeight.value = 0;
                         }
                     }else{
                         inputWeight.style.display = 'none';
                         labelForWeight.style.display = 'none';
                         label.style.display = 'none';
-                        inputWeight.value = 0;
+                        //inputWeight.value = 0;
                     }
                 })
                 .catch(error => {
@@ -546,14 +546,17 @@ function addInfoAboutPackageToTaskModal(pakuote){
                 container.appendChild(label);
 
                 const inputWeight = document.createElement('input');
+                
                 inputWeight.setAttribute('type', 'number');        
                 inputWeight.setAttribute('id', 'weightInput');          
                 inputWeight.setAttribute('name', 'weight');        
-                inputWeight.setAttribute('min', '0');              
-                inputWeight.setAttribute('max', '500');            
+                //inputWeight.setAttribute('min', '0');              
+                //inputWeight.setAttribute('max', '500');            
                 inputWeight.setAttribute('step', '0.1');           
                 inputWeight.setAttribute('placeholder', 'Enter weight'); 
-                inputWeight.setAttribute('required', '');          
+                inputWeight.setAttribute('required', '');
+                inputWeight.setAttribute('value', pakuote.weight);
+                inputWeight.innerHTML = pakuote.weight;          
                 container.appendChild(inputWeight);
                 const labelForWeight = document.createElement('span');
                 labelForWeight.setAttribute('id', 'labelForWeightInput');
@@ -563,16 +566,19 @@ function addInfoAboutPackageToTaskModal(pakuote){
                 if(submitButton.getAttribute('data-option') === 'update'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
+                    inputWeight.disabled = false;
                 }else if(submitButton.getAttribute('data-option') === 'create'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
+                    inputWeight.disabled = false;
                 }else{
                     document.getElementById('packageTypeSelect').disabled = true;
                     document.getElementById('quantityInput').disabled = true;
+                    inputWeight.disabled = true;
                 }
-                inputWeight.style.display = 'none';
-                labelForWeight.style.display = 'none';
-                label.style.display = 'none';
+                //inputWeight.style.display = 'none';
+                //labelForWeight.style.display = 'none';
+                //label.style.display = 'none';
             }
             
         }).then(()=>{
