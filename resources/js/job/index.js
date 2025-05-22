@@ -844,6 +844,7 @@ function setJobValues(jobId,buttonClicked){
     const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
     const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
     const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
+    const jobNoteField = document.getElementById('jobNoteField');
 
     const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
     containerTasks.innerHTML = ""; 
@@ -877,6 +878,10 @@ function setJobValues(jobId,buttonClicked){
                                     .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
                 addDropOffArrangeButtons(jobId,buttonClicked);
             }
+            jobNoteField.innerHTML = data.note;
+            jobNoteField.value = data.note;
+            console.log('data.note :',data.note);
+            console.log('jobNoteField :',jobNoteField);
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
