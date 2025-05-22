@@ -153,10 +153,12 @@
                 <h6 class="modal-title" id="ModalLabel">AddOns</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="addonsContainer">
-                <div class="col" id="addonsContainer-distanceRules">
+            <div class="modal-body row" id="addonsContainer">
+                <div class="col-auto" id="addonsContainer-distanceRules">
                 </div>
-                <div class="col" id="addonsContainer-weightRules">
+                <div class="col-auto" id="addonsContainer-weightRules">
+                </div>
+                <div class="col-auto" id="addonsContainer-timingRules">
                 </div>
             </div>
             <div class="modal-footer">
@@ -448,6 +450,107 @@
             submitUpdateWeightRules();
         });       
     }
+    function displayTimingRules(rules){
+        rules = Object.keys(rules).map(key => {
+            const rule = rules[key];
+            rule.size = parseInt(rule.name.split('-')[3], 10);
+            rule.type = rule.name.split('-')[1];
+            return rule;
+        });
+        const ruleSet = Object.keys(rules.reduce((groupedRules, rule) => {
+            const type = rule.type;
+            if (!groupedRules[type]) {
+            groupedRules[type] = [];
+            }
+            groupedRules[type].push(rule);
+            return groupedRules;
+        }, {})).map(type => ({
+            type: type,
+            rules: rules.filter(rule => rule.type === type)
+        }));
+        ruleSet.forEach(ruleSet => {
+            const rules = ruleSet.rules;
+            rules.sort((a, b) => a.size - b.size);
+            console.log(rules);
+            const distanceRules = document.getElementById('addonsContainer-timingRules');
+            const distanceRulesContainer = document.createElement('div');
+            distanceRulesContainer.className = 'alert alert-info';
+            distanceRulesContainer.role = 'alert';
+            const strongElement = document.createElement('strong');
+            const textNode = document.createTextNode(""+ruleSet.type+" timing rules:");
+            strongElement.appendChild(textNode);
+            const editbutton = document.createElement('i');
+            editbutton.className = 'btn bi bi-pencil';
+            editbutton.id = 'edit-timing-rules';
+            editbutton.addEventListener('click', function() {
+                makeDistanceRulesEditable(rules);
+            });
+            distanceRulesContainer.appendChild(strongElement);
+            distanceRulesContainer.appendChild(editbutton);
+            const ulElement = document.createElement('ul');
+            rules.forEach(rule => {
+                //console.log(rule);
+                const liElement = document.createElement('li');
+                liElement.id = 'list-group-item-'+rule.id;
+                liElement.className = 'list-group-item-timing-rules d-flex';
+                if (rules.indexOf(rule) < rules.length - 1) {
+                    const from = rule.name.split('-')[3]; 
+                    const to = rules[rules.indexOf(rule)+1].name.split('-')[3]; 
+                    const price = parseFloat(rule.price/100);
+                    const step = rule.name.split('-')[4];
+                    const price_based_text = price === 0 ? 'Free' : `each ${step} minutes £${price} `;
+                    liElement.innerHTML = `${from} - ${to} minutes : ${price_based_text}`;
+                }else{
+                    const from = rule.name.split('-')[2]; 
+                    const price = parseFloat(rule.price/100);
+                    const step = rule.name.split('-')[4]; 
+                    liElement.innerHTML = `${from}+ minutes : each ${step} minutes £${price} `;
+                }
+                ulElement.appendChild(liElement);
+            });
+            distanceRulesContainer.appendChild(ulElement);            
+            distanceRules.appendChild(distanceRulesContainer);   
+        });
+        // rules.sort((a, b) => a.name.localeCompare(b.name));
+        // const distanceRules = document.getElementById('addonsContainer-timingRules');
+        // const distanceRulesContainer = document.createElement('div');
+        // distanceRulesContainer.className = 'alert alert-info';
+        // distanceRulesContainer.role = 'alert';
+        // const strongElement = document.createElement('strong');
+        // const textNode = document.createTextNode("Timing rules:");
+        // strongElement.appendChild(textNode);
+        // const editbutton = document.createElement('i');
+        // editbutton.className = 'btn bi bi-pencil';
+        // editbutton.id = 'edit-timing-rules';
+        // editbutton.addEventListener('click', function() {
+        //     makeDistanceRulesEditable(rules);
+        // });
+        // distanceRulesContainer.appendChild(strongElement);
+        // distanceRulesContainer.appendChild(editbutton);   
+        // const ulElement = document.createElement('ul');
+        // rules.forEach(rule => {
+        //     const liElement = document.createElement('li');
+        //     liElement.id = 'list-group-item-'+rule.id;
+        //     liElement.className = 'list-group-item-timing-rules d-flex';
+        //     if (rules.indexOf(rule) < rules.length - 1) {
+        //         const from = rule.name.split('-')[2]; 
+        //         const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+        //         const price = parseFloat(rule.price/100);
+        //         const step = rule.name.split('-')[4];
+        //         const price_based_text = price === 0 ? 'Free' : `each ${step} minutes £${price} `;
+        //         liElement.innerHTML = `${from} - ${to} minutes : ${price_based_text}`;
+        //     }else{
+        //         const from = rule.name.split('-')[2]; 
+        //         const price = parseFloat(rule.price/100);
+        //         const step = rule.name.split('-')[4]; 
+        //         liElement.innerHTML = `${from}+ minutes : each ${step} minutes £${price} `;
+        //     }
+        //     ulElement.appendChild(liElement);
+        // });
+        // distanceRulesContainer.appendChild(ulElement);
+        // distanceRules.innerHTML = '';
+        // distanceRules.appendChild(distanceRulesContainer);
+    }
     function displayWeighteRules(rules){
         rules = Object.keys(rules).map(key => rules[key]);
         rules.sort((a, b) => a.name.localeCompare(b.name));
@@ -535,17 +638,6 @@
         distanceRulesContainer.appendChild(ulElement);
         distanceRules.innerHTML = '';
         distanceRules.appendChild(distanceRulesContainer);
-        // distanceRules.innerHTML = `
-        //     <div class="alert alert-info" role="alert">
-        //         <strong>Distance rules:</strong> 
-        //         <ul>
-        //             <li>0-5 miles: £10</li>
-        //             <li>5-10 miles: £20</li>
-        //             <li>10-15 miles: £30</li>
-        //             <li>15+ miles: £40</li>
-        //         </ul>
-        //     </div>
-        // `;
     }
     function fetchAddOns(clientId){
         const routeUrl = window.ROUTES.WEB.CLIENT.FETCHADDONS.replace(':id', clientId);
@@ -553,9 +645,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    console.log(data['addOns']);
                     displayDistanceRules(data.addOns.distanceRules);
                     displayWeighteRules(data.addOns.weightRules);
+                    displayTimingRules(data.addOns.timingRules);
                 }
             })
             .catch(error => {

@@ -471,6 +471,9 @@ class ClientController extends Controller
                     'weightRules' => $id->addOnRules->filter(function ($rule) {
                         return strpos($rule->name, 'weight') === 0;
                     }),
+                    'timingRules' => $id->addOnRules->filter(function ($rule) {
+                        return strpos($rule->name, 'time') === 0;
+                    }),
                 ],            
             ]);
         } catch (\Exception $e) {
