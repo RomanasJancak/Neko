@@ -1123,6 +1123,7 @@ function setTaskValues(taskId){
     const timeBeginField   =   document.getElementById('taskTimeBegin');
     const timeEndField   =   document.getElementById('taskTimeEnd');
     const crateCollection   =   document.getElementById('crateCollection');
+    const taskNoteField  =   document.getElementById('taskNoteField');
     idField.value = taskId;
     idField.disabled =  true;
     typeField.disabled =  true;
@@ -1137,6 +1138,8 @@ function setTaskValues(taskId){
             addressCityField.value          =   data.address.city;
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
+            taskNoteField.value             =   data.note;
+            taskNoteField.innerHTML         =   data.note;
             const dateBegin = new Date(data.time.begin);
             const dateEnd = new Date(data.time.end);
             timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
