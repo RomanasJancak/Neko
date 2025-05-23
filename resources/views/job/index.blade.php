@@ -402,6 +402,7 @@
             <div class="modal-footer">
                 <input type="hidden" name="jobIdToCopy" id="jobIdToCopy" value="">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" id="CopyJobClipboard">Copy to clip</button>
                 <button type="button" class="btn btn-primary" id="confirmCopyJob">Confirm</button>
             </div>
         </div>

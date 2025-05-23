@@ -880,8 +880,6 @@ function setJobValues(jobId,buttonClicked){
             }
             jobNoteField.innerHTML = data.note;
             jobNoteField.value = data.note;
-            console.log('data.note :',data.note);
-            console.log('jobNoteField :',jobNoteField);
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
@@ -1216,6 +1214,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');
+    const createJobFromClipboard = document.getElementById('createJobFromClipboard');
+    const CopyJobClipboard = document.getElementById('CopyJobClipboard');
+    createJobFromClipboard.addEventListener('click', async function(event) {
+        event.preventDefault();
+        try {
+            const jobId = document.getElementById('jobIdToCopy').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Wait for clipboard text:
+            const clipboardText = await navigator.clipboard.readText();
+
+            const response = await fetch(window.ROUTES.WEB.JOB.STOREFROMSTRING, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ job_string: clipboardText })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                //$('#jobModalWindow').modal('hide');
+                editJob(data.data.jobId);
+            } else {
+                console.error('Error copying job:', data);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    CopyJobClipboard.addEventListener('click', function(event){
+        event.preventDefault();
+        const jobId = document.getElementById('jobIdToCopy').value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(window.ROUTES.WEB.JOB.GETJOBTOSTRING.replace(':id', jobId), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            //body: JSON.stringify({id: jobId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                navigator.clipboard.writeText(data.data.Job_to_json)
+                .then(() => alert('Copied to clipboard!'))
+                .catch(err => console.error('Failed to copy: ', err));
+            } else {
+                console.error('Error copying job:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
     confirmCopyJob.addEventListener('click',function(event){
         event.preventDefault();
         const jobId = document.getElementById('jobIdToCopy').value;

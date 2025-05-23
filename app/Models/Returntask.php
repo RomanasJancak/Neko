@@ -16,7 +16,8 @@ class Returntask extends Model
         'adress_line',
         'time_begin',
         'time_end',
-        'task_id'
+        'task_id',
+        'status_id',
     ];
     public function task()
     {

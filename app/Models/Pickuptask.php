@@ -17,6 +17,7 @@ class Pickuptask extends Model
         'pickup_time_begin',
         'pickup_time_end',
         'task_id',
+        'status_id',
     ];
     public function nameOfAddress(){
         return $this->pickupclientname;

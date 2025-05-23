@@ -399,14 +399,98 @@ class JobController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
+    public function storeFromString(Request $request){
+        try{
+            $jobData = json_decode($request->input('job_string'), true);
+            $jobArray = collect($jobData)->except(['id', 'tasks'])->toArray();
+            $job = new Job($jobArray);
+            $job->save();
+            foreach ($jobData['tasks'] as $taskWrapper) {
+                $taskData = collect($taskWrapper['task'])->except(['id', 'pickup', 'package', 'return'])->toArray();
+                $taskData['job_id'] = $job->id;
+                $task = new Task($taskData);
+                $task->save();
+                $type = $taskWrapper['type'];
+                $attributes = $taskWrapper['attributes'];
+                $attributes['task_id'] = $task->id;
+                switch ($type) {
+                case 'pickup':
+                    Pickuptask::create($attributes);
+                    break;
+                case 'package':
+                    Package::create($attributes);
+                    break;
+                case 'return':
+                    Returntask::create($attributes); // assuming the model name is ReturnDelivery
+                    break;
+            }
+
+            }
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Job copied successfully. ',
+                'data'      => [
+                    'request'   =>  $request->all(),
+                    'jobToArray'   =>  $jobData,
+                    'jobToArrayWithoutTasks'   =>  $jobArray,
+                    'jobId'       =>  $job->id,
+                ],
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'request'   =>  $request->all(),
+            ], 500);
+        
+        }
+    }
+    public function getJobToString($jobId){
+        try{
+            $job = Job::find($jobId);
+            $newJob_array = $job->toArray();
+            $newJob_array['tasks'] = $job->tasks->map(function ($task) {
+                $subtaskType = null;
+                $subtaskData = null;
+                if ($task->pickup) {
+                    $subtaskType = 'pickup';
+                    $subtaskData = $task->pickup->toArray();
+                } elseif ($task->package) {
+                    $subtaskType = 'package';
+                    $subtaskData = $task->package->toArray();
+                } elseif ($task->return) {
+                    $subtaskType = 'return';
+                    $subtaskData = $task->return->toArray();
+                }
+                return [
+                    'id' => $task->id,
+                    'task' => $task->toArray(),
+                    'type' => $subtaskType,
+                    'attributes' => $subtaskData,
+                ];
+            });
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Job string representation fetched successfully. ',
+                'data'      => [
+                    'Job_to_array'   =>  $newJob_array,
+                    'Job_to_json'    =>  json_encode($newJob_array),
+                ],
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+
+            ], 500);
+        
+        }
+    }
     public function copy(Request $request,Job $job){
         try{
-            //dd($request->all());
+
             $job = Job::find($request->id);
             $newJob = $job->replicate()->fill([
-                //'eilesNumeris'  =>  0,
-                //'status_id'     =>  $job->status_id,
-
             ]);
             $newJob->save();
             foreach($job->tasks as $task){
@@ -414,6 +498,7 @@ class JobController extends Controller
                     'job_id'    =>  $newJob->id,
                 ]);
                 $newTask->save();
+                $task_string = (string) $task;
                 if(isset($task->pickup)){
 
                     $newPickup = $task->pickup->replicate()->fill([
@@ -434,12 +519,17 @@ class JobController extends Controller
                     $newReturn->save();
                 }
             }
-            
+            $newJob->refresh();
+            $newJob->save();
+
+            //$newJob_array = json_encode($newJob_array, JSON_PRETTY_PRINT);
             return response()->json([
                 'success'   => true,
                 'message'   => 'Job copied successfully. ',
                 'data'      => [
                     'NewJobId'   =>  $newJob->id,
+                    //'NewJobStringRepresentation'   =>  $newJob_string,
+                    //'NewJobArrayRepresentation'   =>  $newJob_array,
                 ],
             ]);
         } catch (\Exception $e){
