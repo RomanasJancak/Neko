@@ -242,7 +242,7 @@
 
 </div>
 <!-- Modal job begin -->
-<div class="modal fade" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+<div class="modal fade" data-bs-backdrop="static" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="row g-0">
@@ -368,7 +368,7 @@
 <!-- Modal job end -->
 
 <!-- Modal task begin -->
-<div class="modal fade" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+<div class="modal fade" data-bs-backdrop="static" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -389,7 +389,7 @@
 
 <!-- Modal task end -->
 <!-- Modal job copy window begin-->
-<div class="modal fade" id="jobCopyModalWindow" tabindex="-1" aria-labelledby="jobCopyModalLabel" aria-hidden="true">
+<div class="modal fade" data-bs-backdrop="static" id="jobCopyModalWindow" tabindex="-1" aria-labelledby="jobCopyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
