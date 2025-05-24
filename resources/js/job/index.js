@@ -1377,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 set_Some_JobCreationFields_ToDefaultValues();
                 document.getElementById('container-tasks').innerHTML = '';
                 document.getElementById('idField').value = '';
+                document.getElementById('jobid').value = '';
                 document.getElementById('courierIdField').disabled = false;
                 document.getElementById('statusIdField').disabled = false;
                 document.getElementById('clientSearchField').disabled = false;
