@@ -131,6 +131,7 @@ class TaskController extends Controller
                 $returnTask->save();
             }
             return response()->json([
+                'success'   => true,
                 'message'       => 'Task created successfully. ',
                 'request'       =>  $request->all(),
                 'task'          =>  $task,
@@ -305,7 +306,8 @@ class TaskController extends Controller
         }
         
         return response()->json([
-            //'message'   => 'Task updated successfully. ',
+            'success'   => true,
+            'message'   => 'Task updated successfully. ',
             'task'      =>  $task,
             'taskTypeObject'    =>   $taskTypeObject,
             'requestData' =>  $request->all(),
@@ -329,6 +331,7 @@ class TaskController extends Controller
             $task_origin->save();
             $task_destination->save();
             return response()->json([
+                'success'   => true,
                 'message'   => 'Task order swapped successfully. ',
                 'task_origin'      =>  $task_origin,
                 'task_destination' =>  $task_destination,
@@ -355,6 +358,7 @@ class TaskController extends Controller
         $task->job->save();
 
         return response()->json([
+            'success'   => true,
             'message'   => 'Task deleted successfully. ',
         ]);
         } catch (\Exception $e){
@@ -368,6 +372,7 @@ class TaskController extends Controller
         $task = Task::find($taskId);
         if ($task) {
             return response()->json([
+                'success'   => true,
                 'id'                =>  $task->id,
                 'date'              =>  $task->job->date,
                 'note'              =>  $task->note,
