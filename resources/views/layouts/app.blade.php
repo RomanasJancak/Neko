@@ -241,7 +241,7 @@
         
     </script>
     <script>
-        function showInfoMessage({message, duration = 2000,zIndex=1050}) {
+        function showInfoMessage({message, duration = 2000,zIndex=10000}) {
             const alertBox = document.getElementById('navAlert');
             const alertText = document.getElementById('navAlertText');
             const navbar = document.querySelector('nav.navbar');

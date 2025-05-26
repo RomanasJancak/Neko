@@ -182,7 +182,8 @@ class TaskController extends Controller
         $task->save();
         
         $taskTypeObject = null;
-
+        $address = $this->getAddressInput($request->input('address'));
+        //return response()->json([$address]);
         if($request->input('type') === 'pickup'){
 
             $pickupTask = $task->pickup;

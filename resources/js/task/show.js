@@ -17,6 +17,9 @@ function updateTask(data,url){
       return response.json();
   })
   .then(data => {
+    if (data.success) {
+        showInfoMessage({message :data.message});
+    }
   })
   .catch(error => {
       console.error('Error:', error.message);

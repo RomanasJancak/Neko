@@ -354,7 +354,7 @@ var global_taskWindow_defaultValue_time_return  = [ '08:00', '17:00'];
 
 function addEventListenerToTasksCreationButtons(button){
     button.addEventListener('click', (e) => {
-        $('#jobModalWindow').modal('hide');
+        //$('#jobModalWindow').modal('hide');
         let taskTypeField = document.getElementById('taskTypeField');
         let container_return = document.getElementById('return-info');
         if(document.getElementById('jobid').value == ''){
@@ -1078,6 +1078,7 @@ function cleanTaskCreateWindow(type = 'none'){
     let taskAddressLineField =   document.getElementById('taskAddressLineField');
     let taskTimeBegin =   document.getElementById('taskTimeBegin');
     let taskTimeEnd =   document.getElementById('taskTimeEnd');
+    let taskNoteField   =   document.getElementById('taskNoteField');
     let divForTaskFormCrateCollection  = document.getElementById('divForTaskFormCrateCollection');
     selectStatusField.selectedIndex = 0;
     selectTypeField.selectedIndex = -1;
@@ -1085,6 +1086,7 @@ function cleanTaskCreateWindow(type = 'none'){
     taskClientNameField.value   =   '';
     taskPostalCodeField.value   =   '';
     taskAddressLineField.value   =   '';
+    taskNoteField.value = '';
     divForTaskFormCrateCollection.style.display = 'none';
     switch(type){
         case 'pickup':
@@ -1213,27 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(submitTaskform_button){
         submitTaskform_button.addEventListener('click', function(event) {
             $('#taskModalWindow').modal('hide');
-            $('#jobModalWindow').modal('show');
-            let zIndex = window.getComputedStyle(document.getElementById('jobModalWindow')).zIndex+1;
-            let message = 'Default message';
-            switch(event.target.getAttribute('data-option')){
-                case 'view':
-                    break;
-                case 'delete':
-                    message = 'Task deleted successfully';
-                    break;
-                case 'update':
-                    message = 'Task updated successfully';
-                    break;
-                case 'create':
-                    message = 'Task created successfully';
-                    break;
-            }
-            
-            showInfoMessage({
-                message : message,
-                zIndex: zIndex,
-            });
+            setJobValues(document.getElementById('idField').value, global_typeOfButtonClickedToOpenJobModal);
         });
     }
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
