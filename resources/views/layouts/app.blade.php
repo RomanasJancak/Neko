@@ -241,7 +241,7 @@
         
     </script>
     <script>
-        function showInfoMessage({message, duration = 2000,zIndex=10000}) {
+        function show_Error_Message({message, duration = 60000,zIndex=10000}) {
             const alertBox = document.getElementById('navAlert');
             const alertText = document.getElementById('navAlertText');
             const navbar = document.querySelector('nav.navbar');
@@ -256,11 +256,35 @@
             alertBox.style.zIndex = zIndex; // Default z-index if not provided
 
             alertBox.classList.add('show-alert');
-
+            alertBox.classList.add('alert-danger');
 
             setTimeout(() => {
                 alertBox.style.top = `-${alertBox.offsetHeight}px`;
                 alertBox.classList.remove('show-alert');
+                alertBox.classList.add('alert-danger');
+            }, duration);
+        }
+        function show_Success_Message({message, duration = 2000,zIndex=10000}) {
+            const alertBox = document.getElementById('navAlert');
+            const alertText = document.getElementById('navAlertText');
+            const navbar = document.querySelector('nav.navbar');
+
+            if (!alertBox || !navbar) return;
+
+            const navbarHeight = navbar.offsetHeight;
+            alertText.textContent = message;
+
+
+            alertBox.style.top = `${navbarHeight}px`;
+            alertBox.style.zIndex = zIndex; // Default z-index if not provided
+
+            alertBox.classList.add('show-alert');
+            alertBox.classList.add('alert-success');
+
+            setTimeout(() => {
+                alertBox.style.top = `-${alertBox.offsetHeight}px`;
+                alertBox.classList.remove('show-alert');
+                alertBox.classList.remove('alert-success');
             }, duration);
         }
     </script>

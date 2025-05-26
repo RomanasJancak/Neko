@@ -18,7 +18,7 @@ function updateTask(data,url){
   })
   .then(data => {
     if (data.success) {
-        showInfoMessage({message :data.message});
+        show_Success_Message({message :data.message});
     }
   })
   .catch(error => {
