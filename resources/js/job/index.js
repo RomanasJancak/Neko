@@ -595,6 +595,7 @@ function addInfoAboutPackageToTaskModal(pakuote){
     });
 }
 function appendButtonsToTaskRowColumn(task, buttonClicked) {
+    
     let container = document.createElement('div');
     container.className = 'd-flex flex-column flex-grow-1';
 
@@ -605,7 +606,7 @@ function appendButtonsToTaskRowColumn(task, buttonClicked) {
     viewButton.id = `task-${task.id}-button-view`;
     container.appendChild(viewButton);
 
-    if (buttonClicked === 'edit') {
+    if (buttonClicked === 'edit' || buttonClicked === 'create') {
         let editButton = document.createElement('button');
         editButton.className = 'btn btn-primary';
         editButton.style.flex = '1 1 0';
@@ -661,7 +662,7 @@ function appendTaskToContainer(container,task,buttonClicked,multiDrop){
     taskRow.appendChild(createColumn('controls', appendButtonsToTaskRowColumn(task,buttonClicked,multiDrop),task.id));
     taskRow.appendChild(createColumn('type', task.name,task.id));
     taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
-    taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
+    taskRow.appendChild(createColumn('address', task.shortAddress,task.id));
     taskRow.appendChild(createColumn('timeWindow', formatDateTimeStringTo12HourFormat(task.timeWindow.begin)+' / '+formatDateTimeStringTo12HourFormat(task.timeWindow.end),task.id));
     if(task.name === 'dropoff'){
         taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
@@ -782,17 +783,15 @@ function addDropOffArrangeButtons() {
             upButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (index > 0) {
-                    //const previousRow = dropOffs[index - 1].parentElement;
+
                     const previousRow = e.target.parentElement.parentElement.parentElement.previousElementSibling;
-                    // console.log('e :',e);
-                    //setJobValues(jobId,buttonClicked);
+
                      console.log('UpButton clicked for :',parentRow);
                      console.log('Previous element: ',previousRow);
                     let id_origin = parentRow.id.split('-')[2];
                     let id_destination = previousRow.id.split('-')[2];
                     swapTaskOrder(id_origin, id_destination);
-                    // console.log('element: ',e.target.parentElement.parentElement);
-                    // console.log('Previous element from e :',e.target.parentElement.parentElement.previousElementSibling);
+                    
                     parentRow.parentElement.insertBefore(parentRow, previousRow);
                     
                     addDropOffArrangeButtons();
@@ -803,13 +802,11 @@ function addDropOffArrangeButtons() {
             downButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (index < dropOffs.length - 1) {
-                    //const nextRow = dropOffs[index + 1].parentElement;
                     const nextRow = e.target.parentElement.parentElement.parentElement.nextElementSibling;
                     parentRow.parentElement.insertBefore(nextRow, parentRow);
                     let id_origin = parentRow.id.split('-')[2];
                     let id_destination = nextRow.id.split('-')[2];
                     swapTaskOrder(id_origin, id_destination);
-                    //setJobValues(jobId,buttonClicked);
                     addDropOffArrangeButtons();
                     updatePriceColumn();
                 }
