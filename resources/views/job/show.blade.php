@@ -66,3 +66,4 @@
     </div>
 </form>
 <button type="button" id="submitform" data-option="create" class="btn btn-success">Confirm</button>
+<button type="button" id="createJobFromClipboard" data-option="create" class="btn btn-success">Create from clipboard</button>

@@ -28,7 +28,6 @@
                             <button class="sort-btn" data-sort-field="name" data-sort-order="asc">Sort</button>
                         </th>
                         <th scope="col" data-column="address">Billing Address</th>
-                        <th scope="col" data-column="pickup_address">PU. Address</th>
                         <th scope="col" data-column="phone">Phone number</th>
                         <th scope="col">Actions</th>
                     </tr>
@@ -41,11 +40,6 @@
                         <td>{{$client->address_line}}<br>
                             {{$client->postal_code}}<br>
                             {{$client->city}},{{ $client->country }}         
-                        </td>
-                        <td>{{$client->pickup_adress_line}}<br>
-                            {{$client->pickup_postal_code}}<br>
-                            {{$client->pickup_city}},{{ $client->pickup_country }} 
-                            
                         </td>
                         <td>
                             @if($client->phone !== '')
@@ -157,15 +151,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h6 class="modal-title" id="ModalLabel">AddOns</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body row" id="addonsContainer">
+                <div class="col-auto" id="addonsContainer-distanceRules">
+                </div>
+                <div class="col-auto" id="addonsContainer-weightRules">
+                </div>
+                <div class="col-auto" id="addonsContainer-timingRules">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 <!-- Add new package from selection modal window-->
 <div class="modal" id="modalWindow-packages-addNewFromList" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -286,7 +287,6 @@
         }
         $('#modalWindow').modal('show');
     }
-
     function deleteClient(clientId) {
         const form = document.querySelector('#statusForm');
         if (form) {
@@ -342,13 +342,312 @@
                 console.error(error);
             });
     }
+    function submitUpdateWeightRules(){
+        list = document.querySelectorAll('.list-group-item-weight-rules');
+        const rulesArray = Array.from(list).map(item => {
+            const id = item.id.split('-')[3];
+            const name = item.querySelector('input.n_ames').value;
+            const price = item.querySelector('input.p_rices').value;
+            const display_name = item.querySelector('input.dn_ames').value;
+            const begin_date = item.querySelector('input.begin_dates').value;
+            const end_date = item.querySelector('input.end_dates').value;
+            return { id,name, price, display_name, end_date, begin_date };
+        });
+        const routeUrl = window.ROUTES.WEB.CLIENT.UPDATEWEIGHTRULES;
+        fetch(routeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id: document.getElementById('clientid').value,
+                rules: rulesArray
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data){
+                console.log(data);
+                //fetchAddOns(document.getElementById('clientid').value);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });    
+    }
+    function submitUpdatedDistanceRules(){
+        list = document.querySelectorAll('.list-group-item-distance-rules');
+        const rulesArray = Array.from(list).map(item => {
+            const id = item.id.split('-')[3];
+            const name = item.querySelector('input.n_ames').value;
+            const price = item.querySelector('input.p_rices').value;
+            const display_name = item.querySelector('input.dn_ames').value;
+            const begin_date = item.querySelector('input.begin_dates').value;
+            const end_date = item.querySelector('input.end_dates').value;
+            return { id,name, price, display_name, end_date, begin_date };
+        });
+        const routeUrl = window.ROUTES.WEB.CLIENT.UPDATEDISTANCERULES;
+        fetch(routeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id: document.getElementById('clientid').value,
+                rules: rulesArray
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data){
+                console.log(data);
+                //fetchAddOns(document.getElementById('clientid').value);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+        });
+    }
+    function makeDistanceRulesEditable(rules){
+        list = document.querySelectorAll('.list-group-item-distance-rules');
+        list.forEach(item => {
+            const itemId = item.id.split('-')[3];
+            const rule = rules.find(rule => rule.id == itemId);
+            item.innerHTML = '<input type="text" class="n_ames form-control " value="'+rule.name+'">';
+            item.innerHTML += '<input type="text" class="p_rices form-control w-25" value="'+rule.price+'">';
+            item.innerHTML += '<input type="text" class="dn_ames form-control " value="'+rule.display_name+'">';
+            item.innerHTML += '<input type="text" class="begin_dates form-control " value="'+rule.begin_date+'">';
+            item.innerHTML += '<input type="text" class="end_dates form-control " value="'+rule.end_date+'">';
+        });
+        editButton = document.getElementById('edit-distance-rules');
+        const saveButton = editButton.cloneNode(true);
+        saveButton.className = 'btn bi bi-save';
+        editButton.replaceWith(saveButton);
+        saveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitUpdatedDistanceRules();
+        });       
+    }
+    function makeWeightRulesEditable(rules){
+        list = document.querySelectorAll('.list-group-item-weight-rules');
+        list.forEach(item => {
+            const itemId = item.id.split('-')[3];
+            const rule = rules.find(rule => rule.id == itemId);
+            item.innerHTML = '<input type="text" class="n_ames form-control " value="'+rule.name+'">';
+            item.innerHTML += '<input type="text" class="p_rices form-control w-25" value="'+rule.price+'">';
+            item.innerHTML += '<input type="text" class="dn_ames form-control " value="'+rule.display_name+'">';
+            item.innerHTML += '<input type="text" class="begin_dates form-control " value="'+rule.begin_date+'">';
+            item.innerHTML += '<input type="text" class="end_dates form-control " value="'+rule.end_date+'">';
+        });
+        editButton = document.getElementById('edit-weight-rules');
+        const saveButton = editButton.cloneNode(true);
+        saveButton.className = 'btn bi bi-save';
+        editButton.replaceWith(saveButton);
+        saveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitUpdateWeightRules();
+        });       
+    }
+    function displayTimingRules(rules){
+        rules = Object.keys(rules).map(key => {
+            const rule = rules[key];
+            rule.size = parseInt(rule.name.split('-')[3], 10);
+            rule.type = rule.name.split('-')[1];
+            return rule;
+        });
+        const ruleSet = Object.keys(rules.reduce((groupedRules, rule) => {
+            const type = rule.type;
+            if (!groupedRules[type]) {
+            groupedRules[type] = [];
+            }
+            groupedRules[type].push(rule);
+            return groupedRules;
+        }, {})).map(type => ({
+            type: type,
+            rules: rules.filter(rule => rule.type === type)
+        }));
+        ruleSet.forEach(ruleSet => {
+            const rules = ruleSet.rules;
+            rules.sort((a, b) => a.size - b.size);
+            console.log(rules);
+            const distanceRules = document.getElementById('addonsContainer-timingRules');
+            const distanceRulesContainer = document.createElement('div');
+            distanceRulesContainer.className = 'alert alert-info';
+            distanceRulesContainer.role = 'alert';
+            const strongElement = document.createElement('strong');
+            const textNode = document.createTextNode(""+ruleSet.type+" timing rules:");
+            strongElement.appendChild(textNode);
+            const editbutton = document.createElement('i');
+            editbutton.className = 'btn bi bi-pencil';
+            editbutton.id = 'edit-timing-rules';
+            editbutton.addEventListener('click', function() {
+                makeDistanceRulesEditable(rules);
+            });
+            distanceRulesContainer.appendChild(strongElement);
+            distanceRulesContainer.appendChild(editbutton);
+            const ulElement = document.createElement('ul');
+            rules.forEach(rule => {
+                //console.log(rule);
+                const liElement = document.createElement('li');
+                liElement.id = 'list-group-item-'+rule.id;
+                liElement.className = 'list-group-item-timing-rules d-flex';
+                if (rules.indexOf(rule) < rules.length - 1) {
+                    const from = rule.name.split('-')[3]; 
+                    const to = rules[rules.indexOf(rule)+1].name.split('-')[3]; 
+                    const price = parseFloat(rule.price/100);
+                    const step = rule.name.split('-')[4];
+                    const price_based_text = price === 0 ? 'Free' : `each ${step} minutes £${price} `;
+                    liElement.innerHTML = `${from} - ${to} minutes : ${price_based_text}`;
+                }else{
+                    const from = rule.name.split('-')[2]; 
+                    const price = parseFloat(rule.price/100);
+                    const step = rule.name.split('-')[4]; 
+                    liElement.innerHTML = `${from}+ minutes : each ${step} minutes £${price} `;
+                }
+                ulElement.appendChild(liElement);
+            });
+            distanceRulesContainer.appendChild(ulElement);            
+            distanceRules.appendChild(distanceRulesContainer);   
+        });
+        // rules.sort((a, b) => a.name.localeCompare(b.name));
+        // const distanceRules = document.getElementById('addonsContainer-timingRules');
+        // const distanceRulesContainer = document.createElement('div');
+        // distanceRulesContainer.className = 'alert alert-info';
+        // distanceRulesContainer.role = 'alert';
+        // const strongElement = document.createElement('strong');
+        // const textNode = document.createTextNode("Timing rules:");
+        // strongElement.appendChild(textNode);
+        // const editbutton = document.createElement('i');
+        // editbutton.className = 'btn bi bi-pencil';
+        // editbutton.id = 'edit-timing-rules';
+        // editbutton.addEventListener('click', function() {
+        //     makeDistanceRulesEditable(rules);
+        // });
+        // distanceRulesContainer.appendChild(strongElement);
+        // distanceRulesContainer.appendChild(editbutton);   
+        // const ulElement = document.createElement('ul');
+        // rules.forEach(rule => {
+        //     const liElement = document.createElement('li');
+        //     liElement.id = 'list-group-item-'+rule.id;
+        //     liElement.className = 'list-group-item-timing-rules d-flex';
+        //     if (rules.indexOf(rule) < rules.length - 1) {
+        //         const from = rule.name.split('-')[2]; 
+        //         const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+        //         const price = parseFloat(rule.price/100);
+        //         const step = rule.name.split('-')[4];
+        //         const price_based_text = price === 0 ? 'Free' : `each ${step} minutes £${price} `;
+        //         liElement.innerHTML = `${from} - ${to} minutes : ${price_based_text}`;
+        //     }else{
+        //         const from = rule.name.split('-')[2]; 
+        //         const price = parseFloat(rule.price/100);
+        //         const step = rule.name.split('-')[4]; 
+        //         liElement.innerHTML = `${from}+ minutes : each ${step} minutes £${price} `;
+        //     }
+        //     ulElement.appendChild(liElement);
+        // });
+        // distanceRulesContainer.appendChild(ulElement);
+        // distanceRules.innerHTML = '';
+        // distanceRules.appendChild(distanceRulesContainer);
+    }
+    function displayWeighteRules(rules){
+        rules = Object.keys(rules).map(key => rules[key]);
+        rules.sort((a, b) => a.name.localeCompare(b.name));
+        const distanceRules = document.getElementById('addonsContainer-weightRules');
+        const distanceRulesContainer = document.createElement('div');
+        distanceRulesContainer.className = 'alert alert-info';
+        distanceRulesContainer.role = 'alert';
+        const strongElement = document.createElement('strong');
+        const textNode = document.createTextNode("Weight rules:");
+        strongElement.appendChild(textNode);
+        const editbutton = document.createElement('i');
+        editbutton.className = 'btn bi bi-pencil';
+        editbutton.id = 'edit-weight-rules';
+        editbutton.addEventListener('click', function() {
+            makeWeightRulesEditable(rules);
+        });
+        distanceRulesContainer.appendChild(strongElement);
+        distanceRulesContainer.appendChild(editbutton);   
+        const ulElement = document.createElement('ul');
+        rules.forEach(rule => {
+            const liElement = document.createElement('li');
+            liElement.id = 'list-group-item-'+rule.id;
+            liElement.className = 'list-group-item-weight-rules d-flex';
+            if (rules.indexOf(rule) < rules.length - 1) {
+                
+                const from = rule.name.split('-')[2]; 
+                const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4];
+                const price_based_text = price === 0 ? 'Free' : `each ${step} kg £${price} `;
+                liElement.innerHTML = `${from} - ${to} kg : ${price_based_text}`;
+            }else{
+                const from = rule.name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4]; 
+                liElement.innerHTML = `${from}+ kg : each ${step} kg £${price} `;
+            }
+            ulElement.appendChild(liElement);
+        });
+        distanceRulesContainer.appendChild(ulElement);
+        distanceRules.innerHTML = '';
+        distanceRules.appendChild(distanceRulesContainer);
+    }
+    function displayDistanceRules(rules){
+        
+        rules = Object.keys(rules).map(key => rules[key]);
+        rules.sort((a, b) => a.name.localeCompare(b.name));
+        const distanceRules = document.getElementById('addonsContainer-distanceRules');
+        const distanceRulesContainer = document.createElement('div');
+        distanceRulesContainer.className = 'alert alert-info';
+        distanceRulesContainer.role = 'alert';
+        const strongElement = document.createElement('strong');
+        const textNode = document.createTextNode("Distance rules:");
+        strongElement.appendChild(textNode);
+        const editbutton = document.createElement('i');
+        editbutton.className = 'btn bi bi-pencil';
+        editbutton.id = 'edit-distance-rules';
+        editbutton.addEventListener('click', function() {
+            makeDistanceRulesEditable(rules);
+        });
+        distanceRulesContainer.appendChild(strongElement);
+        distanceRulesContainer.appendChild(editbutton);   
+        const ulElement = document.createElement('ul');
+        rules.forEach(rule => {
+            const liElement = document.createElement('li');
+            liElement.id = 'list-group-item-'+rule.id;
+            liElement.className = 'list-group-item-distance-rules d-flex';
+            //liElement.style = 'display: flex; justify-content: space-between;';
+            if (rules.indexOf(rule) < rules.length - 1) {
+                
+                const from = rule.name.split('-')[2]; 
+                const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4];
+                const price_based_text = price === 0 ? 'Free' : `each ${step} mile £${price} `;
+                liElement.innerHTML = `${from} - ${to} miles : ${price_based_text}`;
+            }else{
+                const from = rule.name.split('-')[2]; 
+                const price = parseFloat(rule.price/100);
+                const step = rule.name.split('-')[4]; 
+                liElement.innerHTML = `${from}+ miles : each ${step} mile £${price} `;
+            }
+            ulElement.appendChild(liElement);
+        });
+        distanceRulesContainer.appendChild(ulElement);
+        distanceRules.innerHTML = '';
+        distanceRules.appendChild(distanceRulesContainer);
+    }
     function fetchAddOns(clientId){
         const routeUrl = window.ROUTES.WEB.CLIENT.FETCHADDONS.replace(':id', clientId);
         fetch(routeUrl)
             .then(response => response.json())
             .then(data => {
                 if (data) {
-                    //populate_Container_withPackageTypes(data.packageTypes);
+                    displayDistanceRules(data.addOns.distanceRules);
+                    displayWeighteRules(data.addOns.weightRules);
+                    displayTimingRules(data.addOns.timingRules);
                 }
             })
             .catch(error => {
@@ -515,7 +814,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('button-view-addons').addEventListener('click',function(e){
             const clientId = document.getElementById('clientid').value;
-            //fetchAddOns(clientId);
+            fetchAddOns(clientId);
             $('#modalWindow-addons').modal('show');
         });
         document.getElementById('submitform').addEventListener('click', function() {
@@ -615,10 +914,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <td>${client.address_line}<br>
                                     ${client.postal_code}<br>
                                     ${client.city},${client.country}
-                                </td>
-                                <td>${client.pickup_adress_line}<br>
-                                    ${client.pickup_postal_code}<br>
-                                    ${client.pickup_city},${client.pickup_country}
                                 </td>
                                 <td>
                                     ${client.phone !== '' ? `${client.phone}

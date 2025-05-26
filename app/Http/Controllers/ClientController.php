@@ -48,6 +48,7 @@ class ClientController extends Controller
             $client->city = $request->input('reg-addr-city');
             $client->postal_code = $request->input('reg-addr-postal_code');
             $client->address_line = $request->input('reg-addr-address_line');
+            $client->phone  =   $request->input('phone');
             $client->save();
             if (!empty($request->name)) {
                 
@@ -141,7 +142,7 @@ class ClientController extends Controller
         $client->city = $request->input('reg-addr-city');
         $client->postal_code = $request->input('reg-addr-postal_code');
         $client->address_line = $request->input('reg-addr-address_line');
-        //address_id
+        $client->phone  =   $request->input('phone');
         if (!empty($request->name)) {
             foreach($request->name as $key => $value){
                 if (isset(
@@ -172,6 +173,105 @@ class ClientController extends Controller
             'line' => $e->getLine(),], 500);
         }
     
+    }
+    public function updateDistanceRules(UpdateClientRequest $request)
+    {
+        try {
+            $client = Client::find($request->input('id'));
+            $rules = $request->input('rules');
+            $psosibleRule = null;
+            foreach ($rules as $rule) {
+                $addOnRule = AddOnRule::find($rule['id']);
+                $posibleRule    =   AddOnRule::where('name', $rule['name'])->
+                                        where('price', $rule['price'])->
+                                        where('display_name',$rule['display_name'])->
+                                        where('begin_date',$rule['begin_date'])->
+                                        where('end_date',$rule['end_date'])->first();
+                if($posibleRule){
+                    if($posibleRule->id === $addOnRule->id){                  
+                    }else{
+                        $client->addOnRules()->detach($addOnRule->id);
+                        $client->addOnRules()->attach($posibleRule->id);
+                    }
+                }else{
+                    $client->addOnRules()->detach($addOnRule->id);
+                    $newRule = new AddOnRule();
+                    $newRule->name = $rule['name'];
+                    $newRule->price = $rule['price'];
+                    $newRule->display_name = $rule['display_name'];
+                    $newRule->begin_date = $rule['begin_date'];
+                    $newRule->end_date = $rule['end_date'];
+                    $newRule->save();
+                    $client->addOnRules()->attach($newRule->id);
+                }
+                $client->save();
+            }
+            return response()->json([
+                'message' => 'Client updated successfully',
+                'client' => $client,
+                'rules' => [
+                    'distance '=> $client->addOnRules->filter(function ($rule) {
+                            return strpos($rule->name, 'distance') === 0;
+                        }),
+                    ],
+                'posible match' => $posibleRule,
+                'request' => $request->all(),
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
+    }
+    public function updateWeightRules(UpdateClientRequest $request){
+        try {
+            $client = Client::find($request->input('id'));
+            $rules = $request->input('rules');
+            $psosibleRule = null;
+            foreach ($rules as $rule) {
+                $addOnRule = AddOnRule::find($rule['id']);
+                $posibleRule    =   AddOnRule::where('name', $rule['name'])->
+                                        where('price', $rule['price'])->
+                                        where('display_name',$rule['display_name'])->
+                                        where('begin_date',$rule['begin_date'])->
+                                        where('end_date',$rule['end_date'])->first();
+                if($posibleRule){
+                    if($posibleRule->id === $addOnRule->id){                  
+                    }else{
+                        $client->addOnRules()->detach($addOnRule->id);
+                        $client->addOnRules()->attach($posibleRule->id);
+                    }
+                }else{
+                    $client->addOnRules()->detach($addOnRule->id);
+                    $newRule = new AddOnRule();
+                    $newRule->name = $rule['name'];
+                    $newRule->price = $rule['price'];
+                    $newRule->display_name = $rule['display_name'];
+                    $newRule->begin_date = $rule['begin_date'];
+                    $newRule->end_date = $rule['end_date'];
+                    $newRule->save();
+                    $client->addOnRules()->attach($newRule->id);
+                }
+                $client->save();
+            }
+            return response()->json([
+                'message' => 'Client updated successfully',
+                'client' => $client,
+                'rules' => [
+                    'weight '=>  $client->addOnRules->filter(function ($rule) {
+                            return strpos($rule->name, 'weight') === 0;
+                        }),
+                    ],
+                'posible match' => $posibleRule,
+                'request' => $request->all(),
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            '$request->jobid'   =>  $request->id,
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
     public function delete(Client $client)
     {
@@ -364,7 +464,17 @@ class ClientController extends Controller
     {
         try {
             return response()->json([
-                'addOns' => $id->addOnRules,
+                'addOns' => [
+                    'distanceRules' => $id->addOnRules->filter(function ($rule) {
+                        return strpos($rule->name, 'distance') === 0;
+                    }),
+                    'weightRules' => $id->addOnRules->filter(function ($rule) {
+                        return strpos($rule->name, 'weight') === 0;
+                    }),
+                    'timingRules' => $id->addOnRules->filter(function ($rule) {
+                        return strpos($rule->name, 'time') === 0;
+                    }),
+                ],            
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage(),

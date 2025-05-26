@@ -34,7 +34,16 @@ class TaskController extends Controller
     {
         //
     }
-
+    protected function getAddressInput(array $input): array
+    {
+        return [
+            'name'        => $input['name']        ?? '',
+            'country'     => $input['country']     ?? 'United Kingdom',
+            'city'        => $input['city']        ?? 'London',
+            'postalCode'  => $input['postalCode']  ?? '',
+            'addressLine' => $input['addressLine'] ?? '',
+        ];
+    }
     /**
      * Store a newly created resource in storage.
      */
@@ -48,17 +57,19 @@ class TaskController extends Controller
             $task->status_id        =   $request->input('status_id');
             $task->note             =   $request->input('note');
             $task->save();
+            $address = $this->getAddressInput($request->input('address'));
             if($request->input('type') === 'pickup'){
                 $pickupTask = new PickupTask();
                 $pickupTask->task_id = $task->id;
                 $pickupTask->status_id = $task->status_id;
                 $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
+
                 $pickupTask->setAddress(
-                    $request->input('address.name'),
-                    $request->input('address.country'),
-                    $request->input('address.city'),
-                    $request->input('address.postalCode'),
-                    $request->input('address.addressLine'),
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine'],
                 );
                 $pickupTask->save();
             }
@@ -72,11 +83,11 @@ class TaskController extends Controller
                 $package->quantity = $request->input('package.quantity');
                 $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
                 $package->setAddress(
-                    $request->input('address.name'),
-                    $request->input('address.country'),
-                    $request->input('address.city'),
-                    $request->input('address.postalCode'),
-                    $request->input('address.addressLine'),
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine'],
                 );
                 $package->save();
             }
@@ -111,11 +122,11 @@ class TaskController extends Controller
                     );
                 }
                 $returnTask->setAddress(
-                    $request->input('address.name'),
-                    $request->input('address.country'),
-                    $request->input('address.city'),
-                    $request->input('address.postalCode'),
-                    $request->input('address.addressLine'),
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine'],
                 );
                 $returnTask->save();
             }
@@ -132,7 +143,6 @@ class TaskController extends Controller
             'line' => $e->getLine(),], 500);
         }
     }
-
     /**
      * Display the specified resource.
      */
@@ -179,11 +189,11 @@ class TaskController extends Controller
             $pickupTask->status_id = $task->status_id;
             $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
             $pickupTask->setAddress(
-                $request->input('address.name'),
-                $request->input('address.country'),
-                $request->input('address.city'),
-                $request->input('address.postalCode'),
-                $request->input('address.addressLine'),
+                $address['name'],
+                $address['country'],
+                $address['city'],
+                $address['postalCode'],
+                $address['addressLine'],
             );
             $pickupTask->save();
             
@@ -219,11 +229,11 @@ class TaskController extends Controller
                 );
             }
             $returnTask->setAddress(
-                $request->input('address.name'),
-                $request->input('address.country'),
-                $request->input('address.city'),
-                $request->input('address.postalCode'),
-                $request->input('address.addressLine'),
+                $address['name'],
+                $address['country'],
+                $address['city'],
+                $address['postalCode'],
+                $address['addressLine'],
             );
             $returnTask->save();
             $taskTypeObject = $pickupTask;
@@ -240,11 +250,11 @@ class TaskController extends Controller
             $package->quantity = $request->input('package.quantity');
             $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
             $package->setAddress(
-                $request->input('address.name'),
-                $request->input('address.country'),
-                $request->input('address.city'),
-                $request->input('address.postalCode'),
-                $request->input('address.addressLine'),
+                $address['name'],
+                $address['country'],
+                $address['city'],
+                $address['postalCode'],
+                $address['addressLine'],
             );
             if($request->input('hasCrateCollection')){
                 $package->hasReturn = $request->input('hasCrateCollection');
@@ -278,11 +288,11 @@ class TaskController extends Controller
                         );
                     }else{
                         $returnTask->setAddress(
-                            $request->input('address.name'),
-                            $request->input('address.country'),
-                            $request->input('address.city'),
-                            $request->input('address.postalCode'),
-                            $request->input('address.addressLine'),
+                            $address['name'],
+                            $address['country'],
+                            $address['city'],
+                            $address['postalCode'],
+                            $address['addressLine'],
                         );
                     }
                     $returnTask->save();

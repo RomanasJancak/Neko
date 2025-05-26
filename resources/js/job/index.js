@@ -396,6 +396,7 @@ function addEventListenerToTasksCreationButtons(button){
             const container =   document.getElementById('package-info');
             container.innerHTML = '';
         }
+        document.getElementById('submitTaskform').disabled = false;
         $('#taskModalWindow').modal('show');
     });
 }
@@ -460,6 +461,7 @@ function addEventListenerToButton(button){
                 submitButton.textContent  = 'Confirm view';
             }
             });
+            document.getElementById('submitTaskform').disabled = false;
         }
         $('#taskModalWindow').modal('show');
     });
@@ -477,20 +479,20 @@ function setPackageWeightChoosingAbility(selectedValue){
                         const hasWeight = data.extras.some(extra => extra.name === 'weight');
                         if (hasWeight) {
                             inputWeight.removeAttribute('style');
-                            inputWeight.value = 0;
+                            //inputWeight.value = 0;
                             labelForWeight.removeAttribute('style');
                             label.removeAttribute('style');
                         }else{
                             inputWeight.style.display = 'none';
                             labelForWeight.style.display = 'none';
                             label.style.display = 'none';
-                            inputWeight.value = 0;
+                            //inputWeight.value = 0;
                         }
                     }else{
                         inputWeight.style.display = 'none';
                         labelForWeight.style.display = 'none';
                         label.style.display = 'none';
-                        inputWeight.value = 0;
+                        //inputWeight.value = 0;
                     }
                 })
                 .catch(error => {
@@ -544,14 +546,17 @@ function addInfoAboutPackageToTaskModal(pakuote){
                 container.appendChild(label);
 
                 const inputWeight = document.createElement('input');
+                
                 inputWeight.setAttribute('type', 'number');        
                 inputWeight.setAttribute('id', 'weightInput');          
                 inputWeight.setAttribute('name', 'weight');        
-                inputWeight.setAttribute('min', '0');              
-                inputWeight.setAttribute('max', '500');            
+                //inputWeight.setAttribute('min', '0');              
+                //inputWeight.setAttribute('max', '500');            
                 inputWeight.setAttribute('step', '0.1');           
                 inputWeight.setAttribute('placeholder', 'Enter weight'); 
-                inputWeight.setAttribute('required', '');          
+                inputWeight.setAttribute('required', '');
+                inputWeight.setAttribute('value', pakuote.weight);
+                inputWeight.innerHTML = pakuote.weight;          
                 container.appendChild(inputWeight);
                 const labelForWeight = document.createElement('span');
                 labelForWeight.setAttribute('id', 'labelForWeightInput');
@@ -561,16 +566,19 @@ function addInfoAboutPackageToTaskModal(pakuote){
                 if(submitButton.getAttribute('data-option') === 'update'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
+                    inputWeight.disabled = false;
                 }else if(submitButton.getAttribute('data-option') === 'create'){
                     document.getElementById('packageTypeSelect').disabled = false;
                     document.getElementById('quantityInput').disabled = false;
+                    inputWeight.disabled = false;
                 }else{
                     document.getElementById('packageTypeSelect').disabled = true;
                     document.getElementById('quantityInput').disabled = true;
+                    inputWeight.disabled = true;
                 }
-                inputWeight.style.display = 'none';
-                labelForWeight.style.display = 'none';
-                label.style.display = 'none';
+                //inputWeight.style.display = 'none';
+                //labelForWeight.style.display = 'none';
+                //label.style.display = 'none';
             }
             
         }).then(()=>{
@@ -587,6 +595,7 @@ function addInfoAboutPackageToTaskModal(pakuote){
     });
 }
 function appendButtonsToTaskRowColumn(task, buttonClicked) {
+    
     let container = document.createElement('div');
     container.className = 'd-flex flex-column flex-grow-1';
 
@@ -597,7 +606,7 @@ function appendButtonsToTaskRowColumn(task, buttonClicked) {
     viewButton.id = `task-${task.id}-button-view`;
     container.appendChild(viewButton);
 
-    if (buttonClicked === 'edit') {
+    if (buttonClicked === 'edit' || buttonClicked === 'create') {
         let editButton = document.createElement('button');
         editButton.className = 'btn btn-primary';
         editButton.style.flex = '1 1 0';
@@ -653,7 +662,7 @@ function appendTaskToContainer(container,task,buttonClicked,multiDrop){
     taskRow.appendChild(createColumn('controls', appendButtonsToTaskRowColumn(task,buttonClicked,multiDrop),task.id));
     taskRow.appendChild(createColumn('type', task.name,task.id));
     taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
-    taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
+    taskRow.appendChild(createColumn('address', task.shortAddress,task.id));
     taskRow.appendChild(createColumn('timeWindow', formatDateTimeStringTo12HourFormat(task.timeWindow.begin)+' / '+formatDateTimeStringTo12HourFormat(task.timeWindow.end),task.id));
     if(task.name === 'dropoff'){
         taskRow.appendChild(createColumn('quantity', task.quantity+' * '+task.packageType,task.id));
@@ -774,17 +783,15 @@ function addDropOffArrangeButtons() {
             upButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (index > 0) {
-                    //const previousRow = dropOffs[index - 1].parentElement;
+
                     const previousRow = e.target.parentElement.parentElement.parentElement.previousElementSibling;
-                    // console.log('e :',e);
-                    //setJobValues(jobId,buttonClicked);
+
                      console.log('UpButton clicked for :',parentRow);
                      console.log('Previous element: ',previousRow);
                     let id_origin = parentRow.id.split('-')[2];
                     let id_destination = previousRow.id.split('-')[2];
                     swapTaskOrder(id_origin, id_destination);
-                    // console.log('element: ',e.target.parentElement.parentElement);
-                    // console.log('Previous element from e :',e.target.parentElement.parentElement.previousElementSibling);
+                    
                     parentRow.parentElement.insertBefore(parentRow, previousRow);
                     
                     addDropOffArrangeButtons();
@@ -795,13 +802,11 @@ function addDropOffArrangeButtons() {
             downButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (index < dropOffs.length - 1) {
-                    //const nextRow = dropOffs[index + 1].parentElement;
                     const nextRow = e.target.parentElement.parentElement.parentElement.nextElementSibling;
                     parentRow.parentElement.insertBefore(nextRow, parentRow);
                     let id_origin = parentRow.id.split('-')[2];
                     let id_destination = nextRow.id.split('-')[2];
                     swapTaskOrder(id_origin, id_destination);
-                    //setJobValues(jobId,buttonClicked);
                     addDropOffArrangeButtons();
                     updatePriceColumn();
                 }
@@ -836,6 +841,7 @@ function setJobValues(jobId,buttonClicked){
     const dropOff_timing_value_DisplayField  =   document.getElementById('dropoff_timing_value_DisplayField');
     const packages_price_base_DisplayField = document.getElementById('packages_price_base_DisplayField');
     const addon_time_samedayreturn_price_DisplayField = document.getElementById('addon_time_samedayreturn_price_DisplayField');
+    const jobNoteField = document.getElementById('jobNoteField');
 
     const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
     containerTasks.innerHTML = ""; 
@@ -869,6 +875,8 @@ function setJobValues(jobId,buttonClicked){
                                     .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
                 addDropOffArrangeButtons(jobId,buttonClicked);
             }
+            jobNoteField.innerHTML = data.note;
+            jobNoteField.value = data.note;
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
@@ -1110,6 +1118,7 @@ function setTaskValues(taskId){
     const timeBeginField   =   document.getElementById('taskTimeBegin');
     const timeEndField   =   document.getElementById('taskTimeEnd');
     const crateCollection   =   document.getElementById('crateCollection');
+    const taskNoteField  =   document.getElementById('taskNoteField');
     idField.value = taskId;
     idField.disabled =  true;
     typeField.disabled =  true;
@@ -1124,6 +1133,8 @@ function setTaskValues(taskId){
             addressCityField.value          =   data.address.city;
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
+            taskNoteField.value             =   data.note;
+            taskNoteField.innerHTML         =   data.note;
             const dateBegin = new Date(data.time.begin);
             const dateEnd = new Date(data.time.end);
             timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
@@ -1200,6 +1211,67 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');
+    const createJobFromClipboard = document.getElementById('createJobFromClipboard');
+    const CopyJobClipboard = document.getElementById('CopyJobClipboard');
+    createJobFromClipboard.addEventListener('click', async function(event) {
+        event.preventDefault();
+        try {
+            const jobId = document.getElementById('jobIdToCopy').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            // Wait for clipboard text:
+            const clipboardText = await navigator.clipboard.readText();
+
+            const response = await fetch(window.ROUTES.WEB.JOB.STOREFROMSTRING, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ job_string: clipboardText })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                //$('#jobModalWindow').modal('hide');
+                editJob(data.data.jobId);
+            } else {
+                console.error('Error copying job:', data);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+    CopyJobClipboard.addEventListener('click', function(event){
+        event.preventDefault();
+        const jobId = document.getElementById('jobIdToCopy').value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(window.ROUTES.WEB.JOB.GETJOBTOSTRING.replace(':id', jobId), {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            //body: JSON.stringify({id: jobId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                navigator.clipboard.writeText(data.data.Job_to_json)
+                .then(() => alert('Copied to clipboard!'))
+                .catch(err => console.error('Failed to copy: ', err));
+            } else {
+                console.error('Error copying job:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
     confirmCopyJob.addEventListener('click',function(event){
         event.preventDefault();
         const jobId = document.getElementById('jobIdToCopy').value;
@@ -1302,6 +1374,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 set_Some_JobCreationFields_ToDefaultValues();
                 document.getElementById('container-tasks').innerHTML = '';
                 document.getElementById('idField').value = '';
+                document.getElementById('jobid').value = '';
                 document.getElementById('courierIdField').disabled = false;
                 document.getElementById('statusIdField').disabled = false;
                 document.getElementById('clientSearchField').disabled = false;

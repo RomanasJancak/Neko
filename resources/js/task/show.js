@@ -51,8 +51,8 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             .then(data => {
                 if (data) {
 
-                     document.getElementById('taskCountryField').value = data.country; 
-                     document.getElementById('taskCityField').value = data.city;
+                     //document.getElementById('taskCountryField').value = data.country; 
+                     //document.getElementById('taskCityField').value = data.city;
                      document.getElementById('taskPostalCodeField').value = data.postal_code;
                      document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
                 }
@@ -66,16 +66,20 @@ function addTypeHeadSearchToTaskWindow(searchInput){
 }
 document.getElementById('submitTaskform').addEventListener('click', function(event) {
     event.preventDefault();
-  const   typeField   =   document.getElementById('taskTypeField');
-  var     route       = '';
-  if(this.getAttribute('data-option') === 'delete'){
-      route = window.ROUTES.WEB.TASK.DELETE;
-  }else if(this.getAttribute('data-option') === 'update'){
-      route = window.ROUTES.WEB.TASK.UPDATE;
-  }else if(this.getAttribute('data-option') === 'view'){
-      return;
-  }else if(this.getAttribute('data-option') === 'create'){
-    route = window.ROUTES.WEB.TASK.STORE;
+    let submitButton = event.target;
+    const   typeField   =   document.getElementById('taskTypeField');
+    var     route       = '';
+    if(this.getAttribute('data-option') === 'delete'){
+        route = window.ROUTES.WEB.TASK.DELETE;
+        submitButton.disabled = true;
+    }else if(this.getAttribute('data-option') === 'update'){
+        route = window.ROUTES.WEB.TASK.UPDATE;
+        submitButton.disabled = true;
+    }else if(this.getAttribute('data-option') === 'view'){
+        return;
+    }else if(this.getAttribute('data-option') === 'create'){
+        route = window.ROUTES.WEB.TASK.STORE;
+        submitButton.disabled = true;
   }
   var  taskSubmitData = {
     jobId       :   document.getElementById('idField').value,
@@ -84,8 +88,8 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
     type        :   document.getElementById('taskTypeField').value,
     address     :   {
         name            :   document.getElementById('taskClientNameField').value,
-        country         :   document.getElementById('taskCountryField').value,
-        city            :   document.getElementById('taskCityField').value,
+        //country         :   document.getElementById('taskCountryField').value,
+        //city            :   document.getElementById('taskCityField').value,
         postalCode      :   document.getElementById('taskPostalCodeField').value,
         addressLine     :   document.getElementById('taskAddressLineField').value,
     },

@@ -10,10 +10,12 @@ window.ROUTES = {
       JOB: {
         VIEW  : window.location.href.split('/').slice(0, -1).join('/')+'/jobs/view',
         UPDATE: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/update',
-        DELETE: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/delete',
+        DELETE: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/delete', 
         STORE:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/store',
+        STOREFROMSTRING:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/storeFromString',
         FETCH:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/fetchJobsPaginate',
         GETINFO: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/getJobInfo/:id',
+        GETJOBTOSTRING: window.location.href.split('/').slice(0, -1).join('/')+'/jobs/getJobToString/:id',
         COPY:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/copy',
         UPDATE_PRICEADJUSTMENTNUMBER:  window.location.href.split('/').slice(0, -1).join('/')+'/jobs/update_price_adjustment_number',
       },
@@ -26,6 +28,8 @@ window.ROUTES = {
         FETCHUNASSIGNEDPACKAGETYPES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/fetchUnassignedPackageTypes/:id',
         ADDPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/addPackageType',
         REMOVEPACKAGETYPE: window.location.href.split('/').slice(0, -1).join('/')+'/clients/removePackageType',
+        UPDATEDISTANCERULES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/updateDistanceRules',
+        UPDATEWEIGHTRULES: window.location.href.split('/').slice(0, -1).join('/')+'/clients/updateWeightRules',
       },
       ADDRESS:{
         GETINFO:  window.location.href.split('/').slice(0, -1).join('/')+'/addresses/getAddressInfo/:id',

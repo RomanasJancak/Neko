@@ -20,7 +20,10 @@ class Package extends Model
         'status_id',
         'packageType_id',
         'job_id',
-        'task_id'
+        'task_id',
+        'status_id',
+        'weight',
+        'dimensions',
     ];
 
     public function job()

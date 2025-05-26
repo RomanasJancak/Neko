@@ -83,6 +83,7 @@ class Job extends Model
         'manager_id',
         'notes',
         'price',
+        'date',
         'distance',
         'invoice_id',
         'price_adjustment_number',

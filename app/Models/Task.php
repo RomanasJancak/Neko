@@ -96,6 +96,18 @@ class Task extends Model
                                         :   null)));
         return $return_value;
     }
+    public function addressShort(){
+        $return_value   =   isset($this->pickup)
+                            ?   $this->pickup->addressShort() 
+                            :   (isset($this->package)
+                                ?   $this->package->addressShort()
+                                :   (isset($this->return)
+                                    ?   $this->return->addressShort()
+                                    :   (isset($this->customTask)
+                                        ?   $this->customTask->name
+                                        :   null)));
+        return $return_value;
+    }
     public function postalCode()
     {
         $return_value   =   isset($this->pickup)
@@ -135,6 +147,7 @@ class Task extends Model
                             :   null)));
         return $return_value;
     }
+
     public function timeWindow()
     {
         $return_value   =   isset($this->pickup)

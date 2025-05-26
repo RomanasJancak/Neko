@@ -215,7 +215,10 @@
                 </div>
             </div>
         </nav>
-
+        <div id="navAlert" class="alert alert-info text-center fade show position-absolute w-100" 
+            style="top: -100px; z-index: 1050; transition: top 0.5s ease;" role="alert">
+            <span id="navAlertText"></span>
+        </div>
         <main class="py-4">
             @yield('content')
         </main>
@@ -234,6 +237,31 @@
             roleSelect.addEventListener('change', function() {
             document.getElementById('rolechangeForm').submit(); // Submit the form
         }); 
+        }
+        
+    </script>
+    <script>
+        function showInfoMessage(message, duration = 2000) {
+            const alertBox = document.getElementById('navAlert');
+            const alertText = document.getElementById('navAlertText');
+            const navbar = document.querySelector('nav.navbar');
+
+            if (!alertBox || !navbar) return;
+
+            const navbarHeight = navbar.offsetHeight;
+            alertText.textContent = message;
+
+
+            alertBox.style.top = `${navbarHeight}px`;
+
+
+            alertBox.classList.add('show-alert');
+
+
+            setTimeout(() => {
+                alertBox.style.top = `-${alertBox.offsetHeight}px`;
+                alertBox.classList.remove('show-alert');
+            }, duration);
         }
     </script>
 </body>

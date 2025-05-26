@@ -56,11 +56,11 @@
             <input class="form-control" type="text" name="id" id="taskClientNameField" value="">
             <input type="hidden" name="clientId" id="task_clientIdField" value="">
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-none">
             <label for="taskCountryField">Country</label>
             <input class="form-control" type="text" name="id" id="taskCountryField" value="">
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-none">
             <label for="taskCityField">City</label>
             <input class="form-control" type="text" name="id" id="taskCityField" value="">
         </div>
