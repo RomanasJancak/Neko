@@ -262,13 +262,14 @@
                         <!-- </div>                 -->
                     </div>
                 </div>
-                <div class="col-3 border rounded justify-content-left"> <!--Right side -->
+                <!--Right side -->
+                <div class="col-3 border rounded justify-content-left" id="priceColumnContainer"> 
                     <div class="row">
                         <div class="col-12">
                             <span style="font-size: larger; font-weight: bold;">Total price : </span><span style="font-size: larger; font-weight: bold;">&#163;</span><span id="total_Price_DisplayField" style="font-size: larger; font-weight: bold;">0.00</span>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row" id="priceColumnContainer_distanceRow">
                         <div class="col-12">
                             <span>Total distance : </span><span id="total_distance_DisplayField">0.00</span><span> miles</span>
                         </div>

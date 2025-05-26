@@ -586,43 +586,41 @@ function addInfoAboutPackageToTaskModal(pakuote){
             console.error(error);
     });
 }
-function appendButtonsToTaskRowColumn(task,buttonClicked){
-    let colView = document.createElement('div');
-    let colEdit = document.createElement('div');
-    let colDelete = document.createElement('div');
-    
-    let row = document.createElement('div');
-    let editButton  =   document.createElement('button');
-    let deleteButton  =   document.createElement('button');
-    let viewButton  =   document.createElement('button');
+function appendButtonsToTaskRowColumn(task, buttonClicked) {
+    let container = document.createElement('div');
+    container.className = 'd-flex flex-column flex-grow-1';
 
-    editButton.textContent = 'Edit';
-    editButton.className = 'btn btn-primary';
-    editButton.id = `task-${task.id}-button-edit`;
-    deleteButton.textContent = 'Delete';
-    deleteButton.className = 'btn btn-danger';
-    deleteButton.id = `task-${task.id}-button-delete`;
-    viewButton.textContent = 'View';
+    let viewButton = document.createElement('button');
     viewButton.className = 'btn btn-success';
+    viewButton.style.flex = '1 1 0';
+    viewButton.textContent = 'View';
     viewButton.id = `task-${task.id}-button-view`;
-    colView.appendChild(viewButton);
-    colEdit.appendChild(editButton);
-    colDelete.appendChild(deleteButton);
+    container.appendChild(viewButton);
 
-    colEdit.className = 'col border ';
-    colDelete.className = 'col border ';
-    row.className = 'row border ';
-    row.id = `container-task-buttons-${task.id}`;
-    if(buttonClicked === 'view'){
-        row.appendChild(colView);
-    }else if(buttonClicked === 'edit'){
-        row.appendChild(colView);
-        row.appendChild(colEdit);
-        row.appendChild(colDelete);
-    }else if(buttonClicked === 'delete'){
-        row.appendChild(colView);
+    if (buttonClicked === 'edit') {
+        let editButton = document.createElement('button');
+        editButton.className = 'btn btn-primary';
+        editButton.style.flex = '1 1 0';
+        editButton.textContent = 'Edit';
+        editButton.id = `task-${task.id}-button-edit`;
+        container.appendChild(editButton);
+
+        let deleteButton = document.createElement('button');
+        deleteButton.className = 'btn btn-danger';
+        deleteButton.style.flex = '1 1 0';
+        deleteButton.textContent = 'Delete';
+        deleteButton.id = `task-${task.id}-button-delete`;
+        container.appendChild(deleteButton);
+    } else if (buttonClicked === 'delete') {
+        let deleteButton = document.createElement('button');
+        deleteButton.className = 'btn btn-danger';
+        deleteButton.style.flex = '1 1 0';
+        deleteButton.textContent = 'Delete';
+        deleteButton.id = `task-${task.id}-button-delete`;
+        container.appendChild(deleteButton);
     }
-    return row;
+
+    return container;
 }
 function createColumn(idSuffix, content,id) {
     let col = document.createElement('div');
@@ -644,15 +642,15 @@ function formatDateTimeStringTo12HourFormat(dateString) {
             hours = hours ? hours : 12;
             const minutesStr = minutes < 10 ? '0' + minutes : minutes;
             return hours + ':' + minutesStr + ' ' + ampm;
-        }
-function appendTaskToContainer(container,task,buttonClicked){
+}
+function appendTaskToContainer(container,task,buttonClicked,multiDrop){
 
     let taskRow = document.createElement('div');
     taskRow.className = 'row';
     taskRow.id = 'container-task-'+task.id;
 
 
-    taskRow.appendChild(createColumn('type', appendButtonsToTaskRowColumn(task,buttonClicked),task.id));
+    taskRow.appendChild(createColumn('controls', appendButtonsToTaskRowColumn(task,buttonClicked,multiDrop),task.id));
     taskRow.appendChild(createColumn('type', task.name,task.id));
     taskRow.appendChild(createColumn('addressName', task.addressName,task.id));
     taskRow.appendChild(createColumn('address', task.fullAddress,task.id));
@@ -693,6 +691,123 @@ function setReturnCretionButtonVisibility(isEnabled){
         createNewReturnButton.classList.remove('btn-primary');
         createNewReturnButton.classList.add('btn-secondary');
     }
+}
+function swapTaskOrder(taskId1, taskId2) {
+    let routeUrl = window.ROUTES.WEB.TASK.SWAP_ORDER;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch(routeUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ origin_id: taskId1, destination_id: taskId2 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Task order swapped successfully');
+        } else {
+            //console.error('Error swapping task order:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+function updatePriceColumn(){
+    const jobId = document.getElementById('idField').value;
+    const total_Price_DisplayField = document.getElementById('total_Price_DisplayField');
+    const total_distance_DisplayField = document.getElementById('total_distance_DisplayField');
+    const total_distance_price_DisplayField = document.getElementById('total_distance_price_DisplayField');
+    const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            total_Price_DisplayField.innerHTML = parseFloat(data.price.totalPrice/100);
+            total_distance_DisplayField.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
+            total_distance_price_DisplayField.innerHTML = parseFloat(data.price.price_Distance.price/100);
+        })
+        .catch(error => {
+            console.error('Error fetching job info:', error);
+        }   );
+}
+function addDropOffArrangeButtons() {
+    const dropOffs = Array.from(document.querySelectorAll('[id^="container-task-"]'))
+        .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
+
+    dropOffs.forEach((dropOff, index) => {
+        const parentRow = dropOff.parentElement;
+        const controlsColumn = parentRow.querySelector('[id$="-controls"]');
+        let divContainer = document.getElementById(`${parentRow.id}-upDownButtonsContainer`);
+        if (divContainer) {
+            document.getElementById(`${parentRow.id}-upDownButtonsContainer`).innerHTML ='';
+        }else{
+            divContainer = document.createElement('div');
+            divContainer.className = 'd-flex flex-column justify-content-between';
+            divContainer.style.flex = '0 0 auto';
+            divContainer.id = `${parentRow.id}-upDownButtonsContainer`;
+        }
+        controlsColumn.insertBefore(divContainer, controlsColumn.firstChild);
+        if (divContainer) {
+            const upButton = document.createElement('button');
+            upButton.className = 'btn btn-primary';
+            upButton.textContent = '↑';
+            upButton.style.marginBottom = '5px';
+            upButton.disabled = index === 0;
+
+            const downButton = document.createElement('button');
+            downButton.className = 'btn btn-primary';
+            downButton.textContent = '↓';
+            downButton.disabled = index === dropOffs.length - 1;
+
+            if (index === 0) {
+                divContainer.appendChild(downButton);
+            } else if (index === dropOffs.length - 1) {
+                divContainer.appendChild(upButton);
+            } else {
+                divContainer.appendChild(upButton);
+                divContainer.appendChild(downButton);
+            }
+
+            upButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (index > 0) {
+                    //const previousRow = dropOffs[index - 1].parentElement;
+                    const previousRow = e.target.parentElement.parentElement.parentElement.previousElementSibling;
+                    // console.log('e :',e);
+                    //setJobValues(jobId,buttonClicked);
+                     console.log('UpButton clicked for :',parentRow);
+                     console.log('Previous element: ',previousRow);
+                    let id_origin = parentRow.id.split('-')[2];
+                    let id_destination = previousRow.id.split('-')[2];
+                    swapTaskOrder(id_origin, id_destination);
+                    // console.log('element: ',e.target.parentElement.parentElement);
+                    // console.log('Previous element from e :',e.target.parentElement.parentElement.previousElementSibling);
+                    parentRow.parentElement.insertBefore(parentRow, previousRow);
+                    
+                    addDropOffArrangeButtons();
+                    updatePriceColumn();
+                }
+            });
+
+            downButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (index < dropOffs.length - 1) {
+                    //const nextRow = dropOffs[index + 1].parentElement;
+                    const nextRow = e.target.parentElement.parentElement.parentElement.nextElementSibling;
+                    parentRow.parentElement.insertBefore(nextRow, parentRow);
+                    let id_origin = parentRow.id.split('-')[2];
+                    let id_destination = nextRow.id.split('-')[2];
+                    swapTaskOrder(id_origin, id_destination);
+                    //setJobValues(jobId,buttonClicked);
+                    addDropOffArrangeButtons();
+                    updatePriceColumn();
+                }
+            });
+        }
+    });
 }
 function setJobValues(jobId,buttonClicked){
     if(jobId === 0){return;}
@@ -745,9 +860,15 @@ function setJobValues(jobId,buttonClicked){
                 clientIdField.value     =   data.clientId;
             }
             jobDateField.value = data.date;
+            let multiDrop = data.dropoffs.length > 1;
             data.tasks.forEach(function(task){
-                appendTaskToContainer(containerTasks,task,buttonClicked);
+                appendTaskToContainer(containerTasks,task,buttonClicked,multiDrop);
             });
+            if(multiDrop){
+                let dropOffs = Array.from(document.querySelectorAll('[id^="container-task-"]'))
+                                    .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
+                addDropOffArrangeButtons(jobId,buttonClicked);
+            }
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);

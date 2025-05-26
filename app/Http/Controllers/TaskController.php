@@ -165,7 +165,6 @@ class TaskController extends Controller
         try{
         $task = Task::findOrFail($request->id);
         $task->date             =   $request->input('date');
-        $task->order_number     =   0;
         //$task->job_id           =   $request->input('jobId');
         $task->status_id        =   $request->input('status_id');
         $task->note             =   $request->input('note');
@@ -253,7 +252,6 @@ class TaskController extends Controller
                     $returnTask = new ReturnTask();
                     $taskForReturn = new Task();
                     $taskForReturn->date             =   $request->input('date');
-                    $taskForReturn->order_number     =   0;
                     $taskForReturn->job_id           =   $task->job->id;
                     $taskForReturn->status_id        =   $request->input('status_id');
                     $taskForReturn->save();
@@ -302,14 +300,37 @@ class TaskController extends Controller
             'taskTypeObject'    =>   $taskTypeObject,
             'requestData' =>  $request->all(),
         ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage(),
-        'requests' => $request->all(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+            'requests' => $request->all(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
+    public function swap_order(UpdateTaskRequest $request)
+    {
+        try{
+            $task_origin = Task::findOrFail($request->origin_id);
+            $task_destination = Task::findOrFail($request->destination_id);
+            $task_origin_order_number = $task_origin->order_number;
+            $task_destination_order_number = $task_destination->order_number;
+            $task_origin->order_number = $task_destination_order_number;
+            $task_destination->order_number = $task_origin_order_number;
+            $task_origin->save();
+            $task_destination->save();
+            return response()->json([
+                'message'   => 'Task order swapped successfully. ',
+                'task_origin'      =>  $task_origin,
+                'task_destination' =>  $task_destination,
+                'requestData' =>  $request->all(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+            'requests' => $request->all(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
     }
-
     /**
      * Remove the specified resource from storage.
      */
