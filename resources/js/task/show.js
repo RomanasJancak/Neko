@@ -51,8 +51,8 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             .then(data => {
                 if (data) {
 
-                     document.getElementById('taskCountryField').value = data.country; 
-                     document.getElementById('taskCityField').value = data.city;
+                     //document.getElementById('taskCountryField').value = data.country; 
+                     //document.getElementById('taskCityField').value = data.city;
                      document.getElementById('taskPostalCodeField').value = data.postal_code;
                      document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
                 }
@@ -88,8 +88,8 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
     type        :   document.getElementById('taskTypeField').value,
     address     :   {
         name            :   document.getElementById('taskClientNameField').value,
-        country         :   document.getElementById('taskCountryField').value,
-        city            :   document.getElementById('taskCityField').value,
+        //country         :   document.getElementById('taskCountryField').value,
+        //city            :   document.getElementById('taskCityField').value,
         postalCode      :   document.getElementById('taskPostalCodeField').value,
         addressLine     :   document.getElementById('taskAddressLineField').value,
     },
