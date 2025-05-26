@@ -241,7 +241,7 @@
         
     </script>
     <script>
-        function showInfoMessage(message, duration = 2000) {
+        function showInfoMessage({message, duration = 2000,zIndex=1050}) {
             const alertBox = document.getElementById('navAlert');
             const alertText = document.getElementById('navAlertText');
             const navbar = document.querySelector('nav.navbar');
@@ -253,7 +253,7 @@
 
 
             alertBox.style.top = `${navbarHeight}px`;
-
+            alertBox.style.zIndex = zIndex; // Default z-index if not provided
 
             alertBox.classList.add('show-alert');
 
