@@ -1155,7 +1155,7 @@ function setTaskValues(taskId){
                 taskTimeDate = document.getElementById('taskTimeDate');
                 taskTimeDate.value  = `${dateBegin.getUTCFullYear()}-${String(dateBegin.getUTCMonth() + 1).padStart(2, '0')}-${String(dateBegin.getUTCDate()).padStart(2, '0')}`;
                 
-                checkbox  = document.getElementById('returnTask_isFlexible');
+                let checkbox  = document.getElementById('returnTask_isFlexible');
                 if (checkbox.checked) {
                         container_taskTimeDate.style.visibility = 'visible';
                     } else {
@@ -1209,6 +1209,33 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.job-view-btn').forEach(button => {
         addEventListenerToViewJobButton_click(button);
     });
+    const submitTaskform_button = document.getElementById('submitTaskform');
+    if(submitTaskform_button){
+        submitTaskform_button.addEventListener('click', function(event) {
+            $('#taskModalWindow').modal('hide');
+            $('#jobModalWindow').modal('show');
+            let zIndex = window.getComputedStyle(document.getElementById('jobModalWindow')).zIndex+1;
+            let message = 'Default message';
+            switch(event.target.getAttribute('data-option')){
+                case 'view':
+                    break;
+                case 'delete':
+                    message = 'Task deleted successfully';
+                    break;
+                case 'update':
+                    message = 'Task updated successfully';
+                    break;
+                case 'create':
+                    message = 'Task created successfully';
+                    break;
+            }
+            
+            showInfoMessage({
+                message : message,
+                zIndex: zIndex,
+            });
+        });
+    }
     const price_magicNumber_DisplayField = document.getElementById('price_magicNumber_DisplayField');
     const confirmCopyJob    =   document.getElementById('confirmCopyJob');
     const createJobFromClipboard = document.getElementById('createJobFromClipboard');
