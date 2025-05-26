@@ -43,19 +43,61 @@ class JobController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
+public function index(Request $request)
+{
+    // Read filters from the query string
+    $id = $request->get('id', '');
+    $clientName = $request->get('clientName', '');
+    $date = $request->get('date', '');
+    $package = $request->get('package', '');
+    $sortField = $request->get('sortField', 'id');
+    $sortOrder = $request->get('sortOrder', 'asc');
 
+    // Base query
+    $query = Job::with(['clientToBill', 'tasks']);
 
-            $jobs = Job::paginate(10);
-            $day = Day::first();
-            $couriers = User::getCouriersWithWorkload($day);
-            $statuses = Status::all();
-            $packageTypes = PackageType::all();
-            
-
-        return view('job.index', compact('jobs','couriers','statuses','packageTypes'));
+    // Apply filters
+    if (!empty($id)) {
+        $query->where('jobs.id', 'like', "%{$id}%");
     }
+
+    if (!empty($clientName)) {
+        $query->whereHas('clientToBill', function ($q) use ($clientName) {
+            $q->where('name', 'like', "%{$clientName}%");
+        });
+    }
+
+    if (!empty($date)) {
+        $query->where('jobs.date', 'like', "%{$date}%");
+    }
+
+    if (!empty($package)) {
+        $query->whereHas('tasks.package', function ($q) use ($package) {
+            $q->where('dropoff_adress_line', 'like', "%{$package}%")
+              ->orWhere('dropoff_postal_code', 'like', "%{$package}%")
+              ->orWhere('dropoff_name', 'like', "%{$package}%");
+        });
+    }
+
+    // Sorting
+    if ($sortField === 'clientName') {
+        $query->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+              ->orderBy('clients.name', $sortOrder);
+    } else {
+        $query->orderBy("jobs.{$sortField}", $sortOrder);
+    }
+
+    // Pagination with query string appended
+    $jobs = $query->paginate(10)->appends($request->query());
+
+    // Supporting data
+    $day = Day::first();
+    $couriers = User::getCouriersWithWorkload($day);
+    $statuses = Status::all();
+    $packageTypes = PackageType::all();
+
+    return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes'));
+}
     /**
      * Show the form for creating a new resource.
      */
@@ -706,7 +748,8 @@ class JobController extends Controller
                 'clientName' => $clientName,
                 'date' => $date,
                 'sortField' => $sortField,
-                'sortOrder' => $sortOrder
+                'sortOrder' => $sortOrder,
+                'package' => $package,
             ]);
     
             return response()->json([

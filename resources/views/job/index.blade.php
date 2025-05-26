@@ -100,7 +100,7 @@
                     <div class="row">
                         <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-id" class="form-control" placeholder="Search...">
+                            <input type="text" id="search-id" class="form-control" placeholder="Search..." value="{{ request()->query('id', '') }}">
                         </div>
                     </div>                    
                 </th>
@@ -116,7 +116,7 @@
                     <div class="row">
                         <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-clientName" class="form-control" placeholder="Search...">
+                            <input type="text" id="search-clientName" class="form-control" placeholder="Search..." value="{{ request()->query('clientName', '') }}">
                         </div>
                     </div>
                 </th>
@@ -132,7 +132,7 @@
                     <div class="row">
                         <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-date" class="form-control" placeholder="Search...">
+                            <input type="text" id="search-date" class="form-control" placeholder="Search..." value="{{ request()->query('date', '') }}">
                         </div>
                     </div>
                 </th>
@@ -149,9 +149,9 @@
                 <th>Pickup</th>
                 <th>
                     <span>Drops</span>
-                    <div class="col input-container">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-package" class="form-control" placeholder="Search...">
+                    <div class="row input-container">
+                            <!-- <i class="fa-solid col fa-magnifying-glass"></i> -->
+                            <input type="text" id="search-package" class="col form-control" placeholder="Search..." value="{{ request()->query('package', '') }}">
                     </div>
                 </th>
                 <th>Custom</th>

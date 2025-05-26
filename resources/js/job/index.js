@@ -145,6 +145,20 @@ function fetchJobs(page = 1, url) {
   const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
   const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
 
+
+  var queryParams = new URLSearchParams({
+    id: id,
+    clientName: clientName,
+    date: date,
+    package: pakuote,
+    sortField: sortField,
+    sortOrder: sortOrder,
+    page: page
+  }).toString();
+  var newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+  history.replaceState({}, '', newUrl);
+
+
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const xhr = new XMLHttpRequest();
   if(url){
@@ -283,7 +297,10 @@ function fetchJobs(page = 1, url) {
           paginationLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
                     event.preventDefault();
-                    fetchJobs(undefined, event.target.href);
+
+                    const urlObj = new URL(event.target.href);
+                    const pageParam = urlObj.searchParams.get('page');
+                    fetchJobs(pageParam, event.target.href);
                 });
           });
                 
