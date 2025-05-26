@@ -596,6 +596,7 @@ class JobController extends Controller
                                             'end'   =>  $task->timeWindowEnd(),    
                         ],
                         'fullAddress'   =>  $task->fullAddress(),
+                        'shortAddress'  =>  $task->addressShort(),
                         'quantity'      =>  isset($task->package)?$task->package->quantity:null,
                         'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,
                     ];
