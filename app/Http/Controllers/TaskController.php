@@ -171,14 +171,36 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    public function updateOrder(UpdateTaskRequest $request){
+        try{
+            $task = Task::findOrFail($request->id);
+            $task->date = $request->filled('date') ? $request->input('date') : $task->date;
+            //$task->job_id           =   $request->input('jobId');
+            $task->status_id        =   $request->input('status_id');
+            $task->note = $request->filled('note') ? $request->input('note') : $task->note;
+            $task->order_number = $request->filled('order_number') ? $request->input('order_number') : $task->order_number;
+            $task->save();
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Task updated successfully. ',
+                'task'      =>  $task,
+                'requestData' =>  $request->all(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+            'requests' => $request->all(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
+    }
     public function update(UpdateTaskRequest $request, Task $task)
     {
         try{
         $task = Task::findOrFail($request->id);
-        $task->date             =   $request->input('date');
+        $task->date = $request->filled('date') ? $request->input('date') : $task->date;
         //$task->job_id           =   $request->input('jobId');
         $task->status_id        =   $request->input('status_id');
-        $task->note             =   $request->input('note');
+        $task->note = $request->filled('note') ? $request->input('note') : $task->note;
         $task->save();
         
         $taskTypeObject = null;

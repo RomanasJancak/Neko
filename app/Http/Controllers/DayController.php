@@ -78,7 +78,28 @@ class DayController extends Controller
             return $user->workload($day) !== null;
         });
         $carbobn = new Carbon();
-        $jobsUnassigned = Job::whereHas('status', function($query) {
+        //=====
+        $jobsUnassigned = Job::whereHas('status', function ($query) {
+                            $query->where('name', 'unassigned');
+            })->whereHas('tasks', function ($query) use ($date) {
+                $query->where(function ($taskQuery) use ($date) {
+            $taskQuery
+                ->whereHas('pickup', function ($pickupQuery) use ($date) {
+                    $pickupQuery->whereBetween('pickup_time_begin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()]);
+                })
+                ->orWhereHas('package', function ($packageQuery) use ($date) {
+                    $packageQuery->whereBetween('packagedropofftimebegin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()]);
+                })
+                ->orWhereHas('return', function ($returnQuery) use ($date) {
+                    $returnQuery->whereBetween('time_begin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()]);
+                });
+        });
+    })
+    ->with(['tasks.pickup', 'tasks.package', 'tasks.return']) // eager load if needed
+    ->get();
+        //dd($jobs);
+        //======
+        $jobsUnassigned_2 = Job::whereHas('status', function($query) {
             $query->where('name', 'unassigned');
         })
         ->whereBetween('pickup_time_begin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()])

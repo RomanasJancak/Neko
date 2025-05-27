@@ -114,6 +114,7 @@ Route::group(['prefix'  =>  'tasks'],function(){
     Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
     Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
     Route::post('update',           [TaskController::class, 'update'])->name('task.update')->middleware('auth');
+    Route::post('updateOrder',      [TaskController::class, 'updateOrder'])->name('task.updateOrder')->middleware('auth');
     Route::post('delete',           [TaskController::class, 'destroy'])->name('task.delete')->middleware('auth');
     Route::post('createBackup',     [TaskController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
     Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');

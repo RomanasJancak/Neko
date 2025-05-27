@@ -539,7 +539,7 @@ function updateTaskCourierAndStatus(taskId,userId = 0,statusId,order_number){
         console.log(data);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Send a POST request to the server using the generated route
-        fetch('{{ route("task.update") }}', { // Blade syntax to generate the route URL
+        fetch('{{ route("task.updateOrder") }}', { // Blade syntax to generate the route URL
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
