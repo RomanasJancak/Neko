@@ -19,7 +19,8 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\JobTemplateController;
 use App\Http\Controllers\ApprovedPostalCodeAreaController;
 use App\Http\Controllers\AddressController;
-use App\Http\Controllers\ExtraTypesController;   
+use App\Http\Controllers\ExtraTypesController;
+use App\Http\Controllers\UserSettingController;   
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -217,15 +218,15 @@ Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
     Route::post('update',           [ApprovedPostalCodeAreaController::class, 'update'])->name('approvedpostalcodearea.update')->middleware('auth');
     Route::post('delete',           [ApprovedPostalCodeAreaController::class, 'destroy'])->name('approvedpostalcodearea.delete')->middleware('auth');
 });
-Route::group(['prefix'  => 'settings'],function(){
-    Route::get('',                  [SettingController::class, 'index'])->name('setting.index')->middleware('auth');
-    Route::post('backupAll',         [SettingController::class, 'backupAll'])->name('setting.backupAll')->middleware('auth');
-    // Route::post('update',           [PostalCodeController::class, 'update'])->name('task.update')->middleware('auth');
-    // Route::post('delete',           [PostalCodeController::class, 'destroy'])->name('task.delete')->middleware('auth');
-    // Route::post('store',            [PostalCodeController::class, 'store'])->name('task.store')->middleware('auth');
-    // Route::post('createBackup',     [PostalCodeController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
-    // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
-});
+// Route::group(['prefix'  => 'settings'],function(){
+//     Route::get('',                  [SettingController::class, 'index'])->name('setting.index')->middleware('auth');
+//     Route::post('backupAll',         [SettingController::class, 'backupAll'])->name('setting.backupAll')->middleware('auth');
+//     // Route::post('update',           [PostalCodeController::class, 'update'])->name('task.update')->middleware('auth');
+//     // Route::post('delete',           [PostalCodeController::class, 'destroy'])->name('task.delete')->middleware('auth');
+//     // Route::post('store',            [PostalCodeController::class, 'store'])->name('task.store')->middleware('auth');
+//     // Route::post('createBackup',     [PostalCodeController::class, 'createBackup'])->name('task.createBackup')->middleware('auth');
+//     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
+// });
 Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
     Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
@@ -241,4 +242,8 @@ Route::group(['prefix' => 'extratypes'], function(){
     Route::post('update',           [ExtraTypesController::class, 'update'])->name('extratype.update')->middleware('auth');
     Route::post('delete',           [ExtraTypesController::class, 'destroy'])->name('extratype.delete')->middleware('auth');
     Route::get('fetch',             [ExtraTypesController::class, 'fetch'])->name('extratype.fetch')->middleware('auth');
+});
+Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
+    Route::get('/', [UserSettingController::class, 'index'])->name('index');
+    Route::post('/', [UserSettingController::class, 'update'])->name('update');
 });
