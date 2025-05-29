@@ -28,6 +28,7 @@ use App\Models\Returntask;
 use App\Models\Customtask;
 
 use App\Services\BackupService;
+use App\Services\SettingsService;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -43,15 +44,16 @@ class JobController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index(Request $request)
+public function index(Request $request,SettingsService $settings)
 {
+    $user = auth()->user();
     // Read filters from the query string
     $id = $request->get('id', '');
     $clientName = $request->get('clientName', '');
     $date = $request->get('date', '');
     $package = $request->get('package', '');
-    $sortField = $request->get('sortField', 'id');
-    $sortOrder = $request->get('sortOrder', 'asc');
+    $sortField = $request->get('sortField') ?: $settings->get('models.job.view.index.sortColumn', $user);
+    $sortOrder = $request->get('sortOrder')?: $settings->get('models.job.view.index.sortOrder', $user);
 
     // Base query
     $query = Job::with(['clientToBill', 'tasks']);
