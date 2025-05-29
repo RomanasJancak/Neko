@@ -21,6 +21,7 @@ function viewJob(jobId) {
         global_typeOfButtonClickedToOpenJobModal = 'view';
 
         const submitButton = document.getElementById('submitform');
+        submitButton.setAttribute('data-option', 'view');
         submitButton.innerHTML = "<i class='bi bi-eye'></i>";
         submitButton.style.visibility = 'hidden';
         createNewTaskButton.style.visibility = 'hidden';
@@ -50,6 +51,7 @@ function editJob(jobId) {
         global_typeOfButtonClickedToOpenJobModal = 'edit';
         
         const submitButton = document.getElementById('submitform');
+        submitButton.setAttribute('data-option', 'edit');
         submitButton.innerHTML = "<i class='bi bi-pen'></i>";
         submitButton.style.visibility = 'visible';
         createNewTaskButton.style.visibility = 'visible';
@@ -79,6 +81,7 @@ function deleteJob(jobId) {
         setJobValues(jobId, 'delete');
         global_typeOfButtonClickedToOpenJobModal = 'delete';
         const submitButton = document.getElementById('submitform');
+        submitButton.setAttribute('data-option', 'delete');
         submitButton.innerHTML = "<i class='bi bi-trash'></i>";
         submitButton.style.visibility = 'visible';
         createNewTaskButton.style.visibility = 'hidden';
@@ -128,6 +131,7 @@ function createJob(){
             }
         }else{
             let submitButton = document.getElementById('submitform');
+            submitButton.setAttribute('data-option', 'update');
             submitButton.innerHTML = "<i class='bi bi-pen'></i>";
         }
         document.getElementById('idField').value = data.job.id;
@@ -443,7 +447,7 @@ function setReadOnlyToFieldsOfTaskModal(status){
 function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
-        $('#jobModalWindow').modal('hide');
+        //$('#jobModalWindow').modal('hide');
         let submitButton = document.getElementById('submitTaskform');
         if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
@@ -1410,6 +1414,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.setAttribute('action', window.ROUTES.WEB.JOB.STORE);
                 let submitButton = document.getElementById('submitform');
                 submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                submitButton.setAttribute('data-option', 'create');
                 if(!checkIf_All_JobCreationFields_HaveInputs()){
                     toggle_CreateNewTaskButton(false);
                 }else{
@@ -1470,9 +1475,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     alert(errorsMessage);
                 };
+                //console.log(submitFormInnerHTML,document.getElementById('submitform'));
                 if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
                     $('#jobModalWindow').modal('hide');
                     let row = document.getElementById('jobTableRow_'+updateData.id);
+                    console.log(row);
+                    
                     if(row){
                         row.parentNode.removeChild(row);
                     }
