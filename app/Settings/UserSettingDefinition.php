@@ -7,86 +7,73 @@ class UserSettingDefinition
     {
       return [
             'global' => [
-                'theme' => [
-                    'label' => 'Theme',
-                    'type' => 'select',
-                    'options' => ['light' => 'Light', 'dark' => 'Dark'],
-                    'rules' => ['required', 'in:light,dark'],
-                    'default' => 'dark',
-                ],
             ],
             'models' => [
-                'user' => [
-                    'sort_column' => [
-                        'label' => 'Sort Column',
-                        'type' => 'text',
-                        'rules' => ['required', 'string'],
-                        'default' => 'created_at',
-                    ],
-                    'sort_order' => [
-                        'label' => 'Sort Order',
-                        'type' => 'select',
-                        'options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
-                        'rules' => ['required', 'in:asc,desc'],
-                        'default' => 'desc',
-                    ],
+                'job' => [
+                    'view' => [
+                        'index' => [
+                            'sortColumn' => [
+                                'label' => 'Job list Sort Column',
+                                'type' => 'select',
+                                'options' => [
+                                    'clientName' => 'Client name',
+                                    'id'         => 'Job ID'],
+                                    'date'       =>  'Date',
+                                'rules' => ['required', 'in:clientName,id,date'],
+                                'default' => 'id',
+                            ],
+                            'sortOrder' => [
+                                'label' => 'Job list Sort Order',
+                                'type' => 'select',
+                                'options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
+                                'rules' => ['required', 'in:asc,desc'],
+                                'default' => 'asc',
+                            ],
+                        ]
+                    ]
                 ],
-                'post' => [
-                    'sort_column' => [
-                        'label' => 'Sort Column',
-                        'type' => 'text',
-                        'rules' => ['required', 'string'],
-                        'default' => 'published_at',
-                    ],
-                    'sort_order' => [
-                        'label' => 'Sort Order',
-                        'type' => 'select',
-                        'options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
-                        'rules' => ['required', 'in:asc,desc'],
-                        'default' => 'asc',
-                    ],
-                ],
-            ],
-            'views' =>  [
-              'job' =>  [
-                'index' => [
-                    'sort_column' => [
-                        'label' => 'Sort Column',
-                        'type' => 'text',
-                        'rules' => ['required', 'string'],
-                        'default' => 'id',
-                    ],
-                    'sort_order' => [
-                        'label' => 'Sort Order',
-                        'type' => 'select',
-                        'options' => ['asc' => 'Ascending', 'desc' => 'Descending'],
-                        'rules' => ['required', 'in:asc,desc'],
-                        'default' => 'asc',
-                    ],
-                ],
-              ]
             ],
         ];
     }
-    public static function defaultValues(): array
-    {
-        $flattened = [];
+public static function defaultValues(): array
+{
+    $flattened = [];
 
-        foreach (self::all() as $group => $settings) {
-            foreach ($settings as $context => $items) {
-                // global has no inner group
-                if ($group === 'global') {
-                    foreach ($items as $key => $setting) {
-                        $flattened["global.$key"] = $setting['default'];
-                    }
-                } else {
-                    foreach ($items as $key => $setting) {
-                        $flattened["$group.$context.$key"] = $setting['default'];
-                    }
-                }
+    $flatten = function (array $settings, string $prefix = '') use (&$flattened, &$flatten) {
+        foreach ($settings as $key => $value) {
+            $path = $prefix === '' ? $key : "$prefix.$key";
+            if (is_array($value) && isset($value['default'])) {
+                $flattened[$path] = $value['default'];
+            } elseif (is_array($value)) {
+                $flatten($value, $path);
             }
         }
+    };
 
-        return $flattened;
-    }
+    $flatten(self::all());
+
+    return $flattened;
+}
+
+public static function validationRules(): array
+{
+    $rules = [];
+
+    $flatten = function (array $settings, string $prefix = '') use (&$rules, &$flatten) {
+        foreach ($settings as $key => $value) {
+            $path = $prefix === '' ? $key : "$prefix.$key";
+            if (is_array($value) && isset($value['rules'])) {
+                $rules[$path] = $value['rules'];
+            } elseif (is_array($value)) {
+                $flatten($value, $path);
+            }
+        }
+    };
+
+    $flatten(self::all());
+
+    return $rules;
+}
+
+
 }
