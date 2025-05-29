@@ -291,9 +291,9 @@ function fetchJobs(page = 1, url) {
             jobCopyButton.dataset.jobid = job.id;
             jobCopyButton.innerHTML = '<i class="fa-solid fa-copy"></i>';
             let jobShareLinkButton   =   document.createElement('button');
-            jobCopyButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
-            jobCopyButton.dataset.jobid = job.id;
-            jobCopyButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
+            jobShareLinkButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
+            jobShareLinkButton.dataset.jobid = job.id;
+            jobShareLinkButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
             columnForActions.appendChild(jobViewButton);
             columnForActions.appendChild(jobEditButton);
             columnForActions.appendChild(jobDeleteButton);
