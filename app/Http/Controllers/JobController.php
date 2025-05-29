@@ -716,35 +716,37 @@ public function index(Request $request,SettingsService $settings)
             $sortOrder = $request->get('sortOrder', 'asc');
 
     
-            $jobIdsQuery = Job::with(['clientToBill', 'tasks'])
-            ->when($id, function ($queryBuilder) use ($id) {
-                $queryBuilder->where('jobs.id', 'like', '%' . $id . '%');
-            })
-            ->when($date, function ($queryBuilder) use ($date) {
-                $queryBuilder->where('jobs.date', 'like', '%' . $date . '%');
-            })
-            ->when($clientName, function ($queryBuilder) use ($clientName) {
-                $queryBuilder->whereHas('clientToBill', function ($query) use ($clientName) {
-                    $query->where('name', 'like', '%' . $clientName . '%');
-                });
-            })
-            ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
-            ->join('packages', 'packages.task_id', '=', 'tasks.id')
-            ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
-            ->when($package, function ($queryBuilder) use ($package) {
-                $queryBuilder->where(function ($query) use ($package) {
-                    $query->where('packages.dropoff_adress_line', 'like', '%' . $package . '%')
-                        ->orWhere('packages.dropoff_postal_code', 'like', '%' . $package . '%')
-                        ->orWhere('packages.dropoff_name', 'like', '%' . $package . '%');
-                });
-            })
-            ->orderBy($sortField === 'clientName' ? 'clients.name' : 'jobs.' . $sortField, $sortOrder)
-            ->distinct()
-            ->select('jobs.id');
+$jobIds = Job::query()
+    ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
+    ->join('packages', 'packages.task_id', '=', 'tasks.id')
+    ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+    ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
+    ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
+    ->when($clientName, fn($q) => 
+        $q->where('clients.name', 'like', "%$clientName%")
+    )
+    ->when($package, fn($q) =>
+        $q->where(function ($q) use ($package) {
+            $q->where('packages.dropoff_adress_line', 'like', "%$package%")
+              ->orWhere('packages.dropoff_postal_code', 'like', "%$package%")
+              ->orWhere('packages.dropoff_name', 'like', "%$package%");
+        })
+    )
+    ->distinct()
+    ->pluck('jobs.id'); // no ORDER BY here
 
-            $jobs = Job::whereIn('id', $jobIdsQuery)
-                
-                ->paginate(10);
+$jobs = Job::with(['clientToBill', 'tasks'])
+    ->whereIn('jobs.id', $jobIds)
+    ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
+        $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+          ->orderBy('clients.name', $sortOrder)
+          ->select('jobs.*'); // necessary when using join in Eloquent
+    }, function ($q) use ($sortField, $sortOrder) {
+        $q->orderBy("jobs.$sortField", $sortOrder);
+    })
+    ->paginate(10);
+
+
             $jobs->appends([
                 'id' => $id,
                 'clientName' => $clientName,
@@ -777,6 +779,7 @@ public function index(Request $request,SettingsService $settings)
                     ];
                 }),
                 'links' => (string) $jobs->links(),
+                // 'jobsIdQuery' => $jobIdsQuery->toSql(),
             ]);
         } catch (QueryException $e) {
             return response()->json([
