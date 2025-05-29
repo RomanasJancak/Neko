@@ -89,6 +89,15 @@ function deleteJob(jobId) {
     toggle_CreateNewTaskButton(false);
     $('#jobModalWindow').modal('show');
 }
+function getShareLinkJob(jobId){
+    let queryParams = new URLSearchParams({
+    id: jobId,
+    openModal :true,
+  }).toString();
+  var newUrl = `${window.location.origin}${window.location.pathname}?${queryParams.toString()}`;
+    navigator.clipboard.writeText(newUrl)
+    .then(() => alert('Copied to clipboard!'))
+}
 function createJob(){
     const form = document.getElementById('jobForm');
     let updateData  =   {
@@ -281,16 +290,22 @@ function fetchJobs(page = 1, url) {
             jobCopyButton.className = 'btn btn-info copy-btn job-copy-btn';
             jobCopyButton.dataset.jobid = job.id;
             jobCopyButton.innerHTML = '<i class="fa-solid fa-copy"></i>';
+            let jobShareLinkButton   =   document.createElement('button');
+            jobCopyButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
+            jobCopyButton.dataset.jobid = job.id;
+            jobCopyButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
             columnForActions.appendChild(jobViewButton);
             columnForActions.appendChild(jobEditButton);
             columnForActions.appendChild(jobDeleteButton);
             columnForActions.appendChild(jobCopyButton);
+            columnForActions.appendChild(jobShareLinkButton);
             row.appendChild(columnForActions);                   
             document.getElementById('jobsTableBody').appendChild(row);
             addEventListenerToCopyJobButton_click(jobCopyButton);
             addEventListenerToDeleteJobButton_click(jobDeleteButton);
             addEventListenerToEditJobButton_click(jobEditButton);
             addEventListenerToViewJobButton_click(jobViewButton);
+            addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
           });
           let botoomPagination = document.getElementById('paginationLinks_bottom');
           let topPagination = document.getElementById('paginationLinks_top');
@@ -1015,6 +1030,13 @@ function addEventListenerToViewJobButton_click(button){
         viewJob(jobId)
     });
 }
+function addEventListenerToShareLinkJobButton_click(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        getShareLinkJob(jobId);
+    });
+}
 function toggle_CreateNewTaskButton(enable = true){
     let createNewTaskButton = document.getElementById('createNewTask');
     let createNewPickupButton = document.getElementById('createNewPickup');
@@ -1220,6 +1242,13 @@ function set_Some_JobCreationFields_ToDefaultValues(){
 //=====================================================================
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams);
+    const jobId_openMoal = urlParams.get('id');
+    const openModal_param = urlParams.get('openModal');
+    if (jobId_openMoal && openModal_param === 'true') {
+        editJob(jobId_openMoal);
+    }
     document.querySelectorAll('.job-copy-btn').forEach(button => {
         addEventListenerToCopyJobButton_click(button);
     });
@@ -1231,6 +1260,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('.job-view-btn').forEach(button => {
         addEventListenerToViewJobButton_click(button);
+    });
+    document.querySelectorAll('.job-sharelink-btn').forEach(button => {
+        addEventListenerToShareLinkJobButton_click(button);
     });
     const submitTaskform_button = document.getElementById('submitTaskform');
     if(submitTaskform_button){

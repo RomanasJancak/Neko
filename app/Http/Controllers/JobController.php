@@ -46,6 +46,11 @@ class JobController extends Controller
      */
 public function index(Request $request,SettingsService $settings)
 {
+        // Supporting data
+    $day = Day::first();
+    $couriers = User::getCouriersWithWorkload($day);
+    $statuses = Status::all();
+    $packageTypes = PackageType::all();
     $user = auth()->user();
     // Read filters from the query string
     $id = $request->get('id', '');
@@ -54,6 +59,12 @@ public function index(Request $request,SettingsService $settings)
     $package = $request->get('package', '');
     $sortField = $request->get('sortField') ?: $settings->get('models.job.view.index.sortColumn', $user);
     $sortOrder = $request->get('sortOrder')?: $settings->get('models.job.view.index.sortOrder', $user);
+    $openModal = $request->get('openModal', false);
+    if ($openModal && !empty($id)) {
+        $jobs = Job::paginate(10)->appends($request->query());
+        $jobToOpen = Job::find($id);
+        return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen'));
+    }
 
     // Base query
     $query = Job::with(['clientToBill', 'tasks']);
@@ -92,11 +103,7 @@ public function index(Request $request,SettingsService $settings)
     // Pagination with query string appended
     $jobs = $query->paginate(10)->appends($request->query());
 
-    // Supporting data
-    $day = Day::first();
-    $couriers = User::getCouriersWithWorkload($day);
-    $statuses = Status::all();
-    $packageTypes = PackageType::all();
+
 
     return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes'));
 }

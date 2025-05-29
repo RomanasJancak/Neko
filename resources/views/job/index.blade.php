@@ -230,6 +230,7 @@
                         <i class="bi bi-trash"></i>
                     </button>
                     <button class="btn btn-info job-copy-btn"   data-jobid="{{ $job->id }}"><i class="fa-solid fa-copy"></i></button>
+                    <button class="btn btn-info job-sharelink-btn"   data-jobid="{{ $job->id }}"><i class="fa fa-share-alt" aria-hidden="true"></i></button>
                 </td>   
             </tr>
             @endforeach
