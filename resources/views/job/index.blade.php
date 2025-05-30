@@ -136,7 +136,7 @@
                         </div>
                     </div>
                 </th>
-                <th colspan="4">Tasks</th>
+                <th colspan="3">Tasks</th>
                 <th rowspan="2">Actions</th>
                 <th rowspan="2" style="text-align:center;width:100px;">
                     <span>Create Job</span>
@@ -154,7 +154,7 @@
                             <input type="text" id="search-package" class="col form-control" placeholder="Search..." value="{{ request()->query('package', '') }}">
                     </div>
                 </th>
-                <th>Custom</th>
+                <!-- <th>Custom</th> -->
                 <th>Price</th>
             </tr>
         </thead>
@@ -217,7 +217,7 @@
                     @endif                               
                 @endforeach
                 </td>
-                <td></td>
+                <!-- <td></td> -->
                 <td><span>&#163;</span>@if($job->fixed_price === 0){{ number_format($job->price()['totalPrice'] / 100, 2) }}@else {{ number_format($job->fixed_price / 100, 2) }}@endif<span>@if($job->fixed_price !== 0) <i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>@endif</span></td>
                 <td>
                     <button class="btn btn-success view-btn job-view-btn" data-jobid="{{ $job->id }}">
@@ -256,7 +256,7 @@
                             <div class="col-12">
                                 <div class="form-group d-flex justify-content-between">
                                     
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Cancel</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="jobModalWindowCloseButton">Close/Cancel</button>
                                 </div>
                             </div>
                             <!-- <div class="col-auto"></div> -->

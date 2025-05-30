@@ -602,11 +602,27 @@ public function index(Request $request,SettingsService $settings)
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
                 'note'              =>  $job->note,
+                'hasReturn' =>  $job->hasReturn(),
+                'urlToLogo'   =>  $job->urlToLogo(),
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
                 'statusId'              =>  is_null($job->status) ? 'none' : $job->status->id,
+                'clientToBill'  =>  $job->clientToBill,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
                 'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->id,
-                'pickup'                =>  is_null($job->getPickupTask()) ? 'none' : $job->getPickupTask(),
+                'pickup' => is_null($job->getPickupTask()) ? 'none' : array_merge(
+                    $job->getPickupTask()->toArray(),
+                    [
+                        'nameOfAddress' => $job->getPickupTask()->nameOfAddress(),
+                        'fullAddress'   => $job->getPickupTask()->pickupAddressFull(),
+                        'timeWindow'    => [
+                            'begin' => $job->getPickupTask()->timeWindowBegin(),
+                            'end'   => $job->getPickupTask()->timeWindowEnd(),
+                        ],
+                        'isAddressSameAsClientAddress' => $job->clientToBill
+                            ? $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull())
+                            : false,
+                    ]
+                ),
                 'dropoffs'              =>  is_null($job->getDropOffTasks()) ? 'none' : collect($job->getDropOffTasks())->map(function ($dropoff) {
                     return [
                         'id'    =>  $dropoff->id,
@@ -622,6 +638,7 @@ public function index(Request $request,SettingsService $settings)
                 'returns'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'return'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'date'                  =>  $job->date,
+                'fixed_price'           =>  $job->fixed_price === 0,
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
                         'id'        => $task->id,
@@ -650,6 +667,7 @@ public function index(Request $request,SettingsService $settings)
                         'shortAddress'  =>  $task->addressShort(),
                         'quantity'      =>  isset($task->package)?$task->package->quantity:null,
                         'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,
+                        'package'       =>  isset($task->package)?$task->package:null,
                     ];
                 }),      
                 ]);
@@ -723,84 +741,84 @@ public function index(Request $request,SettingsService $settings)
             $sortOrder = $request->get('sortOrder', 'asc');
 
     
-$jobIds = Job::query()
-    ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
-    ->join('packages', 'packages.task_id', '=', 'tasks.id')
-    ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
-    ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
-    ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
-    ->when($clientName, fn($q) => 
-        $q->where('clients.name', 'like', "%$clientName%")
-    )
-    ->when($package, fn($q) =>
-        $q->where(function ($q) use ($package) {
-            $q->where('packages.dropoff_adress_line', 'like', "%$package%")
-              ->orWhere('packages.dropoff_postal_code', 'like', "%$package%")
-              ->orWhere('packages.dropoff_name', 'like', "%$package%");
-        })
-    )
-    ->distinct()
-    ->pluck('jobs.id'); // no ORDER BY here
+            $jobIds = Job::query()
+                ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
+                ->join('packages', 'packages.task_id', '=', 'tasks.id')
+                ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+                ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
+                ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
+                ->when($clientName, fn($q) => 
+                    $q->where('clients.name', 'like', "%$clientName%")
+                )
+                ->when($package, fn($q) =>
+                    $q->where(function ($q) use ($package) {
+                        $q->where('packages.dropoff_adress_line', 'like', "%$package%")
+                        ->orWhere('packages.dropoff_postal_code', 'like', "%$package%")
+                        ->orWhere('packages.dropoff_name', 'like', "%$package%");
+                    })
+                )
+                ->distinct()
+                ->pluck('jobs.id'); // no ORDER BY here
 
-$jobs = Job::with(['clientToBill', 'tasks'])
-    ->whereIn('jobs.id', $jobIds)
-    ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
-        $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
-          ->orderBy('clients.name', $sortOrder)
-          ->select('jobs.*'); // necessary when using join in Eloquent
-    }, function ($q) use ($sortField, $sortOrder) {
-        $q->orderBy("jobs.$sortField", $sortOrder);
-    })
-    ->paginate(10);
+            $jobs = Job::with(['clientToBill', 'tasks'])
+                ->whereIn('jobs.id', $jobIds)
+                ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
+                    $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+                    ->orderBy('clients.name', $sortOrder)
+                    ->select('jobs.*'); // necessary when using join in Eloquent
+                }, function ($q) use ($sortField, $sortOrder) {
+                    $q->orderBy("jobs.$sortField", $sortOrder);
+                })
+                ->paginate(10);
 
 
-            $jobs->appends([
-                'id' => $id,
-                'clientName' => $clientName,
-                'date' => $date,
-                'sortField' => $sortField,
-                'sortOrder' => $sortOrder,
-                'package' => $package,
-            ]);
-    
-            return response()->json([
-                'request'   =>  $request->all(),
-                'jobs' =>  $jobs->map(function ($job) {
-                    return[
-                        'id'    =>  $job->id,
-                        'hasReturn' =>  $job->hasReturn(),
-                        'urlToLogo'   =>  $job->urlToLogo(),
-                        'clientName'    =>  $job->clientToBill->name,
-                        'tasks' =>  $job->tasks,
-                        'date'  =>  $job->getDate(),
-                        'pickup'    =>  (null !== $job->getPickupTask())?[
-                                'id'  =>  $job->getPickupTask()->id,
-                                'isAddressSameAsClientAdress' =>   $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull()),
-                                'namdeOfAddress'    =>  $job->getPickupTask()->nameOfAddress(),
-                                'fullAddress'   =>  $job->getPickupTask()->pickupAddressFull(),
-                            ]:'',
-                        'clientToBill'  =>  $job->clientToBill,
-                        'price' =>  $job->price()['totalPrice'],
-                        'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
-                        'fixed_price'           =>  $job->fixed_price === 0,
-                    ];
-                }),
-                'links' => (string) $jobs->links(),
-                // 'jobsIdQuery' => $jobIdsQuery->toSql(),
-            ]);
-        } catch (QueryException $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-        }
+                        $jobs->appends([
+                            'id' => $id,
+                            'clientName' => $clientName,
+                            'date' => $date,
+                            'sortField' => $sortField,
+                            'sortOrder' => $sortOrder,
+                            'package' => $package,
+                        ]);
+                
+                        return response()->json([
+                            'request'   =>  $request->all(),
+                            'jobs' =>  $jobs->map(function ($job) {
+                                return[
+                                    'id'    =>  $job->id,
+                                    'hasReturn' =>  $job->hasReturn(),
+                                    'urlToLogo'   =>  $job->urlToLogo(),
+                                    'clientName'    =>  $job->clientToBill->name,
+                                    'tasks' =>  $job->tasks,
+                                    'date'  =>  $job->getDate(),
+                                    'pickup'    =>  (null !== $job->getPickupTask())?[
+                                            'id'  =>  $job->getPickupTask()->id,
+                                            'isAddressSameAsClientAdress' =>   $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull()),
+                                            'namdeOfAddress'    =>  $job->getPickupTask()->nameOfAddress(),
+                                            'fullAddress'   =>  $job->getPickupTask()->pickupAddressFull(),
+                                        ]:'',
+                                    'clientToBill'  =>  $job->clientToBill,
+                                    'price' =>  $job->price()['totalPrice'],
+                                    'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
+                                    'fixed_price'           =>  $job->fixed_price === 0,
+                                ];
+                            }),
+                            'links' => (string) $jobs->links(),
+                            // 'jobsIdQuery' => $jobIdsQuery->toSql(),
+                        ]);
+                    } catch (QueryException $e) {
+                        return response()->json([
+                            'error' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ], 500);
+                    } catch (\Exception $e) {
+                        return response()->json([
+                            'error' => $e->getMessage(),
+                            'file' => $e->getFile(),
+                            'line' => $e->getLine(),
+                        ], 500);
+                    }
     }
     public function create_JobTemplate_fromThisJob($jobId){
         try{

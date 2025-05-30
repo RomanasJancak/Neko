@@ -390,7 +390,6 @@ var global_taskWindow_defaultValue_time_return  = [ '08:00', '17:00'];
 
 function addEventListenerToTasksCreationButtons(button){
     button.addEventListener('click', (e) => {
-        //$('#jobModalWindow').modal('hide');
         let taskTypeField = document.getElementById('taskTypeField');
         let container_return = document.getElementById('return-info');
         if(document.getElementById('jobid').value == ''){
@@ -462,7 +461,6 @@ function setReadOnlyToFieldsOfTaskModal(status){
 function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
-        //$('#jobModalWindow').modal('hide');
         let submitButton = document.getElementById('submitTaskform');
         if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
@@ -1236,6 +1234,144 @@ function set_Some_JobCreationFields_ToDefaultValues(){
     jobDateField.value = "2024-08-19";
 
 }
+function repopulateJobRow(jobId,jobRow){
+    const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(job => {
+            
+            let packageCounter = 1;
+            let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAddress;
+            let addressNameToDisplay = '';            
+            if(isAddressSameAsClientAdress){
+                if(job.clientToBill.shortenedName !== ''){
+                    addressNameToDisplay = job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code;
+                }else{
+                    addressNameToDisplay = job.clientToBill.name;
+                }
+            }else{
+                addressNameToDisplay = job.pickup.nameOfAddress;
+            }                
+            let row = document.createElement('tr');
+            row.id = 'jobTableRow_' + jobId;
+            let columnForId =  document.createElement('td');
+            columnForId.textContent = job.id;
+            row.appendChild(columnForId);
+            
+            let columnForLogoAndClientName =  document.createElement('td');
+            columnForLogoAndClientName.className = 'no-padding';
+            let img = document.createElement('img');
+            img.src = job.urlToLogo;
+            img.style.maxWidth = '2rem';
+            img.style.height = 'auto';
+            let span = document.createElement('span');
+            span.textContent = job.clientName;
+            columnForLogoAndClientName.appendChild(img);
+            columnForLogoAndClientName.appendChild(span);
+            row.appendChild(columnForLogoAndClientName);
+            let columnForDate =  document.createElement('td');
+            columnForDate.textContent = job.date;
+            row.appendChild(columnForDate);
+            let columnForAddress =  document.createElement('td');
+            let div = document.createElement('div');
+            let spanAddressName = document.createElement('span');
+            spanAddressName.textContent = addressNameToDisplay;
+            let spanInfoIcon = document.createElement('span');
+            spanInfoIcon.className = 'info-icon';
+            let i = document.createElement('i');
+            i.className = 'bi bi-info-circle-fill';
+            let spanTooltip = document.createElement('span');
+            spanTooltip.className = 'tooltip';
+            spanTooltip.textContent = job.pickup.fullAddress;
+            spanInfoIcon.appendChild(i);
+            spanInfoIcon.appendChild(spanTooltip);
+            div.appendChild(spanAddressName);
+            div.appendChild(spanInfoIcon);
+            columnForAddress.appendChild(div);
+            row.appendChild(columnForAddress);
+            let columnForDropOffs =  document.createElement('td');
+            job.tasks.forEach(task => {
+                if(task.package){
+                    let div = document.createElement('div');
+                    div.className = 'row';
+                    let div2 = document.createElement('div');
+                    div2.className = 'col';
+                    let blockquote = document.createElement('blockquote');
+                    blockquote.className = 'blockquote border';
+                    let h6 = document.createElement('h6');
+                    h6.textContent = `Package No [${packageCounter++}]`;
+                    let p = document.createElement('p');
+                    p.className = 'mb-0';
+                    p.textContent = task.package.dropoff_name;
+                    if(job.hasReturn){
+                        let i = document.createElement('i');
+                        i.className = 'bi bi-arrow-counterclockwise';
+                        i.style.color = '#00DD00';
+                        p.appendChild(i);
+                    }
+                    let footer = document.createElement('footer');
+                    footer.className = 'blockquote-footer';
+                    let cite = document.createElement('cite');
+                    cite.title = 'Source Title';
+                    cite.textContent = task.package.dropoff_adress_line+task.package.dropoff_postal_code;
+                    footer.appendChild(cite);
+                    blockquote.appendChild(h6);
+                    blockquote.appendChild(p);
+                    blockquote.appendChild(footer);
+                    div2.appendChild(blockquote);
+                    div.appendChild(div2);
+                    columnForDropOffs.appendChild(div);
+                }
+            });
+            row.appendChild(columnForDropOffs);
+            let columnForPrice =  document.createElement('td');
+            let span1 = document.createElement('span');
+            span1.textContent = '£';
+            let span2 = document.createElement('span');
+            span2.textContent = parseFloat(job.price.totalPrice/100,2);
+            columnForPrice.appendChild(span1);
+            columnForPrice.appendChild(span2);
+            row.appendChild(columnForPrice);
+            let columnForActions =  document.createElement('td');
+            let jobViewButton   =   document.createElement('button');
+            jobViewButton.className = 'btn btn-success view-btn job-view-btn';
+            jobViewButton.dataset.jobid = job.id;
+            jobViewButton.innerHTML = '<i class="bi bi-eye"></i>';
+            let jobEditButton   =   document.createElement('button');
+            jobEditButton.className = 'btn btn-primary edit-btn job-edit-btn';
+            jobEditButton.dataset.jobid = job.id;
+            jobEditButton.innerHTML = '<i class="bi bi-pen"></i>';
+            let jobDeleteButton   =   document.createElement('button');
+            jobDeleteButton.className = 'btn btn-danger delete-btn job-delete-btn';
+            jobDeleteButton.dataset.jobid = job.id;
+            jobDeleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+            let jobCopyButton   =   document.createElement('button');
+            jobCopyButton.className = 'btn btn-info copy-btn job-copy-btn';
+            jobCopyButton.dataset.jobid = job.id;
+            jobCopyButton.innerHTML = '<i class="fa-solid fa-copy"></i>';
+            let jobShareLinkButton   =   document.createElement('button');
+            jobShareLinkButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
+            jobShareLinkButton.dataset.jobid = job.id;
+            jobShareLinkButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
+            columnForActions.appendChild(jobViewButton);
+            columnForActions.appendChild(jobEditButton);
+            columnForActions.appendChild(jobDeleteButton);
+            columnForActions.appendChild(jobCopyButton);
+            columnForActions.appendChild(jobShareLinkButton);
+            row.appendChild(columnForActions);                   
+            document.getElementById('jobsTableBody').appendChild(row);
+            addEventListenerToCopyJobButton_click(jobCopyButton);
+            addEventListenerToDeleteJobButton_click(jobDeleteButton);
+            addEventListenerToEditJobButton_click(jobEditButton);
+            addEventListenerToViewJobButton_click(jobViewButton);
+            addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
+            jobRow.replaceWith(row);
+        })
+        .catch(error => {
+            console.error('Error fetching job info:', error);
+    }   );
+    return ;
+}
 //=====================================================================
 //=====================================================================
 //=====================================================================
@@ -1243,12 +1379,22 @@ function set_Some_JobCreationFields_ToDefaultValues(){
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
-    console.log(urlParams);
     const jobId_openMoal = urlParams.get('id');
     const openModal_param = urlParams.get('openModal');
     if (jobId_openMoal && openModal_param === 'true') {
         editJob(jobId_openMoal);
     }
+    const   jobModalWindowCloseButton   =   document.getElementById('jobModalWindowCloseButton');
+    jobModalWindowCloseButton.addEventListener('click', function(event) {
+        const jobId = document.getElementById('jobid').value;
+        if(jobId){
+            const jobRow = document.getElementById('jobTableRow_'+jobId);
+            console.log(jobRow);
+            if(jobRow){
+                repopulateJobRow(jobId,jobRow);
+            }
+        };
+    });
     document.querySelectorAll('.job-copy-btn').forEach(button => {
         addEventListenerToCopyJobButton_click(button);
     });
@@ -1297,7 +1443,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success) {
-                //$('#jobModalWindow').modal('hide');
                 editJob(data.data.jobId);
             } else {
                 console.error('Error copying job:', data);
