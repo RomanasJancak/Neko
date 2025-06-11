@@ -777,77 +777,117 @@ function updatePriceColumn(){
         }   );
 }
 function addDropOffArrangeButtons() {
-    const dropOffs = Array.from(document.querySelectorAll('[id^="container-task-"]'))
-        .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
 
+    // const dropOffs = Array.from(document.querySelectorAll('[id^="container-task-"]'))
+    //     .filter(el => el.id.includes('-type') && el.innerHTML.trim() === 'dropoff')
+    //     .map(el => el.closest('[id^="container-task-"]'));
+
+    const dropOffs = Array.from(document.querySelectorAll('[id^="container-task-"]'))
+            .filter(container => {
+                const typeElement = container.querySelector('[id$="-type"]');
+                return typeElement && typeElement.innerHTML.trim() === 'dropoff';
+            });
     dropOffs.forEach((dropOff, index) => {
-        const parentRow = dropOff.parentElement;
-        const controlsColumn = parentRow.querySelector('[id$="-controls"]');
-        let divContainer = document.getElementById(`${parentRow.id}-upDownButtonsContainer`);
+        //const row = dropOff.parentElement;
+        const row = dropOff;
+        const controlsColumn = row.querySelector('[id$="-controls"]');
+        let divContainer = document.getElementById(`${row.id}-upDownButtonsContainer`);
+        
         if (divContainer) {
-            document.getElementById(`${parentRow.id}-upDownButtonsContainer`).innerHTML ='';
-        }else{
+            divContainer.innerHTML = '';
+        } else {
             divContainer = document.createElement('div');
             divContainer.className = 'd-flex flex-column justify-content-between';
             divContainer.style.flex = '0 0 auto';
-            divContainer.id = `${parentRow.id}-upDownButtonsContainer`;
+            divContainer.id = `${row.id}-upDownButtonsContainer`;
+            controlsColumn.insertBefore(divContainer, controlsColumn.firstChild);
         }
-        controlsColumn.insertBefore(divContainer, controlsColumn.firstChild);
-        if (divContainer) {
-            const upButton = document.createElement('button');
-            upButton.className = 'btn btn-primary';
-            upButton.textContent = '↑';
-            upButton.style.marginBottom = '5px';
-            upButton.disabled = index === 0;
 
-            const downButton = document.createElement('button');
-            downButton.className = 'btn btn-primary';
-            downButton.textContent = '↓';
-            downButton.disabled = index === dropOffs.length - 1;
+        const upButton = document.createElement('button');
+        upButton.className = 'btn btn-primary';
+        upButton.textContent = '↑';
+        upButton.style.marginBottom = '5px';
+        upButton.disabled = index === 0;
 
-            if (index === 0) {
-                divContainer.appendChild(downButton);
-            } else if (index === dropOffs.length - 1) {
-                divContainer.appendChild(upButton);
-            } else {
-                divContainer.appendChild(upButton);
-                divContainer.appendChild(downButton);
+        const downButton = document.createElement('button');
+        downButton.className = 'btn btn-primary';
+        downButton.textContent = '↓';
+        downButton.disabled = index === dropOffs.length - 1;
+
+        if (index === 0) {
+            divContainer.appendChild(downButton);
+        } else if (index === dropOffs.length - 1) {
+            divContainer.appendChild(upButton);
+        } else {
+            divContainer.appendChild(upButton);
+            divContainer.appendChild(downButton);
+        }
+
+        upButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (index > 0) {
+                const currentRow = dropOffs[index];
+                const previousRow = dropOffs[index - 1];
+                swapWithAnimation(currentRow, previousRow);
             }
+        });
 
-            upButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (index > 0) {
-
-                    const previousRow = e.target.parentElement.parentElement.parentElement.previousElementSibling;
-
-                     console.log('UpButton clicked for :',parentRow);
-                     console.log('Previous element: ',previousRow);
-                    let id_origin = parentRow.id.split('-')[2];
-                    let id_destination = previousRow.id.split('-')[2];
-                    swapTaskOrder(id_origin, id_destination);
-                    
-                    parentRow.parentElement.insertBefore(parentRow, previousRow);
-                    
-                    addDropOffArrangeButtons();
-                    updatePriceColumn();
-                }
-            });
-
-            downButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (index < dropOffs.length - 1) {
-                    const nextRow = e.target.parentElement.parentElement.parentElement.nextElementSibling;
-                    parentRow.parentElement.insertBefore(nextRow, parentRow);
-                    let id_origin = parentRow.id.split('-')[2];
-                    let id_destination = nextRow.id.split('-')[2];
-                    swapTaskOrder(id_origin, id_destination);
-                    addDropOffArrangeButtons();
-                    updatePriceColumn();
-                }
-            });
-        }
+        downButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (index < dropOffs.length - 1) {
+                const currentRow = dropOffs[index];
+                const nextRow = dropOffs[index + 1];
+                swapWithAnimation(nextRow,currentRow ); // move current below next
+            }
+        });
     });
+
 }
+
+function swapWithAnimation(rowA, rowB) {
+    console.log(rowA, rowB);
+    const parent = rowA.parentElement;
+    parent.insertBefore(rowA, rowB);
+
+    const idA = rowA.id.split('-')[2];
+    const idB = rowB.id.split('-')[2];
+    swapTaskOrder(idA, idB);
+    const boundsA = rowA.getBoundingClientRect();
+    const boundsB = rowB.getBoundingClientRect();
+    const dxA = boundsB.left - boundsA.left;
+    const dyA = boundsB.top - boundsA.top;
+    const dxB = boundsA.left - boundsB.left;
+    const dyB = boundsA.top - boundsB.top;
+    // Animate rowA to its new position
+    rowB.animate([
+    {
+        transform: `translate(${dxB}px, ${dyB}px) scale(1)`, 
+        offset: 0
+    },
+    {
+        transform: `translate(${dxB / 2}px, ${dyB / 2}px) scale(0.7)`, 
+        offset: 0.5
+    },
+    {
+        transform: `translate(0, 0) scale(1)`, 
+        offset: 1
+    }
+    ], {
+    duration: 1300,
+    easing: 'ease'
+    });
+
+    rowA.animate([
+                { transform: `translate(${dxA}px, ${dyA}px)` },
+                { transform: 'translate(0, 0)' }
+            ], {
+                duration: 1300,
+                easing: 'ease'
+            });
+    addDropOffArrangeButtons();
+    updatePriceColumn();
+}
+
 function setJobValues(jobId,buttonClicked){
     if(jobId === 0){return;}
     const courierIdField    =   document.getElementById('courierIdField');
