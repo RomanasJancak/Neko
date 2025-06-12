@@ -934,7 +934,7 @@ function setJobValues(jobId,buttonClicked){
             }
             if(data.clientId === 'none'){
                 clientSearchField.value = 'none';
-                clientIdField = 'none';
+                //clientIdField = 'none';
             }else{
                 clientSearchField.value =   data.clientName;
                 clientIdField.value     =   data.clientId;
@@ -1220,8 +1220,8 @@ function setTaskValues(taskId){
             taskNoteField.innerHTML         =   data.note;
             const dateBegin = new Date(data.time.begin);
             const dateEnd = new Date(data.time.end);
-            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}:${String(dateBegin.getUTCSeconds()).padStart(2, '0')}`;
-            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}:${String(dateEnd.getUTCSeconds()).padStart(2, '0')}`;
+            timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}`;
+            timeEndField.value              =   `${String(dateEnd.getUTCHours()).padStart(2, '0')}:${String(dateEnd.getUTCMinutes()).padStart(2, '0')}`;
 
             if(data.package !== 'none'){
                 addInfoAboutPackageToTaskModal(data.package).then(()=>{

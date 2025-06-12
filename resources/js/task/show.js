@@ -29,42 +29,83 @@ function updateTask(data,url){
 function addTypeHeadSearchToTaskWindow(searchInput){
     if (searchInput.length > 0) {
         searchInput.typeahead({
-        source: function(query, process) {
-            let client_id = document.getElementById('clientIdField').value;
-            var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES+"?query=" + query + "&client_id=" + client_id;
-            fetch(apiUrl)
+            source: function(query, process) {
+                let client_id = document.getElementById('clientIdField').value;
+                var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES+"?query=" + query + "&client_id=" + client_id;
+                fetch(apiUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        process(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching client data:', error);
+                    });
+            },
+            autoSelect: true,
+            minLength: 2, 
+            displayText: function(item) {
+                return item.name;
+            },
+            afterSelect: function(item) {
+                const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
+                const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
+                fetch(clientInfoUrl)
                 .then(response => response.json())
                 .then(data => {
-                    process(data);
+                    if (data) {
+                        //document.getElementById('taskCountryField').value = data.country; 
+                        //document.getElementById('taskCityField').value = data.city;
+                        document.getElementById('taskPostalCodeField').value = data.postal_code;
+                        document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
+                    }
                 })
                 .catch(error => {
-                    console.error('Error fetching client data:', error);
+                    console.error(error);
                 });
-        },
-        autoSelect: true,
-        minLength: 2, 
-        displayText: function(item) {
-            return item.name;
-        },
-        afterSelect: function(item) {
-            const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
-            const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
-            fetch(clientInfoUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
+            }
+        });
 
-                     //document.getElementById('taskCountryField').value = data.country; 
-                     //document.getElementById('taskCityField').value = data.city;
-                     document.getElementById('taskPostalCodeField').value = data.postal_code;
-                     document.getElementById('taskAddressLineField').value = data.address_line_1+' '+data.address_line_2;     
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-        }
-    });
+        // Add keyboard navigation for arrow keys and enter
+        searchInput.on('keydown', function(e) {
+            console.log(e.keyCode);
+            var $menu = searchInput.data('typeahead').$menu;
+            var $active = $menu.find('.active');
+            console.log($menu, $active);
+            if (!$menu.is(':visible')) return;
+            console.log('--');
+            switch(e.keyCode) {
+                case 38: // up
+                    e.preventDefault();
+                    console.log($active.length, $active.prev().length);
+                    if ($active.length && $active.prev().length) {
+                        $active.removeClass('active');
+                        $active.prev().addClass('active');
+                    } else {
+                        $active.removeClass('active');
+                        $menu.find('li').last().addClass('active');
+                    }
+                    break;
+                case 40: // down
+                    e.preventDefault();
+                    console.log($active.length, $active.next().length);
+                    if ($active.length && $active.next().length) {
+                        console.log('next');
+                        $active.removeClass('active');
+                        $active.next().addClass('active');
+                    } else {
+                        $active.removeClass('active');
+                        $menu.find('li').first().addClass('active');
+                    }
+                    break;
+                case 13: // enter
+                    if ($active.length) {
+                        e.preventDefault();
+                        $active.trigger('click');
+                    }
+                    break;
+            }
+            console.log($menu, $active);
+        });
     }
 }
 document.getElementById('submitTaskform').addEventListener('click', function(event) {
