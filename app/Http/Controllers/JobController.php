@@ -393,7 +393,7 @@ public function index(Request $request,SettingsService $settings)
             }
             $job->date  =   $request->input('common_date') === null ?$request->input('date'):$request->input('common_date');
             $job->status_id =   $request->input('status_id');
-            $job->clientToBill_id   =   $request->input('clientId');
+            $job->clientToBill_id   =   $request->input('billingClientId');
             $job->note  =   $request->input('note');
             $job->save();
             return response()->json([
