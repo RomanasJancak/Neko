@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\AddOnRuleController;
 use App\Http\Controllers\BikeController;
 use App\Http\Controllers\ClientController;
@@ -20,7 +20,8 @@ use App\Http\Controllers\JobTemplateController;
 use App\Http\Controllers\ApprovedPostalCodeAreaController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ExtraTypesController;
-use App\Http\Controllers\UserSettingController;   
+use App\Http\Controllers\UserSettingController;
+   
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -42,6 +43,18 @@ Route::get('/upload-csv', function () {
 Route::post('/parse-csv', [App\Http\Controllers\HomeController::class, 'parseCSV'])->name('parseCSV');
 Route::get('/',  'App\Http\Controllers\UserController@index')->name('users.index')->middleware('auth');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/test-email', function () {
+    Mail::raw('This is a test email from Laravel.', function ($message) {
+        $message->to('romanas.jancak@gmail.com') // Replace with your email
+                ->subject('Test Email from Laravel');
+    });
+
+    return 'Test email sent!';
+});
+
+
+
 
 Route::get('/get-client-info/{clientId}', [ClientController::class, 'getClientInfo'])
     ->name('getClientInfo')->middleware('auth');
