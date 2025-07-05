@@ -273,8 +273,10 @@ class Job extends Model
         return $totalDistance;
     }
     public function price_distance(){
-        $distance = $this->findShortestDistance()['distance']*0.0006213712;
-        $distance = $this->calculateDistanceBasedOnTasksOrder()*0.0006213712;;
+        //$distance = $this->findShortestDistance()['distance']*0.0006213712;
+        $distance = $this->calculateDistanceBasedOnTasksOrder()*0.0006213712;
+        // Round distance down to 2 decimals
+        $distance = floor($distance * 100) / 100;
         $thresholds = [];
         
         foreach($this->addOns_distance as $addOn){
