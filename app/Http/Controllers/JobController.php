@@ -82,6 +82,11 @@ public function index(Request $request,SettingsService $settings)
 
     if (!empty($date)) {
         $query->where('jobs.date', 'like', "%{$date}%");
+    }else if(!empty($request->get('startDate')) && !empty($request->get('endDate'))) {
+        $startDate = $request->get('startDate');
+        $endDate = $request->get('endDate');
+        $query->whereBetween('jobs.date', [$startDate, $endDate]);
+
     }
 
     if (!empty($package)) {
@@ -736,6 +741,8 @@ public function index(Request $request,SettingsService $settings)
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');
             $date = $request->get('date', '');
+            $startDate = $request->get('startDate', '');
+            $endDate = $request->get('endDate', '');
             $package = $request->get('package', '');
             $sortField = $request->get('sortField', 'id');
             $sortOrder = $request->get('sortOrder', 'asc');
@@ -747,6 +754,9 @@ public function index(Request $request,SettingsService $settings)
                 ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
                 ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
                 ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
+                ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('jobs.date', [$startDate, $endDate]);
+                })
                 ->when($clientName, fn($q) => 
                     $q->where('clients.name', 'like', "%$clientName%")
                 )

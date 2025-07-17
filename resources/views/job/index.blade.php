@@ -129,10 +129,17 @@
                             </button>
                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row" style="display: none;">
                         <div class="col input-container">
                             <i class="fa-solid fa-magnifying-glass"></i>
                             <input type="text" id="search-date" class="form-control" placeholder="Search..." value="{{ request()->query('date', '') }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col" id="reportrange" data-start="{{ request()->query('startDate', '') }}" data-end="{{ request()->query('endDate', '') }}">
+                            <i class="fa fa-calendar"></i>&nbsp;
+                                <input type="text" id="search-date-range" value="1987-04-02">
+                            <i class="fa fa-caret-down"></i>
                         </div>
                     </div>
                 </th>

@@ -159,12 +159,16 @@ function fetchJobs(page = 1, url) {
   const pakuote = document.getElementById('search-package').value;
   const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
   const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
+  const startDate = document.getElementById("reportrange").getAttribute('data-start') || '';
+  const endDate = document.getElementById("reportrange").getAttribute('data-end') || '';
 
 
   var queryParams = new URLSearchParams({
     id: id,
     clientName: clientName,
     date: date,
+    startDate: startDate,
+    endDate: endDate,
     package: pakuote,
     sortField: sortField,
     sortOrder: sortOrder,
@@ -179,7 +183,7 @@ function fetchJobs(page = 1, url) {
   if(url){
     xhr.open('GET', url, true);
   }else{
-    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&date=${date}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
   }
   
   xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
@@ -419,7 +423,6 @@ function addEventListenerToTasksCreationButtons(button){
                 taskTypeField.disabled = true;
                 container_return.style.visibility = 'hidden';
                 document.getElementById('submitTaskform').setAttribute('data-option', 'create');
-                console.log('this');
                 break;
             case 'createNewReturn':
                 setReadOnlyToFieldsOfTaskModal(false);
@@ -756,7 +759,6 @@ function swapTaskOrder(taskId1, taskId2) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Task order swapped successfully');
         } else {
             //console.error('Error swapping task order:', data.message);
         }
@@ -851,7 +853,6 @@ function addDropOffArrangeButtons() {
 }
 
 function swapWithAnimation(rowA, rowB) {
-    console.log(rowA, rowB);
     const parent = rowA.parentElement;
     parent.insertBefore(rowA, rowB);
 
@@ -1425,12 +1426,68 @@ function repopulateJobRow(jobId,jobRow){
     }   );
     return ;
 }
+function datepicker_function(start, end) {
+    document.querySelector('#reportrange input').value = start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY');
+    document.getElementById('reportrange').setAttribute('data-start', start.format('YYYY-MM-DD'));
+    document.getElementById('reportrange').setAttribute('data-end', end.format('YYYY-MM-DD'));
+    const inputForDatPicker = document.getElementById('search-date-range');
+    inputForDatPicker.value = start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD');
+    fetchJobs();
+}
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
+//=====================================================================
 //=====================================================================
 //=====================================================================
 //=====================================================================
 //=====================================================================
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    var initial_datePicker_start = moment().subtract(29, 'days');
+    var initial_datePicker_end = moment();
+    var datepicker_element = document.getElementById('reportrange');
+    const datePicker = new daterangepicker(datepicker_element, {
+        startDate: initial_datePicker_start,
+        endDate: initial_datePicker_end,
+        ranges: {
+            'Today': [moment(), moment()],
+            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+            'This Week': [moment().startOf('isoWeek'), moment().endOf('isoWeek')],
+            'This Month': [moment().startOf('month'), moment().endOf('month')],
+            'This Year': [moment().startOf('year'), moment().endOf('year')],
+        }
+    }, datepicker_function);
+    datepicker_function(initial_datePicker_start, initial_datePicker_end);
+    const inputForDatPicker = document.getElementById('search-date-range');
+    inputForDatPicker.addEventListener('change', function () {
+        const val = inputForDatPicker.value.trim();
+        const parts = val.split(/\s*-\s*/);
+        if (parts.length === 6) {
+            const start = moment(parts[0]+"-"+parts[1]+"-"+parts[2], 'YYYY-MM-DD', true);
+            const end = moment(parts[3]+"-"+parts[4]+"-"+parts[5], 'YYYY-MM-DD', true);
+
+            if (start.isValid() && end.isValid()) {
+                // Update picker selection manually
+                datePicker.setStartDate(start);
+                datePicker.setEndDate(end);
+
+                // Trigger the callback
+                datepicker_function(start, end);
+            }
+        }
+    });
     const urlParams = new URLSearchParams(window.location.search);
     const jobId_openMoal = urlParams.get('id');
     const openModal_param = urlParams.get('openModal');
@@ -1442,7 +1499,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const jobId = document.getElementById('jobid').value;
         if(jobId){
             const jobRow = document.getElementById('jobTableRow_'+jobId);
-            console.log(jobRow);
             if(jobRow){
                 repopulateJobRow(jobId,jobRow);
             }
@@ -1670,7 +1726,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
       
         if(submitFormInnerHTML == `<i class="bi bi-save"></i>`){
-            console.log('is creatin job');
             createJob();
         }else {
 
@@ -1708,7 +1763,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     alert(errorsMessage);
                 };
-                //console.log(submitFormInnerHTML,document.getElementById('submitform'));
                 if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
                     $('#jobModalWindow').modal('hide');
                     let row = document.getElementById('jobTableRow_'+updateData.id);
