@@ -23,7 +23,9 @@ return new class extends Migration
             $table->string('city');
             $table->string('country');
             $table->unsignedBigInteger('postal_code_id');
-            //$table->foreign('postal_code_id')->references('id')->on('postal_codes')->onDelete('cascade');
+            $table->string('note')->nullable();
+            $table->foreign('postal_code_id')->references('id')->on('postal_codes')->onDelete('cascade');
+            $table->index(['model', 'model_id'], 'model_index');
         });
     }
 

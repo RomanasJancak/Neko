@@ -1,3 +1,5 @@
+import { fillClientViewForm,clientInforReadOnlyState } from '../client/show.js';
+
 function viewJob(jobId) {
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
@@ -205,10 +207,13 @@ function fetchJobs(page = 1, url) {
             img.src = job.urlToLogo;
             img.style.maxWidth = '2rem';
             img.style.height = 'auto';
-            let span = document.createElement('span');
-            span.textContent = job.clientName;
+            let span_linkToClient = document.createElement('span');
+            span_linkToClient.textContent = job.clientName;
+            span_linkToClient.className = 'span-toClientShow';
+            span_linkToClient.dataset.clientid = job.clientToBill.id;
+            span_linkToClient.style.cursor = 'pointer';
             columnForLogoAndClientName.appendChild(img);
-            columnForLogoAndClientName.appendChild(span);
+            columnForLogoAndClientName.appendChild(span_linkToClient);
             row.appendChild(columnForLogoAndClientName);
             let columnForDate =  document.createElement('td');
             columnForDate.textContent = job.date;
@@ -306,6 +311,7 @@ function fetchJobs(page = 1, url) {
             addEventListenerToEditJobButton_click(jobEditButton);
             addEventListenerToViewJobButton_click(jobViewButton);
             addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
+            addEventListenerToViewClientButton_click(span_linkToClient);
           });
           let botoomPagination = document.getElementById('paginationLinks_bottom');
           let topPagination = document.getElementById('paginationLinks_top');
@@ -1075,6 +1081,13 @@ function addEventListenerToShareLinkJobButton_click(button){
         getShareLinkJob(jobId);
     });
 }
+function addEventListenerToViewClientButton_click(element){
+    element.addEventListener('click', (e) => {
+        e.preventDefault();
+        $('#clientModalWindow').modal('show');
+        fillClientViewForm(element.getAttribute('data-clientid'));
+    });
+}
 function toggle_CreateNewTaskButton(enable = true){
     let createNewTaskButton = document.getElementById('createNewTask');
     let createNewPickupButton = document.getElementById('createNewPickup');
@@ -1449,6 +1462,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('.job-sharelink-btn').forEach(button => {
         addEventListenerToShareLinkJobButton_click(button);
+    });
+    document.querySelectorAll('.span-toClientShow').forEach(element => {
+        addEventListenerToViewClientButton_click(element);
     });
     const submitTaskform_button = document.getElementById('submitTaskform');
     if(submitTaskform_button){

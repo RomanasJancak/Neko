@@ -138,22 +138,31 @@ class ClientController extends Controller
         
         $client->name = $request->input('clientname');
         $client->shortenedName = $request->input('shortenedName');
-        $client->country = $request->input('reg-addr-country');
-        $client->city = $request->input('reg-addr-city');
+        //$client->country = $request->input('reg-addr-country');
+        //$client->city = $request->input('reg-addr-city');
         $client->postal_code = $request->input('reg-addr-postal_code');
         $client->address_line = $request->input('reg-addr-address_line');
         $client->phone  =   $request->input('phone');
         if (!empty($request->name)) {
             foreach($request->name as $key => $value){
                 if (isset(
-                        //$request->type[$key], 
                         $request->postal_code[$key], 
-                        $request->city[$key], 
-                        $request->country[$key]
+                        //$request->city[$key], 
+                        //$request->country[$key]
                         )&&
                         ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
                     {
-                    $client->createAndAddNewAddress($request->address_id[$key],$value, '$request->type[$key]', $request->address_line_1[$key], isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', $request->postal_code[$key], $request->city[$key], $request->country[$key]);
+                        $client->createAndAddNewAddress(
+                            $request->address_id[$key],$value,
+                            '$request->type[$key]',
+                            $request->address_line_1[$key],
+                            isset($request->address_line_2[$key])?isset($request->address_line_2[$key]):'', 
+                            $request->postal_code[$key], 
+                            //$request->city[$key],
+                            'London', 
+                            // $request->country[$key],
+                            'United Kingdom'
+                        );
                     }
             }
         }
@@ -317,6 +326,7 @@ class ClientController extends Controller
 
             if ($client) {
             return response()->json([
+                'success'               => true,
                 'id'                    => $client->id,
                 'name'                  => $client->name,
                 'nickName'              => is_null($client->shortenedNameWithoutterPostalCode())?'':$client->shortenedNameWithoutterPostalCode(),

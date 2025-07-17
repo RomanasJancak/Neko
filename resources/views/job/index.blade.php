@@ -174,7 +174,7 @@
                         }
                     ?>
                     <img src='{{ $logoUrl }}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
-                    <span> {{$job->clientToBill->name}}</span>  
+                    <span style="cursor : pointer" class="span-toClientShow" data-clientid="{{$job->clientToBill->id}}"> {{$job->clientToBill->name}}</span>  
                 </td>
                 <td>            
                     {{$job->date}}
@@ -386,9 +386,26 @@
         </div>
     </div>
 </div>
-
-
 <!-- Modal task end -->
+<!-- Modal client view begin -->
+<div class="modal fade" data-bs-backdrop="static" id="clientModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+                @include('client.partials.info-window')
+            </div>
+            <div class="modal-footer">
+                <div class="col-12">
+                    <div class="form-group d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="taskModalWindowCloseButton">Close</button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal client view end -->
 <!-- Modal job copy window begin-->
 <div class="modal fade" data-bs-backdrop="static" id="jobCopyModalWindow" tabindex="-1" aria-labelledby="jobCopyModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

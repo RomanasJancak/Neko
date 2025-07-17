@@ -80,46 +80,7 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
-                    <form class="row" id="statusForm" action="" method="POST">
-                        @csrf
-                        <input type="hidden" name="clientid" id="clientid" value="">
-                        <div class="col-lg-4 order-lg-1">
-                            <div class="mb-0">
-                                <label for="nameField" class="form-label">Name:</label>
-                                <input type="text" name="clientname" id="nameField" class="form-control" value="">
-                            </div>
-                            <div class="mb-3">
-                                <label for="shortenedNameField" class="form-label">Short name:</label>
-                                <input type="text" name="shortenedName" id="shortenedNameField" class="form-control" value="">
-                            </div>
-                            <div class="mb-3">
-                                <label for="reg-adress-section-adress-addressline-field" class="form-label">Registration address:</label>
-                                <input type="text" name="reg-addr-address_line" id="reg-adress-section-adress-addressline-field" class="form-control mb-2" value="" placeholder="Address line">
-                                <input type="text" name="reg-addr-postal_code" id="reg-adress-section-adress-postalcode-field" class="form-control mb-2" value="" placeholder="Postal code">
-                                <input type="hidden" name="reg-addr-city" id="reg-adress-section-adress-city-field" class="form-control mb-2" value="London" placeholder="City">
-                                <input type="hidden" name="reg-addr-country" id="reg-adress-section-adress-country-field" class="form-control mb-2" value="United Kingdom" placeholder="Country">
-                            </div>
-                            <div class="mb-3">
-                                <label for="phoneNumberField" class="form-label"><i class="fa-solid fa-phone"></i>:</label>
-                                <input type="text" name="phone" id="phoneNumberField" class="form-control" value="">
-                            </div>
-                            <div class="mb-3">
-                                <button type="button" class="btn btn-success btn-sm" id="button-add-address">
-                                    <i class="fa fa-plus-circle"></i> Add address
-                                </button>
-                                <button type="button" class="btn btn-info btn-sm" id="button-view-packages">
-                                    View packages
-                                </button>
-                                <button type="button" class="btn btn-info btn-sm" id="button-view-addons">
-                                    View AddOns
-                                </button>
-                            </div>
-                            <div class="mb-3">
-                                <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
-                            </div>
-                        </div>
-                        <div class="col-lg-8 order-lg-2 mb-3" id="container-addresses"></div>
-                    </form>
+                    @include('client.partials.info-window')
                 </div>
             </div>
             <div class="modal-footer">
@@ -128,23 +89,7 @@
         </div>
     </div>
 </div>
-<!-- Packages view window-->
-<div class="modal" id="modalWindow-packages" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title" id="ModalLabel">Packages</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End of Packages view window-->
+
 <!-- AddOns view window-->
 <div class="modal" id="modalWindow-addons" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -249,7 +194,7 @@
         });
     }
     function editClient(clientId) {
-        const form = document.querySelector('#statusForm');
+        const form = document.querySelector('#clientForm');
         if (form) {
             form.setAttribute('action', "{{ route('client.update') }}");
             const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
@@ -288,7 +233,7 @@
         $('#modalWindow').modal('show');
     }
     function deleteClient(clientId) {
-        const form = document.querySelector('#statusForm');
+        const form = document.querySelector('#clientForm');
         if (form) {
             form.setAttribute('action', "{{ route('client.delete') }}");
             const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
@@ -329,19 +274,7 @@
         }
         $('#modalWindow').modal('show');
     }
-    function fetchPackageTypes(clientId){
-        const routeUrl = window.ROUTES.WEB.CLIENT.FETCHPACKAGETYPES.replace(':id', clientId);
-        fetch(routeUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    populate_Container_withPackageTypes(data.packageTypes);
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
+
     function submitUpdateWeightRules(){
         list = document.querySelectorAll('.list-group-item-weight-rules');
         const rulesArray = Array.from(list).map(item => {
@@ -511,45 +444,6 @@
             distanceRulesContainer.appendChild(ulElement);            
             distanceRules.appendChild(distanceRulesContainer);   
         });
-        // rules.sort((a, b) => a.name.localeCompare(b.name));
-        // const distanceRules = document.getElementById('addonsContainer-timingRules');
-        // const distanceRulesContainer = document.createElement('div');
-        // distanceRulesContainer.className = 'alert alert-info';
-        // distanceRulesContainer.role = 'alert';
-        // const strongElement = document.createElement('strong');
-        // const textNode = document.createTextNode("Timing rules:");
-        // strongElement.appendChild(textNode);
-        // const editbutton = document.createElement('i');
-        // editbutton.className = 'btn bi bi-pencil';
-        // editbutton.id = 'edit-timing-rules';
-        // editbutton.addEventListener('click', function() {
-        //     makeDistanceRulesEditable(rules);
-        // });
-        // distanceRulesContainer.appendChild(strongElement);
-        // distanceRulesContainer.appendChild(editbutton);   
-        // const ulElement = document.createElement('ul');
-        // rules.forEach(rule => {
-        //     const liElement = document.createElement('li');
-        //     liElement.id = 'list-group-item-'+rule.id;
-        //     liElement.className = 'list-group-item-timing-rules d-flex';
-        //     if (rules.indexOf(rule) < rules.length - 1) {
-        //         const from = rule.name.split('-')[2]; 
-        //         const to = rules[rules.indexOf(rule)+1].name.split('-')[2]; 
-        //         const price = parseFloat(rule.price/100);
-        //         const step = rule.name.split('-')[4];
-        //         const price_based_text = price === 0 ? 'Free' : `each ${step} minutes £${price} `;
-        //         liElement.innerHTML = `${from} - ${to} minutes : ${price_based_text}`;
-        //     }else{
-        //         const from = rule.name.split('-')[2]; 
-        //         const price = parseFloat(rule.price/100);
-        //         const step = rule.name.split('-')[4]; 
-        //         liElement.innerHTML = `${from}+ minutes : each ${step} minutes £${price} `;
-        //     }
-        //     ulElement.appendChild(liElement);
-        // });
-        // distanceRulesContainer.appendChild(ulElement);
-        // distanceRules.innerHTML = '';
-        // distanceRules.appendChild(distanceRulesContainer);
     }
     function displayWeighteRules(rules){
         rules = Object.keys(rules).map(key => rules[key]);
@@ -654,192 +548,41 @@
                 console.error(error);
             });
     }
-    function populate_Container_withPackageTypes(packageTypes){
-        const modalBody = document.getElementById('modalWindow-packages').querySelector('.modal-body');
-        modalBody.innerHTML = '';
-        const container = document.createElement('div');
-        container.className = 'container-fluid d-flex flex-wrap';
-        modalBody.appendChild(container);
-        container.innerHTML = '';
-        packageTypes.forEach(packageType => {
-            const packageTypeCard = `
-                <div class="card m-2" style="flex: 1 1 calc(33.333% - 1rem); max-width: calc(33.333% - 1rem);">
-                    <div class="card-header">
-                        ${packageType.name} <button class="btn btn-danger">
-                                                <i class="fa fa-circle-minus packageTypeRemovalButton" data-packagetypeid = ${packageType.id} aria-hidden="true" style="color: inherit;"></i>
-                                            </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-auto">
-                                <p><strong>Price:</strong> ${packageType.price}</p>
-                            </div>
-                            <div class="col-auto">
-                                <p><strong>Max before oversize :</strong> ${packageType.baseQuantityThreshold}</p>
-                            </div>
-                            <div class="col-auto">
-                                <p><strong>Maximum allowed to order in a job :</strong> ${packageType.maxQuantityThreshold}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', packageTypeCard);
-        });
-        document.querySelectorAll('.packageTypeRemovalButton').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const clientId = document.getElementById('clientid').value;
-                const packageTypeId = e.target.getAttribute('data-packagetypeid');
-                if(clientId){
-                    removePackageTypeFromClient(clientId, packageTypeId);
-                }
-            });
-        });
-        const addNewPackageCard = document.createElement('div');
-        addNewPackageCard.className = 'card m-2';
-        addNewPackageCard.style.flex = '1 1 calc(33.333% - 1rem)';
-        addNewPackageCard.style.maxWidth = 'calc(33.333% - 1rem)';
 
-        const cardHeader = document.createElement('div');
-        cardHeader.className = 'card-header';
-        cardHeader.textContent = 'Add new package';
-
-        const cardBody = document.createElement('div');
-        cardBody.className = 'card-body';
-
-        const addButton = document.createElement('button');
-        addButton.className = 'btn btn-primary';
-        addButton.innerHTML = '<i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>';
-
-        cardBody.appendChild(addButton);
-        addNewPackageCard.appendChild(cardHeader);
-        addNewPackageCard.appendChild(cardBody);
-
-        container.appendChild(addNewPackageCard);
-        addClickListenerToAddNewPackageButton(addButton);
-    }
-    function populateSelectionOfUnassignedPackageTypes(packageTypes){
-        const selectELement = document.getElementById('packageTypeSelect');
-        selectELement.innerHTML = '<option value="" disabled selected>Select a package type</option>';
-        packageTypes.forEach(packageType => {
-            const option = document.createElement('option');
-            option.value = packageType.id;
-            option.textContent = packageType.name;
-            selectELement.appendChild(option);
-        });
-    }
-    function addClickListenerToAddNewPackageButton(button) {
-            button.addEventListener('click', function(e){
-                const clientId = document.getElementById('clientid').value;
-                fetch_UnassignedPackageTypes(clientId);
-            });
-    }
-    function fetch_UnassignedPackageTypes(clientId){
-        const routeUrl = window.ROUTES.WEB.CLIENT.FETCHUNASSIGNEDPACKAGETYPES.replace(':id', clientId);
-        fetch(routeUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    populateSelectionOfUnassignedPackageTypes(data.packageTypes);
-                    $('#modalWindow-packages-addNewFromList').modal('show');
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-    function removePackageTypeFromClient(clientId, packageTypeId){
-        const routeUrl = window.ROUTES.WEB.CLIENT.REMOVEPACKAGETYPE;
-        fetch(routeUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({
-                    package_type_id: packageTypeId,
-                    client_id : clientId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data){
-                fetchPackageTypes(clientId);
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
-    }
 document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('button_addSelectedPackageType').setAttribute('disabled', 'disabled');
-        document.getElementById('button-add-address').addEventListener('click', function(e) {
-            e.preventDefault();
-            //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
-            const container = document.getElementById('container-addresses');
-            const address = `
-                <div class="row">
-                    <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control"></div>
-                    <div class="col address-input-field"><input type="text" name="name[]" class="form-control" placeholder="Name"></div>
-                    
-                    <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" placeholder="Address line 1"></div>
-                    <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" placeholder="Address line 2"></div>
-                    <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" placeholder="Postal code"></div>
-                    <div class="col address-input-field"><input type="text" name="city[]" class="form-control" placeholder="City"></div>
-                    <div class="col address-input-field"><input type="text" name="country[]" class="form-control" placeholder="Country"></div>
-                    <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="" onclick="deleteAddress()">
-                        <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
-                    </div>
-                </div>
-            `;
-
-            container.insertAdjacentHTML('beforeend', address);
-        });
         document.querySelectorAll('.create-btn').forEach(button => {
             button.addEventListener('click', () => {
-                const form = document.querySelector(`#statusForm`);
+                const form = document.querySelector(`#clientForm`);
                 if (form) {
                     document.getElementById('nameField').readOnly = false;
                     form.setAttribute('action', "{{ route('client.store') }}");
                     submitButton = document.getElementById('submitform');
                     submitButton.innerHTML = "<i class='bi bi-save'></i>";
                 }
+                // Clear the form fields
+                document.getElementById('clientid').value = '';
+                document.getElementById('nameField').value = '';
+                document.getElementById('shortenedNameField').value = '';
+                document.getElementById('reg-adress-section-adress-country-field').value = '';
+                document.getElementById('reg-adress-section-adress-city-field').value = '';
+                document.getElementById('reg-adress-section-adress-postalcode-field').value = '';
+                document.getElementById('reg-adress-section-adress-addressline-field').value = '';
+                document.getElementById('phoneNumberField').value = '';
+                const addressContainer = document.getElementById('container-addresses');
+                addressContainer.innerHTML = '';
+                
+
                 $('#modalWindow').modal('show');
             });
         });
-        document.getElementById('button-view-packages').addEventListener('click',function(e){
-            const clientId = document.getElementById('clientid').value;
-            fetchPackageTypes(clientId);
-            $('#modalWindow-packages').modal('show');
-        });
+
         document.getElementById('button-view-addons').addEventListener('click',function(e){
             const clientId = document.getElementById('clientid').value;
             fetchAddOns(clientId);
             $('#modalWindow-addons').modal('show');
         });
-        document.getElementById('submitform').addEventListener('click', function() {
-            // Get form data
-            const form = document.getElementById('statusForm');
-            const formData = new FormData(form);
 
-            // Create a new XMLHttpRequest object
-            const xhr = new XMLHttpRequest();
-
-            // Define the request type, URL, and set up the request
-            xhr.open('POST', form.action, true);
-            xhr.setRequestHeader('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-
-            // Handle the response
-            xhr.onload = function() {
-                // Process the response if needed
-                //parsedMessage = JSON.parse(xhr.responseText).message;
-                // Handle the response based on the message
-            };
-
-            // Send the request
-            xhr.send(formData);
-            $('#modalWindow').modal('hide');
-        });
         document.getElementById('packageTypeSelect').addEventListener('change', function(e){
             console.log('change');
             const button = document.getElementById('button_addSelectedPackageType');

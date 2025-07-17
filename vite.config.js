@@ -5,11 +5,18 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
+                'resources/js/address/show.js',
+                'resources/js/address/show.init.js',                
+                'resources/js/client/show.js',
+                'resources/js/client/show.init.js',
                 'resources/js/job/index.js',
-                'resources/js/task/show.js',
+                'resources/js/task/show.js',        
+                'resources/js/app.js',
+                'resources/js/config.js',
                 'resources/js/routes.js',
+                //-----------------------------------
                 'resources/sass/app.scss',
-                'resources/js/app.js',                
+                                
             ],
             refresh: true,
         }),
