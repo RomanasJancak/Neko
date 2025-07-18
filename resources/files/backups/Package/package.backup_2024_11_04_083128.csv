@@ -1,1 +1,0 @@
-id,created_at,updated_at,job_id,task_id,status_id,packageType_id,orderNumber,weight,dimensions,quantity,dropoff_adress_line,dropoff_postal_code,dropoff_city,dropoff_country,dropoff_name,packagedropofftimebegin,packagedropofftimeend,name,price,baseQuantityThreshold,maxQuantityThreshold,notes

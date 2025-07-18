@@ -1,6 +1,0 @@
-client_id,created_at,display_name,guard_name,id,name,updated_at
-,2024-10-25 09:57:59,superadmin,web,1,superadmin,2024-10-25 09:57:59
-,2024-10-25 09:58:00,admin,web,2,admin,2024-10-25 09:58:00
-,2024-10-25 09:58:00,manager,web,3,manager,2024-10-25 09:58:00
-,2024-10-25 09:58:00,admin,web,4,client_admin,2024-10-25 09:58:00
-,2024-10-25 09:58:00,courier,web,5,courier,2024-10-25 09:58:00

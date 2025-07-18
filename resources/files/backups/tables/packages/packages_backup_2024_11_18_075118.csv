@@ -1,5 +1,0 @@
-id,created_at,updated_at,job_id,task_id,status_id,packageType_id,orderNumber,weight,dimensions,quantity,dropoff_adress_line,dropoff_postal_code,dropoff_city,dropoff_country,dropoff_name,packagedropofftimebegin,packagedropofftimeend,name,price,baseQuantityThreshold,maxQuantityThreshold,notes
-6,2024-11-17 15:22:20,2024-11-17 15:22:20,,16,10,9,,0,0,1,21 Parr Street,N1 7GW,London,UK,Sophie Malandrinos JW Anderson,2024-11-18 08:00:00,2024-11-18 17:00:00,,,,,
-7,2024-11-17 15:25:13,2024-11-17 15:25:13,,18,10,9,,0,0,1,23 Caxton Street,,SW1H 0PY,London,UK,Studio Ashby Ltd The Blewcoat School,2024-11-18 09:00:00,2024-11-18 12:00:00,,,,,
-8,2024-11-17 15:33:47,2024-11-17 15:33:47,,20,10,6,,0,0,1,2-4 Wharfdale Rd,N1 9RY,London,UK,Oliver Agency,2024-11-18 08:00:00,2024-11-18 08:15:00,,,,,
-10,2024-11-17 16:45:54,2024-11-17 16:45:54,,26,10,6,,0,0,1,15 Bedford St, London,WC2E 9HE,London,UK,Tempo cap,2024-11-18 11:45:00,2024-11-18 12:00:00,,,,,

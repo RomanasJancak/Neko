@@ -1,4 +1,0 @@
-created_at,destination_address,destination_lat,destination_lng,distance,id,mode_of_travel,origin_address,origin_lat,origin_lng,updated_at
-2024-11-16 05:37:46,UK London N15 4QN Unit 10  The Archives,,,4413,1,walking,68 Mountgrove Rd N5 2LT London UK,,,2024-11-16 05:37:46
-2024-11-16 05:38:14,UK London EC1R 0BG 11 Bowling Green Lane,,,8787,2,walking,UK London N15 4QN Unit 10  The Archives,,,2024-11-16 05:38:14
-2024-11-16 05:38:44,UK London E3 2TB Unit 11B Riverbank Business Park 455 Wick Lane,,,6916,3,walking,UK London EC1R 0BG 11 Bowling Green Lane,,,2024-11-16 05:38:44

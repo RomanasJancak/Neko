@@ -1,9 +1,0 @@
-role_id,model_type,model_id
-1,App\Models\User,1
-2,App\Models\User,2
-3,App\Models\User,3
-5,App\Models\User,4
-5,App\Models\User,5
-5,App\Models\User,6
-5,App\Models\User,7
-5,App\Models\User,8

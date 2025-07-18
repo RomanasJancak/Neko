@@ -1,5 +1,0 @@
-id,created_at,updated_at,eilesNumeris,courrier_id,status_id,clientToBill_id,pickup_time_begin,pickup_time_end,pickupclientname,pickupclientaddressline,pickupclientcity,pickupclientcountry,pickupclientpostalcode,manager_id,notes,price,distance,invoice_id,price_adjustment_number,date
-10,2024-11-17 15:21:30,2024-11-17 15:21:30,0,,10,54,,,,,,,,1,,,,,0,2024-11-18
-11,2024-11-17 15:23:44,2024-11-17 15:23:44,0,,10,40,,,,,,,,1,,,,,0,2024-11-18
-12,2024-11-17 15:32:37,2024-11-17 15:32:37,0,,10,36,,,,,,,,1,,,,,0,2024-11-18
-15,2024-11-17 16:45:02,2024-11-17 16:45:02,0,,10,83,,,,,,,,1,,,,,0,2024-11-18
