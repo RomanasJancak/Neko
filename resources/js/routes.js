@@ -1,4 +1,5 @@
-import { APP_URL } from './config.js';
+export const APP_URL = import.meta.env.VITE_APP_URL;
+//import { APP_URL } from './config.js';
 window.ROUTES = {
   WEB: {
       TASK: {
