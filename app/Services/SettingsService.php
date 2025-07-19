@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 
 class SettingsService
 {
-    public function get(string $key, User $user = null): ?string
+    public function get(string $key, User $user = null)//: ?string
     {
         // Check user-specific setting
         if ($user) {
@@ -32,8 +32,11 @@ class SettingsService
         return $global ?? $this->getCodeDefault($key);
     }
 
-    public function set(string $key, string $value, User $user): void
+    public function set(string $key, $value, User $user): void
     {
+        if (is_array($value)) {
+            $value = json_encode($value);
+        }
         UserSetting::updateOrCreate(
             ['user_id' => $user->id, 'key' => $key],
             ['value' => $value]
@@ -50,8 +53,9 @@ class SettingsService
         Cache::forget("settings.global.{$key}");
     }
 
-    protected function getCodeDefault(string $key): ?string
+    protected function getCodeDefault(string $key)//: ?string
     {
+        //dd(UserSettingDefinition::defaultValues()[$key] ?? null);
         return UserSettingDefinition::defaultValues()[$key] ?? null;
     }
 }

@@ -26,6 +26,34 @@
                         </option>
                     @endforeach
                 </select>
+            @elseif($type === 'select-muiltiple')
+                <?php
+                // Handle multiple select with options
+               
+                $decoded = [];
+                if (isset($values[$currentKey]) && is_string($values[$currentKey])) {
+                    $decoded = json_decode($values[$currentKey], true);
+                    $values[$currentKey] = is_array($decoded) ? $decoded : [];
+                } else {
+                    $values[$currentKey] = is_array($values[$currentKey] ?? null) ? $values[$currentKey] : [];
+                }
+                 //dd($fullSetting,$currentKey,$values,$decoded);
+                ?>
+                <select
+                    name="{{ str_replace('.', '_', $currentKey) }}[]"
+                    id="{{ $currentKey }}"
+                    multiple
+                    class="form-control"
+                >
+                    @foreach($fullSetting['options'] ?? [] as $optionValue => $optionLabel)
+                        <option value="{{ $optionValue }}"
+                            @if(in_array($optionValue, old(str_replace('.', '_', $currentKey), $values[$currentKey] ?? [])))
+                                selected
+                            @endif>
+                            {{ $optionLabel }}
+                        </option>
+                    @endforeach
+                </select>
             @else
                 <input
                     type="{{ $type }}"

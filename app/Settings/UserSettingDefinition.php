@@ -29,6 +29,19 @@ class UserSettingDefinition
                                 'rules' => ['required', 'in:asc,desc'],
                                 'default' => 'asc',
                             ],
+                            'dropOffSearchFields' => [
+                                'label' => 'Drop-off Search Fields',
+                                'type' => 'select-muiltiple',
+                                'options' => [
+                                    'dropoff_adress_line' => 'Address Line',
+                                    'dropoff_city' => 'City',
+                                    'dropoff_postal_code' => 'Postal Code',
+                                    'dropoff_country' => 'Country',
+                                    'package_type' => 'Package Type',
+                                ],
+                                'rules' => ['array'],
+                                'default' => ['dropoff_adress_line', 'dropoff_city', 'dropoff_postal_code', 'dropoff_country'],
+                            ],
                         ]
                     ]
                 ],
