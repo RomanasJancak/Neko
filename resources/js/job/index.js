@@ -157,6 +157,7 @@ function fetchJobs(page = 1, url) {
   const clientName = document.getElementById('search-clientName').value;
   const date = document.getElementById('search-date').value;
   const pakuote = document.getElementById('search-package').value;
+  const dropOffSearchFields = document.getElementById('dropOffSearchFields').selectedOptions;
   const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
   const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
   const startDate = document.getElementById("reportrange").getAttribute('data-start') || '';
@@ -174,6 +175,11 @@ function fetchJobs(page = 1, url) {
     if (sortField) params.push(`sortField=${encodeURIComponent(sortField)}`);
     if (sortOrder) params.push(`sortOrder=${encodeURIComponent(sortOrder)}`);
     if (page) params.push(`page=${encodeURIComponent(page)}`);
+    if(dropOffSearchFields){
+        Array.from(dropOffSearchFields).forEach(option => {
+            params.push(`dOsp[]=${encodeURIComponent(option.value)}`);
+        });
+    }
     Array.from(statesSelected).forEach(option => {
         params.push(`status[]=${encodeURIComponent(option.value)}`);
     });
@@ -188,13 +194,20 @@ function fetchJobs(page = 1, url) {
     Array.from(statesSelected).forEach(option => {
     statusParams.push(`status[]=${encodeURIComponent(option.value)}`);
     });
-    console.log(statusParams);
-    console.log(statusParams.join('&'));
-    console.log(statusParams.join('&').toString());
+  let dropOffSearchFieldsParams = [];
+  Array.from(dropOffSearchFields).forEach(option => {
+    dropOffSearchFieldsParams.push(`dOsp[]=${encodeURIComponent(option.value)}`);
+});
+console.log(dropOffSearchFieldsParams);
   if(url){
     xhr.open('GET', url, true);
   }else{
-    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&${statusParams.join('&').toString()}&date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
+        &${statusParams.join('&').toString()}
+        &date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}
+        &sortOrder=${sortOrder}&page=${page}
+        &${dropOffSearchFieldsParams.join('&').toString()}
+        `, true);
   }
   
   xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
@@ -386,6 +399,7 @@ const searchInputs = [
   { id: 'search-date'},
   { id: 'search-package'},
   { id: 'search-status'},
+  { id: 'dropOffSearchFields'},
 ];
 let searchTimeout;
 searchInputs.forEach(input => {
@@ -1473,6 +1487,13 @@ function datepicker_function(start, end) {
 //=====================================================================
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('modalShowElement-dropOffSearchColumns').addEventListener('click', function (event){
+
+        event.preventDefault();
+        const modalEl = document.getElementById('dropOffSearchColumnsModalWindow');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    });
     var initial_datePicker_start = moment().subtract(29, 'days');
     var initial_datePicker_end = moment();
     var datepicker_element = document.getElementById('reportrange');

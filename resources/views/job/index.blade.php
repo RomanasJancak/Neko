@@ -115,7 +115,7 @@
                     </div>
                     <div class="row">
                         <div class="col input-container">
-                            <select id="search-status" class="form-control" name="status[]" multiple>
+                            <select id="search-status" class="form-control" name="status[]" multiple="">
                                 @foreach($statuses as $status)
                                     <option value="{{ $status->id }}" {{ collect(request()->query('status'))->contains($status->id) ? 'selected' : '' }}>
                                         {{ $status->name }}
@@ -180,8 +180,7 @@
                         <span class="p-2">Drops</span>
                     </span>
                     <span class="info-icon">
-                        <i class="fa-solid fa-gear"></i>
-                        <span class="tooltip">Package search</span>
+                        <i id="modalShowElement-dropOffSearchColumns" class="fa-solid fa-gear"></i>
                     </span>
                     <div class="row input-container">
                             <input type="text" id="search-package" class="col form-control" placeholder="Search..." value="{{ request()->query('package', '') }}">
@@ -463,6 +462,36 @@
     </div>
 </div>
 <!-- Modal job copy window end-->
+<!-- Modal dropOff search columns begin-->
+<div class="modal fade" data-bs-backdrop="static" id="dropOffSearchColumnsModalWindow" tabindex="-1" aria-labelledby="dropOffSearchColumnsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dropOffSearchColumnsModalLabel">DropOff Search Columns</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="dropOffSearchColumnsForm">
+                    @csrf
+                    <div class="form-group">
+                        <label for="dropOffSearchFields">Select fields to display:</label>
+                        <select id="dropOffSearchFields" class="form-control" name="dropOffSearchFields[]" multiple>
+                            @foreach($optionsForDropOffsSearch as $key => $option)
+                                <option value="{{ $key }}" {{ in_array($key, $dropOffSearchFields) ? 'selected' : '' }}>
+                                    {{ $option }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>      
+        </div>
+    </div>
+</div>
+<!-- Modal dropOff search columns end-->
 @endsection
 @push('scripts')
 @vite('resources/js/job/index.js')

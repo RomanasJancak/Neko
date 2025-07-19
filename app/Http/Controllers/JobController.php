@@ -27,8 +27,11 @@ use App\Models\Pickuptask;
 use App\Models\Returntask;
 use App\Models\Customtask;
 
+
 use App\Services\BackupService;
 use App\Services\SettingsService;
+
+use App\Settings\UserSettingDefinition;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
@@ -46,7 +49,11 @@ class JobController extends Controller
      */
 public function index(Request $request,SettingsService $settings)
 {
-        // Supporting data
+    $optionsForDropOffsSearch = UserSettingDefinition::all()['models']['job']['view']['index']['dropOffSearchFields']['options'];
+    $dropOffSearchFields = $settings->get('models.job.view.index.dropOffSearchFields', auth()->user());
+    $dropOffSearchFields = is_string($dropOffSearchFields) ? json_decode($dropOffSearchFields, true) : $dropOffSearchFields;
+    //dd($optionsForDropOffsSearch,$dropOffSearchFields);
+    // Supporting data
     $day = Day::first();
     $couriers = User::getCouriersWithWorkload($day);
     $statuses = Status::all();
@@ -56,6 +63,7 @@ public function index(Request $request,SettingsService $settings)
     $id = $request->get('id', '');
     $clientName = $request->get('clientName', '');
     $statusFilterValue = $request->get('status','');
+    $dropOffFilterValue = $request->get('dOsp', '');
 
     $date = $request->get('date', '');
     $package = $request->get('package', '');
@@ -65,11 +73,11 @@ public function index(Request $request,SettingsService $settings)
     if ($openModal && !empty($id)) {
         $jobs = Job::paginate(10)->appends($request->query());
         $jobToOpen = Job::find($id);
-        return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen'));
+        return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen','optionsForDropOffsSearch','dropOffSearchFields'));
     }
 
     // Base query
-    $query = Job::with(['clientToBill', 'tasks']);
+    $query = Job::with(['clientToBill', 'tasks', 'tasks.package']);
 
     // Apply filters
     if (!empty($id)) {
@@ -97,15 +105,43 @@ public function index(Request $request,SettingsService $settings)
             $query->where('jobs.status_id', $statusFilterValue);
         }
     }
+    // if(!empty($dropOffFilterValue)){
+    //     $query->whereHas('tasks.package', function ($q) use ($dropOffFilterValue) {
+    //         $q->whereIn('dropoff_adress_line', $dropOffFilterValue)
+    //           ->orWhereIn('dropoff_postal_code', $dropOffFilterValue)
+    //           ->orWhereIn('dropoff_name', $dropOffFilterValue);
+    //     });
+    // }
 
+    // if (!empty($package)) {
+    //     $query->whereHas('tasks.package', function ($q) use ($package) {
+    //         $q->where('dropoff_adress_line', 'like', "%{$package}%")
+    //           ->orWhere('dropoff_postal_code', 'like', "%{$package}%")
+    //           ->orWhere('dropoff_name', 'like', "%{$package}%");
+    //     });
+    // }
+    if (!empty($dropOffFilterValue)) {
+        $query->whereHas('tasks.package', function ($q) use ($dropOffFilterValue, $package) {
+            $q->where(function ($subQuery) use ($dropOffFilterValue, $package) {
+                foreach ($dropOffFilterValue as $column) {
+                    if ($column === 'packageType_id') {
+                        // Get IDs of matching package types via LIKE
+                        $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
 
-    if (!empty($package)) {
-        $query->whereHas('tasks.package', function ($q) use ($package) {
-            $q->where('dropoff_adress_line', 'like', "%{$package}%")
-              ->orWhere('dropoff_postal_code', 'like', "%{$package}%")
-              ->orWhere('dropoff_name', 'like', "%{$package}%");
+                        if ($matchingTypeIds->isNotEmpty()) {
+                            // Filter on packages.package_type_id
+                            $subQuery->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                        }
+                    } else {
+                        // Other columns — assume they are in packages table
+                        $subQuery->orWhere("packages.$column", 'LIKE', "%{$package}%");
+                    }
+                }
+            });
         });
     }
+
+
 
     // Sorting
     if ($sortField === 'clientName') {
@@ -123,7 +159,7 @@ public function index(Request $request,SettingsService $settings)
 
 
 
-    return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes'));
+    return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','optionsForDropOffsSearch','dropOffSearchFields'));
 }
     /**
      * Show the form for creating a new resource.
