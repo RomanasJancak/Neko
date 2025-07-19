@@ -161,29 +161,40 @@ function fetchJobs(page = 1, url) {
   const sortOrder = document.querySelector('.sort-btn.active')?.dataset.sortOrder || 'asc';
   const startDate = document.getElementById("reportrange").getAttribute('data-start') || '';
   const endDate = document.getElementById("reportrange").getAttribute('data-end') || '';
+  const statesSelected = document.getElementById('search-status').selectedOptions;
 
 
-  var queryParams = new URLSearchParams({
-    id: id,
-    clientName: clientName,
-    date: date,
-    startDate: startDate,
-    endDate: endDate,
-    package: pakuote,
-    sortField: sortField,
-    sortOrder: sortOrder,
-    page: page
-  }).toString();
-  var newUrl = `${window.location.pathname}?${queryParams.toString()}`;
-  history.replaceState({}, '', newUrl);
+    let params = [];
+    if (id) params.push(`id=${encodeURIComponent(id)}`);
+    if (clientName) params.push(`clientName=${encodeURIComponent(clientName)}`);
+    if (date) params.push(`date=${encodeURIComponent(date)}`);
+    if (startDate) params.push(`startDate=${encodeURIComponent(startDate)}`);
+    if (endDate) params.push(`endDate=${encodeURIComponent(endDate)}`);
+    if (pakuote) params.push(`package=${encodeURIComponent(pakuote)}`);
+    if (sortField) params.push(`sortField=${encodeURIComponent(sortField)}`);
+    if (sortOrder) params.push(`sortOrder=${encodeURIComponent(sortOrder)}`);
+    if (page) params.push(`page=${encodeURIComponent(page)}`);
+    Array.from(statesSelected).forEach(option => {
+        params.push(`status[]=${encodeURIComponent(option.value)}`);
+    });
+    var queryParams = params.join('&');
+    var newUrl = `${window.location.pathname}?${queryParams.toString()}`;
+    history.replaceState({}, '', newUrl);
 
 
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const xhr = new XMLHttpRequest();
+  let statusParams = [];
+    Array.from(statesSelected).forEach(option => {
+    statusParams.push(`status[]=${encodeURIComponent(option.value)}`);
+    });
+    console.log(statusParams);
+    console.log(statusParams.join('&'));
+    console.log(statusParams.join('&').toString());
   if(url){
     xhr.open('GET', url, true);
   }else{
-    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}&${statusParams.join('&').toString()}&date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`, true);
   }
   
   xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken);
@@ -205,6 +216,10 @@ function fetchJobs(page = 1, url) {
             columnForId.textContent = job.id;
             row.appendChild(columnForId);
             
+            let columnForStatus =  document.createElement('td');
+            columnForStatus.textContent = job.status.name;
+            row.appendChild(columnForStatus);
+
             let columnForLogoAndClientName =  document.createElement('td');
             columnForLogoAndClientName.className = 'no-padding';
             let img = document.createElement('img');
@@ -370,13 +385,15 @@ const searchInputs = [
   { id: 'search-clientName'},
   { id: 'search-date'},
   { id: 'search-package'},
+  { id: 'search-status'},
 ];
+let searchTimeout;
 searchInputs.forEach(input => {
     const inputElement = document.getElementById(input.id);
   
-    inputElement.addEventListener('input', function() {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => {
+    inputElement.addEventListener('blur', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
             fetchJobs();
         }, 300);
     });
@@ -385,6 +402,7 @@ const sortButtons = [
     { id: 'button-sort-clientName'},
     { id: 'button-sort-date'},
     { id: 'button-sort-id'},
+    { id: 'button-sort-status'}
 ];
 sortButtons.forEach(input => {
     const inputElement = document.getElementById(input.id);

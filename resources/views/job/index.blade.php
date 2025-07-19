@@ -107,6 +107,27 @@
                 <th rowspan="2">
                     <div class="row">
                         <div class="col">
+                            Status
+                            <button id="button-sort-status" class="sort-btn" data-sort-field="status" data-sort-order="asc">
+                                <i id="button-sort-status-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-container">
+                            <select id="search-status" class="form-control" name="status[]" multiple>
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status->id }}" {{ collect(request()->query('status'))->contains($status->id) ? 'selected' : '' }}>
+                                        {{ $status->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>                    
+                </th>
+                <th rowspan="2">
+                    <div class="row">
+                        <div class="col">
                             Client
                             <button id="button-sort-clientName" class="sort-btn" data-sort-field="clientName" data-sort-order="asc">
                                 <i id="button-sort-clientName-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
@@ -155,9 +176,14 @@
             <tr>
                 <th>Pickup</th>
                 <th>
-                    <span>Drops</span>
+                    <span class="">
+                        <span class="p-2">Drops</span>
+                    </span>
+                    <span class="info-icon">
+                        <i class="fa-solid fa-gear"></i>
+                        <span class="tooltip">Package search</span>
+                    </span>
                     <div class="row input-container">
-                            <!-- <i class="fa-solid col fa-magnifying-glass"></i> -->
                             <input type="text" id="search-package" class="col form-control" placeholder="Search..." value="{{ request()->query('package', '') }}">
                     </div>
                 </th>
@@ -170,6 +196,9 @@
             <tr id="jobTableRow_{{$job->id}}">
                 <td >
                     {{$job->id}}
+                </td>
+                <td>
+                    {{ $job->status->name}}
                 </td>
                 <td class="no-padding">
                     <?php
@@ -195,10 +224,10 @@
                             @else
                                 {{$task->job->clientToBill->shortenedNameWithoutterPostalCode().' '.$task->pickup->pickupclientpostalcode}}
                             @endif
-                        <span class="info-icon">
-                        <i class="bi bi-info-circle-fill"></i>
-                <span class="tooltip">{{$task->fullAddress()}}</span>
-            </span>
+                            <span class="info-icon">
+                                <i class="bi bi-info-circle-fill"></i>
+                                <span class="tooltip">{{$task->fullAddress()}}</span>
+                            </span>
                         </div>
                     @endif                             
                 @endforeach

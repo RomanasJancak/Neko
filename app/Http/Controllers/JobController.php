@@ -55,6 +55,8 @@ public function index(Request $request,SettingsService $settings)
     // Read filters from the query string
     $id = $request->get('id', '');
     $clientName = $request->get('clientName', '');
+    $statusFilterValue = $request->get('status','');
+
     $date = $request->get('date', '');
     $package = $request->get('package', '');
     $sortField = $request->get('sortField') ?: $settings->get('models.job.view.index.sortColumn', $user);
@@ -88,6 +90,14 @@ public function index(Request $request,SettingsService $settings)
         $query->whereBetween('jobs.date', [$startDate, $endDate]);
 
     }
+    if (!empty($statusFilterValue)) {
+        if (is_array($statusFilterValue)) {
+            $query->whereIn('jobs.status_id', $statusFilterValue);
+        } else {
+            $query->where('jobs.status_id', $statusFilterValue);
+        }
+    }
+
 
     if (!empty($package)) {
         $query->whereHas('tasks.package', function ($q) use ($package) {
@@ -101,6 +111,9 @@ public function index(Request $request,SettingsService $settings)
     if ($sortField === 'clientName') {
         $query->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
               ->orderBy('clients.name', $sortOrder);
+    } else if ($sortField === 'status'){
+        $query->join('statuses', 'jobs.status_id', '=', 'statuses.id')
+              ->orderBy('statuses.name', $sortOrder);
     } else {
         $query->orderBy("jobs.{$sortField}", $sortOrder);
     }
@@ -398,7 +411,7 @@ public function index(Request $request,SettingsService $settings)
             }
             $job->date  =   $request->input('common_date') === null ?$request->input('date'):$request->input('common_date');
             $job->status_id =   $request->input('status_id');
-            $job->clientToBill_id   =   $request->input('billingClientId');
+            $job->clientToBill_id   =   $request->input('clientId');
             $job->note  =   $request->input('note');
             $job->save();
             return response()->json([
@@ -741,9 +754,11 @@ public function index(Request $request,SettingsService $settings)
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');
             $date = $request->get('date', '');
+            $statusFilterValue = $request->get('status','');
+            $package = $request->get('package', '');
             $startDate = $request->get('startDate', '');
             $endDate = $request->get('endDate', '');
-            $package = $request->get('package', '');
+            
             $sortField = $request->get('sortField', 'id');
             $sortOrder = $request->get('sortOrder', 'asc');
 
@@ -760,6 +775,13 @@ public function index(Request $request,SettingsService $settings)
                 ->when($clientName, fn($q) => 
                     $q->where('clients.name', 'like', "%$clientName%")
                 )
+                ->when($statusFilterValue, function ($q) use ($statusFilterValue) {
+                    if (is_array($statusFilterValue)) {
+                        $q->whereIn('jobs.status_id', $statusFilterValue);
+                    } else {
+                        $q->where('jobs.status_id', $statusFilterValue);
+                    }
+                })
                 ->when($package, fn($q) =>
                     $q->where(function ($q) use ($package) {
                         $q->where('packages.dropoff_adress_line', 'like', "%$package%")
@@ -768,14 +790,19 @@ public function index(Request $request,SettingsService $settings)
                     })
                 )
                 ->distinct()
-                ->pluck('jobs.id'); // no ORDER BY here
+                ->pluck('jobs.id'); 
 
             $jobs = Job::with(['clientToBill', 'tasks'])
                 ->whereIn('jobs.id', $jobIds)
                 ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
                     $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
                     ->orderBy('clients.name', $sortOrder)
-                    ->select('jobs.*'); // necessary when using join in Eloquent
+                    ->select('jobs.*'); 
+                })
+                ->when($sortField === 'status', function ($q) use ($sortOrder) {
+                    $q->join('statuses', 'jobs.status_id', '=', 'statuses.id')
+                    ->orderBy('statuses.name', $sortOrder)
+                    ->select('jobs.*'); 
                 }, function ($q) use ($sortField, $sortOrder) {
                     $q->orderBy("jobs.$sortField", $sortOrder);
                 })
@@ -799,6 +826,7 @@ public function index(Request $request,SettingsService $settings)
                                     'hasReturn' =>  $job->hasReturn(),
                                     'urlToLogo'   =>  $job->urlToLogo(),
                                     'clientName'    =>  $job->clientToBill->name,
+                                    'status'        =>  $job->status,
                                     'tasks' =>  $job->tasks,
                                     'date'  =>  $job->getDate(),
                                     'pickup'    =>  (null !== $job->getPickupTask())?[
@@ -818,12 +846,14 @@ public function index(Request $request,SettingsService $settings)
                         ]);
                     } catch (QueryException $e) {
                         return response()->json([
+                            'request'   =>  $request->all(),
                             'error' => $e->getMessage(),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
                         ], 500);
                     } catch (\Exception $e) {
                         return response()->json([
+                            'request'   =>  $request->all(),
                             'error' => $e->getMessage(),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
