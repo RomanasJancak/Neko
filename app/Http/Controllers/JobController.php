@@ -797,6 +797,9 @@ public function index(Request $request,SettingsService $settings)
             
             $sortField = $request->get('sortField', 'id');
             $sortOrder = $request->get('sortOrder', 'asc');
+            $dropOffFilterValue = $request->get('dOsp', []); // expects an array
+            $dropOffFilterValue = is_string($dropOffFilterValue) ? json_decode($dropOffFilterValue, true) : $dropOffFilterValue;
+
 
     
             $jobIds = Job::query()
@@ -818,13 +821,22 @@ public function index(Request $request,SettingsService $settings)
                         $q->where('jobs.status_id', $statusFilterValue);
                     }
                 })
-                ->when($package, fn($q) =>
-                    $q->where(function ($q) use ($package) {
-                        $q->where('packages.dropoff_adress_line', 'like', "%$package%")
-                        ->orWhere('packages.dropoff_postal_code', 'like', "%$package%")
-                        ->orWhere('packages.dropoff_name', 'like', "%$package%");
-                    })
-                )
+->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
+    $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
+        foreach ($dropOffFilterValue as $column) {
+            if ($column === 'packageType_id') {
+                $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
+
+                if ($matchingTypeIds->isNotEmpty()) {
+                    $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                }
+            } else {
+                $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
+            }
+        }
+    });
+})
+
                 ->distinct()
                 ->pluck('jobs.id'); 
 
