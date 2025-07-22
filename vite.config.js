@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/client/show.js',
                 'resources/js/client/show.init.js',
                 'resources/js/job/index.js',
+                'resources/js/jobtemplate/index.js',
                 'resources/js/task/show.js',        
                 'resources/js/app.js',
                 'resources/js/config.js',

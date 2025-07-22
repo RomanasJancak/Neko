@@ -429,10 +429,11 @@
 </div>
 <!-- Modal task end -->
 @endsection
+@push('scripts')
+@vite('resources/js/jobtemplate/index.js')
+@endpush
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Your code here
-});
+
 </script>
 @endsection

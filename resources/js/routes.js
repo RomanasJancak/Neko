@@ -20,6 +20,7 @@ window.ROUTES = {
         GETJOBTOSTRING: APP_URL+'/jobs/getJobToString/:id',
         COPY:  APP_URL+'/jobs/copy',
         UPDATE_PRICEADJUSTMENTNUMBER:  APP_URL+'/jobs/update_price_adjustment_number',
+        CREATE_JOBTEMPLATE_FROMTHISJOB: APP_URL+'/jobs/create_JobTemplate_fromThisJob/:id',
       },
       CLIENT:{
         SEARCHADDRESSES:  APP_URL+'/clients/searchClientAddresses',

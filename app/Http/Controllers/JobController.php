@@ -783,7 +783,6 @@ public function index(Request $request,SettingsService $settings)
         return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
     public function fetchJobsPaginate(Request $request)
     {
         try {
@@ -821,21 +820,21 @@ public function index(Request $request,SettingsService $settings)
                         $q->where('jobs.status_id', $statusFilterValue);
                     }
                 })
-->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
-    $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
-        foreach ($dropOffFilterValue as $column) {
-            if ($column === 'packageType_id') {
-                $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
+        ->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
+            $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
+                foreach ($dropOffFilterValue as $column) {
+                    if ($column === 'packageType_id') {
+                        $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
 
-                if ($matchingTypeIds->isNotEmpty()) {
-                    $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                        if ($matchingTypeIds->isNotEmpty()) {
+                            $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                        }
+                    } else {
+                        $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
+                    }
                 }
-            } else {
-                $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
-            }
-        }
-    });
-})
+            });
+        })
 
                 ->distinct()
                 ->pluck('jobs.id'); 
@@ -908,10 +907,11 @@ public function index(Request $request,SettingsService $settings)
                         ], 500);
                     }
     }
-    public function create_JobTemplate_fromThisJob($jobId){
+    public function create_JobTemplate_fromThisJob(Request $request, $jobId ){
         try{
             $job = Job::findOrFail($jobId);
             $jobTemplate = new JobTemplate();
+            $jobTemplate->name = $request->input('name');
             $jobTemplate->clientToBill_id = $job->clientToBill_id;
             $jobTemplate->status_id = $job->status_id;
             $jobTemplate->notes = $job->notes;
@@ -922,9 +922,10 @@ public function index(Request $request,SettingsService $settings)
             $jobTemplate->date = $job->date;
             $jobTemplate->pickuptask_data = json_encode($job->getPickupTask());
             $jobTemplate->dropOffs_data = json_encode(collect($job->getDropOffTasks()));
-            $jobTemplate->return_data = is_null($job->getReturnTask()) ? null : $job->getReturnTask();
+            $jobTemplate->return_data = is_null($job->getReturnTask()) ? null : json_encode($job->getReturnTask());
             $jobTemplate->save();
             return response()->json([
+                'success' => true,
                 'message' => 'Job template created successfully.',
                 'jobTemplate' => $jobTemplate,
             ]);

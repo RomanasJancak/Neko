@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('job_templates', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('name');
             $table->unsignedBigInteger('clientToBill_id')->nullable();
             $table->unsignedBigInteger('status_id')->nullable();
             $table->string('notes')->nullable();

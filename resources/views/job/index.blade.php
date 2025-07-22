@@ -159,7 +159,7 @@
                     <div class="row">
                         <div class="col" id="reportrange" data-start="{{ request()->query('startDate', '') }}" data-end="{{ request()->query('endDate', '') }}">
                             <i class="fa fa-calendar"></i>&nbsp;
-                                <input type="text" id="search-date-range" value="1987-04-02">
+                                <input type="text" id="search-date-range" value="1987-04-02 - 2025-12-31">
                             <i class="fa fa-caret-down"></i>
                         </div>
                     </div>
@@ -492,6 +492,25 @@
     </div>
 </div>
 <!-- Modal dropOff search columns end-->
+<div class="modal fade" data-bs-backdrop="static" id="jobTemplateCreateModalWindow" tabindex="-1" aria-labelledby="jobTemplateCreateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="jobTemplateCreateModalLabel">Create Job Template from job with id: <span id="jobTemplateCreateModalWindow_modalHeader_JobId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please enter the name for the template : <input id="jobTemplateCreateModalWindow_inputForTemplateName" type="text"></p>
+                <button type="button" id="jobTemplateWindow_templateCreateButton" data-jobid="" class="btn btn-success" >Create</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="jontemplateWindowToRedirect" data-jobtemplateid="" data-bs-dismiss="modal">Close and redirect to editing</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close and stay here</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal job template create end-->
 @endsection
 @push('scripts')
 @vite('resources/js/job/index.js')

@@ -100,6 +100,13 @@ function getShareLinkJob(jobId){
     navigator.clipboard.writeText(newUrl)
     .then(() => alert('Copied to clipboard!'))
 }
+function openJobTemplateCreateModal(jobId) {
+        document.getElementById('jobTemplateCreateModalWindow_modalHeader_JobId').textContent = `${jobId}`;
+        document.getElementById('jobTemplateWindow_templateCreateButton').setAttribute('data-jobid', jobId);
+        const modalEl = document.getElementById('jobTemplateCreateModalWindow');
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();   
+}
 function createJob(){
     const form = document.getElementById('jobForm');
     let updateData  =   {
@@ -198,7 +205,6 @@ function fetchJobs(page = 1, url) {
   Array.from(dropOffSearchFields).forEach(option => {
     dropOffSearchFieldsParams.push(`dOsp[]=${encodeURIComponent(option.value)}`);
 });
-console.log(dropOffSearchFieldsParams);
   if(url){
     xhr.open('GET', url, true);
   }else{
@@ -331,18 +337,25 @@ console.log(dropOffSearchFieldsParams);
             jobShareLinkButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
             jobShareLinkButton.dataset.jobid = job.id;
             jobShareLinkButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
+            let jobTemplateCreateButton  =   document.createElement('button');
+            jobTemplateCreateButton.className = 'btn btn-secondary job-template-create-btn';
+            jobTemplateCreateButton.dataset.jobid = job.id;
+            jobTemplateCreateButton.innerHTML = '<i class="bi bi-file-earmark-plus"></i>';
             columnForActions.appendChild(jobViewButton);
             columnForActions.appendChild(jobEditButton);
             columnForActions.appendChild(jobDeleteButton);
             columnForActions.appendChild(jobCopyButton);
             columnForActions.appendChild(jobShareLinkButton);
+            columnForActions.appendChild(jobTemplateCreateButton);
             row.appendChild(columnForActions);                   
             document.getElementById('jobsTableBody').appendChild(row);
-            addEventListenerToCopyJobButton_click(jobCopyButton);
-            addEventListenerToDeleteJobButton_click(jobDeleteButton);
-            addEventListenerToEditJobButton_click(jobEditButton);
             addEventListenerToViewJobButton_click(jobViewButton);
+            addEventListenerToEditJobButton_click(jobEditButton);
+            addEventListenerToDeleteJobButton_click(jobDeleteButton);
+            addEventListenerToCopyJobButton_click(jobCopyButton);
             addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
+            addEventListenerToJobTemplateCreateButton(jobTemplateCreateButton);
+
             addEventListenerToViewClientButton_click(span_linkToClient);
           });
           let botoomPagination = document.getElementById('paginationLinks_bottom');
@@ -1114,6 +1127,13 @@ function addEventListenerToShareLinkJobButton_click(button){
         getShareLinkJob(jobId);
     });
 }
+function addEventListenerToJobTemplateCreateButton(button){
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const jobId = button.getAttribute('data-jobid');
+        openJobTemplateCreateModal(jobId);
+    });   
+}
 function addEventListenerToViewClientButton_click(element){
     element.addEventListener('click', (e) => {
         e.preventDefault();
@@ -1466,6 +1486,36 @@ function datepicker_function(start, end) {
     inputForDatPicker.value = start.format('YYYY-MM-DD') + ' - ' + end.format('YYYY-MM-DD');
     fetchJobs();
 }
+function createJobTemplate(jobId,template_name){
+    console.log('Creating job template for jobId:', jobId, 'with template name:', template_name);
+    const routeUrl = window.ROUTES.WEB.JOB.CREATE_JOBTEMPLATE_FROMTHISJOB.replace(':id', jobId);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log('CSRF Token:', csrfToken);
+    const data = {
+        if: jobId,
+        name: template_name
+    };
+    fetch(routeUrl, {
+        method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('jobTemplateWindowToRedirect').setAttribute('data-jobtemplateid', data.id);
+        } else {
+            console.error('Error creating job template:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating job template:', error);
+    }); 
+}
 //=====================================================================
 //=====================================================================
 //=====================================================================
@@ -1487,6 +1537,16 @@ function datepicker_function(start, end) {
 //=====================================================================
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('jobTemplateWindow_templateCreateButton').addEventListener('click', function(event) {
+        event.preventDefault();
+        const jobId = event.target.getAttribute('data-jobid');
+        const template_name  = document.getElementById('jobTemplateCreateModalWindow_inputForTemplateName').value;
+        if(!jobId || jobId === '0'|| !template_name || template_name.trim() === ''){
+            alert('Please select a job and/or template name to create a template from.');
+            return;
+        }
+        createJobTemplate(jobId,template_name);
+    });
     document.getElementById('modalShowElement-dropOffSearchColumns').addEventListener('click', function (event){
 
         event.preventDefault();
@@ -1494,8 +1554,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     });
-    var initial_datePicker_start = moment().subtract(29, 'days');
-    var initial_datePicker_end = moment();
+    //var initial_datePicker_start = moment().startOf('year');
+    var initial_datePicker_start = new URLSearchParams(window.location.search).get('startDate') ? moment(new URLSearchParams(window.location.search).get('startDate')) : moment().startOf('year');
+    //var initial_datePicker_end = moment().endOf('year');
+    var initial_datePicker_end = new URLSearchParams(window.location.search).get('endDate') ? moment(new URLSearchParams(window.location.search).get('endDate')) : moment();
     var datepicker_element = document.getElementById('reportrange');
     const datePicker = new daterangepicker(datepicker_element, {
         startDate: initial_datePicker_start,
