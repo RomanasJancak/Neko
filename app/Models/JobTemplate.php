@@ -16,4 +16,8 @@ class JobTemplate extends Job
             'return' => json_decode($this->return_data),
         ]));
     }
+    public function clientToBill()
+    {
+        return $this->belongsTo(Client::class, 'clientToBill_id');
+    }
 }

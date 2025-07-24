@@ -75,14 +75,9 @@
 @endsection
 @section('content')
 <div class="container container-content">
-    <div class="d-flex justify-content-center mt-3">
-            {!! $jobTemplates->links() !!}
+    <div class="d-flex justify-content-center mt-3 links-pagination">
     </div>
-    <form method="POST" action="{{ route('job.createBackup') }}">
-        @csrf
-        <button type="submit" class="btn btn-primary">Create Backup</button>
-    </form>
-    <table id="example" class="table table-striped table-bordered" cellspacing="0" width="100%">
+    <table id="tableForItemList" class="table table-striped table-bordered" cellspacing="0" width="100%">
         <thead>
             <tr>
                 <th rowspan="2">
@@ -104,6 +99,22 @@
                 <th rowspan="2">
                     <div class="row">
                         <div class="col">
+                            Name
+                            <button id="button-sort-name" class="sort-btn" data-sort-field="name" data-sort-order="asc">
+                                <i id="button-sort-name-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col input-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-name" class="form-control" placeholder="Search...">
+                        </div>
+                    </div>                    
+                </th>
+                <th rowspan="2">
+                    <div class="row">
+                        <div class="col">
                             Client
                             <button id="button-sort-clientName" class="sort-btn" data-sort-field="clientName" data-sort-order="asc">
                                 <i id="button-sort-clientName-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
@@ -117,26 +128,11 @@
                         </div>
                     </div>
                 </th>
-                <th rowspan="2">
-                    <div class="row">
-                        <div class="col">
-                            Date                    
-                            <button id="button-sort-date" class="sort-btn" data-sort-field="date" data-sort-order="asc">
-                                <i id="button-sort-date-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col input-container">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="search-date" class="form-control" placeholder="Search...">
-                        </div>
-                    </div>
-                </th>
-                <th colspan="4">Tasks</th>
+                <th colspan="3" class="text-center">Tasks</th>
+                <th rowspan="2">Price</th>
                 <th rowspan="2">Actions</th>
                 <th rowspan="2" style="text-align:center;width:100px;">
-                    <span>Create Job</span>
+                    <span>Create Template</span>
                     <button type="button" class="btn btn-success btn-xs text-success create-btn" style="background: none; border: none;">
                         <i class="fa fa-plus-circle" aria-hidden="true" style="color: inherit;"></i>
                     </button>
@@ -145,69 +141,14 @@
             <tr>
                 <th>Pickup</th>
                 <th>Drops</th>
-                <th>Custom</th>
-                <th>Price</th>
+                <th>Return</th>
+                
             </tr>
         </thead>
-        <tbody id="jobsTableBody">
-            @foreach ($jobTemplates as $jobTemplate)
-            <tr id="jobTableRow_{{$jobTemplate->id}}">
-                <td >
-                    {{$jobTemplate->id}}
-                </td>
-                <td class="no-padding">
-                    <?php
-                        $logoPath = "files/logos/{$jobTemplate->clientToBill->id}.png";
-                        if (file_exists(public_path($logoPath))) {
-                            $logoUrl = asset($logoPath);
-                        } else {
-                            $logoUrl = asset("files/logos/0.png");
-                        }
-                    ?>
-                    <img src='{{ $logoUrl }}' alt="Company Logo" style="max-width: 2rem;  height: auto;">
-                    <span> {{$jobTemplate->clientToBill->name}}</span>  
-                </td>
-                <td>            
-                    {{$jobTemplate->date}}
-                </td>
-                <td>
-                    {{$jobTemplate->tasks()->pickup->pickupclientpostalcode}}
-                </td>
-                <td>
-                    @foreach ($jobTemplate->tasks()->dropOffs as $dropOff)
-                    <div class="row">
-                        <div class="col">
-                            <div class="row justify-content-center">
-                                <div class="col">
-                                    <blockquote class="blockquote border">
-                                        <p class="mb-0" style="padding-bottom: 1rem;">{{$dropOff->package->dropoff_name}}</p>
-                                        <footer class="blockquote-footer"><cite title="Source Title"> {{$dropOff->package->dropoff_adress_line}},{{$dropOff->package->dropoff_postal_code}}</cite></footer>
-                                    </blockquote>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </td>
-                <td></td>
-                <td><span>&#163;</span>@if($jobTemplate->fixedPrice === 0){{ number_format($jobTemplate->price / 100, 2) }}@else {{ number_format($jobTemplate->fixedPrice / 100, 2) }}@endif<span>@if($jobTemplate->fixedPrice !== 0) <i class="fa-solid fa-lock" style="color:rgb(226, 34, 223);"></i>@endif</span></td>
-                <td>
-                    <button class="btn btn-success view-btn" data-jobid="{{ $jobTemplate->id }}">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="btn btn-primary edit-btn" data-jobid="{{ $jobTemplate->id }}">
-                        <i class="bi bi-pen"></i>
-                    </button>
-                    <button class="btn btn-danger delete-btn" data-jobid="{{ $jobTemplate->id }}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>   
-            </tr>
-            @endforeach
+        <tbody>
         </tbody>
     </table>
-    <div class="d-flex justify-content-center mt-3" id='paginationLinks'>
-        {!! $jobTemplates->links() !!}
+    <div class="d-flex justify-content-center mt-3 links-pagination">
     </div>
 <!-- Modal job begin -->
 
@@ -228,16 +169,7 @@
                                         <input class="form-control" type="text" name="id" id="idField" value="">
                                     </div>
                                 </div>
-                                <div class="col">
-                                    <div class="row">
-                                        <label for="statusIdField">Status</label>
-                                        <select id="statusIdField" name="statusId" class="form-control">
-                                        @foreach($statuses as $status)
-                                            <option value="{{ $status->id }}">{{ $status->name }}</option>
-                                        @endforeach 
-                                    </select>
-                                    </div>
-                                </div>
+
                                 <div class="col">
                                     <div class="row">
                                         <label for="clientSearchField">Client</label>
@@ -261,7 +193,6 @@
                             </div>
                             <div class="row justify-content-md-center">
                                 <div class="col">
-                                    <button type="button" id="createNewTask" data-option="create" class="btn btn-primary ">Create new Task</button>
                                     <button type="button" id="createNewPickup"data-type="specifictask" data-option="pickup" class="btn btn-primary">+Pickup</button>
                                     <button type="button" id="createNewReturn" data-type="specifictask" data-option="dropOff" class="btn btn-primary">+DropOff</button>
                                     <button type="button" id="createNewDropOff" data-type="specifictask" data-option="return" class="btn btn-primary">+Return</button>

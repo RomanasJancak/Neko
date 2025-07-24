@@ -22,6 +22,13 @@ window.ROUTES = {
         UPDATE_PRICEADJUSTMENTNUMBER:  APP_URL+'/jobs/update_price_adjustment_number',
         CREATE_JOBTEMPLATE_FROMTHISJOB: APP_URL+'/jobs/create_JobTemplate_fromThisJob/:id',
       },
+      JOBTEMPLATE: {
+        GETINFO: APP_URL+'/jobtemplates/getJobTemplateInfo/:id',
+        STORE: APP_URL+'/jobtemplates/store',
+        UPDATE: APP_URL+'/jobtemplates/update',
+        DELETE: APP_URL+'/jobtemplates/delete',
+        FETCH: APP_URL+'/jobtemplates/fetchJobTemplatesPaginate',
+      },
       CLIENT:{
         SEARCHADDRESSES:  APP_URL+'/clients/searchClientAddresses',
         GETINFO: APP_URL+'/clients/getClientInfo/:id',

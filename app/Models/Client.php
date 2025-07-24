@@ -57,6 +57,19 @@ class Client extends Model
         $normalizedStr2 = $normalize($address);
         return $normalizedStr1 === $normalizedStr2;
     }
+    public function hasThisAddress($address){
+        $addresses = $this->getAllAddresses();
+        foreach($addresses as $addr){
+            if($addr->address_line_1 == $address['address_line_1'] && 
+                $addr->postalCode->postal_code == $address['postalCode'] &&
+                $addr->city == $address['city'] &&
+                $addr->country == $address['country']
+            ){
+                return true;
+            }
+        }
+        return false;
+    }
     public function getAllAddresses(){
         return $this->hasMany(Address::class,'model_id')->where('model','App\Models\Client')->get();
     }
