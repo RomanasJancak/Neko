@@ -243,6 +243,7 @@ Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
 // });
 Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
+    Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
     Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
     Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
 });

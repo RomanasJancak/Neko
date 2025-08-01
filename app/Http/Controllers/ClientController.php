@@ -398,7 +398,7 @@ class ClientController extends Controller
         $addresses = Address::where('model', 'App\Models\Client')
             ->where('model_id', $clientId)
             ->where('name', 'like', '%' . $query . '%')
-            ->select('id', 'name') 
+            ->select('id', 'name')
             ->get();
 
         return response()->json($addresses);

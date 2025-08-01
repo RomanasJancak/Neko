@@ -91,7 +91,51 @@ class JobTemplateController extends Controller
      */
     public function update(UpdateJobTemplateRequest $request, JobTemplate $jobTemplate)
     {
-        //
+      try{
+            $request->validate([
+                'id' => 'required|exists:job_templates,id',
+                'name' => 'required|string|max:255',
+                'locks.client' => ['sometimes','boolean'],
+                'locks.pickup' => ['sometimes','boolean'],
+                'locks.return' => ['sometimes','boolean'],
+                'locks.drops.isLocked' => ['sometimes','boolean'],
+                'locks.drops.items' => ['sometimes','array'],
+                'locks.drops.items.*.id' => ['sometimes','integer'],
+                'locks.drops.items.*.isLocked' => ['sometimes','boolean'],
+            ]);
+            $jobTemplate = JobTemplate::findOrFail($request->id);
+            $jobTemplate->fill($request->except(['locks']));
+            if($jobTemplate->isDirty()){
+                $jobTemplate->save();
+            }
+            if(isset($request->locks)){
+                if(isset($request->locks['client'])){
+                    $jobTemplate->changeLockedField('client', $request->locks['client']);
+                }
+                if(isset($request->locks['pickup'])){
+                    $jobTemplate->changeLockedField('pickup', $request->locks['pickup']);
+                }
+                if(isset($request->locks['return'])){
+                    $jobTemplate->changeLockedField('return', $request->locks['return']);
+                }
+                if(isset($request->locks['drops'])){
+                    $jobTemplate->changeLockedField('dropOffs', $request->locks['drops']['isLocked']);
+                }
+            }
+            return response()->json([
+                'success' => true,
+                'message' => 'Job template updated successfully.',
+                'request' => $request->all(),
+                'template'  =>  json_decode($jobTemplate),
+                //'template - tasks' => $jobTemplate->tasks(),
+            ]);
+      }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+      }
     }
 
     /**
@@ -117,7 +161,18 @@ class JobTemplateController extends Controller
             
         }
     }
-    public function fetchJobTemplatesPaginate(Request $request){
+    protected function prepareDropOffTasks($item, $dropOffsData)
+    {
+
+
+        foreach ($dropOffsData as $index => &$dropOff) {
+            $dropOff['isLocked'] = $item->isLocked('dropOff-' . $index);
+        }
+
+        return $dropOffsData;
+    }
+    public function fetchJobTemplatesPaginate(Request $request)
+    {
         try{
             $jobTemplates = JobTemplate::paginate(10);
             return response()->json([
@@ -131,7 +186,10 @@ class JobTemplateController extends Controller
                         'id' => $item->id,
                         'name' => $item->name,
                         'clientToBill' => $item->clientToBill ? [
-                            'name' => $item->clientToBill->name] : null,
+                            'id' => $item->clientToBill->id,
+                            'name' => $item->clientToBill->name,
+                            'isLocked' => $item->isLocked('client'),
+                            ] : null,  
                         'status' => $item->status ? $item->status->name : null,
                         'notes' => $item->notes,
                         'price' => $item->price,
@@ -147,9 +205,11 @@ class JobTemplateController extends Controller
                                 'city' => $pickupData->pickupclientcity,
                                 'country' => $pickupData->pickupclientcountry
                             ]) : false,
+                            'isLocked' => $item->isLocked('pickup'),
                         ],
                         'dropOfftasks' => [
-                            'data' => $dropOffsData ? $dropOffsData : null,
+                            'data' => $dropOffsData ? $this->prepareDropOffTasks($item, $dropOffsData) : null,
+                            'isLocked' => $item->isLocked('dropOffs'),
                         ],
                         'returntask' => [
                             'data' => $item->return_data ? json_decode($item->return_data) : null,
@@ -160,6 +220,7 @@ class JobTemplateController extends Controller
                                 $pickupData->pickupclientcountry === $returnData->return->country
                             ) : false,
                         ],
+                        'lockedFields' => $item->lockedFields(),
                     ];
                 }),
                 'jobTemplates' => $jobTemplates,
