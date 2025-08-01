@@ -449,6 +449,8 @@ function addEventListenerToTasksCreationButtons(button){
         let container_return = document.getElementById('return-info');
         if(document.getElementById('jobid').value == ''){
             createJob();
+            const form = document.getElementById('jobForm');
+            form.setAttribute('action', window.ROUTES.WEB.JOB.UPDATE);
         }
         switch(button.id){
             case 'createNewPickup':
