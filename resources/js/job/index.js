@@ -1489,10 +1489,9 @@ function datepicker_function(start, end) {
     fetchJobs();
 }
 function createJobTemplate(jobId,template_name){
-    console.log('Creating job template for jobId:', jobId, 'with template name:', template_name);
+    const createButton = document.getElementById('jobTemplateWindow_templateCreateButton');
     const routeUrl = window.ROUTES.WEB.JOB.CREATE_JOBTEMPLATE_FROMTHISJOB.replace(':id', jobId);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    console.log('CSRF Token:', csrfToken);
     const data = {
         if: jobId,
         name: template_name
@@ -1509,12 +1508,19 @@ function createJobTemplate(jobId,template_name){
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            show_Success_Message({
+              message: 'Job template with name created successfully.'
+            });
             document.getElementById('jobTemplateWindowToRedirect').setAttribute('data-jobtemplateid', data.id);
+            createButton.disabled = false;
         } else {
             console.error('Error creating job template:', data.message);
+            
+            createButton.disabled = false;
         }
     })
     .catch(error => {
+        createButton.disabled = false;
         console.error('Error creating job template:', error);
     }); 
 }
@@ -1547,6 +1553,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please select a job and/or template name to create a template from.');
             return;
         }
+        const createButton = document.getElementById('jobTemplateWindow_templateCreateButton');
+        createButton.disabled = true;
         createJobTemplate(jobId,template_name);
     });
     document.getElementById('modalShowElement-dropOffSearchColumns').addEventListener('click', function (event){
