@@ -1511,7 +1511,7 @@ function createJobTemplate(jobId,template_name){
             show_Success_Message({
               message: 'Job template with name created successfully.'
             });
-            document.getElementById('jobTemplateWindowToRedirect').setAttribute('data-jobtemplateid', data.id);
+            //document.getElementById('jobTemplateWindowToRedirect').setAttribute('data-jobtemplateid', data.id);
             createButton.disabled = false;
         } else {
             console.error('Error creating job template:', data.message);

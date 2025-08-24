@@ -1,0 +1,798 @@
+function updateTemplate(id){
+  let updateData  =   {
+                id          :   id,
+                name        :   document.getElementById('template-'+id).querySelector('.item-Name').textContent.replace('Name:', '').trim(),
+                locks       :   {
+                    client: document.getElementById('template-'+id).querySelector('.client-lock').getAttribute('data-islocked') === 'true',
+                    pickup: document.getElementById('template-'+id).querySelector('.pickup-lock').getAttribute('data-islocked') === 'true',
+                    drops : {
+                      isLocked: document.getElementById('template-'+id).querySelector('.drops-lock').getAttribute('data-islocked') === 'true',
+                      //items: 
+                    }
+                }
+            }
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  fetch(window.ROUTES.WEB.JOBTEMPLATE.UPDATE, { 
+      method: 'PATCH',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', 
+          'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(updateData)
+  })
+  .then(response => {
+      return response.json();
+  })
+  .then(data => {
+      if(data.errors){
+          let errorsMessage = '';
+          for (const key in data.errors) {
+              if (data.errors.hasOwnProperty(key)) {
+                  errorsMessage+=(`${data.errors[key]}\n`);
+              }
+          }
+          alert(errorsMessage);
+      };
+      console.log('Update successful:', data);
+  })
+  .catch(error => {
+      console.error('Error:', error.message);
+  });
+}
+function addTypeHeadSearch_fromClientList(editableSpan) {
+    if (!editableSpan) return;
+
+    const dropdown = document.createElement("ul");
+    dropdown.style.position = "absolute";
+    dropdown.style.border = "1px solid #ccc";
+    dropdown.style.listStyle = "none";
+    dropdown.style.margin = "0";
+    dropdown.style.padding = "0";
+    dropdown.style.maxHeight = "200px";
+    dropdown.style.overflowY = "auto";
+    dropdown.style.zIndex = "1000";
+    dropdown.style.display = "none";
+
+    // Match colors from span
+    const styles = window.getComputedStyle(editableSpan);
+    dropdown.style.backgroundColor = styles.backgroundColor;
+    dropdown.style.color = styles.color;
+
+    document.body.appendChild(dropdown);
+
+    let currentItems = [];
+    let selectedIndex = -1;
+
+    editableSpan.addEventListener("input", onInput);
+    editableSpan.addEventListener("keydown", onKeyDown);
+
+    function onInput() {
+        const query = editableSpan.textContent.trim();
+        if (query.length < 2) {
+            dropdown.style.display = "none";
+            return;
+        }
+
+        const rect = editableSpan.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom + window.scrollY}px`;
+        dropdown.style.left = `${rect.left + window.scrollX}px`;
+        //dropdown.style.width = `${rect.width}px`;
+        dropdown.style.width = `200px`;
+
+        const apiUrl = window.ROUTES.WEB.CLIENT.SEARCH + "?query=" + encodeURIComponent(query);
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                currentItems = data;
+                selectedIndex = -1;
+                renderDropdown(data);
+            })
+            .catch(error => {
+                console.error('Error fetching client data:', error);
+            });
+    }
+
+    function renderDropdown(items) {
+        dropdown.innerHTML = "";
+
+        if (!items.length) {
+            dropdown.style.display = "none";
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const li = document.createElement("li");
+            li.textContent = item.name;
+            li.style.padding = "5px 10px";
+            li.style.cursor = "pointer";
+            li.style.backgroundColor = styles.backgroundColor;
+            li.style.color = styles.color;
+
+            li.addEventListener("mouseenter", () => {
+                highlightItem(index);
+            });
+
+            li.addEventListener("mousedown", (e) => {
+                e.preventDefault(); // prevent blur
+                handleSelect(item);
+                dropdown.style.display = "none";
+            });
+
+            dropdown.appendChild(li);
+        });
+
+        dropdown.style.display = "block";
+    }
+
+    function highlightItem(index) {
+      const lis = dropdown.querySelectorAll("li");
+      lis.forEach((li, i) => {
+          if (i === index) {
+              li.style.backgroundColor = darkenColor(styles.backgroundColor, 0.1);
+              li.style.color = darkenColor(styles.color, 0.1);
+              li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          } else {
+              li.style.backgroundColor = styles.backgroundColor;
+              li.style.color = styles.color;
+          }
+      });
+      selectedIndex = index;
+    }
+
+    function onKeyDown(e) {
+        const lis = dropdown.querySelectorAll("li");
+
+        if (dropdown.style.display === "block") {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % lis.length;
+                highlightItem(selectedIndex);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + lis.length) % lis.length;
+                highlightItem(selectedIndex);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                    handleSelect(currentItems[selectedIndex]);
+                    dropdown.style.display = "none";
+                }
+            } else if (e.key === "Escape") {
+                dropdown.style.display = "none";
+            }
+        }
+    }
+
+    function handleSelect(item) {
+        editableSpan.textContent = item.name;
+        editableSpan.blur(); // <-- Blur here
+
+        const clientInfoUrlTemplate = window.ROUTES.WEB.CLIENT.GETINFO;
+        const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
+        fetch(clientInfoUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    editableSpan.setAttribute('data-client-id', `${data.id}`);
+                    document.getElementById('pickupSpan-' + editableSpan.getAttribute('data-id')).setAttribute('data-client-id', `${data.id}`);
+                    const hiddenInput = document.getElementById('clientIdField');
+                    if (hiddenInput) hiddenInput.value = data.id;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+
+    document.addEventListener("click", function (e) {
+        if (!editableSpan.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = "none";
+        }
+    });
+
+    // Utility to darken color (basic RGB manipulation)
+    function darkenColor(color, factor) {
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.fillStyle = color;
+        const [r, g, b] = ctx.fillStyle.match(/\d+/g).map(Number);
+        return `rgb(${Math.max(0, r - r * factor)}, ${Math.max(0, g - g * factor)}, ${Math.max(0, b - b * factor)})`;
+    }
+}
+function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
+    if (!editableSpan) return;
+    const dropdown = document.createElement("ul");
+    dropdown.style.position = "absolute";
+    dropdown.style.border = "1px solid #ccc";
+    dropdown.style.listStyle = "none";
+    dropdown.style.margin = "0";
+    dropdown.style.padding = "0";
+    dropdown.style.maxHeight = "200px";
+    dropdown.style.overflowY = "auto";
+    dropdown.style.zIndex = "1000";
+    dropdown.style.display = "none";
+
+    // Match colors from span
+    const styles = window.getComputedStyle(editableSpan);
+    dropdown.style.backgroundColor = styles.backgroundColor;
+    dropdown.style.color = styles.color;
+
+    document.body.appendChild(dropdown);
+
+    let currentItems = [];
+    let selectedIndex = -1;
+
+    editableSpan.addEventListener("input", onInput);
+    editableSpan.addEventListener("keydown", onKeyDown);
+
+    function onInput() {
+        const query = editableSpan.textContent.trim();
+        if (query.length < 2) {
+            dropdown.style.display = "none";
+            return;
+        }
+
+        const rect = editableSpan.getBoundingClientRect();
+        dropdown.style.top = `${rect.bottom + window.scrollY}px`;
+        dropdown.style.left = `${rect.left + window.scrollX}px`;
+        //dropdown.style.width = `${rect.width}px`;
+        dropdown.style.width = `200px`;
+        var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES+"?query=" + encodeURIComponent(query) + "&client_id=" + editableSpan.getAttribute('data-client-id');
+        //const apiUrl = window.ROUTES.WEB.CLIENT.SEARCH + "?query=" + encodeURIComponent(query);
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                currentItems = data;
+                selectedIndex = -1;
+                renderDropdown(data);
+            })
+            .catch(error => {
+                console.error('Error fetching client data:', error);
+            });
+    }
+
+    function renderDropdown(items) {
+        dropdown.innerHTML = "";
+
+        if (!items.length) {
+            dropdown.style.display = "none";
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const li = document.createElement("li");
+            li.textContent = item.name;
+            li.style.padding = "5px 10px";
+            li.style.cursor = "pointer";
+            li.style.backgroundColor = styles.backgroundColor;
+            li.style.color = styles.color;
+
+            li.addEventListener("mouseenter", () => {
+                highlightItem(index);
+            });
+
+            li.addEventListener("mousedown", (e) => {
+                e.preventDefault(); // prevent blur
+                handleSelect(item);
+                dropdown.style.display = "none";
+            });
+
+            dropdown.appendChild(li);
+        });
+
+        dropdown.style.display = "block";
+    }
+
+    function highlightItem(index) {
+      const lis = dropdown.querySelectorAll("li");
+      lis.forEach((li, i) => {
+          if (i === index) {
+              li.style.backgroundColor = darkenColor(styles.backgroundColor, 0.1);
+              li.style.color = darkenColor(styles.color, 0.1);
+              li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          } else {
+              li.style.backgroundColor = styles.backgroundColor;
+              li.style.color = styles.color;
+          }
+      });
+      selectedIndex = index;
+    }
+
+    function onKeyDown(e) {
+        const lis = dropdown.querySelectorAll("li");
+
+        if (dropdown.style.display === "block") {
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % lis.length;
+                highlightItem(selectedIndex);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + lis.length) % lis.length;
+                highlightItem(selectedIndex);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
+                    handleSelect(currentItems[selectedIndex]);
+                    dropdown.style.display = "none";
+                }
+            } else if (e.key === "Escape") {
+                dropdown.style.display = "none";
+            }
+        }
+    }
+
+    function handleSelect(item) {
+        editableSpan.textContent = item.name;
+        editableSpan.blur(); // <-- Blur here
+
+        const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
+        const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
+        fetch(clientInfoUrl)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                  const nextSpan = editableSpan.nextElementSibling;
+                  if (nextSpan && nextSpan.classList.contains('full-address')) {
+                    nextSpan.textContent = ` (${data.postal_code}, ${data.address_line_1})`;
+                  }
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+
+    document.addEventListener("click", function (e) {
+        if (!editableSpan.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = "none";
+        }
+    });
+
+    // Utility to darken color (basic RGB manipulation)
+    function darkenColor(color, factor) {
+        const ctx = document.createElement('canvas').getContext('2d');
+        ctx.fillStyle = color;
+        const [r, g, b] = ctx.fillStyle.match(/\d+/g).map(Number);
+        return `rgb(${Math.max(0, r - r * factor)}, ${Math.max(0, g - g * factor)}, ${Math.max(0, b - b * factor)})`;
+    }
+}
+function openJobTemplateModal(item) {
+  // Populate modal with job details
+  document.getElementById('jobName').textContent = item.name;
+  document.getElementById('jobClient').textContent = item.clientToBill ? item.clientToBill.name : 'N/A';
+  document.getElementById('jobPickup').textContent = item.pickuptask ? item.pickuptask.data.pickupclientpostalcode : 'N/A';
+  document.getElementById('jobReturn').textContent = item.returntask ? item.returntask.data.return.postal_code : 'N/A';
+  document.getElementById('jobPrice').textContent = item.fixedPrice > 0 ? item.price.toFixed(2) : 'N/A';
+
+  const dropsContainer = document.getElementById('jobDrops');
+  dropsContainer.innerHTML = `<strong>Drops:</strong>`;
+  if (item.dropOfftasks && item.dropOfftasks.data.length > 0) {
+    item.dropOfftasks.data.forEach(task => {
+      const pkg = task.package;
+      const dropInfo = document.createElement('blockquote');
+      dropInfo.className = 'blockquote-footer mb-1';
+      dropInfo.innerHTML = `
+        <p class="mb-0"><strong>${pkg.package_type.name} x ${pkg.quantity}</strong></p>
+        <footer>${pkg.dropoff_postal_code}, ${pkg.dropoff_adress_line}</footer>
+      `;
+      dropsContainer.appendChild(dropInfo);
+    });
+  } else {
+    dropsContainer.innerHTML += ` <span class="text-muted">N/A</span>`;
+  }
+
+  const modalEl = document.getElementById('jobModalWindow');
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+function fetchJobTemplates() {
+  const gridContainer = document.querySelector('#itemListGrid');
+  console.log(gridContainer);
+  const routeUrl = window.ROUTES.WEB.JOBTEMPLATE.FETCH;
+
+  fetch(routeUrl)
+    .then(response => response.json())
+    .then(data => {
+      //if (data.success) {
+        console.log('success')
+        //const fragment = document.createDocumentFragment();
+
+        data.items.forEach(item => {
+          const col = document.createElement('div');
+          col.className = 'col-12 col-md-6 col-lg-4';
+          col.setAttribute('id', `template-${item.id}`);
+
+          const card = document.createElement('div');
+          card.className = 'card h-100 shadow-sm';
+
+          const cardBody = document.createElement('div');
+          cardBody.className = 'card-body';
+
+          // Title
+          const title = document.createElement('h5');
+          title.className = 'card-title';
+          title.textContent = `Template #${item.id}`;
+          cardBody.appendChild(title);
+
+          // Name
+          const name = document.createElement('p');
+          name.className = 'card-text item-Name';
+          name.innerHTML = `<strong>Name:</strong> ${item.name}`;
+          cardBody.appendChild(name);
+
+          // Client
+          const client = document.createElement('p');
+          const clientName = item.clientToBill ? item.clientToBill.name : 'N/A';
+          const clientClass = item.clientToBill ? '' : 'text-danger';
+          const lockIconClient = document.createElement('span');
+          const iconClient = document.createElement('i');
+          if (item.clientToBill.isLocked) {
+            iconClient.className = 'fa-solid fa-lock client-lock';
+            iconClient.setAttribute('data-islocked', 'true');
+            lockIconClient.className = 'text-danger';
+          } else {
+            iconClient.className = 'fa-solid fa-unlock client-lock';
+            iconClient.setAttribute('data-islocked', 'false');
+            lockIconClient.className = '';
+          }
+          lockIconClient.addEventListener('click', () => {
+            if (iconClient.classList.contains('fa-lock')) {
+              iconClient.className = 'fa-solid fa-unlock client-lock';
+              iconClient.setAttribute('data-islocked', 'false');
+              lockIconClient.className = '';
+            } else {
+              iconClient.className = 'fa-solid fa-lock client-lock';
+              iconClient.setAttribute('data-islocked', 'true');
+              lockIconClient.className = 'text-danger';
+            }
+            updateTemplate(item.id);
+          });
+          lockIconClient.style.cursor = 'pointer';
+          lockIconClient.appendChild(iconClient);
+          client.appendChild(lockIconClient);
+          const strong = document.createElement('strong');
+          strong.textContent = 'Client:';
+          client.appendChild(strong);
+
+          const clientSpan = document.createElement('span');
+          clientSpan.className = clientClass;
+          clientSpan.textContent = ` ${clientName}`;
+          clientSpan.setAttribute('data-id', `${item.id}`);
+          clientSpan.setAttribute('data-client-id', `${item.clientToBill.id}`);
+          clientSpan.setAttribute('id', 'clientSpan-' + item.id);
+          addTypeHeadSearch_fromClientList(clientSpan);
+          client.appendChild(clientSpan);
+          const editIconClient = document.createElement('i');
+          editIconClient.className = 'fa-solid fa-pencil-alt ms-2';
+          editIconClient.style.cursor = 'pointer';
+          editIconClient.addEventListener('click', () => {
+            clientSpan.contentEditable = true;
+            clientSpan.focus();
+            clientSpan.addEventListener('blur', function onBlur() {
+              clientSpan.contentEditable = false;
+              // Optionally, send updated value to server here
+              clientSpan.removeEventListener('blur', onBlur);
+            });
+          });
+          client.appendChild(editIconClient);
+          cardBody.appendChild(client);
+
+          // Pickup
+            // Pickup
+            const pickup = document.createElement('p');
+            const pickupName =  item.pickuptask ? item.pickuptask.data.pickupclientname : 'N/A';
+            const pickupCode = item.pickuptask ? item.pickuptask.data.pickupclientpostalcode : 'N/A';
+            const pickupAddressLine = item.pickuptask ? item.pickuptask.data.pickupclientaddressline : 'N/A';
+            const isAddressFromClientList = item.pickuptask ? item.pickuptask.addressIsFromClientList : false;
+            const isPickupLocked = item.pickuptask ? item.pickuptask.isLocked : false;
+
+            // Lock icon for pickup
+            const lockIconPickup = document.createElement('span');
+            const iconPickup = document.createElement('i');
+            if (isPickupLocked) {
+            iconPickup.className = 'fa-solid fa-lock pickup-lock';
+            iconPickup.setAttribute('data-islocked', 'true');
+            lockIconPickup.className = 'text-danger';
+            } else {
+            iconPickup.className = 'fa-solid fa-unlock pickup-lock';
+            iconPickup.setAttribute('data-islocked', 'false');
+            lockIconPickup.className = '';
+            }
+            lockIconPickup.addEventListener('click', () => {
+            if (iconPickup.classList.contains('fa-lock')) {
+              iconPickup.className = 'fa-solid fa-unlock pickup-lock';
+              iconPickup.setAttribute('data-islocked', 'false');
+              lockIconPickup.className = '';
+            } else {
+              iconPickup.className = 'fa-solid fa-lock pickup-lock';
+              iconPickup.setAttribute('data-islocked', 'true');
+              lockIconPickup.className = 'text-danger';
+            }
+            updateTemplate(item.id);
+            });
+            lockIconPickup.style.cursor = 'pointer';
+            lockIconPickup.appendChild(iconPickup);
+            pickup.appendChild(lockIconPickup);
+
+            // Label
+            const strongPickup = document.createElement('strong');
+            strongPickup.textContent = 'Pickup:';
+            pickup.appendChild(strongPickup);
+
+            // Editable pickup code
+            const pickupSpan = document.createElement('span');
+            //pickupSpan.className = !isAddressFromClientList ? 'text-danger' : '';
+            pickupSpan.textContent = ` ${pickupName}`;
+            
+            const fullAddress = `${pickupCode}, ${pickupAddressLine}`;
+            const pickupAddressSpan = document.createElement('span');
+            pickupAddressSpan.textContent = ` (${fullAddress})`;
+            pickupAddressSpan.className = "full-address";
+            pickupSpan.setAttribute('data-id', `${item.id}`);
+            pickupSpan.setAttribute('data-client-id', `${item.clientToBill.id}`);
+            pickupSpan.setAttribute('id', 'pickupSpan-' + item.id);
+            addTypeHeadSearch_fromClient_AddressList(pickupSpan);
+            pickup.appendChild(pickupSpan);
+            pickup.appendChild(pickupAddressSpan);
+
+            // Edit icon for pickup
+            const editIconPickup = document.createElement('i');
+            editIconPickup.className = 'fa-solid fa-pencil-alt ms-2';
+            editIconPickup.style.cursor = 'pointer';
+            editIconPickup.addEventListener('click', () => {
+            pickupSpan.contentEditable = true;
+            pickupSpan.focus();
+            pickupSpan.addEventListener('blur', function onBlur() {
+              pickupSpan.contentEditable = false;
+              // Optionally, send updated value to server here
+              pickupSpan.removeEventListener('blur', onBlur);
+            });
+            });
+            pickup.appendChild(editIconPickup);
+
+            cardBody.appendChild(pickup);
+
+          // Drops
+          const drops = document.createElement('p');
+          const isDropsLocked = item.dropOfftasks ? item.dropOfftasks.isLocked : false;
+
+          // Lock icon for drops
+          const lockIconDropsWrapper = document.createElement('span');
+          const lockIconDrops = document.createElement('i');
+          if (isDropsLocked) {
+            lockIconDrops.className = 'fa-solid fa-lock drops-lock';
+            lockIconDrops.setAttribute('data-islocked', 'true');
+            lockIconDropsWrapper.className = 'text-danger';
+          } else {
+            lockIconDrops.className = 'fa-solid fa-unlock drops-lock';
+            lockIconDrops.setAttribute('data-islocked', 'false');
+            lockIconDropsWrapper.className = '';
+          }
+          lockIconDropsWrapper.addEventListener('click', () => {
+            const isCurrentlyLocked = lockIconDrops.classList.contains('fa-lock');
+            lockIconDrops.className = `fa-solid fa-${isCurrentlyLocked ? 'unlock' : 'lock'} drops-lock`;
+            lockIconDrops.setAttribute('data-islocked', String(!isCurrentlyLocked));
+            lockIconDropsWrapper.className = isCurrentlyLocked ? '' : 'text-danger';
+
+            updateTemplate(item.id); // Assuming this updates the data
+          });
+          lockIconDropsWrapper.style.cursor = 'pointer';
+          lockIconDropsWrapper.appendChild(lockIconDrops);
+          drops.appendChild(lockIconDropsWrapper);
+
+          // Label
+          const strongDrops = document.createElement('strong');
+          strongDrops.textContent = 'Drops:';
+          drops.appendChild(strongDrops);
+
+          // Drops content
+          if (item.dropOfftasks && item.dropOfftasks.data.length > 0) {
+            item.dropOfftasks.data.forEach((task, index) => {
+              const pkg = task.package;
+              const dropName = pkg.package_type?.name || 'Unknown';
+              const dropQty = pkg.quantity || 1;
+              const dropCode = pkg.dropoff_postal_code || 'N/A';
+              const dropAddress = pkg.dropoff_adress_line || 'N/A';
+              const dropClientName = task.dropoffclientname || 'Unknown Client';
+
+              // Wrapper Row
+              const dropCard = document.createElement('div');
+              dropCard.className = 'row align-items-center mb-3';
+              dropCard.setAttribute('data-order', task.order_number);
+              dropCard.setAttribute('data-index', index);
+
+              // Package Column (Editable name & quantity together)
+              const packageCol = document.createElement('div');
+              packageCol.className = 'col d-flex align-items-start';
+
+              const pkgName = document.createElement('span');
+              pkgName.textContent = dropName;
+              pkgName.className = 'me-2 pkg-name';
+
+              const pkgQty = document.createElement('span');
+              pkgQty.textContent = `x${dropQty}`;
+              pkgQty.className = 'pkg-qty';
+
+              pkgName.setAttribute('contenteditable', false);
+              pkgQty.setAttribute('contenteditable', false);
+
+              const editPkgIcon = document.createElement('i');
+              editPkgIcon.className = 'fa-solid fa-pencil-alt ms-2';
+              editPkgIcon.style.cursor = 'pointer';
+
+              // Unified blur handling
+              let isEditingPkg = false;
+              const stopEditingPackage = () => {
+                pkgName.contentEditable = false;
+                pkgQty.contentEditable = false;
+                isEditingPkg = false;
+              };
+
+              const startEditingPackage = () => {
+                isEditingPkg = true;
+                pkgName.contentEditable = true;
+                pkgQty.contentEditable = true;
+                pkgName.focus();
+              };
+
+              // Handle blur: wait for both elements to lose focus before stopping
+              let blurTimeout;
+              const handleBlur = () => {
+                clearTimeout(blurTimeout);
+                blurTimeout = setTimeout(() => {
+                  if (!pkgName.matches(':focus') && !pkgQty.matches(':focus')) {
+                    stopEditingPackage();
+                  }
+                }, 100); // short delay to allow switching focus between fields
+              };
+
+              pkgName.addEventListener('blur', handleBlur);
+              pkgQty.addEventListener('blur', handleBlur);
+
+              editPkgIcon.addEventListener('click', () => {
+                startEditingPackage();
+              });
+
+              packageCol.appendChild(pkgName);
+              packageCol.appendChild(pkgQty);
+              packageCol.appendChild(editPkgIcon);
+
+              // Address Column (Editable name only)
+              const addressCol = document.createElement('div');
+              addressCol.className = 'col d-flex align-items-start';
+
+              const addressName = document.createElement('span');
+              addressName.textContent = dropClientName;
+              addressName.className = 'me-2 address-name';
+              addressName.setAttribute('contenteditable', false);
+
+              const fullAddress = document.createElement('span');
+              fullAddress.textContent = ` (${dropCode}, ${dropAddress})`;
+              fullAddress.className = 'full-address';
+
+              const editAddressIcon = document.createElement('i');
+              editAddressIcon.className = 'fa-solid fa-pencil-alt ms-2';
+              editAddressIcon.style.cursor = 'pointer';
+
+              editAddressIcon.addEventListener('click', () => {
+                addressName.contentEditable = true;
+                addressName.focus();
+                addressName.addEventListener('blur', function onBlur() {
+                  addressName.contentEditable = false;
+                  addressName.removeEventListener('blur', onBlur);
+                });
+              });
+
+              addressCol.appendChild(addressName);
+              addressCol.appendChild(fullAddress);
+              addressCol.appendChild(editAddressIcon);
+
+              // Move up/down controls (swap logic)
+              const controlCol = document.createElement('div');
+              controlCol.className = 'col-auto d-flex flex-column';
+
+              const upBtn = document.createElement('button');
+              upBtn.textContent = '↑';
+              upBtn.className = 'btn btn-sm btn-light mb-1';
+              upBtn.addEventListener('click', () => {
+
+                let orderNumber = dropCard.getAttribute('data-index');
+                if (orderNumber > 0) {
+                  const prevCard = drops.querySelector(`[data-index="${orderNumber - 1}"]`);
+                  if (prevCard) {
+                    drops.insertBefore(dropCard, prevCard);
+                    dropCard.setAttribute('data-index', orderNumber - 1);
+                    prevCard.setAttribute('data-index', orderNumber);
+                  }
+                }
+              });
+
+              const downBtn = document.createElement('button');
+              downBtn.textContent = '↓';
+              downBtn.className = 'btn btn-sm btn-light';
+              downBtn.addEventListener('click', () => {
+                debugger;
+                let orderNumber = dropCard.getAttribute('data-index');
+                const nextCard = drops.querySelector(`[data-index="${parseInt(orderNumber) + 1}"]`);
+                if (nextCard) {
+                  drops.insertBefore(nextCard, dropCard);
+                  dropCard.setAttribute('data-index', parseInt(orderNumber) + 1);
+                  nextCard.setAttribute('data-index', orderNumber);
+                }
+              });
+
+              controlCol.appendChild(upBtn);
+              controlCol.appendChild(downBtn);
+
+              dropCard.appendChild(packageCol);
+              dropCard.appendChild(addressCol);
+              dropCard.appendChild(controlCol);
+              drops.appendChild(dropCard);
+            });
+          } else {
+            const noDrops = document.createElement('span');
+            noDrops.className = 'text-muted';
+            noDrops.textContent = ' N/A';
+            drops.appendChild(noDrops);
+          }
+
+          cardBody.appendChild(drops);
+
+
+          // Return
+          const returnElem = document.createElement('p');
+          const returnCode = item.returntask ? item.returntask.data.return.postal_code : 'N/A';
+          const returnClass = !item.returntask?.addressIsSameAsPickup ? 'text-danger' : '';
+          returnElem.innerHTML = `<strong>Return:</strong> <span class="${returnClass}">${returnCode}</span>`;
+          cardBody.appendChild(returnElem);
+
+          // Price
+          const price = document.createElement('p');
+          price.innerHTML = `<strong>Price:</strong> £${item.fixedPrice > 0 ? item.price.toFixed(2) : 'N/A'}`;
+          cardBody.appendChild(price);
+
+          // Footer with actions
+          const cardFooter = document.createElement('div');
+          cardFooter.className = 'card-footer d-flex justify-content-between';
+
+          const btnEdit = document.createElement('button');
+          btnEdit.className = 'btn btn-sm btn-outline-secondary';
+          btnEdit.textContent = 'Edit';
+          btnEdit.addEventListener('click', () => openJobTemplateModal(item));
+
+          const btnCreate = document.createElement('button');
+          btnCreate.className = 'btn btn-sm btn-outline-primary';
+          btnCreate.textContent = 'Create Schedule';
+          btnCreate.addEventListener('click', () => {
+            console.log('Create schedule from template:', item.id);
+          });
+
+          cardFooter.appendChild(btnEdit);
+          cardFooter.appendChild(btnCreate);
+
+          // Assemble card
+          card.appendChild(cardBody);
+          card.appendChild(cardFooter);
+          col.appendChild(card);
+          gridContainer.appendChild(col);
+        });
+
+        //gridContainer.innerHTML = '';
+        //gridContainer.appendChild(fragment);
+      //} // end of if (data.success) {
+    })
+    .catch(error => {
+      console.error('Error fetching job templates:', error);
+    });
+}
+// On DOM Load
+document.addEventListener('DOMContentLoaded', function () {
+  alert('Job Template JS Loaded');
+  // const modalEl = document.getElementById('jobModalWindow');
+  // const modal = new bootstrap.Modal(modalEl);
+  // modal.show();
+  fetchJobTemplates();
+});

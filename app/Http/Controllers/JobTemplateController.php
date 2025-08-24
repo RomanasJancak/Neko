@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 
-
+use App\Models\Address;
 use App\Models\Client;
 use App\Models\Distance;
 use App\Models\User;
@@ -51,7 +51,7 @@ class JobTemplateController extends Controller
         $couriers = User::getCouriersWithWorkload($day);
         $statuses = Status::all();
 
-        return view('jobTemplate.index', compact('jobTemplates','couriers','statuses'));
+        return view('jobtemplate.index', compact('jobTemplates','couriers','statuses'));
     }
 
     /**
@@ -94,7 +94,9 @@ class JobTemplateController extends Controller
       try{
             $request->validate([
                 'id' => 'required|exists:job_templates,id',
-                'name' => 'required|string|max:255',
+                'name' => 'sometimes|string|max:255',
+                'clientToBill_id' => ['sometimes','integer'],
+                'pickup.addressId' => ['sometimes','integer'],
                 'locks.client' => ['sometimes','boolean'],
                 'locks.pickup' => ['sometimes','boolean'],
                 'locks.return' => ['sometimes','boolean'],
@@ -105,7 +107,182 @@ class JobTemplateController extends Controller
             ]);
             $jobTemplate = JobTemplate::findOrFail($request->id);
             $jobTemplate->fill($request->except(['locks']));
+            $isDirty = false;
             if($jobTemplate->isDirty()){
+                $isDirty = true;
+                $jobTemplate->save();
+            }
+            if(isset($request->note)){
+                $jobTemplate->notes = $request->note;
+                $jobTemplate->save();
+            }
+            if(isset($request->drop)){
+              if (is_array($request->drop) && !empty($request->drop)) {
+                $firstKey = array_key_first($request->drop);
+                if(isset($request->drop[$firstKey])) {
+                  if(isset($request->drop[$firstKey]['packageTypeId'])) {
+                    $packageTypeId = $request->drop[$firstKey]['packageTypeId'];
+                    $jobTemplate->changePackageTypeForDropoff($firstKey, $packageTypeId);
+                  }
+                  if(isset($request->drop[$firstKey]['packageQuantity'])) {
+                    $packageQuantity = $request->drop[$firstKey]['packageQuantity'];
+                    $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
+                    foreach ($dropOffs as &$dropOff) {
+                      if (isset($dropOff['order_number']) && $dropOff['order_number'] === $firstKey) {
+                        $dropOff['package']['quantity'] = $packageQuantity;
+                        break;
+                      }
+                    }
+                    $jobTemplate->dropOffs_data = $dropOffs;
+                  }
+                  if(isset($request->drop[$firstKey]['addressId'])) {
+                    $addressId = $request->drop[$firstKey]['addressId'];
+                    $address = Address::find($addressId);
+                    if ($address) {
+                      $existingData = json_decode($jobTemplate->dropOffs_data ?? '{}', true);
+                      if (!isset($existingData[$firstKey])) {
+                        $existingData[$firstKey] = [];
+                      }
+                      $existingData[$firstKey]['address'] = [
+                        'id' => $address->id,
+                        'name' => $address->name,
+                        'address_line_1' => $address->address_line_1,
+                        'postal_code' => $address->postalCode ? $address->postalCode->postal_code : null,
+                        'city' => $address->city,
+                        'country' => $address->country,
+                      ];
+                      $jobTemplate->dropOffs_data = json_encode($existingData);
+                    }
+                  }
+                  if(isset($request->drop[$firstKey]['time']) && is_array($request->drop[$firstKey]['time'])) {
+                    $timeData = $request->drop[$firstKey]['time'];
+                    $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
+                    foreach ($dropOffs as &$dropOff) {
+                      if (isset($dropOff['order_number']) && $dropOff['order_number'] === $firstKey) {
+                        if (isset($timeData['begin'])) {
+                          $existingDateTime = $dropOff['package']['packagedropofftimebegin'] ?? null;
+                          $newTime = $timeData['begin'];
+                            $datePart = date('Y-m-d', strtotime($existingDateTime));
+                            $timePart = date('H:i:s', strtotime($newTime));
+                            $dropOff['package']['packagedropofftimebegin'] = $datePart . ' ' . $timePart;
+                            //dd($dropOff['package']['packagedropofftimebegin'], $datePart, $timePart, $existingDateTime, $newTime);
+                        }
+                        if (isset($timeData['end'])) {
+                          $existingDateTime = $dropOff['package']['packagedropofftimeend'] ?? null;
+                          $newTime = $timeData['end'];
+                            $datePart = date('Y-m-d', strtotime($existingDateTime));
+                            $timePart = date('H:i:s', strtotime($newTime));
+                            $dropOff['package']['packagedropofftimeend'] = $datePart . ' ' . $timePart;
+                        }
+                      }
+                    }
+                    $jobTemplate->dropOffs_data = json_encode($dropOffs);
+                  }
+                  if(isset($request->drop[$firstKey]['note'])) {
+                    $note = $request->drop[$firstKey]['note'];
+                    $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
+                    foreach ($dropOffs as &$dropOff) {
+                      if (isset($dropOff['order_number']) && $dropOff['order_number'] === $firstKey) {
+                        $dropOff['note'] = $note;
+                        break;
+                      }
+                    }
+                    $jobTemplate->dropOffs_data = json_encode($dropOffs);
+                  }
+                }
+                $jobTemplate->save();
+              }
+            } 
+            if(isset($request->return)){
+              if (isset($request->return['addressId'])) {
+                $returnAddress = Address::find($request->return['addressId']);
+                  if ($returnAddress) {
+                      $existingData = json_decode($jobTemplate->returntask_data ?? '{}', true);
+                      $existingData['returnclientname'] = $returnAddress->name;
+                      $existingData['returnclientaddressline'] = $returnAddress->address_line_1;
+                      $existingData['returnclientpostalcode'] = $returnAddress->postalCode->postal_code;
+                      $existingData['returnclientcity'] = $returnAddress->city;
+                      $existingData['returnclientcountry'] = $returnAddress->country;
+                      $jobTemplate->returntask_data = json_encode($existingData);
+                      $jobTemplate->save();
+                }
+              }
+              if(isset($request->return['time'])){
+                $returnData = json_decode($jobTemplate->return_data, true);
+                if(isset($request->return['time']['begin'])){
+                  $existingDateTime = $returnData['return']['time_begin'];
+                  $newTime = $request->return['time']['begin'];
+                    $datePart = date('Y-m-d', strtotime($existingDateTime));
+                    $timePart = date('H:i:s', strtotime($newTime));
+                    $returnData['return']['time_begin'] = $datePart . ' ' . $timePart;
+                }
+                if(isset($request->return['time']['end'])){
+                  $existingDateTime = $returnData['return']['time_end'];
+                  $newTime = $request->return['time']['end'];
+                    $datePart = date('Y-m-d', strtotime($existingDateTime));
+                    $timePart = date('H:i:s', strtotime($newTime));
+                    $returnData['return']['time_end'] = $datePart . ' ' . $timePart;
+                }
+                $jobTemplate->return_data = json_encode($returnData);
+                $jobTemplate->save();
+              }
+              if(isset($request->return['note'])){
+                $returnData = json_decode($jobTemplate->return_data, true);
+                $returnData['note'] = $request->return['note'];
+                $jobTemplate->return_data = json_encode($returnData);
+                $jobTemplate->save();
+              }
+            }
+            if(isset($request->clientToBill_id)){
+                $client = Client::find($request->clientToBill_id);
+                if($client){
+                    $jobTemplate->clientToBill()->associate($client);
+                    $jobTemplate->save();
+                }
+            }
+            if(isset($request->pickup)){
+              if(isset($request->pickup['note'])){
+                $pickupData = json_decode($jobTemplate->pickuptask_data, true);
+                $pickupData['note'] = $request->pickup['note'];
+                $jobTemplate->pickuptask_data = json_encode($pickupData);
+                $jobTemplate->save();
+              }
+            }
+            if (isset($request->pickup) && isset($request->pickup['addressId'])) {
+                $pickupAddress = Address::find($request->pickup['addressId']);
+                if ($pickupAddress) {
+
+                    $existingData = json_decode($jobTemplate->pickuptask_data ?? '{}', true);
+
+
+                    $existingData['pickupclientname'] = $pickupAddress->name;
+                    $existingData['pickupclientaddressline'] = $pickupAddress->address_line_1;
+                    $existingData['pickupclientpostalcode'] = $pickupAddress->postalCode->postal_code;
+                    $existingData['pickupclientcity'] = $pickupAddress->city;
+                    $existingData['pickupclientcountry'] = $pickupAddress->country;
+
+
+                    $jobTemplate->pickuptask_data = json_encode($existingData);
+                    $jobTemplate->save();
+                }
+            }
+            if(isset($request->pickup['time'])){
+                $pickupData = json_decode($jobTemplate->pickuptask_data, true);
+                if(isset($request->pickup['time']['begin'])){
+                  $existingDateTime = $pickupData['pickup_time_begin'];
+                  $newTime = $request->pickup['time']['begin'];
+                    $datePart = date('Y-m-d', strtotime($existingDateTime));
+                    $timePart = date('H:i:s', strtotime($newTime));
+                    $pickupData['pickup_time_begin'] = $datePart . ' ' . $timePart;
+                }
+                if(isset($request->pickup['time']['end'])){
+                  $existingDateTime = $pickupData['pickup_time_end'];
+                  $newTime = $request->pickup['time']['end'];
+                    $datePart = date('Y-m-d', strtotime($existingDateTime));
+                    $timePart = date('H:i:s', strtotime($newTime));
+                    $pickupData['pickup_time_end'] = $datePart . ' ' . $timePart;
+                }
+                $jobTemplate->pickuptask_data = json_encode($pickupData);
                 $jobTemplate->save();
             }
             if(isset($request->locks)){
@@ -119,11 +296,12 @@ class JobTemplateController extends Controller
                     $jobTemplate->changeLockedField('return', $request->locks['return']);
                 }
                 if(isset($request->locks['drops'])){
-                    $jobTemplate->changeLockedField('dropOffs', $request->locks['drops']['isLocked']);
+                    $jobTemplate->changeLockedField('dropOffs', $request->locks['drops']);
                 }
             }
             return response()->json([
                 'success' => true,
+                'isDirty' => $isDirty,
                 'message' => 'Job template updated successfully.',
                 'request' => $request->all(),
                 'template'  =>  json_decode($jobTemplate),
@@ -219,6 +397,7 @@ class JobTemplateController extends Controller
                                 $pickupData->pickupclientcity === $returnData->return->city &&
                                 $pickupData->pickupclientcountry === $returnData->return->country
                             ) : false,
+                            'isLocked' => $item->isLocked('return'),
                         ],
                         'lockedFields' => $item->lockedFields(),
                     ];

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class JobTemplate extends Job
 {
     use HasFactory;
-
+    protected $fillable = ['name'];
     public function tasks(){
         return json_decode(json_encode([
             'pickup' => json_decode($this->pickuptask_data),
@@ -19,6 +19,20 @@ class JobTemplate extends Job
     public function clientToBill()
     {
         return $this->belongsTo(Client::class, 'clientToBill_id');
+    }
+    public function changePackageTypeForDropoff($orderNumber, $packageTypeId)
+    {
+        $packageType  = PackageType::find($packageTypeId);
+        $dropOffs = json_decode($this->dropOffs_data, true);
+        foreach ($dropOffs as &$dropOff) {
+          if (isset($dropOff['order_number']) && $dropOff['order_number'] === $orderNumber) {
+            $dropOff['package']['package_type']['id'] = $packageType->id;
+            $dropOff['package']['package_type']['name'] = $packageType->name;
+            break;
+          }
+        }
+        $this->dropOffs_data = $dropOffs;
+        $this->save();
     }
     public function lockedFields()
     {

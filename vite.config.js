@@ -31,7 +31,7 @@ export default defineConfig({
         terserOptions: {
             compress: {
                 dead_code: false,
-                drop_console: true, // Remove console logs
+                drop_console: false, // Remove console logs |||| 2025-08-08 "SET TO FALSE" REVERT THIS
             },
             // mangle: {
             //     // Keep function names
