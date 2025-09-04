@@ -110,6 +110,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('create/{customjob?}',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
     Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
     Route::post('storeFromString',            [JobController::class, 'storeFromString'])->name('job.storeFromString')->middleware('auth');
+    Route::post('storeFromTemplate',            [JobController::class, 'storeFromTemplate'])->name('job.storeFromTemplate')->middleware('auth');
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
     Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');

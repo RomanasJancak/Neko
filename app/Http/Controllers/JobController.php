@@ -550,6 +550,232 @@ public function index(Request $request,SettingsService $settings)
         
         }
     }
+    private function createJobFromTemplate(JobTemplate $template, $date){
+
+        $job                    =   new Job();
+        $job->eilesNumeris      =   0;
+        $job->manager_id        =   auth()->user()->id;
+        $job->status_id         =   10;
+        $job->courrier_id       =   null;
+        $job->clientToBill_id   =   $template->clientToBill_id;
+        $job->date              =   $date;
+        $job->note              =   $template->notes;
+        $job->save();
+        foreach($template->lockedFields() as $field){
+          if($field->is_locked){
+            $job->changeLockedField($field->field_name, true);
+          }
+        }
+        if(isset($template->pickuptask_data) && $template->pickuptask_data != null){
+            $task                   =   new Task();
+            $task->date             =   $date;
+            $task->order_number     =   0;
+            $task->job_id           =   $job->id;
+            $task->status_id        =   10;
+            $task->save();
+            $pickuptaskData = json_decode($template->pickuptask_data, true);
+            $pickuptask                 =   new Pickuptask();
+            $pickuptask->task_id        =   $task->id;
+            $pickuptask->status_id      =   10;
+            $pickuptask->pickupclientaddressline    =   $pickuptaskData['pickupclientaddressline'] ?? null;
+            $pickuptask->pickupclientpostalcode    =   $pickuptaskData['pickupclientpostalcode'] ?? null;
+            $pickuptask->pickupclientcity           =   $pickuptaskData['pickupclientcity'] ?? null;
+            $pickuptask->pickupclientcountry        =   $pickuptaskData['pickupclientcountry'] ?? null; 
+            $pickuptask->pickup_time_begin     =   $pickuptaskData['pickup_time_begin'] ?? '09:00:00';
+            $pickuptask->pickup_time_end       =   $pickuptaskData['pickup_time_end'] ?? '17:00:00';
+            $pickuptask->note          =   $pickuptaskData['note'] ?? null;
+            $pickuptask->save();
+        }
+        
+        if($template->isLocked('pickup')){
+          $job->changeLockedField('pickup', true);
+        }
+        $dropoffData = json_decode($template->dropOffs_data, true);
+        foreach ($dropoffData as $key => $dropoffDataItem) {
+            //dd($dropoffDataItem);
+            $task                               =   new Task();
+            $task->date         =   $date;
+            $task->order_number =   $dropoffDataItem['order_number'];
+            $task->job_id       =   $job->id;
+            $task->status_id       =   10;
+            $task->save();
+            $package                            =   new Package();
+            $packageType                        =   PackageType::find($dropoffDataItem['package']['package_type']['id']);
+            $package->job_id                    =   $job->id;
+            $package->task_id                   =   $task->id;
+            $package->packageType_id            =   $packageType->id; 
+            $package->orderNumber               =   $dropoffDataItem['order_number']; 
+            $package->weight                    =   $dropoffDataItem['weight'] ?? 0; 
+            $package->dimensions                =   $dropoffDataItem['dimensions'] ?? '0x0x0'; 
+            $package->quantity                  =   $dropoffDataItem['package']['quantity'] ?? 1;
+            $package->dropoff_adress_line       =   $dropoffDataItem['address']['address_line_1'] ?? null;
+            $package->dropoff_postal_code       =   $dropoffDataItem['address']['postal_code'] ?? null;
+            $package->dropoff_city              =   $dropoffDataItem['address']['city'] ?? null;
+            $package->dropoff_country           =   $dropoffDataItem['address']['country'] ?? null;
+            $package->dropoff_name              =   $dropoffDataItem['address']['name'] ?? null;
+            $package->packagedropofftimebegin   =   $dropoffDataItem['package']['packagedropofftimebegin'] ?? null;
+            $package->packagedropofftimeend     =   $dropoffDataItem['package']['packagedropofftimeend'] ?? null;
+            $package->name                      =   $dropoffDataItem['package']['name'] ?? null;
+            $package->price                     =   $dropoffDataItem['package']['price'] ?? null;
+            $package->baseQuantityThreshold     =   $dropoffDataItem['package']['baseQuantityThreshold'] ?? null;
+            $package->maxQuantityThreshold      =   $dropoffDataItem['package']['maxQuantityThreshold'] ?? null;
+            $package->save();
+        }
+        $returnData = json_decode($template->return_data, true);
+        //dd(isset($template->returntask_data), $template->returntask_data);
+        if(isset($returnData)){
+            $task               =   new Task();
+            $task->date         =   $date;
+            $task->order_number =   count($dropoffData)+1;
+            $task->job_id       =   $job->id;
+            $task->status_id       =   10;
+            $task->save();
+            $returntask         =   new Returntask();
+            $returntask->task_id        =  $task->id;
+            $returntask->status_id      =   10;
+            $returntask->time_begin     =   $date . ' ' . preg_replace('/^\d{4}-\d{2}-\d{2} /', '', $returnData['return']['time_begin']) ;
+            $returntask->time_end       =   $date . ' ' . preg_replace('/^\d{4}-\d{2}-\d{2} /', '', $returnData['return']['time_end']) ;
+            $returntask->name           =   $returnData['return']['name'] ?? null;
+            $returntask->adress_line       =   $returnData['return']['adress_line'] ?? null;
+            $returntask->city       =   $returnData['return']['city'] ?? null;
+            $returntask->country       =   $returnData['return']['country'] ?? null;
+            $returntask->postal_code       =   $returnData['return']['postal_code'] ?? null;
+            $returntask->notes       =   $returnData['return']['notes'] ?? null;
+            $returntask->is_flexible       =   $returnData['return']['is_flexible'] ?? false;
+            $returntask->save();
+        }
+        return $job;
+    }
+    private function transformToProperFilterValue($filters){
+      $days = collect($filters)
+        ->flatMap(function ($item) {
+            return explode(',', $item);
+        })
+        ->map(fn ($day) => (int) $day) // convert to integers
+        ->unique()
+        ->values()
+        ->all();
+        return $days;
+    }
+    public function storeFromTemplate(Request $request){
+     try{
+      $template = JobTemplate::find($request->id);
+      $jobs = [];
+      if(!$template){
+          return response()->json(['error' => 'Template not found'], 404);
+      }else{
+        if ($request->input('start') === $request->input('end')) {
+          $date = $request->input('start');
+          $jobs[] = $this->createJobFromTemplate($template, $date);
+        }else{
+            $filters = $request->input('days');
+            $filters = $this->transformToProperFilterValue($filters);
+            if($filters && is_array($filters)){
+                $startDate = \Carbon\Carbon::parse($request->input('start'));
+                $endDate = \Carbon\Carbon::parse($request->input('end'));
+                $currentDate = $startDate->copy();
+                    $includeBankHolidays = in_array('bankholidays', $request->input('days'));
+
+                // Example: you might load holidays from DB or config
+                $bankHolidays = new Job();
+                $bankHolidays = $bankHolidays->getBankHolidaysAttribute()->pluck('date')->map(fn($date) => \Carbon\Carbon::parse($date)->toDateString())->toArray();
+
+                while ($currentDate->lte($endDate)) {
+                  $dayNumber = (int) $currentDate->format('N'); // 1 = Monday, ... 7 = Sunday
+
+                  // Skip if bank holiday and not explicitly included
+                  if (!$includeBankHolidays && in_array($currentDate->toDateString(), $bankHolidays)) {
+                      $currentDate->addDay();
+                      continue;
+                  }
+
+                  if (in_array($dayNumber, $filters)) {
+                      $jobs[] = $this->createJobFromTemplate($template, $currentDate->toDateString());
+                  }
+
+                  $currentDate->addDay();
+            }
+            }else{  
+                return response()->json(['error' => 'No days selected for multi-day job creation.'], 400);
+            }
+        }
+        if(empty($jobs)){
+            return response()->json(['error' => 'No jobs were created. Please check your input.'], 400);
+        }else{
+          foreach ($jobs as $job) {
+            $job->jobTemplate()->associate($template);
+            $job->save();
+          }
+        }
+          return response()->json([
+            'error' => 'This endpoint is disabled for now',
+            'request'   =>  $request->all(),
+            'template'  =>  $template,
+            'template_data'  =>  json_decode($template->pickuptask_data, true),
+            'job'       =>  $jobs,
+          ], 500);
+      }
+     }catch (\Exception $e){
+        return response()->json(['error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'request'   =>  $request->all(),
+        ], 500);
+     }
+
+
+
+        try{
+            $template = JobTemplate::find($request->templateId);
+            if(!$template){
+                return response()->json(['error' => 'Template not found'], 404);
+            }
+            $jobData = json_decode($template->template_data, true);
+            $jobArray = collect($jobData)->except(['id', 'tasks'])->toArray();
+            $job = new Job($jobArray);
+            $job->date = $request->date; // Override date from request
+            $job->clientToBill_id = $request->clientId; // Override client from request
+            $job->save();
+            foreach ($jobData['tasks'] as $taskWrapper) {
+                $taskData = collect($taskWrapper['task'])->except(['id', 'pickup', 'package', 'return'])->toArray();
+                $taskData['job_id'] = $job->id;
+                $task = new Task($taskData);
+                $task->save();
+                $type = $taskWrapper['type'];
+                $attributes = $taskWrapper['attributes'];
+                $attributes['task_id'] = $task->id;
+                switch ($type) {
+                case 'pickup':
+                    Pickuptask::create($attributes);
+                    break;
+                case 'package':
+                    Package::create($attributes);
+                    break;
+                case 'return':
+                    Returntask::create($attributes); // assuming the model name is ReturnDelivery
+                    break;
+            }
+
+            }
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Job created from template successfully. ',
+                'data'      => [
+                    'request'   =>  $request->all(),
+                    'jobToArray'   =>  $jobData,
+                    'jobToArrayWithoutTasks'   =>  $jobArray,
+                    'jobId'       =>  $job->id,
+                ],
+            ]);
+        } catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'request'   =>  $request->all(),
+            ], 500);
+        
+        }
+    }
     public function getJobToString($jobId){
         try{
             $job = Job::find($jobId);
@@ -663,6 +889,15 @@ public function index(Request $request,SettingsService $settings)
                 'clientToBill'  =>  $job->clientToBill,
                 'clientName'            =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->name,
                 'clientId'              =>  is_null($job->clientToBill) ? 'none' : $job->clientToBill->id,
+                'template'              =>  is_null($job->jobTemplate) ? 'none' : $job->jobTemplate,
+                'lockedFields' => empty($job->lockedFields())
+                    ? 'none'
+                    : array_map(function ($field) {
+                        return [
+                            'field_name' => $field->field_name,
+                            'is_locked'  => $field->is_locked,
+                        ];
+                    }, $job->lockedFields()),
                 'pickup' => is_null($job->getPickupTask()) ? 'none' : array_merge(
                     $job->getPickupTask()->toArray(),
                     [
@@ -802,8 +1037,8 @@ public function index(Request $request,SettingsService $settings)
 
     
             $jobIds = Job::query()
-                ->join('tasks', 'tasks.job_id', '=', 'jobs.id')
-                ->join('packages', 'packages.task_id', '=', 'tasks.id')
+                ->leftJoin('tasks', 'tasks.job_id', '=', 'jobs.id')
+                ->leftJoin('packages', 'packages.task_id', '=', 'tasks.id')
                 ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
                 ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
                 ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
@@ -820,21 +1055,23 @@ public function index(Request $request,SettingsService $settings)
                         $q->where('jobs.status_id', $statusFilterValue);
                     }
                 })
-        ->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
-            $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
-                foreach ($dropOffFilterValue as $column) {
-                    if ($column === 'packageType_id') {
-                        $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
-
-                        if ($matchingTypeIds->isNotEmpty()) {
-                            $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                ->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
+                    $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
+                        foreach ($dropOffFilterValue as $column) {
+                            if ($column === 'packageType_id') {
+                                $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
+                                if ($matchingTypeIds->isNotEmpty()) {
+                                    $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                                }
+                            } else {
+                                $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
+                            }
                         }
-                    } else {
-                        $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
-                    }
-                }
-            });
-        })
+                        // include jobs that simply have no package at all
+                        $subQ->orWhereNull('packages.id');
+                    });
+                })
+
 
                 ->distinct()
                 ->pluck('jobs.id'); 
@@ -886,6 +1123,15 @@ public function index(Request $request,SettingsService $settings)
                                     'price' =>  $job->price()['totalPrice'],
                                     'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
                                     'fixed_price'           =>  $job->fixed_price === 0,
+                                    'template'              =>  is_null($job->jobTemplate) ? 'none' : $job->jobTemplate,
+                                    'lockedFields' => empty($job->lockedFields())
+                                        ? 'none'
+                                        : array_map(function ($field) {
+                                            return [
+                                                'field_name' => $field->field_name,
+                                                'is_locked'  => $field->is_locked,
+                                            ];
+                                        }, $job->lockedFields()),
                                 ];
                             }),
                             'links' => (string) $jobs->links(),

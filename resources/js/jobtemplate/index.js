@@ -477,7 +477,6 @@ function updateJobTemplate(id,field){
           }
           alert(errorsMessage);
       };
-      console.log('Update successful:', data);
   })
   .catch(error => {
       console.error('Error:', error.message);
@@ -597,7 +596,6 @@ function handlePickupParagraph(item,clientSpan) {
   const timeWindowEndSpan = document.createElement('span');
   enableTimeEditing(timeWindowEndSpan, 'pickup.time.end', item.id, item.pickuptask.data.pickup_time_end);
   //=========================================================
-  console.log(item);
   const notesIconSpan = document.createElement('span');
   notesIconSpan.className = 'notes-icon';
   notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
@@ -809,52 +807,28 @@ function handleDropsParagraph(item, clientSpan) {
   });
   return divForEntireDropOffs;
 }
-/*
-function handleReturnParagraph(item, clientSpan) {
-  const returnTask = item.returntask.data;
-  if(!returnTask){
-    return document.createElement('p');
-  }
-  const paragraph = document.createElement('p');
-  paragraph.className = 'return-item';
-  paragraph.classList.add('border', 'border-secondary', 'rounded', 'p-2', 'mb-2');
-  paragraph.style.display = 'grid';
-  paragraph.style.justifyContent = 'center';
-  paragraph.style.alignItems = 'center';
-  const divForTitle = document.createElement('div');
-  divForTitle.className = 'return-title';
-  const spanForTitle = document.createElement('span');
-  const spanForLockIcon = document.createElement('span');
-  const lockIcon = document.createElement('i');
-
-  lockIcon.className = item.returntask.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  lockIcon.setAttribute('aria-hidden', 'true');
-  spanForLockIcon.setAttribute('data-updatefield', 'locks.return');
-  spanForLockIcon.style.cursor = 'pointer';
-  lockIconChanger(spanForLockIcon, item.id);
-  const titleText = document.createElement('strong');
-  titleText.textContent = 'Return';
-  titleText.className = 'ms-2';
-  spanForLockIcon.appendChild(lockIcon);
-
-  divForTitle.appendChild(spanForLockIcon);
-  divForTitle.appendChild(titleText);
-  const body = document.createElement('div');
-  body.className = 'return-body row';
-  const addressContainer = document.createElement('div');
-  addressContainer.style.justifyContent = '';
-  addressContainer.style.alignItems = '';
-  addressContainer.className = 'col-12 col-md-6';
-  const addressNameSpan = document.createElement('span');
-  addressNameSpan.textContent = returnTask.return.name || 'N/A';
-  addressContainer.appendChild(addressNameSpan);
-  body.appendChild(addressContainer);
-  paragraph.appendChild(divForTitle);
-  paragraph.appendChild(body);
-
-  return paragraph;
+function createJobsForTemplate({id,start,end,days}) {
+  const routeUrl = window.ROUTES.WEB.JOB.STOREFROMTEMPLATE;
+  let postData = {
+    id,
+    start,
+    end,
+    days
+  };
+  console.log('postData : ',postData);
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  fetch(routeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(postData)
+  }).then(response => response.json())
+    .then(data => {
+      console.log(data);
+    });
 }
-*/
 function handleReturnParagraph(item, clientSpan) {
   const returnTask = item.returntask?.data;
   if (!returnTask) {
@@ -1047,6 +1021,35 @@ function fetchJobTemplates() {
             clearTimeout(hoverTimeout);
           });
           cardBody.appendChild(notesIconSpan);
+          cardBody.appendChild(document.createElement('br'));
+          const fixedPriceDiv = document.createElement('div');
+          fixedPriceDiv.className = 'fixed-price-div mb-2';
+          const fixedPriceLabel = document.createElement('span');
+          fixedPriceLabel.textContent = 'Fixed Price: ';
+          fixedPriceLabel.className = 'card-text';
+          const fixedPriceValue = document.createElement('span');
+          fixedPriceValue.textContent = item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2);
+          fixedPriceValue.className = item.fixedPrice === 0 ? 'text-muted' : '';
+          fixedPriceValue.setAttribute('data-updatefield', 'fixedPrice');
+          fixedPriceDiv.appendChild(fixedPriceLabel);
+          fixedPriceDiv.appendChild(fixedPriceValue);
+          cardBody.appendChild(fixedPriceDiv);
+          fixedPriceValue.addEventListener('click', () => {
+            fixedPriceValue.contentEditable = true;
+            fixedPriceValue.focus();
+            fixedPriceValue.addEventListener('blur', function onBlur() {
+              fixedPriceValue.contentEditable = false;
+              let newValue = parseFloat(fixedPriceValue.textContent);
+              if (/^-?\d+(\.\d+)?$/.test(fixedPriceValue.textContent.trim())) {
+                item.fixedPrice = newValue;
+                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.true`, newValue));
+              } else {
+                fixedPriceValue.textContent = 'Flexible';
+                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.false`, 0));
+              }
+              fixedPriceValue.removeEventListener('blur', onBlur);
+            });
+          });
           //=========================================================================
           const nameParagraph = document.createElement('p');
           const namespan = document.createElement('span');
@@ -1157,9 +1160,13 @@ function fetchJobTemplates() {
                   alert('Please select a valid date range.');
                   return;
                 }
-                // Call your function with selected range
-                createJobsForTemplate(item.id, { start: startDate, end: endDate });
-                document.body.removeChild(modal);
+                console.log(Array.from(document.querySelectorAll('.day-checkbox:checked')))
+                createJobsForTemplate({ 
+                                        id: item.id,
+                                        start: startDate,
+                                        end: endDate,
+                                        days: Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value), 
+                });
               });
 
               const cancelBtn = document.createElement('button');
@@ -1181,15 +1188,15 @@ function fetchJobTemplates() {
               daysBox.style.alignItems = 'flex-start';
 
               const days = [
-                { label: 'Monday', value: 'monday' },
-                { label: 'Tuesday', value: 'tuesday' },
-                { label: 'Wednesday', value: 'wednesday' },
-                { label: 'Thursday', value: 'thursday' },
-                { label: 'Friday', value: 'friday' },
-                { label: 'Saturday', value: 'saturday' },
-                { label: 'Sunday', value: 'sunday' },
-                { label: 'Workdays', value: 'workdays' },
-                { label: 'Weekends', value: 'weekends' },
+                { label: 'Monday', value: 1 },
+                { label: 'Tuesday', value: 2 },
+                { label: 'Wednesday', value: 3 },
+                { label: 'Thursday', value: 4 },
+                { label: 'Friday', value: 5 },
+                { label: 'Saturday', value: 6 },
+                { label: 'Sunday', value: 7 },
+                { label: 'Workdays', value: [1, 2, 3, 4, 5] },
+                { label: 'Weekends', value: [6,7] },
                 { label: 'Bank Holidays', value: 'bankholidays' },
                 { label: 'All', value: 'all' },
               ];
@@ -1214,6 +1221,7 @@ function fetchJobTemplates() {
                 checkbox.type = 'checkbox';
                 checkbox.value = day.value;
                 checkbox.style.marginRight = '4px';
+                checkbox.classList.add('day-checkbox');
 
                 checkboxLabel.appendChild(checkbox);
                 checkboxLabel.appendChild(document.createTextNode(day.label));

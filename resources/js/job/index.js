@@ -159,6 +159,20 @@ function createJob(){
         console.error('Error:', error.message);
     });
 }
+function isFieldLocked({lockedFields = null, fieldName = null}) {
+    if (!Array.isArray(lockedFields)) return false;
+
+    const field = lockedFields.find(f => f.field_name === fieldName);
+    return field ? Boolean(field.is_locked) : false;
+}
+function createLockIcon({lockedFields = null, fieldName = null}){
+  const icon = document.createElement("i");
+  icon.classList.add('fa','fa-lock');
+  if (isFieldLocked({lockedFields, fieldName})) {
+      icon.classList.add('danger');
+  }
+  return icon;
+}
 function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
@@ -232,7 +246,18 @@ function fetchJobs(page = 1, url) {
                                           : job.pickup.namdeOfAddress;
             let row = document.createElement('tr');
             let columnForId =  document.createElement('td');
-            columnForId.textContent = job.id;
+            let idSpan = document.createElement('span');
+            idSpan.textContent = job.id;
+            columnForId.appendChild(idSpan);
+            let templateIcon = document.createElement('img');
+            templateIcon.src = '/files/icons/template.png';
+            templateIcon.style.width = '10%';
+            templateIcon.style.height = '10%';
+            templateIcon.style.objectFit = 'contain'; 
+
+            templateIcon.style.filter = 'invert(49%) sepia(96%) saturate(7000%) hue-rotate(330deg) brightness(1.2)';
+            templateIcon.title = job.template ? job.template.name:'No template';
+            columnForId.appendChild(templateIcon);
             row.appendChild(columnForId);
             
             let columnForStatus =  document.createElement('td');

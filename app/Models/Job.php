@@ -127,6 +127,10 @@ class Job extends Model
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
     }
+    public function jobTemplate()
+    {
+        return $this->belongsTo(JobTemplate::class);
+    }
     public function getDropOffTasks(){
         $returnValue = [];
         foreach($this->tasks as $task){
@@ -173,6 +177,9 @@ class Job extends Model
         }
         return $returnValue;
     }
+    public function getBankHolidaysAttribute(){
+        return collect($this->bankHolidays);
+    }
     public function hasReturn()
     {
         $tasks = $this->tasks;
@@ -183,11 +190,45 @@ class Job extends Model
         }
         return false;
     }
-    // public function addOns()
-    // {
-    //     return $this->hasMany(AddOn::class, 'model_id')
-    //                 ->where('model_type', '=', 'app/models/Job');
-    // }
+    public function lockedFields()
+    {
+        return \Illuminate\Support\Facades\DB::table('locked_fields')
+            ->where('model', 'job')
+            ->where('model_id', $this->id)
+            ->get()
+            ->toArray();
+    }
+    public function isLocked($fieldName)
+    {
+        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
+            ->where('model', 'job')
+            ->where('model_id', $this->id)
+            ->where('field_name', $fieldName)
+            ->first();
+
+        return $lockedField ? $lockedField->is_locked : false;
+    }
+    public function changeLockedField($fieldName, $isLocked)
+    {
+        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
+            ->where('model', 'job')
+            ->where('model_id', $this->id)
+            ->where('field_name', $fieldName)
+            ->first();
+
+        if ($lockedField) {
+            \Illuminate\Support\Facades\DB::table('locked_fields')
+                ->where('id', $lockedField->id)
+                ->update(['is_locked' => $isLocked]);
+        } else {
+            \Illuminate\Support\Facades\DB::table('locked_fields')->insert([
+                'model' => 'job',
+                'model_id' => $this->id,
+                'field_name' => $fieldName,
+                'is_locked' => $isLocked,
+            ]);
+        }
+    }  
     public function calculateShortestRoute($start, $points, $end = null)
     {
         if(!$start){

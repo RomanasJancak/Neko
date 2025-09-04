@@ -35,6 +35,9 @@ return new class extends Migration
             $table->date('date');
             $table->bigInteger('fixed_price')->default(0);
             $table->string('distance_calculation_method')->default('optimal');
+            $table->foreignId('job_template_id')->nullable()->constrained()->onDelete('set null');
+            $table->index('job_template_id');
+
         });
     }
 

@@ -112,6 +112,16 @@ class JobTemplateController extends Controller
                 $isDirty = true;
                 $jobTemplate->save();
             }
+            if(isset($request->fixedPrice)){
+              if(isset($request->fixedPrice['true'])){
+                $jobTemplate->fixedPrice = intval($request->fixedPrice['true'] * 100);
+                $jobTemplate->save();
+              }
+              if(isset($request->fixedPrice['false'])){
+                $jobTemplate->fixedPrice = 0;
+                $jobTemplate->save();
+              }
+            }
             if(isset($request->note)){
                 $jobTemplate->notes = $request->note;
                 $jobTemplate->save();
@@ -373,7 +383,7 @@ class JobTemplateController extends Controller
                         'price' => $item->price,
                         'distance' => $item->distance,
                         'price_adjustment_number' => $item->price_adjustment_number,
-                        'fixedPrice' => $item->fixedPrice,
+                        'fixedPrice' => $item->fixedPrice !== null ? $item->fixedPrice / 100 : null,
                         'date' => $item->date ? $item->date : null,
                         'pickuptask' => [
                             'data' => $pickupData,

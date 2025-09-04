@@ -15,6 +15,7 @@ window.ROUTES = {
         DELETE: APP_URL+'/jobs/delete', 
         STORE:  APP_URL+'/jobs/store',
         STOREFROMSTRING:  APP_URL+'/jobs/storeFromString',
+        STOREFROMTEMPLATE:  APP_URL+'/jobs/storeFromTemplate',
         FETCH:  APP_URL+'/jobs/fetchJobsPaginate',
         GETINFO: APP_URL+'/jobs/getJobInfo/:id',
         GETJOBTOSTRING: APP_URL+'/jobs/getJobToString/:id',

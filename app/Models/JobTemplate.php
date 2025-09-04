@@ -20,6 +20,10 @@ class JobTemplate extends Job
     {
         return $this->belongsTo(Client::class, 'clientToBill_id');
     }
+    public function jobs()
+    {
+        return $this->hasMany(Job::class);
+    }
     public function changePackageTypeForDropoff($orderNumber, $packageTypeId)
     {
         $packageType  = PackageType::find($packageTypeId);
