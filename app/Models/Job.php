@@ -81,7 +81,7 @@ class Job extends Model
         'pickupclientcountry',
         'pickupclientpostalcode',
         'manager_id',
-        'notes',
+        //'notes',
         'price',
         'date',
         'distance',
@@ -130,6 +130,14 @@ class Job extends Model
     public function jobTemplate()
     {
         return $this->belongsTo(JobTemplate::class);
+    }
+    public function notes()
+    {
+        return $this->morphMany(Note::class, 'notable');
+    }
+    public function latestNote()
+    {
+        return $this->morphOne(Note::class, 'notable')->latestOfMany();
     }
     public function getDropOffTasks(){
         $returnValue = [];

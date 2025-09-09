@@ -26,6 +26,7 @@ use App\Models\Day;
 use App\Models\Pickuptask;
 use App\Models\Returntask;
 use App\Models\Customtask;
+use App\Models\Note;
 
 
 use App\Services\BackupService;
@@ -200,7 +201,13 @@ public function index(Request $request,SettingsService $settings)
                 $job->courrier_id       =   $request->input('courrier_id') == 0 ? null : $request->input('courrier_id');
                 $job->clientToBill_id   =   $request->input('billingClientId');
                 $job->date              =   $request->input('common_date');
-                $job->note  =   $request->input('note');
+                $job->note              =   $request->input('note');
+                if(($request->input('note') !== null)){
+                  $job->notes()->create([
+                      'content' => $request->input('note'),
+                      'user_id' => auth()->id(),
+                  ]);
+                }
                 $job->save();
 
 
@@ -448,7 +455,7 @@ public function index(Request $request,SettingsService $settings)
             $job->date  =   $request->input('common_date') === null ?$request->input('date'):$request->input('common_date');
             $job->status_id =   $request->input('status_id');
             $job->clientToBill_id   =   $request->input('clientId');
-            $job->note  =   $request->input('note');
+            //$job->note  =   $request->input('note');
             $job->save();
             return response()->json([
                 'message'   => 'Job updated successfully. ',
@@ -559,7 +566,10 @@ public function index(Request $request,SettingsService $settings)
         $job->courrier_id       =   null;
         $job->clientToBill_id   =   $template->clientToBill_id;
         $job->date              =   $date;
-        $job->note              =   $template->notes;
+        $job->notes()->create([
+            'content' => $template->notes,
+            'user_id' => auth()->id(),
+        ]);
         $job->save();
         foreach($template->lockedFields() as $field){
           if($field->is_locked){
@@ -881,7 +891,16 @@ public function index(Request $request,SettingsService $settings)
             return response()->json([
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
-                'note'              =>  $job->note,
+                'note'              =>  $job->latestNote->content ?? 'none',
+                'notes'             =>  $job->notes->isEmpty() ? 'none' : $job->notes->map(function ($note) {
+                    return [
+                        'id'        =>  $note->id,
+                        'content'   =>  $note->content,
+                        'user'      =>  is_null($note->user) ? 'none' : $note->user->name,
+                        'created_at'=>  $note->created_at->toDateTimeString(),
+                    ];
+                }),
+                'eilesNumeris'      =>  $job->eilesNumeris,
                 'hasReturn' =>  $job->hasReturn(),
                 'urlToLogo'   =>  $job->urlToLogo(),
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,
@@ -1160,7 +1179,7 @@ public function index(Request $request,SettingsService $settings)
             $jobTemplate->name = $request->input('name');
             $jobTemplate->clientToBill_id = $job->clientToBill_id;
             $jobTemplate->status_id = $job->status_id;
-            $jobTemplate->notes = $job->notes;
+            $jobTemplate->notes = $job->latestNote->content ?? null;
             $jobTemplate->price = $job->price()['totalPrice'];
             //$jobTemplate->distance = $job->distance();
             $jobTemplate->price_adjustment_number = $job->price_adjustment_number;
