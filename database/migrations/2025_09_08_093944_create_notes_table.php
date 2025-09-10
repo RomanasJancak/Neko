@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->morphs('notable'); // notable_id & notable_type
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('content');
+            $table->text('content');     
         });
     }
 

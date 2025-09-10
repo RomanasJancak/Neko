@@ -1028,8 +1028,9 @@ function setJobValues(jobId,buttonClicked){
                                     .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
                 addDropOffArrangeButtons(jobId,buttonClicked);
             }
-            jobNoteField.innerHTML = data.note;
-            jobNoteField.value = data.note;
+            jobNoteField.innerHTML = data.note.content;
+            jobNoteField.value = data.note.content;
+            jobNoteField.setAttribute('data-note-id', data.note.id);
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
@@ -1549,6 +1550,35 @@ function createJobTemplate(jobId,template_name){
         console.error('Error creating job template:', error);
     }); 
 }
+function fillNoteModalWithData(data){
+  const noteContent = document.getElementById('noteContent');
+  const noteMeta = document.getElementById('noteMeta');
+  const prevNoteBtn = document.getElementById('prevNoteBtn');
+  const nextNoteBtn = document.getElementById('nextNoteBtn');
+    if (data.success) {
+        noteContent.innerHTML = data.note.content;
+        noteMeta.innerHTML = `Created by ${data.note.user.name} on ${data.note.created_at}`;
+    } else {
+        noteContent.innerHTML = 'No note found.';
+        noteMeta.innerHTML = '';
+    }
+    // Enable or disable navigation buttons based on availability of previous/next notes
+    prevNoteBtn.disabled = !data.previous;
+    nextNoteBtn.disabled = !data.next;
+    prevNoteBtn.setAttribute('data-note-id', data.previous ? data.previous : '');
+    nextNoteBtn.setAttribute('data-note-id', data.next ? data.next : '');
+}
+function getJobNote(jobId){
+    const routeUrl = window.ROUTES.WEB.NOTE.GETINFO.replace(':id', jobId);
+    fetch(routeUrl)
+        .then(response => response.json())
+        .then(data => {
+            fillNoteModalWithData(data);
+        })
+        .catch(error => {
+            console.error('Error fetching job notes:', error);
+    }   );
+}
 //=====================================================================
 //=====================================================================
 //=====================================================================
@@ -1570,7 +1600,31 @@ function createJobTemplate(jobId,template_name){
 //=====================================================================
 //=====================================================================
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('jobTemplateWindow_templateCreateButton').addEventListener('click', function(event) {
+  const noteHistoryIconSpan = document.getElementById('noteHistoryIcon');
+  noteHistoryIconSpan.addEventListener('click', function() {
+      const jobId = document.getElementById('jobid').value;
+      const jobid = document.getElementById('idField').value;
+      if((jobId && jobId !== '0')||(jobid && jobid !== '0')){
+          getJobNote(document.getElementById('jobNoteField').getAttribute('data-note-id'));
+          $('#jobNoteModalWindow').modal('show');
+      }else{
+          alert('Please save the job first before viewing note history.');
+      }
+  });
+  const prevNoteBtn = document.getElementById('prevNoteBtn');
+  const nextNoteBtn = document.getElementById('nextNoteBtn');
+  prevNoteBtn.addEventListener('click', function() {
+      if(prevNoteBtn.getAttribute('data-note-id')){
+          getJobNote(prevNoteBtn.getAttribute('data-note-id'));
+      }
+  });
+  nextNoteBtn.addEventListener('click', function() {
+      if(nextNoteBtn.getAttribute('data-note-id')){
+          getJobNote(nextNoteBtn.getAttribute('data-note-id'));
+      }
+  });
+
+  document.getElementById('jobTemplateWindow_templateCreateButton').addEventListener('click', function(event) {
         event.preventDefault();
         const jobId = event.target.getAttribute('data-jobid');
         const template_name  = document.getElementById('jobTemplateCreateModalWindow_inputForTemplateName').value;
@@ -1581,7 +1635,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const createButton = document.getElementById('jobTemplateWindow_templateCreateButton');
         createButton.disabled = true;
         createJobTemplate(jobId,template_name);
-    });
+  });
     document.getElementById('modalShowElement-dropOffSearchColumns').addEventListener('click', function (event){
 
         event.preventDefault();

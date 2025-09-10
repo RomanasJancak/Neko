@@ -60,7 +60,7 @@
     </div>
     <div class="row">
         <div class="col">
-            <label for="jobNoteField">Note</label>
+            <label for="jobNoteField">Note</label><span id="noteHistoryIcon"><i class="fa fa-history" aria-hidden="true"></i></span>
             <input class="form-control" type="text" name="jobNote" id="jobNoteField" value="">
         </div>
     </div>

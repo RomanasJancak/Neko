@@ -511,6 +511,39 @@
     </div>
 </div>
 <!-- Modal job template create end-->
+<!-- Modal Note begin -->
+<div class="modal fade" id="jobNoteModalWindow" tabindex="-1" aria-labelledby="jobNoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+          <h5 class="modal-title" id="jobNoteModalLabel">Edit History</h5>
+            <div class="ms-auto">
+              <button class="btn btn-sm btn-outline-primary" id="prevNoteBtn">Previous</button>
+              <button class="btn btn-sm btn-outline-primary" id="nextNoteBtn">Next</button>
+            </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="modal-body">
+          <div id="noteContent"></div>
+          <small class="text-muted d-block mt-2" id="noteMeta"></small>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Note end -->
 @endsection
 @push('scripts')
 @vite('resources/js/job/index.js')

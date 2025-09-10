@@ -63,4 +63,29 @@ class NoteController extends Controller
     {
         //
     }
+    public function getNoteInfo($id)
+    {
+        $note = Note::find($id);
+        if ($note) {
+            return response()->json([
+                'success' => true,
+                'note' => [
+                  'id' => $note->id,
+                  'content' => $note->content,
+                  'created_at' => $note->created_at->toDateTimeString(),
+                  'user' => [
+                      'id' => $note->user->id,
+                      'name' => $note->user->name,
+                  ],
+                ],
+                'previous' => $note->previous() ? $note->previous()->id : null,
+                'next' => $note->next() ? $note->next()->id : null,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Note not found',
+            ], 404);
+        }
+    }
 }

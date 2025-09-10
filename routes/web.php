@@ -21,6 +21,7 @@ use App\Http\Controllers\ApprovedPostalCodeAreaController;
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ExtraTypesController;
 use App\Http\Controllers\UserSettingController;
+use App\Http\Controllers\NoteController;
    
 /*
 |--------------------------------------------------------------------------
@@ -105,6 +106,9 @@ Route::group(['prefix' => 'clients'], function(){
     Route::post('updateWeightRules',[ClientController::class, 'updateWeightRules'])->name('client.updateWeightRules')->middleware('auth');
 
 });
+Route::group(['prefix' => 'notes'], function(){
+  Route::get('getNoteInfo/{id}',     [NoteController::class, 'getNoteInfo'])->name('note.getNoteInfo')->middleware('auth');
+});
 Route::group(['prefix' => 'jobs'], function(){
     Route::get('',                  [JobController::class, 'index'])->name('job.index')->middleware('auth');
     Route::get('create/{customjob?}',            [JobController::class, 'create'])->name('job.create')->middleware('auth');
@@ -113,6 +117,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::post('storeFromTemplate',            [JobController::class, 'storeFromTemplate'])->name('job.storeFromTemplate')->middleware('auth');
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
     Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
+    Route::patch('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::post('updateStatus/{job}',[JobController::class, 'updateStatus'])->name('job.updateStatus')->middleware('auth');
     Route::post('update_price_adjustment_number/',[JobController::class, 'update_price_adjustment_number'])->name('job.update_price_adjustment_number')->middleware('auth');
     Route::post('delete',   [JobController::class, 'destroy'])->name('job.delete')->middleware('auth');

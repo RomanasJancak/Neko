@@ -19,4 +19,20 @@ class Note extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function previous()
+    {
+        return $this->notable
+            ->notes()
+            ->where('id', '<', $this->id)
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+    public function next()
+    {
+        return $this->notable
+            ->notes()
+            ->where('id', '>', $this->id)
+            ->orderBy('id', 'asc')
+            ->first();
+    }
 }

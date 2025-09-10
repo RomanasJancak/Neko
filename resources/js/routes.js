@@ -9,6 +9,9 @@ window.ROUTES = {
           GETINFO:  APP_URL+'/tasks/getTaskInfo/:id',
           SWAP_ORDER: APP_URL+'/tasks/swap_order',
       },
+      NOTE: {
+          GETINFO: APP_URL+'/notes/getNoteInfo/:id',
+      },
       JOB: {
         VIEW  : APP_URL+'/jobs/view',
         UPDATE: APP_URL+'/jobs/update',
