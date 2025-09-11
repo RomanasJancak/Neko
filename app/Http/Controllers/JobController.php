@@ -477,6 +477,7 @@ public function index(Request $request,SettingsService $settings)
 
             $job->save();
             return response()->json([
+                'success' => true,
                 'message'   => 'Job updated successfully. ',
                 'job'       =>  $job,
                 'requestData'   =>  $request->all(),
@@ -575,6 +576,30 @@ public function index(Request $request,SettingsService $settings)
             ], 500);
         
         }
+    }
+    public function restoreNoteFromTemplate(Request $request){
+      if($request->input('jobId') !== null && $request->input('jobId') !== ''){
+        $job = Job::find($request->input('jobId'));
+        if($job){
+          //dd($job,$job->jobTemplate);
+          $template = $job->jobTemplate;
+          if($template){
+            $job->notes()->create([
+                'content' => $template->notes,
+                'user_id' => auth()->id(),
+            ]);
+            $job->save();
+        }    return response()->json([
+            'success' => true,
+            'message' => 'Note restored from template successfully',
+            'noteContent' => $job->latestNote->content,
+        ], 200);
+          }else{
+            return response()->json(['error' => 'No template associated with this job',], 500);
+          }
+      }else{
+        return response()->json(['error' => 'No job id provided',], 500);
+      }
     }
     private function createJobFromTemplate(JobTemplate $template, $date){
 
@@ -911,6 +936,7 @@ public function index(Request $request,SettingsService $settings)
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
                 'note'              =>  $job->latestNote,
+                'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
                 'notes'             =>  $job->notes->isEmpty() ? 'none' : $job->notes->map(function ($note) {
                     return [
                         'id'        =>  $note->id,
@@ -1145,6 +1171,7 @@ public function index(Request $request,SettingsService $settings)
                             'jobs' =>  $jobs->map(function ($job) {
                                 return[
                                     'id'    =>  $job->id,
+                                    'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
                                     'hasReturn' =>  $job->hasReturn(),
                                     'urlToLogo'   =>  $job->urlToLogo(),
                                     'clientName'    =>  $job->clientToBill->name,

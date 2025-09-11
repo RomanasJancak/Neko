@@ -19,6 +19,7 @@ window.ROUTES = {
         STORE:  APP_URL+'/jobs/store',
         STOREFROMSTRING:  APP_URL+'/jobs/storeFromString',
         STOREFROMTEMPLATE:  APP_URL+'/jobs/storeFromTemplate',
+        RESTORE_NOTE_FROM_TEMPLATE: APP_URL+'/jobs/restoreNoteFromTemplate',
         FETCH:  APP_URL+'/jobs/fetchJobsPaginate',
         GETINFO: APP_URL+'/jobs/getJobInfo/:id',
         GETJOBTOSTRING: APP_URL+'/jobs/getJobToString/:id',

@@ -139,6 +139,13 @@ class Job extends Model
     {
         return $this->morphOne(Note::class, 'notable')->latestOfMany();
     }
+    public function isNoteDifferentThanTemplateNote(){
+        $latestNote = $this->latestNote;
+        if($latestNote && $this->jobTemplate && $this->jobTemplate->notes){
+            return $latestNote->content !== $this->jobTemplate->notes;
+        }
+        return false;
+    }
     public function getDropOffTasks(){
         $returnValue = [];
         foreach($this->tasks as $task){
