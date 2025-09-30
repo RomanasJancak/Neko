@@ -32,7 +32,11 @@ window.ROUTES = {
         STORE: APP_URL+'/jobtemplates/store',
         UPDATE: APP_URL+'/jobtemplates/update',
         DELETE: APP_URL+'/jobtemplates/delete',
-        FETCH: APP_URL+'/jobtemplates/fetchJobTemplatesPaginate',
+        FETCH: APP_URL+'/jobtemplates/fetchJobTemplatesPaginate', 
+        ADDEMPTYDROPOFF: APP_URL+'/jobtemplates/addEmptyDropOff',
+        ADDEMPTYRETURN: APP_URL+'/jobtemplates/addEmptyReturn',
+        REMOVEDROPOFF: APP_URL+'/jobtemplates/removeDropOff',
+        REMOVERETURN: APP_URL+'/jobtemplates/removeReturn',
       },
       CLIENT:{
         SEARCHADDRESSES:  APP_URL+'/clients/searchClientAddresses',

@@ -1,23 +1,23 @@
 window.clientIdSpanMap = new Map();
+function getTimeInputElement(){
+  const timeInput = document.createElement('input');
+  timeInput.type = 'time';
+  timeInput.className = 'form-control';
+  timeInput.style.width = '200px';
+  timeInput.style.position = 'absolute';
+  timeInput.style.zIndex = 9999;
+
+  return timeInput;
+}
 function enableTimeEditing(span, updateField, itemId, initialValue) {
-  //alert('enableTimeEditing called with updateField: ' + updateField + ', itemId: ' + itemId + ', initialValue: ' + initialValue);
   span.textContent = convertTo12Hour(initialValue.split(' ')[1]?.substring(0, 5));
   span.className = 'text-muted';
   span.setAttribute('data-updatefield', updateField);
   span.setAttribute('data-template-id', itemId);
 
   span.addEventListener('click', () => {
-    const timeInput = document.createElement('input');
-    timeInput.type = 'time';
-    timeInput.className = 'form-control';
-    timeInput.style.width = '200px';
-    timeInput.style.position = 'absolute';
-    timeInput.style.zIndex = 9999;
-
-    // Parse and set time in 24-hour format expected by input[type="time"]
+    const timeInput = getTimeInputElement();
     const currentTime = span.textContent.trim();
-    // const date = new Date(`1970-01-01T${convertTo24Hour(currentTime)}`);
-    // timeInput.value = date.toISOString().substring(11, 16); // "HH:MM"
     timeInput.value = convertTo24Hour(currentTime);
     const rect = span.getBoundingClientRect();
     timeInput.style.left = `${rect.left + window.scrollX}px`;
@@ -39,7 +39,12 @@ function enableTimeEditing(span, updateField, itemId, initialValue) {
       const field = buildNestedObject(updateField,timeInput.value);
       updateJobTemplate(itemId,field);
     });
-    //timeInput.addEventListener('change', removeInput);
+    span.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        span.click();
+      }
+    });
   });
 }
 function convertTo12Hour(time24) {
@@ -143,14 +148,28 @@ function addTypeHeadSearch_fromClientList(editableSpan) {
     function highlightItem(index) {
       const lis = dropdown.querySelectorAll("li");
       lis.forEach((li, i) => {
-          if (i === index) {
-              li.style.backgroundColor = darkenColor(window.getComputedStyle(li).backgroundColor, 0.1);
-              li.style.color = darkenColor(window.getComputedStyle(li).color, 0.1);
-              li.scrollIntoView({ block: "nearest", behavior: "smooth" });
-          } else {
-              //li.style.backgroundColor = styles.backgroundColor;
-              //li.style.color = styles.color;
+        if(li.classList.contains('bg-secondary')){
+          li.classList.toggle('bg-dark');
+          li.classList.toggle('text-light');
+          li.classList.toggle('bg-secondary');
+          li.classList.toggle('text-white');
+        }
+        if (i === index) {
+          if(li.classList.contains('bg-secondary')){}else{
+            li.classList.toggle('bg-dark');
+            li.classList.toggle('text-light');
+            li.classList.toggle('bg-secondary');
+            li.classList.toggle('text-white');
           }
+          li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        else 
+        {
+        //   li.classList.toggle('bg-dark');
+        //   li.classList.toggle('text-light');
+        //   li.classList.toggle('bg-secondary');
+        //   li.classList.toggle('text-white');
+        }
       });
       selectedIndex = index;
     }
@@ -476,7 +495,9 @@ function updateJobTemplate(id,field){
               }
           }
           alert(errorsMessage);
-      };
+      }else if(data.success){
+        show_Success_Message({message : data.message});
+      }
   })
   .catch(error => {
       console.error('Error:', error.message);
@@ -488,7 +509,7 @@ function buildNestedObject(path,value){
     return { [key]: acc };
   }, value);
 }
-function lockIconChanger(span,id) {
+function lockIconChanger(span,id,element = null) {
   span.addEventListener('click', () => {
     const icon = span.querySelector('i');
     icon.classList.toggle('fa-lock');
@@ -499,8 +520,15 @@ function lockIconChanger(span,id) {
 
     updateJobTemplate(id, field);
   });
+  span.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      span.click();
+    }
+  });
+
 }
-function handleClientParagraph(item){
+function handleClientParagraph(item, element = null){  
   const client = item.clientToBill;
   const clientParagraph = document.createElement('p');
   const clientName = client ? client.name : 'N/A';
@@ -513,7 +541,10 @@ function handleClientParagraph(item){
   icon.className = iconClass;
   icon.setAttribute('aria-hidden', 'true');
   spanForIcon.appendChild(icon);
-  lockIconChanger(spanForIcon,item.id);
+  lockIconChanger(spanForIcon,item.id,element);
+  if(element){
+    element.locks ? element.locks.push(spanForIcon) : element.locks = [spanForIcon];
+  }
   clientParagraph.appendChild(spanForIcon);
   const spanForClientIdentifier = document.createElement('span');
   spanForClientIdentifier.textContent = "Client: ";
@@ -542,11 +573,21 @@ function handleClientParagraph(item){
       spanForName.removeEventListener('blur', onBlur);
     });
   });
+  editIconSpan.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpan.click();
+    }
+  });
+  if(element){
+    element.clientNameEditIcon = editIconSpan;
+  }
+  editIconSpan.setAttribute('tabindex', '-1');
   clientParagraph.appendChild(editIconSpan);
 
   return {paragraph : clientParagraph,clientSpan : spanForName};
 }
-function handlePickupParagraph(item,clientSpan) {
+function handlePickupParagraph(item,clientSpan,element = null) {
   const paragraph = document.createElement('p');
   const spanForIcon = document.createElement('span');
   const icon = document.createElement('i');
@@ -555,8 +596,10 @@ function handlePickupParagraph(item,clientSpan) {
   spanForIcon.appendChild(icon);
   spanForIcon.setAttribute('data-updatefield', 'locks.pickup');
   spanForIcon.style.cursor = 'pointer';
-  lockIconChanger(spanForIcon,item.id);
-  
+  lockIconChanger(spanForIcon,item.id,element);
+  if(element){
+    element.locks ? element.locks.push(spanForIcon) : element.locks = [spanForIcon];
+  }
   const label = document.createElement('strong');
   label.textContent = 'Pickup address: ';
 
@@ -587,14 +630,25 @@ function handlePickupParagraph(item,clientSpan) {
       spanForName.removeEventListener('blur', onBlur);
     });
   });
+  editIconSpan.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpan.click();
+    }
+  });
+  if(element){
+    element.clientNameEditIcon = editIconSpan;
+  }
+  editIconSpan.setAttribute('tabindex', '-1');
   const timeWindowSpan = document.createElement('span');
 
   const timeWindowBeginSpan = document.createElement('span');
-
-  enableTimeEditing(timeWindowBeginSpan, 'pickup.time.begin', item.id, item.pickuptask.data.pickup_time_begin);
-  
   const timeWindowEndSpan = document.createElement('span');
+  enableTimeEditing(timeWindowBeginSpan, 'pickup.time.begin', item.id, item.pickuptask.data.pickup_time_begin);
+
+  
   enableTimeEditing(timeWindowEndSpan, 'pickup.time.end', item.id, item.pickuptask.data.pickup_time_end);
+
   //=========================================================
   const notesIconSpan = document.createElement('span');
   notesIconSpan.className = 'notes-icon';
@@ -623,6 +677,21 @@ function handlePickupParagraph(item,clientSpan) {
       textarea.remove();
     });
   });
+  
+  notesIconSpan.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      notesIconSpan.click();
+    }
+  });
+  if(element){
+    element.pickupTimeBegin = timeWindowBeginSpan;
+    element.pickupTimeEnd = timeWindowEndSpan;
+    element.pickupNotesIcon = notesIconSpan;
+    timeWindowBeginSpan.setAttribute('tabindex', '-1');
+    timeWindowEndSpan.setAttribute('tabindex', '-1');
+    notesIconSpan.setAttribute('tabindex', '-1');
+  }
   let hoverTimeout;
   notesIconSpan.addEventListener('mouseenter', () => {
     hoverTimeout = setTimeout(() => {
@@ -649,59 +718,126 @@ function handlePickupParagraph(item,clientSpan) {
   paragraph.appendChild(notesIconSpan);
   return paragraph;
 }
-function getDropOffParagraph(dropOff,item,clientSpan) {
-    const pakuote = dropOff.package;
-    const dropOffParagraph = document.createElement('p');
-    dropOffParagraph.className = 'drop-off-item';
-    dropOffParagraph.classList.add('border', 'border-secondary', 'rounded', 'p-2', 'mb-2');
-    dropOffParagraph.setAttribute('data-template-id', item.id);
-    dropOffParagraph.setAttribute('data-dropoff-id', dropOff.id);
-    
-    const spanPackageName = document.createElement('span');
-
-    spanPackageName.textContent = pakuote.package_type.name;
-    addPackageTypeSelect_fromClient(spanPackageName);
-    spanPackageName.className = 'package-name';
-    spanPackageName.setAttribute('data-package-id', pakuote.id);
-    spanPackageName.setAttribute('data-template-id', item.id);
-    spanPackageName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-    spanPackageName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageTypeId`);
-
-    spanPackageName.addEventListener('click', () => {
-      spanPackageName.contentEditable = true;
-      spanPackageName.focus();
+function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
+  const dropOffParagraph = document.createElement('p');
+  dropOffParagraph.className = 'drop-off-item';
+  dropOffParagraph.classList.add('border', 'border-secondary', 'rounded', 'p-2', 'mb-2');
+  dropOffParagraph.setAttribute('data-template-id', item.id);
+  const spanPackageName = document.createElement('span');
+  
+  spanPackageName.className = 'package-name';
+  spanPackageName.setAttribute('data-template-id', item.id);
+  spanPackageName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
+  addPackageTypeSelect_fromClient(spanPackageName);
+  spanPackageName.addEventListener('click', () => {
+    spanPackageName.contentEditable = true;
+    spanPackageName.focus();
       spanPackageName.addEventListener('blur', function onBlur() {
         spanPackageName.contentEditable = false;
         
         spanPackageName.removeEventListener('blur', onBlur);
       });
+    }); 
+    spanPackageName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        spanPackageName.click();
+      }
     });
-    const spanForPackageQuantity = document.createElement('span');
-    const packageQuantity = pakuote.quantity;
-    spanForPackageQuantity.textContent = packageQuantity;
-    spanForPackageQuantity.className = 'text-muted';
+    if (element) {
+      element.packageNames ? element.packageNames.push(spanPackageName) : element.packageNames = [spanPackageName];
+    }
+  var packageQuantity = 1;
+  var pakuote = null;
+  const spanForPackageQuantity = document.createElement('span');
+  
+  spanForPackageQuantity.textContent = packageQuantity;
+  spanForPackageQuantity.className = 'text-muted';
+  spanForPackageQuantity.setAttribute('data-template-id', item.id);
+  if(!dropOff) {
+    spanPackageName.textContent = "select package";
+    //spanPackageName.setAttribute('data-package-id', pakuote.id);
+    spanPackageName.setAttribute('data-updatefield', `drop.new.packageTypeId`); // IMPORTANT FOR BACKEND ADJUST NEW POSIBILITY OF NEW PACKAGE
+    spanForPackageQuantity.setAttribute('data-updatefield', `drop.new.packageQuantity`);
+  }else{
+    dropOffParagraph.setAttribute('data-dropoff-orderNumber', dropOff.order_number);
+    if(!(pakuote = dropOff.package)){
+      return document.createElement('div');
+    };
+    spanPackageName.textContent = pakuote.package_type.name;
+    spanPackageName.setAttribute('data-package-id', pakuote.id);
+    spanPackageName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageTypeId`);
+    packageQuantity = pakuote.quantity;
     spanForPackageQuantity.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageQuantity`);
-    spanForPackageQuantity.setAttribute('data-template-id', item.id);
-    spanForPackageQuantity.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-    spanForPackageQuantity.addEventListener('click', () => {
-      spanForPackageQuantity.contentEditable = true;
-      spanForPackageQuantity.focus();
-      spanForPackageQuantity.addEventListener('blur', function onBlur() {
+  }
+
+  
+  spanForPackageQuantity.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
+  spanForPackageQuantity.addEventListener('click', () => {
+    spanForPackageQuantity.contentEditable = true;
+    spanForPackageQuantity.focus();
+
+      const oldValue = spanForPackageQuantity.textContent.trim();
+
+      function onBlur() {
         spanForPackageQuantity.contentEditable = false;
-        updateJobTemplate(item.id, buildNestedObject(spanForPackageQuantity.getAttribute('data-updatefield'), spanForPackageQuantity.textContent));
+
+        const rawValue = spanForPackageQuantity.textContent.trim();
+        const value = Number(rawValue);
+
+        if (!Number.isInteger(value)) {
+          alert("Please enter a valid integer.");
+          spanForPackageQuantity.textContent = oldValue; // restore
+        } else if (value < 0) {
+          alert("Quantity cannot be negative.");
+          spanForPackageQuantity.textContent = oldValue; // restore
+        } else if (value === 0) {
+          if (confirm("Quantity is 0. Do you want to delete this package?")) {
+            updateJobTemplate(
+              item.id,
+              buildNestedObject(spanForPackageQuantity.getAttribute('data-updatefield'), 0)
+            );
+          } else {
+            spanForPackageQuantity.textContent = oldValue; // restore
+          }
+        } else {
+          updateJobTemplate(
+            item.id,
+            buildNestedObject(spanForPackageQuantity.getAttribute('data-updatefield'), value)
+          );
+        }
+
         spanForPackageQuantity.removeEventListener('blur', onBlur);
-      });
+      }
+      spanForPackageQuantity.addEventListener('blur', onBlur);
     });
+
+    spanForPackageQuantity.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        spanForPackageQuantity.click();
+      }
+    });
+    if (element) {
+      element.packageQuantities ? element.packageQuantities.push(spanForPackageQuantity) : element.packageQuantities = [spanForPackageQuantity];
+    }
     //=================================================================
     const divForAddress = document.createElement('div');
     const spanForAddressName = document.createElement('span');
-    spanForAddressName.textContent = !dropOff.address ? pakuote.dropoff_name	: dropOff.address.name;
+    const textContentnForspanForAddressName = dropOff ? !dropOff.address ? pakuote.dropoff_name	: dropOff.address.name : '';
+    spanForAddressName.textContent = textContentnForspanForAddressName;
     divForAddress.appendChild(spanForAddressName);
     divForAddress.className = 'drop-off-address';
     spanForAddressName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
     spanForAddressName.setAttribute('data-template-id', item.id);
-    spanForAddressName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.addressId`);
-    spanForAddressName.setAttribute('data-address-id', !dropOff.address ? '' : dropOff.address.id);
+    if(!dropOff) {
+      spanForAddressName.setAttribute('data-updatefield', `drop.new.addressId`);
+      spanForAddressName.setAttribute('data-address-id', '');
+    } else {
+      spanForAddressName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.addressId`);
+      spanForAddressName.setAttribute('data-address-id', !dropOff.address ? '' : dropOff.address.id);
+    }
+    
     addTypeHeadSearch_fromClient_AddressList(spanForAddressName);
     spanForAddressName.addEventListener('click', () => {
       spanForAddressName.contentEditable = true;
@@ -712,10 +848,14 @@ function getDropOffParagraph(dropOff,item,clientSpan) {
       });
     });
     var fullAddress = '';
-    if(dropOff.address) {
-      fullAddress = dropOff.address.postal_code+', '+dropOff.address.address_line_1;
+    if(!dropOff) {
+      fullAddress = '';
     }else{
-      fullAddress = pakuote.dropoff_postal_code+', '+pakuote.dropoff_address_line;
+      if(dropOff.address) {
+        fullAddress = dropOff.address.postal_code+', '+dropOff.address.address_line_1;
+      }else{
+        fullAddress = pakuote.dropoff_postal_code+', '+pakuote.dropoff_address_line;
+      }
     }
     const addressSpan = document.createElement('span');
     addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
@@ -724,9 +864,15 @@ function getDropOffParagraph(dropOff,item,clientSpan) {
     //=================================================================
     const timeWindowSpan = document.createElement('span');
     const timeWindowBeginSpan = document.createElement('span');
-    enableTimeEditing(timeWindowBeginSpan, `drop.${dropOff.order_number}.time.begin`, item.id, pakuote.packagedropofftimebegin);
     const timeWindowEndSpan = document.createElement('span');
-    enableTimeEditing(timeWindowEndSpan, `drop.${dropOff.order_number}.time.end`, item.id, pakuote.packagedropofftimeend);
+    if(!dropOff){
+      enableTimeEditing(timeWindowBeginSpan, `drop.new.time.begin`, item.id, '0000-01-01 00:00:00');
+      enableTimeEditing(timeWindowEndSpan, `drop.new.time.end`, item.id, '0000-01-01 00:00:00');
+    }else{
+      enableTimeEditing(timeWindowBeginSpan, `drop.${dropOff.order_number}.time.begin`, item.id, pakuote.packagedropofftimebegin);
+      enableTimeEditing(timeWindowEndSpan, `drop.${dropOff.order_number}.time.end`, item.id, pakuote.packagedropofftimeend);
+    }
+
 
     timeWindowSpan.appendChild(timeWindowBeginSpan);
     timeWindowSpan.appendChild(document.createTextNode(' - '));
@@ -775,11 +921,74 @@ function getDropOffParagraph(dropOff,item,clientSpan) {
       clearTimeout(hoverTimeout);
     });
     //=========================================================
-    dropOffParagraph.appendChild(notesIconSpan);
+    const footer = document.createElement('div');
+    footer.style.display = 'flex';
+    footer.style.justifyContent = 'space-between';
+    footer.style.alignItems = 'center';
+    footer.appendChild(notesIconSpan);
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'btn btn-sm btn-danger';
+    deleteButton.innerHTML = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
+    footer.appendChild(deleteButton);
+    deleteButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete this drop-off?')) {
+        removeDropOff({templateId : item.id,dropOffContainer : dropOffParagraph});
+      }
+    });
+    dropOffParagraph.appendChild(footer);
 
     return dropOffParagraph;
 }
-function handleDropsParagraph(item, clientSpan) {
+function addEmptyDropOff({item,clientSpan,element = null,container}) {
+  fetch(window.ROUTES.WEB.JOBTEMPLATE.ADDEMPTYDROPOFF, { 
+      method: 'PATCH',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', 
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ id: item.id })
+  }).then(response => response.json())
+    .then(data => {
+      console.log(data);
+      if (data.success) {
+        container.appendChild(getDropOffParagraph({dropOff : data.newDropOff,item : item,clientSpan : clientSpan,element : element}));
+      }
+    });
+}
+function removeDropOff({templateId,dropOffContainer}) {
+  fetch(window.ROUTES.WEB.JOBTEMPLATE.REMOVEDROPOFF, { 
+      method: 'PATCH',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', 
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ id: templateId, order_number: dropOffContainer.getAttribute('data-dropoff-orderNumber') })
+  }).then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        dropOffContainer.remove();
+      }
+    });
+}
+function removeReturn({templateId,returnContainer}) {
+  fetch(window.ROUTES.WEB.JOBTEMPLATE.REMOVERETURN, { 
+      method: 'PATCH',
+      headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', 
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ id: templateId })
+  }).then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        returnContainer.remove();
+      }
+    });
+}
+function handleDropsParagraph(item, clientSpan,element = null) {
   const divForEntireDropOffs = document.createElement('div');
   divForEntireDropOffs.style.borderRadius = '8px';
   divForEntireDropOffs.className = 'drop-offs-container';
@@ -797,14 +1006,32 @@ function handleDropsParagraph(item, clientSpan) {
   spanForIcon.style.cursor = 'pointer';
   lockIconChanger(spanForIcon,item.id);
   const label = document.createElement('strong');
-  label.textContent = 'Drop-offs: ';
+  label.textContent = '<Drop-offs>';
+  label.className = 'ms-1';
+  const buttonForAddDropOff = document.createElement('button');
+  buttonForAddDropOff.className = 'btn btn-sm btn-primary ms-2';
+  buttonForAddDropOff.innerHTML = '<i class="fa fa-plus" aria-hidden="true"></i> Add Drop-off';
+  buttonForAddDropOff.style.cursor = 'pointer';
+  buttonForAddDropOff.addEventListener('click', () => {
+    addEmptyDropOff({item : item,clientSpan : clientSpan,element : element,container : divForEntireDropOffs});
+  });
   paragraph.appendChild(spanForIcon);
   paragraph.appendChild(label);
+  paragraph.appendChild(buttonForAddDropOff);
   divForEntireDropOffs.appendChild(paragraph);
-  item.dropOfftasks.data.forEach((dropOff) => {
-    const dropOffParagraph = getDropOffParagraph(dropOff,item,clientSpan);
-    divForEntireDropOffs.appendChild(dropOffParagraph);
-  });
+  // accessibility improvements can be added later
+  /* 
+  divForEntireDropOffs.setAttribute('tabindex', '-1');
+  if (element) {
+      element.DropoffsContainers = divForEntireDropOffs;
+  }
+  */
+ if(item.dropOfftasks.data){
+   item.dropOfftasks.data.forEach((dropOff) => {
+     const dropOffParagraph = getDropOffParagraph({dropOff : dropOff,item : item,clientSpan : clientSpan,element : element});
+     divForEntireDropOffs.appendChild(dropOffParagraph);
+   });
+  }
   return divForEntireDropOffs;
 }
 function createJobsForTemplate({id,start,end,days}) {
@@ -831,9 +1058,7 @@ function createJobsForTemplate({id,start,end,days}) {
 }
 function handleReturnParagraph(item, clientSpan) {
   const returnTask = item.returntask?.data;
-  if (!returnTask) {
-    return document.createElement('p');
-  }
+
 
   const paragraph = document.createElement('p');
   paragraph.className = 'return-item border border-secondary rounded p-2 mb-2';
@@ -847,118 +1072,216 @@ function handleReturnParagraph(item, clientSpan) {
   titleContainer.style.justifyContent = 'center';
   titleContainer.style.alignItems = 'center';
   titleContainer.style.gap = '0.5rem';
-
-  const lockIconSpan = document.createElement('span');
-  const lockIcon = document.createElement('i');
-  lockIcon.className = item.returntask.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  lockIcon.setAttribute('aria-hidden', 'true');
-  lockIconSpan.setAttribute('data-updatefield', 'locks.return');
-  lockIconSpan.style.cursor = 'pointer';
-  lockIconChanger(lockIconSpan, item.id);
-  lockIconSpan.appendChild(lockIcon);
-
-  const titleText = document.createElement('strong');
-  titleText.textContent = 'Return';
-  titleText.className = 'ms-1';
-
-  titleContainer.appendChild(lockIconSpan);
-  titleContainer.appendChild(titleText);
-
-  
-  const body = document.createElement('div');
-  body.className = 'return-body row';
-  body.style.display = 'grid';
-  body.style.gridTemplateColumns = '1fr'; // can change to '1fr 1fr' for two columns
-  body.style.rowGap = '0.5rem';
-
-
-  const addressContainer = document.createElement('div');
-  addressContainer.className = 'col';
-  const addressNameSpan = document.createElement('span');
-  addressNameSpan.textContent = returnTask.return?.name || 'N/A';
-  addressContainer.appendChild(addressNameSpan);
-  addressNameSpan.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-  addressNameSpan.setAttribute('data-template-id', item.id);
-  addressNameSpan.setAttribute('data-updatefield', 'return.addressId');
-  addTypeHeadSearch_fromClient_AddressList(addressNameSpan);
-  addressNameSpan.addEventListener('click', () => {
-    addressNameSpan.contentEditable = true;
-    addressNameSpan.focus();
-    addressNameSpan.addEventListener('blur', function onBlur() {
-      addressNameSpan.contentEditable = false;
-      addressNameSpan.removeEventListener('blur', onBlur);
+  if (!returnTask) {
+    const addReturnButton = document.createElement('button');
+    addReturnButton.className = 'btn btn-sm btn-primary';
+    addReturnButton.innerHTML = '<i class="fa fa-plus" aria-hidden="true"></i> Add Return';
+    addReturnButton.style.cursor = 'pointer';
+    addReturnButton.addEventListener('click', () => {
+      fetch(window.ROUTES.WEB.JOBTEMPLATE.ADDEMPTYRETURN, {
+          method: 'PATCH',
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ id: item.id })
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            //data is not used  // modify "item" to take in new return.
+            const itemA = {returntask : data.newReturn}
+            const newReturnParagraph = handleReturnParagraph(itemA , clientSpan);
+            paragraph.replaceWith(newReturnParagraph);
+          }
+        });
     });
-  });
-  var fullAddress = '';
-  if(returnTask.return?.address) {
-      fullAddress = returnTask.return.address.postal_code+', '+returnTask.return.address.address_line_1;
+    paragraph.appendChild(addReturnButton);
+    return paragraph;
   }else{
-      fullAddress = returnTask.return.postal_code+', '+returnTask.return.adress_line;
-  }
-  const addressSpan = document.createElement('span');
-  addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
-  addressSpan.className = 'text-muted full-address';
-  addressContainer.appendChild(addressSpan);
-  const timeContainer = document.createElement('div');
-  timeContainer.className = 'col';
-  const timeWindowBeginSpan = document.createElement('span');
-  enableTimeEditing(timeWindowBeginSpan, `return.time.begin`, item.id, returnTask.return.time_begin);
-  const timeWindowEndSpan = document.createElement('span');
-  enableTimeEditing(timeWindowEndSpan, `return.time.end`, item.id, returnTask.return.time_end);
+    const lockIconSpan = document.createElement('span');
+    const lockIcon = document.createElement('i');
+    lockIcon.className = item.returntask.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
+    lockIcon.setAttribute('aria-hidden', 'true');
+    lockIconSpan.setAttribute('data-updatefield', 'locks.return');
+    lockIconSpan.style.cursor = 'pointer';
+    lockIconChanger(lockIconSpan, item.id);
+    lockIconSpan.appendChild(lockIcon);
 
-  timeContainer.appendChild(timeWindowBeginSpan);
-  timeContainer.appendChild(document.createTextNode(' - '));
-  timeContainer.appendChild(timeWindowEndSpan);
-  body.appendChild(addressContainer);
-  body.appendChild(timeContainer);
-  const bottom = document.createElement('div');
-  bottom.className = 'return-bottom row';
-  const notesIconSpan = document.createElement('span');
-  notesIconSpan.className = 'notes-icon';
-  notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
-  notesIconSpan.style.cursor = 'pointer';
-  notesIconSpan.addEventListener('click', () => {
-    // Remove any existing textarea to avoid duplicates
-    const existingTextarea = notesIconSpan.querySelector('textarea');
-    if (existingTextarea) return;
+    const titleText = document.createElement('strong');
+    titleText.textContent = 'Return';
+    titleText.className = 'ms-1';
 
-    const textarea = document.createElement('textarea');
-    textarea.value = returnTask.note || '';
-    textarea.style.width = '200px';
-    textarea.style.height = '80px';
-    textarea.style.resize = 'vertical';
-    textarea.style.display = 'block';
-    textarea.style.marginTop = '5px';
+    titleContainer.appendChild(lockIconSpan);
+    titleContainer.appendChild(titleText);
 
-    notesIconSpan.appendChild(textarea);
-    textarea.focus();
+    
+    const body = document.createElement('div');
+    body.className = 'return-body row';
+    body.style.display = 'grid';
+    body.style.gridTemplateColumns = '1fr'; // can change to '1fr 1fr' for two columns
+    body.style.rowGap = '0.5rem';
 
-    textarea.addEventListener('blur', () => {
-      const note = textarea.value.trim();
-      returnTask.note = note;
-      updateJobTemplate(item.id, buildNestedObject('return.note', note));
-      textarea.remove();
+
+    const addressContainer = document.createElement('div');
+    addressContainer.className = 'col';
+    const addressNameSpan = document.createElement('span');
+    addressNameSpan.textContent = returnTask.return?.name || 'N/A';
+    addressContainer.appendChild(addressNameSpan);
+    addressNameSpan.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
+    addressNameSpan.setAttribute('data-template-id', item.id);
+    addressNameSpan.setAttribute('data-updatefield', 'return.addressId');
+    addTypeHeadSearch_fromClient_AddressList(addressNameSpan);
+    addressNameSpan.addEventListener('click', () => {
+      addressNameSpan.contentEditable = true;
+      addressNameSpan.focus();
+      addressNameSpan.addEventListener('blur', function onBlur() {
+        addressNameSpan.contentEditable = false;
+        addressNameSpan.removeEventListener('blur', onBlur);
+      });
     });
-  });
-  let hoverTimeout;
-  notesIconSpan.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => {
-      notesIconSpan.setAttribute('title', returnTask.note || 'No notes');
-    }, 300);
-  });
-  notesIconSpan.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimeout);
-  });
-  // --- Assemble ---
-  paragraph.appendChild(titleContainer);
-  paragraph.appendChild(body);
-  paragraph.appendChild(bottom);
-  paragraph.appendChild(notesIconSpan);
+    var fullAddress = '';
+    if(returnTask.return?.address) {
+        fullAddress = returnTask.return.address.postal_code+', '+returnTask.return.address.address_line_1;
+    }else{
+        fullAddress = returnTask.return.postal_code+', '+returnTask.return.adress_line;
+    }
+    const addressSpan = document.createElement('span');
+    addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
+    addressSpan.className = 'text-muted full-address';
+    addressContainer.appendChild(addressSpan);
+    const timeContainer = document.createElement('div');
+    timeContainer.className = 'col';
+    const timeWindowBeginSpan = document.createElement('span');
+    enableTimeEditing(timeWindowBeginSpan, `return.time.begin`, item.id, returnTask.return.time_begin);
+    const timeWindowEndSpan = document.createElement('span');
+    enableTimeEditing(timeWindowEndSpan, `return.time.end`, item.id, returnTask.return.time_end);
 
-  return paragraph;
+    timeContainer.appendChild(timeWindowBeginSpan);
+    timeContainer.appendChild(document.createTextNode(' - '));
+    timeContainer.appendChild(timeWindowEndSpan);
+    body.appendChild(addressContainer);
+    body.appendChild(timeContainer);
+    const bottom = document.createElement('div');
+    bottom.className = 'return-bottom row';
+    const notesIconSpan = document.createElement('span');
+    notesIconSpan.className = 'notes-icon';
+    notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
+    notesIconSpan.style.cursor = 'pointer';
+    notesIconSpan.addEventListener('click', () => {
+      // Remove any existing textarea to avoid duplicates
+      const existingTextarea = notesIconSpan.querySelector('textarea');
+      if (existingTextarea) return;
+
+      const textarea = document.createElement('textarea');
+      textarea.value = returnTask.note || '';
+      textarea.style.width = '200px';
+      textarea.style.height = '80px';
+      textarea.style.resize = 'vertical';
+      textarea.style.display = 'block';
+      textarea.style.marginTop = '5px';
+
+      notesIconSpan.appendChild(textarea);
+      textarea.focus();
+
+      textarea.addEventListener('blur', () => {
+        const note = textarea.value.trim();
+        returnTask.note = note;
+        updateJobTemplate(item.id, buildNestedObject('return.note', note));
+        textarea.remove();
+      });
+    });
+    let hoverTimeout;
+    notesIconSpan.addEventListener('mouseenter', () => {
+      hoverTimeout = setTimeout(() => {
+        notesIconSpan.setAttribute('title', returnTask.note || 'No notes');
+      }, 300);
+    });
+    notesIconSpan.addEventListener('mouseleave', () => {
+      clearTimeout(hoverTimeout);
+    });
+    const footer = document.createElement('div');
+    footer.style.display = 'flex';
+    footer.style.justifyContent = 'space-between';
+    footer.style.alignItems = 'center';
+    footer.appendChild(notesIconSpan);
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'btn btn-sm btn-danger';
+    deleteButton.innerHTML = '<i class="fa fa-trash" aria-hidden="true"></i> Delete';
+    footer.appendChild(deleteButton);
+    deleteButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete this return?')) {
+        removeReturn({templateId : item.id,returnContainer : paragraph});
+      }
+    });
+    // --- Assemble ---
+    paragraph.appendChild(titleContainer);
+    paragraph.appendChild(body);
+    paragraph.appendChild(bottom);
+    paragraph.appendChild(footer);
+
+    return paragraph;
+  }
+}
+function openEditableTextarea(targetElement, item, propertyName) {
+  const existingTextarea = targetElement.querySelector('textarea');
+  if (existingTextarea) return;
+
+  const textarea = document.createElement('textarea');
+  textarea.value = item.notes || '';
+  textarea.style.width = '200px';
+  textarea.style.height = '80px';
+  textarea.style.resize = 'vertical';
+  textarea.style.display = 'block';
+  textarea.style.marginTop = '5px';
+
+  targetElement.appendChild(textarea);
+  textarea.focus();
+
+  textarea.addEventListener('blur', () => {
+    const note = textarea.value.trim();
+    item.note = note;
+    textarea.remove();
+    if(note){
+      targetElement.classList.add('text-success');
+    }else{
+      targetElement.classList.remove('text-success');
+    }
+    updateJobTemplate(item.id, buildNestedObject(propertyName, note));
+    
+  });
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      textarea.blur();
+    }
+  });
+}
+var templateFocusableElements = [];
+function setTabIndex(obj, startIndex = 0) {
+  let index = startIndex;
+
+  function traverse(item) {
+    if (!item) return;
+
+    if (item instanceof Element) {
+      // It's a DOM element
+      item.setAttribute('tabindex', index);
+    } else if (typeof item === 'object') {
+      // It's an object → recurse into its properties
+      for (let key in item) {
+        traverse(item[key]);
+      }
+    }
+  }
+
+  traverse(obj);
+  return index; // return next index if needed
 }
 
 function fetchJobTemplates() {
+  templateFocusableElements = [];
+  let element = null;
   const routeUrl = window.ROUTES.WEB.JOBTEMPLATE.FETCH;
   fetch(routeUrl)
     .then(response => response.json())
@@ -968,15 +1291,33 @@ function fetchJobTemplates() {
         const fragment = document.createDocumentFragment();
         gridContainer.innerHTML = '';
         data.items.forEach(item => {
+          templateFocusableElements.push({id : item.id});
           const col = document.createElement('div');
           col.className = 'col-12 col-md-6 col-lg-4 col-xl-3';
           col.setAttribute('data-id', item.id);
           col.setAttribute('id', `template-${item.id}`);
 
           const card = document.createElement('div');
-          card.className = 'card h-100 shadow-sm';
+          card.className = 'card h-100 shadow-sm main-card';
+          card.setAttribute('tabindex', '0');
+          card.addEventListener('keydown', (e) => {
+            if(!e.target.classList.contains('main-card')){
+              console.log('not main-card');
+              return;
+            }
+              
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              setTabIndex(templateFocusableElements.find(obj => obj.id === item.id), 0);
+              card.querySelector('.card-body').focus();
+            }
+            if (e.key === 'Tab'){
+              setTabIndex(templateFocusableElements.find(obj => obj.id === item.id), -1);
+            }
+          });
 
           const cardBody = document.createElement('div');
+          cardBody.setAttribute('tabindex', '-1');
           cardBody.className = 'card-body';
 
           const title = document.createElement('h5');
@@ -985,31 +1326,23 @@ function fetchJobTemplates() {
           cardBody.appendChild(title);
           //=========================================================================
           const notesIconSpan = document.createElement('span');
+          notesIconSpan.setAttribute('tabindex', '-1');
+          element = templateFocusableElements.find(obj => obj.id === item.id);
+          if (element) {
+              element.mainNote = notesIconSpan;
+          }
           notesIconSpan.className = 'notes-icon';
           notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
           notesIconSpan.style.cursor = 'pointer';
+          item.notes ? notesIconSpan.classList.add('text-success') : notesIconSpan.classList.remove('text-success');
           notesIconSpan.addEventListener('click', () => {
-
-            const existingTextarea = notesIconSpan.querySelector('textarea');
-            if (existingTextarea) return;
-
-            const textarea = document.createElement('textarea');
-            textarea.value = item.notes || '';
-            textarea.style.width = '200px';
-            textarea.style.height = '80px';
-            textarea.style.resize = 'vertical';
-            textarea.style.display = 'block';
-            textarea.style.marginTop = '5px';
-
-            notesIconSpan.appendChild(textarea);
-            textarea.focus();
-
-            textarea.addEventListener('blur', () => {
-              const note = textarea.value.trim();
-              item.note = note;
-              updateJobTemplate(item.id, buildNestedObject(`note`, note));
-              textarea.remove();
-            });
+            openEditableTextarea(notesIconSpan, item, 'note');
+          });
+          notesIconSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openEditableTextarea(notesIconSpan, item, 'note');
+            }
           });
           let hoverTimeout;
           notesIconSpan.addEventListener('mouseenter', () => {
@@ -1025,30 +1358,47 @@ function fetchJobTemplates() {
           const fixedPriceDiv = document.createElement('div');
           fixedPriceDiv.className = 'fixed-price-div mb-2';
           const fixedPriceLabel = document.createElement('span');
-          fixedPriceLabel.textContent = 'Fixed Price: ';
+          fixedPriceLabel.textContent = 'Price: ';
           fixedPriceLabel.className = 'card-text';
           const fixedPriceValue = document.createElement('span');
           fixedPriceValue.textContent = item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2);
           fixedPriceValue.className = item.fixedPrice === 0 ? 'text-muted' : '';
           fixedPriceValue.setAttribute('data-updatefield', 'fixedPrice');
+          fixedPriceValue.setAttribute('data-placeholder', 'Flexible');
+          fixedPriceValue.setAttribute('tabindex', '-1');
+
+          element.price = fixedPriceValue;
+
+
           fixedPriceDiv.appendChild(fixedPriceLabel);
           fixedPriceDiv.appendChild(fixedPriceValue);
           cardBody.appendChild(fixedPriceDiv);
-          fixedPriceValue.addEventListener('click', () => {
-            fixedPriceValue.contentEditable = true;
-            fixedPriceValue.focus();
-            fixedPriceValue.addEventListener('blur', function onBlur() {
-              fixedPriceValue.contentEditable = false;
-              let newValue = parseFloat(fixedPriceValue.textContent);
-              if (/^-?\d+(\.\d+)?$/.test(fixedPriceValue.textContent.trim())) {
-                item.fixedPrice = newValue;
-                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.true`, newValue));
-              } else {
-                fixedPriceValue.textContent = 'Flexible';
-                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.false`, 0));
-              }
-              fixedPriceValue.removeEventListener('blur', onBlur);
-            });
+          fixedPriceValue.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              const numberInput = document.createElement('input');
+              numberInput.type = 'number';
+              numberInput.step = '0.01';
+              numberInput.min = '0';
+              numberInput.value = item.fixedPrice || '';
+              numberInput.style.width = '80px';
+              fixedPriceValue.textContent = '';
+              fixedPriceValue.appendChild(numberInput);
+              numberInput.focus();
+              numberInput.addEventListener('blur', () => {
+                let newValue = parseFloat(numberInput.value);
+                if (!isNaN(newValue)) {
+                  item.fixedPrice = newValue;
+                  fixedPriceValue.textContent = newValue.toFixed(2);
+                  fixedPriceValue.classList.remove('text-muted');
+                  updateJobTemplate(item.id, buildNestedObject(`fixedPrice.true`, newValue));
+                } else {
+                  fixedPriceValue.textContent = '';
+                  fixedPriceValue.classList.add('text-muted'); 
+                  updateJobTemplate(item.id, buildNestedObject(`fixedPrice.false`, 0));
+                }
+              });
+            }
           });
           //=========================================================================
           const nameParagraph = document.createElement('p');
@@ -1065,6 +1415,8 @@ function fetchJobTemplates() {
           editPencilSpanName.className = 'edit-pencil';
           editPencilSpanName.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
           editPencilSpanName.style.cursor = 'pointer';
+          editPencilSpanName.setAttribute('tabindex', '-1');
+          element.templateName = editPencilSpanName;
           editPencilSpanName.addEventListener('click', () => {
             nameText.contentEditable = true;
             nameText.focus();
@@ -1079,13 +1431,18 @@ function fetchJobTemplates() {
               }
             });
           });
+          editPencilSpanName.addEventListener('keydown',(e) => {
+            if(e.key === 'Enter'){
+              e.preventDefault();
+              editPencilSpanName.click();
+            }
+          });
           nameParagraph.appendChild(editPencilSpanName);
           cardBody.appendChild(nameParagraph);
-
-          const clientParagraph = handleClientParagraph(item);
-          const pickupParagraph = handlePickupParagraph(item, clientParagraph.clientSpan);
-          const dropsParagraph = handleDropsParagraph(item, clientParagraph.clientSpan);
-          const returnParagraph = handleReturnParagraph(item, clientParagraph.clientSpan);
+          const clientParagraph = handleClientParagraph(item,element);
+          const pickupParagraph = handlePickupParagraph(item, clientParagraph.clientSpan,element);
+          const dropsParagraph = handleDropsParagraph(item, clientParagraph.clientSpan,element);
+          const returnParagraph = handleReturnParagraph(item, clientParagraph.clientSpan,element);
           cardBody.appendChild(clientParagraph.paragraph);
           cardBody.appendChild(pickupParagraph);
           cardBody.appendChild(dropsParagraph);
@@ -1269,4 +1626,8 @@ function fetchJobTemplates() {
 document.addEventListener('DOMContentLoaded', function () {
 
   fetchJobTemplates();
+  document.addEventListener("focusin", (event) => {
+    //console.log("Focused element:", event.target);
+    //console.log("Tag:", event.target.tagName, "Classes:", event.target.className, "ID:", event.target.id);
+  });
 });

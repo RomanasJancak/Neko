@@ -70,6 +70,48 @@
     transform: translateY(-50%);
     color: #aaa; 
     }
+/* Apply to every element when focused */
+/* Base: all elements just have normal border */
+/* Base focus setup */
+*:focus {
+  outline: none;
+  position: relative;
+  border: 2px solid cyan; 
+  border-radius: 8px;
+}
+
+/* Animated border highlight */
+*:focus::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px; /* border thickness */
+  background: linear-gradient(
+    90deg,
+    rgba(167, 211, 106, 1) 0%,
+    rgba(111, 87, 199, 1) 20%,
+    rgba(167, 211, 106, 1) 40%,
+    rgba(167, 211, 106, 0) 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: repeat;
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  animation: slideBorder 3s linear infinite;
+}
+
+/* Slide animation */
+@keyframes slideBorder {
+  0% { background-position: 0 0; }
+  100% { background-position: 200% 0; }
+}
+
 
 </style>
 @endsection
@@ -126,24 +168,6 @@
 
   <!-- Data Grid -->
   <div class="row g-3" id="itemListGrid">
-    <!-- Example Card: Repeat per item -->
-    <!--
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-          <h5 class="card-title">Job #123</h5>
-          <p><strong>Name:</strong> Example Job</p>
-          <p><strong>Client:</strong> Client A</p>
-          <p><strong>Tasks:</strong> Pickup: 1, Drop: 2, Return: 0</p>
-          <p><strong>Price:</strong> £120.00</p>
-        </div>
-        <div class="card-footer d-flex justify-content-between">
-          <button class="btn btn-sm btn-outline-primary">Edit</button>
-          <button class="btn btn-sm btn-outline-danger">Delete</button>
-        </div>
-      </div>
-    </div>
-    -->
   </div>
 
   <!-- Create Template Button -->

@@ -85,7 +85,203 @@ class JobTemplateController extends Controller
     {
         //
     }
+    public function addEmptyDropOff(Request $request, JobTemplate $jobTemplate)
+    {
+        try{
+            $request->validate([
+                'id' => 'required|exists:job_templates,id',
+            ]);
+            $jobTemplate = JobTemplate::findOrFail($request->id);
+            $client = Client::find($jobTemplate->clientToBill_id);
+            $packageType = $client->packageTypes()->first();
+            $defaultAddress = $client->getAllAddresses()->first();
+            if(!$defaultAddress){
+                return response()->json(['error' => 'Client has no addresses to select for drop-off. Please add an address to the client first.'], 400);
+            }
+            $dropOffs = json_decode($jobTemplate->dropOffs_data, true) ?? [];
+            $newOrderNumber = count($dropOffs) + 1;
+            $newDropOff = [
+                'id' => null,
+                'date' => '0000-01-01 00:00:00',
+                'note' => '',
+                'job_id' => null,
+                'pickup' => null,
+                'package' => [
+                  'id' => null,
+                  'name' => null,
+                  'notes' => null,
+                  'price' => null,
+                  'job_id' => null,
+                  'weight' => 0,
+                  'task_id' => null,
+                  'quantity' => 1,
+                  'hasReturn' => 0,
+                  'status_id' => config('custom.package.status.default'),
+                  'address_id' => null,
+                  'created_at' => now()->toDateTimeString(),
+                  'updated_at' => now()->toDateTimeString(),
+                  'dimensions' => 0,
+                  'order_number' => $newOrderNumber,
+                  'package_type' => [
+                    'id' => $packageType->id,
+                    'name' => $packageType->name,
+                    'price' => $packageType->price,
+                    'created_at' => $packageType->created_at,
+                    'updated_at' => $packageType->updated_at,
+                    'is_fixed_price' => 0,
+                    'maxQuantityThreshold' => $packageType->maxQuantityThreshold,
+                    'baseQuantityThreshold' => $packageType->baseQuantityThreshold,
+                  ],
+                  'packageType_id' => $packageType->id,
+                  'dropoff_name' => $defaultAddress->name,
+                  'dropoff_country' => $defaultAddress->country,
+                  'dropoff_city' => $defaultAddress->city,
+                  'dropoff_address_line' => $defaultAddress->address_line_1,
+                  'dropoff_postal_code' => $defaultAddress->postalCode->postal_code,
+                  'maxQuantityThreshold' => null,
+                  'baseQuantityThreshold' => null,
+                  'packagedropofftimebegin' => '0000-01-01 00:00:00',
+                  'packagedropofftimeend' => '0000-01-01 00:00:01',
+                ],
+                'status_id' => config('custom.task.status.default'),
+                'created_at' => now()->toDateTimeString(),
+                'updated_at' => now()->toDateTimeString(),
+                'order_number' => $newOrderNumber,
+                'isLocked' => false,
+            ];
+            $dropOffs[] = $newDropOff;
+            $jobTemplate->dropOffs_data = json_encode($dropOffs);
+            $jobTemplate->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Drop-off added successfully.',
+                'template'  =>  json_decode($jobTemplate),
+                'newDropOff' => $newDropOff,
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+        }
+    }
+    public function removeDropOff(Request $request){
+        try{
+            $request->validate([
+                'id' => 'required|exists:job_templates,id',
+                'order_number' => 'required|integer',
+            ]);
+            $jobTemplate = JobTemplate::findOrFail($request->id);
+            $dropOffs = json_decode($jobTemplate->dropOffs_data, true) ?? [];
+            $updatedDropOffs = array_filter($dropOffs, function($dropOff) use ($request) {
+                return $dropOff['order_number'] != $request->order_number;
+            });
+            // Reindex array to maintain order
+            $updatedDropOffs = array_values($updatedDropOffs);
+            // Update order numbers
+            foreach ($updatedDropOffs as $index => &$dropOff) {
+                $dropOff['order_number'] = $index + 1;
+                if (isset($dropOff['package'])) {
+                    $dropOff['package']['order_number'] = $index + 1;
+                }
+            }
+            $jobTemplate->dropOffs_data = json_encode($updatedDropOffs);
+            $jobTemplate->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Drop-off removed successfully.',
+                'template'  =>  json_decode($jobTemplate),
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+        }
+    }
+    public function addEmptyReturn(Request $request, JobTemplate $jobTemplate)
+    {
+        try{
+            $request->validate([
+                'id' => 'required|exists:job_templates,id',
+            ]);
+            $jobTemplate = JobTemplate::findOrFail($request->id);
+            $client = Client::find($jobTemplate->clientToBill_id);
+            $defaultAddress = $client->getAllAddresses()->first();
+            if(!$defaultAddress){
+                return response()->json(['error' => 'Client has no addresses to select for return. Please add an address to the client first.'], 400);
+            }
+            $returnTask = [
+                'id'          => 0,
+                'date'        => now()->toDateTimeString(),
+                'note'        => '',
+                'job_id'      => 0,
+                'pickup'      => null,
+                'return'      => [
+                    'id'           => null,
+                    'city'         => $defaultAddress->city,
+                    'name'         => $defaultAddress->name,
+                    'notes'        => null,
+                    'price'        => null,
+                    'country'      => $defaultAddress->country,
+                    'task_id'      => null,
+                    'time_end'     => '0000-01-01 00:00:01',
+                    'status_id'    => config('custom.task.status.default'),
+                    'address_id'   => null,
+                    'created_at'   => now()->toDateTimeString(),   // fixed spelling
+                    'updated_at'   => now()->toDateTimeString(),
+                    'time_begin'   => '0000-01-01 00:00:00',
+                    'adress_line'  => $defaultAddress->address_line_1, // keep original key
+                    'is_flexible'  => 1,
+                    'postal_code'  => $defaultAddress->postalCode->postal_code,
+                ],
+                'package'     => null,
+                'status_id'   => config('custom.task.status.default'),
+                'created_at'  => now()->toDateTimeString(),
+                'updated_at'  => now()->toDateTimeString(),
+                'order_number'=> 1,
+            ];
 
+            $jobTemplate->return_data = json_encode($returnTask);
+
+            $jobTemplate->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Return task added successfully.',
+                'template'  =>  json_decode($jobTemplate),
+                'newReturn' => $returnTask,
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+        }
+    }
+    public function removeReturn(Request $request){
+        try{
+            $request->validate([
+                'id' => 'required|exists:job_templates,id',
+            ]);
+            $jobTemplate = JobTemplate::findOrFail($request->id);
+            $jobTemplate->return_data = null;
+            $jobTemplate->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'Return task removed successfully.',
+                'template'  =>  json_decode($jobTemplate),
+            ]);
+        }catch (\Exception $e){
+            return response()->json(['error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            ], 500);
+            
+        }
+    }
     /**
      * Update the specified resource in storage.
      */
@@ -122,7 +318,7 @@ class JobTemplateController extends Controller
                 $jobTemplate->save();
               }
             }
-            if(isset($request->note)){
+            if($request->has('note')){
                 $jobTemplate->notes = $request->note;
                 $jobTemplate->save();
             }
@@ -130,20 +326,32 @@ class JobTemplateController extends Controller
               if (is_array($request->drop) && !empty($request->drop)) {
                 $firstKey = array_key_first($request->drop);
                 if(isset($request->drop[$firstKey])) {
+                  if (isset($request->drop[$firstKey]['packageQuantity'])) {
+                      $packageQuantity = $request->drop[$firstKey]['packageQuantity'];
+                      $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
+
+                      foreach ($dropOffs as $index => &$dropOff) {
+                          if (isset($dropOff['order_number']) && $dropOff['order_number'] === $firstKey) {
+                              if ($packageQuantity == 0) {
+                                  
+                                  unset($dropOffs[$index]);
+                                  
+                              } else {
+                                  $dropOff['package']['quantity'] = $packageQuantity;
+                              }
+                              break;
+                          }
+                      }
+
+                      // reindex array to keep JSON clean
+                      $dropOffs = array_values($dropOffs);
+                      
+                      $jobTemplate->dropOffs_data = $dropOffs;
+                      //dd($jobTemplate,$jobTemplate->dropOffs_data);
+                  }
                   if(isset($request->drop[$firstKey]['packageTypeId'])) {
                     $packageTypeId = $request->drop[$firstKey]['packageTypeId'];
                     $jobTemplate->changePackageTypeForDropoff($firstKey, $packageTypeId);
-                  }
-                  if(isset($request->drop[$firstKey]['packageQuantity'])) {
-                    $packageQuantity = $request->drop[$firstKey]['packageQuantity'];
-                    $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
-                    foreach ($dropOffs as &$dropOff) {
-                      if (isset($dropOff['order_number']) && $dropOff['order_number'] === $firstKey) {
-                        $dropOff['package']['quantity'] = $packageQuantity;
-                        break;
-                      }
-                    }
-                    $jobTemplate->dropOffs_data = $dropOffs;
                   }
                   if(isset($request->drop[$firstKey]['addressId'])) {
                     $addressId = $request->drop[$firstKey]['addressId'];
@@ -401,7 +609,9 @@ class JobTemplateController extends Controller
                         ],
                         'returntask' => [
                             'data' => $item->return_data ? json_decode($item->return_data) : null,
+                            //'a' => dd($pickupData,$returnData),
                             'addressIsSameAsPickup' => ($pickupData && $returnData) ? (
+                                
                                 $pickupData->pickupclientaddressline === $returnData->return->adress_line &&
                                 $pickupData->pickupclientpostalcode === $returnData->return->postal_code &&
                                 $pickupData->pickupclientcity === $returnData->return->city &&
