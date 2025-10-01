@@ -1053,7 +1053,12 @@ function createJobsForTemplate({id,start,end,days}) {
       body: JSON.stringify(postData)
   }).then(response => response.json())
     .then(data => {
-      console.log(data);
+      if(data.success){
+        show_Success_Message({message : data.message});
+      }
+      if(data.error){
+        show_Error_Message({message : data.error});
+      } 
     });
 }
 function handleReturnParagraph(item, clientSpan) {
@@ -1525,13 +1530,13 @@ function fetchJobTemplates() {
                   alert('Please select a valid date range.');
                   return;
                 }
-                console.log(Array.from(document.querySelectorAll('.day-checkbox:checked')))
                 createJobsForTemplate({ 
                                         id: item.id,
                                         start: startDate,
                                         end: endDate,
                                         days: Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value), 
                 });
+                document.body.removeChild(modal);
               });
 
               const cancelBtn = document.createElement('button');
@@ -1632,10 +1637,5 @@ function fetchJobTemplates() {
 //======================================================================================================================================================================
 
 document.addEventListener('DOMContentLoaded', function () {
-
   fetchJobTemplates();
-  document.addEventListener("focusin", (event) => {
-    //console.log("Focused element:", event.target);
-    //console.log("Tag:", event.target.tagName, "Classes:", event.target.className, "ID:", event.target.id);
-  });
 });

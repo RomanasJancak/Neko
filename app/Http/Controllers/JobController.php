@@ -610,6 +610,7 @@ public function index(Request $request,SettingsService $settings)
         $job->courrier_id       =   null;
         $job->clientToBill_id   =   $template->clientToBill_id;
         $job->date              =   $date;
+        $job->save();
         $job->notes()->create([
             'content' => $template->notes,
             'user_id' => auth()->id(),
@@ -762,12 +763,13 @@ public function index(Request $request,SettingsService $settings)
           }
         }
           return response()->json([
-            'error' => 'This endpoint is disabled for now',
+            'success' => true,
+            'message' => 'Job(s) created from template successfully. ',
             'request'   =>  $request->all(),
             'template'  =>  $template,
             'template_data'  =>  json_decode($template->pickuptask_data, true),
             'job'       =>  $jobs,
-          ], 500);
+          ], 200);
       }
      }catch (\Exception $e){
         return response()->json(['error' => $e->getMessage(),
@@ -813,7 +815,7 @@ public function index(Request $request,SettingsService $settings)
             }
             return response()->json([
                 'success'   => true,
-                'message'   => 'Job created from template successfully. ',
+                'message'   => 'Job(s) created from template successfully. ',
                 'data'      => [
                     'request'   =>  $request->all(),
                     'jobToArray'   =>  $jobData,
