@@ -366,7 +366,7 @@ function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
                   editableSpan.setAttribute('data-address-id', `${data.id}`);
                   const nextSpan = editableSpan.nextElementSibling;
                   if (nextSpan && nextSpan.classList.contains('full-address')) {
-                    nextSpan.textContent = ` (${data.postal_code}, ${data.address_line_1})`;
+                    nextSpan.textContent = `${data.address_line_1}), (${data.postal_code}`;
                   }
                 }
                 /* pritaikyti kad tiktu ir droppoffui */
@@ -613,7 +613,7 @@ function handlePickupParagraph(item,clientSpan,element = null) {
   clientIdSpanMap.get(item.id).push(spanForName);
   spanForName.setAttribute('data-updatefield', 'pickup.addressId');
   addTypeHeadSearch_fromClient_AddressList(spanForName);
-  const fullAddress = item.pickuptask.data.pickupclientpostalcode+', '+item.pickuptask.data.pickupclientaddressline;
+  const fullAddress = item.pickuptask.data.pickupclientaddressline+', '+item.pickuptask.data.pickupclientpostalcode;
   const addressSpan = document.createElement('span');
   addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
   addressSpan.className = 'text-muted full-address';
@@ -852,9 +852,9 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
       fullAddress = '';
     }else{
       if(dropOff.address) {
-        fullAddress = dropOff.address.postal_code+', '+dropOff.address.address_line_1;
+        fullAddress = dropOff.address.address_line_1+', '+dropOff.address.postal_code;
       }else{
-        fullAddress = pakuote.dropoff_postal_code+', '+pakuote.dropoff_address_line;
+        fullAddress = pakuote.dropoff_address_line+', '+pakuote.dropoff_postal_code;
       }
     }
     const addressSpan = document.createElement('span');
@@ -1142,9 +1142,9 @@ function handleReturnParagraph(item, clientSpan) {
     });
     var fullAddress = '';
     if(returnTask.return?.address) {
-        fullAddress = returnTask.return.address.postal_code+', '+returnTask.return.address.address_line_1;
+        fullAddress = returnTask.return.address.address_line_1+', '+returnTask.return.address.postal_code;
     }else{
-        fullAddress = returnTask.return.postal_code+', '+returnTask.return.adress_line;
+        fullAddress = returnTask.return.adress_line+', '+returnTask.return.postal_code;
     }
     const addressSpan = document.createElement('span');
     addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
