@@ -1725,6 +1725,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'This Week': [moment().startOf('isoWeek'), moment().endOf('isoWeek')],
             'This Month': [moment().startOf('month'), moment().endOf('month')],
             'This Year': [moment().startOf('year'), moment().endOf('year')],
+            'All':[moment().subtract(2025,'years'),moment().add(99,'years')],
         }
     }, datepicker_function);
     datepicker_function(initial_datePicker_start, initial_datePicker_end);
