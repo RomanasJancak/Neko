@@ -1382,20 +1382,28 @@ function fetchJobTemplates() {
               numberInput.min = '0';
               numberInput.value = item.fixedPrice || '';
               numberInput.style.width = '80px';
-              fixedPriceValue.textContent = '';
+              //fixedPriceValue.textContent = '';
               fixedPriceValue.appendChild(numberInput);
               numberInput.focus();
               numberInput.addEventListener('blur', () => {
                 let newValue = parseFloat(numberInput.value);
                 if (!isNaN(newValue)) {
+                  if(newValue == '0'){
+                    newValue = 0;
+                    fixedPriceValue.textContent = 'Flexible';
+                    fixedPriceValue.classList.add('text-muted');
+                  }else{
+                    fixedPriceValue.textContent = newValue.toFixed(2);
+                    fixedPriceValue.classList.remove('text-muted');
+                  }
                   item.fixedPrice = newValue;
-                  fixedPriceValue.textContent = newValue.toFixed(2);
-                  fixedPriceValue.classList.remove('text-muted');
                   updateJobTemplate(item.id, buildNestedObject(`fixedPrice.true`, newValue));
                 } else {
-                  fixedPriceValue.textContent = '';
-                  fixedPriceValue.classList.add('text-muted'); 
-                  updateJobTemplate(item.id, buildNestedObject(`fixedPrice.false`, 0));
+                  numberInput.remove();
+                    
+                    
+                  
+
                 }
               });
             }
