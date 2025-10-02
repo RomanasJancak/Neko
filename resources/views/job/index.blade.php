@@ -518,7 +518,7 @@
 
       <!-- Header -->
       <div class="modal-header">
-          <h5 class="modal-title" id="jobNoteModalLabel">Edit History</h5>
+          <h5 class="modal-title" id="jobNoteModalLabel">Note History</h5>
             <div class="ms-auto">
               <button class="btn btn-sm btn-outline-primary" id="prevNoteBtn">Previous</button>
               <button class="btn btn-sm btn-outline-primary" id="nextNoteBtn">Next</button>
