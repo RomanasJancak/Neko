@@ -11,10 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+      Schema::create('invoices', function (Blueprint $table) {
+          $table->id();
+          $table->string('invoice_number')->unique();
+          $table->unsignedBigInteger('customer_id');
+          $table->date('invoice_date')->nullable();
+          $table->date('due_date')->nullable();
+          $table->enum('status', ['draft','sent','paid','overdue'])->default('draft');
+          $table->decimal('total', 10, 2)->default(0);
+          $table->timestamps();
+      });
     }
 
     /**

@@ -22,6 +22,8 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ExtraTypesController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\InvoiceItemController;
+use App\Http\Controllers\InvoiceController;  
    
 /*
 |--------------------------------------------------------------------------
@@ -131,6 +133,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
+    Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');
 });
 Route::group(['prefix'  =>  'tasks'],function(){
     Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
@@ -272,4 +275,8 @@ Route::group(['prefix' => 'extratypes'], function(){
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
     Route::get('/', [UserSettingController::class, 'index'])->name('index');
     Route::post('/', [UserSettingController::class, 'update'])->name('update');
+});
+Route::group(['prefix'  => 'invoiceitems'],function(){
+    Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
+    Route::post('store',              [InvoiceItemController::class, 'store'])->name('invoiceItem.store')->middleware('auth');
 });

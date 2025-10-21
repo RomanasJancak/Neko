@@ -27,6 +27,8 @@ use App\Models\Pickuptask;
 use App\Models\Returntask;
 use App\Models\Customtask;
 use App\Models\Note;
+use App\Models\InvoiceItem;
+use App\Models\Invoice;
 
 
 use App\Services\BackupService;
@@ -184,7 +186,6 @@ public function index(Request $request,SettingsService $settings)
         ));
         
     }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -496,6 +497,38 @@ public function index(Request $request,SettingsService $settings)
         $job->status_id =   $request->status_id;
         $job->save();
         return redirect()->route('job.show',['job' => $job])->with('success_message', 'Updated sucsesfully');
+    }
+    public function moveToOtherInvoiceItem(Request $request, Job $job){
+      try{
+        $validated = $request->validate([
+          'invoice_item_id' => 'required|exists:invoice_items,id',
+        ]);
+        $newItem = InvoiceItem::findOrFail($validated['invoice_item_id']);
+        $job->invoiceItem->recalculatePrice();
+        $job->invoice_item_id = $newItem->id;
+        $job->save();
+        $job->invoiceItem->recalculatePrice();
+        $newItem->save();
+        $job->invoiceItem->invoice->recalculatePrice();
+        $job->invoiceItem->invoice->save();
+        /*
+        return response()->json([
+          'success' => true,
+          'message' => 'Job moved to new invoice item successfully.',
+          'jobId'   =>  $job->id,
+          'newInvoiceItemId'   =>  $newItem->id,
+          'newInvoiceId'   =>  $newItem->invoice ? $newItem->invoice->id : null,
+        ]);
+        */
+        return redirect()->back()->with('success', 'Job moved to new invoice item successfully.');
+      }catch (\Exception $e){
+            return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'requests'  =>  $request->all(),
+            ], 500);
+      }
     }
     /**
      * Remove the specified resource from storage.

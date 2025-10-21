@@ -124,6 +124,9 @@ class Job extends Model
     public function invoice(){
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
+    public function invoiceItem(){
+        return $this->belongsTo(InvoiceItem::class, 'invoice_item_id');
+    }
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
     }
@@ -151,6 +154,15 @@ class Job extends Model
         foreach($this->tasks as $task){
             if($task->type() === 'dropOff'){
                 $returnValue[] = $task;
+            }
+        }
+        return $returnValue;
+    }
+    public function getDropOffs(){
+        $returnValue = [];
+        foreach($this->tasks as $task){
+            if($task->type() === 'dropOff'){
+                $returnValue[] = $task->package;
             }
         }
         return $returnValue;
@@ -881,6 +893,9 @@ class Job extends Model
             'isApplicable' => false,
         ];
     }
+    public function recalculatePrice(){
+        return $this->price();
+    }
     public function price(){
         $this->populateVariables();
 
@@ -896,7 +911,8 @@ class Job extends Model
         $price+=$this->oversizePrice();
         $price+=$this->price_sameDayReturn()['price'];
         $price+=$this->price_adjustment_number;
-
+        $this->price = $price;
+        $this->save();
         return [
             'breakdownOfPrice' => [
                 'price_distance'        =>  $this->fixed_price === 0?$this->price_distance()['price']:0,
