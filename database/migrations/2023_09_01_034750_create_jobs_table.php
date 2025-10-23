@@ -37,7 +37,8 @@ return new class extends Migration
             $table->string('distance_calculation_method')->default('optimal');
             $table->foreignId('job_template_id')->nullable()->constrained()->onDelete('set null');
             $table->index('job_template_id');
-            $table->foreign('invoice_item_id')->references('id')->on('invoice_items')->onDelete('set null');
+            $table->foreignId('invoice_item_id')->nullable()->constrained('invoice_items')->nullOnDelete();
+
 
         });
     }
