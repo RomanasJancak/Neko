@@ -396,7 +396,7 @@ class JobTemplateController extends Controller
                     }
                     $jobTemplate->dropOffs_data = json_encode($dropOffs);
                   }
-                  if(isset($request->drop[$firstKey]['note'])) {
+                  if($request->has("drop.$firstKey.note")) {
                     $note = $request->drop[$firstKey]['note'];
                     $dropOffs = json_decode($jobTemplate->dropOffs_data, true);
                     foreach ($dropOffs as &$dropOff) {
@@ -444,7 +444,7 @@ class JobTemplateController extends Controller
                 $jobTemplate->return_data = json_encode($returnData);
                 $jobTemplate->save();
               }
-              if(isset($request->return['note'])){
+              if($request->has("return.note")) {
                 $returnData = json_decode($jobTemplate->return_data, true);
                 $returnData['note'] = $request->return['note'];
                 $jobTemplate->return_data = json_encode($returnData);
@@ -459,7 +459,8 @@ class JobTemplateController extends Controller
                 }
             }
             if(isset($request->pickup)){
-              if(isset($request->pickup['note'])){
+              //if(isset($request->pickup['note'])){
+              if($request->has('pickup.note')){
                 $pickupData = json_decode($jobTemplate->pickuptask_data, true);
                 $pickupData['note'] = $request->pickup['note'];
                 $jobTemplate->pickuptask_data = json_encode($pickupData);

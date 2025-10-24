@@ -654,6 +654,7 @@ function handlePickupParagraph(item,clientSpan,element = null) {
   notesIconSpan.className = 'notes-icon';
   notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
   notesIconSpan.style.cursor = 'pointer';
+  item.pickuptask.data.note ? notesIconSpan.classList.add('text-success') : notesIconSpan.classList.remove('text-success');
   notesIconSpan.addEventListener('click', () => {
 
     const existingTextarea = notesIconSpan.querySelector('textarea');
@@ -673,6 +674,8 @@ function handlePickupParagraph(item,clientSpan,element = null) {
     textarea.addEventListener('blur', () => {
       const note = textarea.value.trim();
       item.pickuptask.data.note = note;
+      item.pickuptask.data.note ? notesIconSpan.classList.add('text-success') : notesIconSpan.classList.remove('text-success');
+
       updateJobTemplate(item.id, buildNestedObject(`pickup.note`, note));
       textarea.remove();
     });
@@ -888,6 +891,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     notesIconSpan.className = 'notes-icon';
     notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
     notesIconSpan.style.cursor = 'pointer';
+    dropOff.note ? notesIconSpan.classList.add('text-success') : notesIconSpan.classList.remove('text-success');
     notesIconSpan.addEventListener('click', () => {
       // Remove any existing textarea to avoid duplicates
       const existingTextarea = notesIconSpan.querySelector('textarea');
@@ -907,6 +911,8 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
       textarea.addEventListener('blur', () => {
         const note = textarea.value.trim();
         dropOff.note = note;
+        dropOff.note ? notesIconSpan.classList.add('text-success') : notesIconSpan.classList.remove('text-success');
+
         updateJobTemplate(item.id, buildNestedObject(`drop.${dropOff.order_number}.note`, note));
         textarea.remove();
       });
