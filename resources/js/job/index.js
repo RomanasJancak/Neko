@@ -1738,11 +1738,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const end = moment(parts[3]+"-"+parts[4]+"-"+parts[5], 'YYYY-MM-DD', true);
 
             if (start.isValid() && end.isValid()) {
-                // Update picker selection manually
+
                 datePicker.setStartDate(start);
                 datePicker.setEndDate(end);
 
-                // Trigger the callback
                 datepicker_function(start, end);
             }
         }

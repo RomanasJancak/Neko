@@ -37,10 +37,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Include daterangepicker CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <!--<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />-->
 
     <!-- Include additional stylesheets or scripts you might need -->
+    @vite(['resources/css/app.css'])
     @yield('style')
+    
 </head>
 <body>
     {{-- dd(auth()->user()->role()) --}}
