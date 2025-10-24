@@ -46,6 +46,7 @@ function enableTimeEditing(span, updateField, itemId, initialValue) {
       }
     });
   });
+  
 }
 function convertTo12Hour(time24) {
   const [hour, minute] = time24.split(':');
@@ -553,6 +554,7 @@ function handleClientParagraph(item, element = null){
   const spanForName = document.createElement('span');
   spanForName.textContent = clientName;
   spanForName.className = clientClass;
+  spanForName.classList.add('border-bottom');
   spanForName.setAttribute('data-template-id', item.id);
   spanForName.setAttribute('data-client-id', client ? item.clientToBill.id : '');
   if (!clientIdSpanMap.has(item.id)) {
@@ -645,10 +647,35 @@ function handlePickupParagraph(item,clientSpan,element = null) {
   const timeWindowBeginSpan = document.createElement('span');
   const timeWindowEndSpan = document.createElement('span');
   enableTimeEditing(timeWindowBeginSpan, 'pickup.time.begin', item.id, item.pickuptask.data.pickup_time_begin);
-
-  
   enableTimeEditing(timeWindowEndSpan, 'pickup.time.end', item.id, item.pickuptask.data.pickup_time_end);
-
+  const editIconSpanTimeBegin = document.createElement('span');
+  editIconSpanTimeBegin.className = 'edit-pencil';
+  editIconSpanTimeBegin.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+  editIconSpanTimeBegin.style.cursor = 'pointer';
+  editIconSpanTimeBegin.addEventListener('click', () => {
+    timeWindowBeginSpan.contentEditable = true;
+    timeWindowBeginSpan.focus();
+  });
+  editIconSpanTimeBegin.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpanTimeBegin.click();
+    }
+  });
+  const editIconSpanTimeEnd = document.createElement('span');
+  editIconSpanTimeEnd.className = 'edit-pencil';
+  editIconSpanTimeEnd.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+  editIconSpanTimeEnd.style.cursor = 'pointer';
+  editIconSpanTimeEnd.addEventListener('click', () => {
+    timeWindowEndSpan.contentEditable = true;
+    timeWindowEndSpan.focus();
+  });
+  editIconSpanTimeEnd.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpanTimeEnd.click();
+    }
+  });
   //=========================================================
   const notesIconSpan = document.createElement('span');
   notesIconSpan.className = 'notes-icon';
@@ -708,8 +735,10 @@ function handlePickupParagraph(item,clientSpan,element = null) {
 
 
   timeWindowSpan.appendChild(timeWindowBeginSpan);
+  timeWindowSpan.appendChild(editIconSpanTimeBegin);
   timeWindowSpan.appendChild(document.createTextNode(' - '));
   timeWindowSpan.appendChild(timeWindowEndSpan);
+  timeWindowSpan.appendChild(editIconSpanTimeEnd);
   paragraph.appendChild(spanForIcon);
   paragraph.appendChild(label);
   paragraph.appendChild(spanForName);
@@ -741,15 +770,31 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
         spanPackageName.removeEventListener('blur', onBlur);
       });
     }); 
-    spanPackageName.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        spanPackageName.click();
-      }
-    });
-    if (element) {
-      element.packageNames ? element.packageNames.push(spanPackageName) : element.packageNames = [spanPackageName];
+  spanPackageName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      spanPackageName.click();
     }
+  });
+  if (element) {
+    element.packageNames ? element.packageNames.push(spanPackageName) : element.packageNames = [spanPackageName];
+  }
+  const editIconSpan = document.createElement('span');
+  editIconSpan.className = 'edit-pencil';
+  editIconSpan.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+  editIconSpan.style.cursor = 'pointer';
+  editIconSpan.addEventListener('click', () => {
+    spanPackageName.click();
+  } );
+  editIconSpan.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpan.click();
+    }
+  });
+  if (element) {
+    element.packageNameEditIcon ? element.packageNameEditIcon.push(editIconSpan) : element.packageNameEditIcon = [editIconSpan];
+  }
   var packageQuantity = 1;
   var pakuote = null;
   const spanForPackageQuantity = document.createElement('span');
@@ -814,13 +859,28 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
       }
       spanForPackageQuantity.addEventListener('blur', onBlur);
     });
-
-    spanForPackageQuantity.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        spanForPackageQuantity.click();
-      }
-    });
+  const editIconSpanQuantity = document.createElement('span');
+  editIconSpanQuantity.className = 'edit-pencil';
+  editIconSpanQuantity.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+  editIconSpanQuantity.style.cursor = 'pointer';
+  editIconSpanQuantity.addEventListener('click', () => {
+    spanForPackageQuantity.click();
+  });
+  editIconSpanQuantity.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      editIconSpanQuantity.click();
+    }
+  });
+  if (element) {
+    element.packageQuantityEditIcon ? element.packageQuantityEditIcon.push(editIconSpanQuantity) : element.packageQuantityEditIcon = [editIconSpanQuantity];
+  }
+  spanForPackageQuantity.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      spanForPackageQuantity.click();
+    }
+  });
     if (element) {
       element.packageQuantities ? element.packageQuantities.push(spanForPackageQuantity) : element.packageQuantities = [spanForPackageQuantity];
     }
@@ -864,6 +924,23 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
     addressSpan.className = 'text-muted full-address';
     divForAddress.appendChild(addressSpan);
+    const editIconSpanAddress = document.createElement('span');
+    editIconSpanAddress.className = 'edit-pencil';
+    editIconSpanAddress.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpanAddress.style.cursor = 'pointer';
+    editIconSpanAddress.addEventListener('click', () => {
+      spanForAddressName.contentEditable = true;
+      spanForAddressName.focus();
+    });
+    editIconSpanAddress.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpanAddress.click();
+      }
+    });
+    if (element) {
+      element.dropOffAddressEditIcon ? element.dropOffAddressEditIcon.push(editIconSpanAddress) : element.dropOffAddressEditIcon = [editIconSpanAddress];
+    }
     //=================================================================
     const timeWindowSpan = document.createElement('span');
     const timeWindowBeginSpan = document.createElement('span');
@@ -875,15 +952,49 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
       enableTimeEditing(timeWindowBeginSpan, `drop.${dropOff.order_number}.time.begin`, item.id, pakuote.packagedropofftimebegin);
       enableTimeEditing(timeWindowEndSpan, `drop.${dropOff.order_number}.time.end`, item.id, pakuote.packagedropofftimeend);
     }
-
+    const editIconSpanTimeBegin = document.createElement('span');
+    editIconSpanTimeBegin.className = 'edit-pencil';
+    editIconSpanTimeBegin.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpanTimeBegin.style.cursor = 'pointer';
+    editIconSpanTimeBegin.addEventListener('click', () => {
+      timeWindowBeginSpan.click();
+    }); 
+    editIconSpanTimeBegin.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpanTimeBegin.click();
+      }
+    });
+    const editIconSpanTimeEnd = document.createElement('span');
+    editIconSpanTimeEnd.className = 'edit-pencil';
+    editIconSpanTimeEnd.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpanTimeEnd.style.cursor = 'pointer';
+    editIconSpanTimeEnd.addEventListener('click', () => {
+      timeWindowEndSpan.click();
+    });
+    editIconSpanTimeEnd.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpanTimeEnd.click();
+      }
+    });
+    if (element) {
+      element.dropOffTimeBegin ? element.dropOffTimeBegin.push(timeWindowBeginSpan) : element.dropOffTimeBegin = [timeWindowBeginSpan];
+      element.dropOffTimeEnd ? element.dropOffTimeEnd.push(timeWindowEndSpan) : element.dropOffTimeEnd = [timeWindowEndSpan];
+    }
 
     timeWindowSpan.appendChild(timeWindowBeginSpan);
+    timeWindowSpan.appendChild(editIconSpanTimeBegin);
     timeWindowSpan.appendChild(document.createTextNode(' - '));
     timeWindowSpan.appendChild(timeWindowEndSpan);
+    timeWindowSpan.appendChild(editIconSpanTimeEnd);
     dropOffParagraph.appendChild(spanPackageName);
+    dropOffParagraph.appendChild(editIconSpan);
     dropOffParagraph.appendChild(document.createTextNode(' x '));
     dropOffParagraph.appendChild(spanForPackageQuantity);
+    dropOffParagraph.appendChild(editIconSpanQuantity);
     dropOffParagraph.appendChild(divForAddress);
+    divForAddress.appendChild(editIconSpanAddress);
     dropOffParagraph.appendChild(timeWindowSpan);
     dropOffParagraph.appendChild(document.createElement('br'));
     //=========================================================
@@ -1151,6 +1262,21 @@ function handleReturnParagraph(item, clientSpan) {
         addressNameSpan.removeEventListener('blur', onBlur);
       });
     });
+    const editIconSpan = document.createElement('span');
+    editIconSpan.className = 'edit-pencil';
+    editIconSpan.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpan.style.cursor = 'pointer';
+    editIconSpan.addEventListener('click', () => {
+      addressNameSpan.click();  
+    });
+    editIconSpan.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpan.click();
+      }
+    });
+    addressContainer.appendChild(editIconSpan); 
+
     var fullAddress = '';
     if(returnTask.return?.address) {
         fullAddress = returnTask.return.address.address_line_1+', '+returnTask.return.address.postal_code;
@@ -1167,10 +1293,37 @@ function handleReturnParagraph(item, clientSpan) {
     enableTimeEditing(timeWindowBeginSpan, `return.time.begin`, item.id, returnTask.return.time_begin);
     const timeWindowEndSpan = document.createElement('span');
     enableTimeEditing(timeWindowEndSpan, `return.time.end`, item.id, returnTask.return.time_end);
-
+    const editIconSpanTimeBegin = document.createElement('span');
+    editIconSpanTimeBegin.className = 'edit-pencil';
+    editIconSpanTimeBegin.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpanTimeBegin.style.cursor = 'pointer';
+    editIconSpanTimeBegin.addEventListener('click', () => {
+      timeWindowBeginSpan.click();
+    });
+    editIconSpanTimeBegin.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpanTimeBegin.click();
+      }
+    });
+    const editIconSpanTimeEnd = document.createElement('span');
+    editIconSpanTimeEnd.className = 'edit-pencil';
+    editIconSpanTimeEnd.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+    editIconSpanTimeEnd.style.cursor = 'pointer';
+    editIconSpanTimeEnd.addEventListener('click', () => {
+      timeWindowEndSpan.click();
+    });
+    editIconSpanTimeEnd.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        editIconSpanTimeEnd.click();
+      }
+    });
     timeContainer.appendChild(timeWindowBeginSpan);
+    timeContainer.appendChild(editIconSpanTimeBegin);
     timeContainer.appendChild(document.createTextNode(' - '));
     timeContainer.appendChild(timeWindowEndSpan);
+    timeContainer.appendChild(editIconSpanTimeEnd);
     body.appendChild(addressContainer);
     body.appendChild(timeContainer);
     const bottom = document.createElement('div');
@@ -1331,9 +1484,60 @@ function fetchJobTemplates() {
           cardBody.setAttribute('tabindex', '-1');
           cardBody.className = 'card-body';
 
-          const title = document.createElement('h5');
-          title.className = 'card-title';
-          title.textContent = `Template #${item.id}`;
+          const title = document.createElement('div');
+          title.className = 'card-title d-flex justify-content-between align-items-center';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = item.name;
+          nameSpan.className = 'fw-bold me-2 border-bottom-grow ';
+          
+          nameSpan.contentEditable = true;
+          nameSpan.addEventListener('click', () => {
+            nameSpan.focus();
+          });
+          nameSpan.addEventListener('blur', () => {
+            const newName = nameSpan.textContent.trim();
+            if (newName === '') {
+              alert('Name cannot be empty.');
+              nameSpan.textContent = item.name; // Restore original value
+              return;
+            }
+            if(newName !== item.name){
+              item.name = newName;
+              updateJobTemplate(item.id, { name: newName });
+            }
+            
+          });
+          nameSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+            e.preventDefault();
+            nameSpan.blur();
+            }
+          });
+          const editIconSpan = document.createElement('span');
+          editIconSpan.className = 'edit-pencil';
+          editIconSpan.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
+          editIconSpan.style.cursor = 'pointer';
+          editIconSpan.addEventListener('click', () => {
+            nameSpan.contentEditable = true;
+            nameSpan.focus();
+          });
+          editIconSpan.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              editIconSpan.click();
+            }
+          });
+          const idBadge = document.createElement('span');
+          idBadge.textContent = `#${item.id}`;
+          idBadge.className = 'badge bg-secondary';
+          const templateNameDiv = document.createElement('div');
+
+          title.appendChild(nameSpan);
+          title.appendChild(editIconSpan);
+          templateNameDiv.appendChild(nameSpan);
+          templateNameDiv.appendChild(editIconSpan);
+          title.appendChild(templateNameDiv);
           cardBody.appendChild(title);
           //=========================================================================
           const notesIconSpan = document.createElement('span');
@@ -1373,7 +1577,12 @@ function fetchJobTemplates() {
           fixedPriceLabel.className = 'card-text';
           const fixedPriceValue = document.createElement('span');
           fixedPriceValue.textContent = item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2);
-          fixedPriceValue.className = item.fixedPrice === 0 ? 'text-muted' : '';
+          fixedPriceValue.className = 'border-bottom fw-bold ms-1';
+          if (item.fixedPrice === 0) {
+          fixedPriceValue.classList.add('text-muted');
+          } else {
+          fixedPriceValue.classList.remove('text-muted');
+          }
           fixedPriceValue.setAttribute('data-updatefield', 'fixedPrice');
           fixedPriceValue.setAttribute('data-placeholder', 'Flexible');
           fixedPriceValue.setAttribute('tabindex', '-1');
@@ -1420,44 +1629,7 @@ function fetchJobTemplates() {
             }
           });
           //=========================================================================
-          const nameParagraph = document.createElement('p');
-          const namespan = document.createElement('span');
-          namespan.className = 'card-text';
-          namespan.textContent = `Name:`;
-          nameParagraph.appendChild(namespan);
-          const nameText = document.createElement('span');
-          nameText.textContent = item.name;
-          nameText.className = 'item-Name';
-          nameText.setAttribute('data-updatefield', 'name');
-          nameParagraph.appendChild(nameText);
-          const editPencilSpanName = document.createElement('span');
-          editPencilSpanName.className = 'edit-pencil';
-          editPencilSpanName.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
-          editPencilSpanName.style.cursor = 'pointer';
-          editPencilSpanName.setAttribute('tabindex', '-1');
-          element.templateName = editPencilSpanName;
-          editPencilSpanName.addEventListener('click', () => {
-            nameText.contentEditable = true;
-            nameText.focus();
-            nameText.addEventListener('blur', () => {
-              nameText.contentEditable = false;
-              updateJobTemplate(item.id, { name: nameText.textContent });
-            });
-            nameText.addEventListener('keydown', (event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                nameText.blur();
-              }
-            });
-          });
-          editPencilSpanName.addEventListener('keydown',(e) => {
-            if(e.key === 'Enter'){
-              e.preventDefault();
-              editPencilSpanName.click();
-            }
-          });
-          nameParagraph.appendChild(editPencilSpanName);
-          cardBody.appendChild(nameParagraph);
+          
           const clientParagraph = handleClientParagraph(item,element);
           const pickupParagraph = handlePickupParagraph(item, clientParagraph.clientSpan,element);
           const dropsParagraph = handleDropsParagraph(item, clientParagraph.clientSpan,element);
