@@ -496,7 +496,7 @@ public function index(Request $request,SettingsService $settings)
     public function updateStatus(UpdateJobRequest $request, Job $job){
         $job->status_id =   $request->status_id;
         $job->save();
-        return redirect()->route('job.show',['job' => $job])->with('success_message', 'Updated sucsesfully');
+        return redirect()->route('job.show',['job' => $job])->with('success_message', 'Job status updated sucsesfully');
     }
     public function moveToOtherInvoiceItem(Request $request, Job $job){
       try{

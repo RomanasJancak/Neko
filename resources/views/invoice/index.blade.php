@@ -13,8 +13,10 @@
       <thead>
         <tr>
           <th>#</th>
+          <th>ID</th>
           <th>Invoice Number</th>
           <th>Customer</th>
+          <th>Lines</th>
           <th>Amount</th>
           <th>Date</th>
           <th>Actions</th>
@@ -24,10 +26,14 @@
         @foreach($invoices as $invoice)
           <tr>
             <td>{{ $loop->iteration }}</td>
+            <td>{{ $invoice->id }}</td>
             <td>{{ $invoice->invoice_number }}</td>
-            <td>{{ $invoice->customer_name }}</td>
-            <td>${{ number_format($invoice->amount, 2) }}</td>
-            <td>{{ $invoice->created_at->format('Y-m-d') }}</td>
+            <td>{{ $invoice->client->name }}</td>
+            @foreach($invoice->invoiceItems as $item)
+              <td>{{ $item->id }} - ${{ number_format($item->price, 2) }}</td>
+            @endforeach
+            <td>${{ number_format($invoice->total, 2) }}</td>
+            <td>{{ $invoice->invoice_date}}</td>
             <td>
               <a href="{{ route('invoice.show', $invoice->id) }}" class="btn btn-info btn-sm">View</a>
               <a href="{{ route('invoice.edit', $invoice->id) }}" class="btn btn-warning btn-sm">Edit</a>

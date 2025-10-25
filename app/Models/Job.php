@@ -122,7 +122,7 @@ class Job extends Model
         return $this->belongsTo(Group::class, 'group_id');
     }
     public function invoice(){
-        return $this->belongsTo(Invoice::class, 'invoice_id');
+        return $this->invoiceItem ? $this->invoiceItem->invoice : null;
     }
     public function invoiceItem(){
         return $this->belongsTo(InvoiceItem::class, 'invoice_item_id');

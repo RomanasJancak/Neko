@@ -12,7 +12,7 @@ class Invoice extends Model
     protected $fillable = ['client_id','status_id','issue_date','due_date','paid_date','total_amount','notes'];
     public function client()
     {
-        return $this->belongsTo(Client::class);
+         return $this->belongsTo(Client::class, 'customer_id');
     }
     public function status()
     {
