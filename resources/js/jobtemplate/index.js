@@ -742,8 +742,10 @@ function handlePickupParagraph(item,clientSpan,element = null) {
   paragraph.appendChild(spanForIcon);
   paragraph.appendChild(label);
   paragraph.appendChild(spanForName);
-  paragraph.appendChild(addressSpan);
   paragraph.appendChild(editIconSpan);
+  paragraph.appendChild(document.createElement('br'));
+  paragraph.appendChild(addressSpan);
+  
   paragraph.appendChild(document.createElement('br'));
   paragraph.appendChild(timeWindowSpan);
   paragraph.appendChild(document.createElement('br'));
@@ -890,6 +892,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     const textContentnForspanForAddressName = dropOff ? !dropOff.address ? pakuote.dropoff_name	: dropOff.address.name : '';
     spanForAddressName.textContent = textContentnForspanForAddressName;
     divForAddress.appendChild(spanForAddressName);
+    
     divForAddress.className = 'drop-off-address';
     spanForAddressName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
     spanForAddressName.setAttribute('data-template-id', item.id);
@@ -923,7 +926,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     const addressSpan = document.createElement('span');
     addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
     addressSpan.className = 'text-muted full-address';
-    divForAddress.appendChild(addressSpan);
+    
     const editIconSpanAddress = document.createElement('span');
     editIconSpanAddress.className = 'edit-pencil';
     editIconSpanAddress.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
@@ -941,6 +944,9 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     if (element) {
       element.dropOffAddressEditIcon ? element.dropOffAddressEditIcon.push(editIconSpanAddress) : element.dropOffAddressEditIcon = [editIconSpanAddress];
     }
+    divForAddress.appendChild(editIconSpanAddress);
+    divForAddress.appendChild(document.createElement('br'));
+    divForAddress.appendChild(addressSpan);
     //=================================================================
     const timeWindowSpan = document.createElement('span');
     const timeWindowBeginSpan = document.createElement('span');
@@ -994,7 +1000,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     dropOffParagraph.appendChild(spanForPackageQuantity);
     dropOffParagraph.appendChild(editIconSpanQuantity);
     dropOffParagraph.appendChild(divForAddress);
-    divForAddress.appendChild(editIconSpanAddress);
+    //divForAddress.appendChild(editIconSpanAddress);
     dropOffParagraph.appendChild(timeWindowSpan);
     dropOffParagraph.appendChild(document.createElement('br'));
     //=========================================================
@@ -1250,6 +1256,7 @@ function handleReturnParagraph(item, clientSpan) {
     const addressNameSpan = document.createElement('span');
     addressNameSpan.textContent = returnTask.return?.name || 'N/A';
     addressContainer.appendChild(addressNameSpan);
+    
     addressNameSpan.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
     addressNameSpan.setAttribute('data-template-id', item.id);
     addressNameSpan.setAttribute('data-updatefield', 'return.addressId');
@@ -1275,7 +1282,8 @@ function handleReturnParagraph(item, clientSpan) {
         editIconSpan.click();
       }
     });
-    addressContainer.appendChild(editIconSpan); 
+    addressContainer.appendChild(editIconSpan);
+    addressContainer.appendChild(document.createElement('br')); 
 
     var fullAddress = '';
     if(returnTask.return?.address) {
