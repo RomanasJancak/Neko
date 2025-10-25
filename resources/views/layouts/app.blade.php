@@ -90,7 +90,7 @@
                           </div>
                       </li>
                       @endif
-                      <li>
+                      <!-- <li>
                           <div class="btn-group">
                               <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                               Workloads
@@ -98,13 +98,10 @@
                               <ul class="dropdown-menu">
                                   <li><a class="dropdown-item" href="{{route('workload.index')}}">List</a></li>
                                   <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li>
-                                  <!-- <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li> -->
-                                  <!-- <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li> -->
-                                  
                               </ul>
                           </div>
-                      </li>
-                      <li>
+                      </li> -->
+                      <!-- <li>
                           <div>
                               <form method="POST" action="{{ route('user.updateRole', ['user' => auth()->user()]) }}" id="rolechangeForm">
                                   @csrf
@@ -119,8 +116,11 @@
                                   </select>
                               </form>
                           </div>
-                      </li>
+                      </li> -->
                       <li>
+                      <li>
+                        <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
+                      </li>
                       <div class="dropdown">
                           <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                               Other
