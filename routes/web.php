@@ -276,6 +276,15 @@ Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(functio
     Route::get('/', [UserSettingController::class, 'index'])->name('index');
     Route::post('/', [UserSettingController::class, 'update'])->name('update');
 });
+Route::group(['prefix'  => 'invoices'],function(){
+    Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');
+    Route::get('create', [InvoiceController::class, 'create'])->name('invoice.create')->middleware('auth');
+    Route::post('store', [InvoiceController::class, 'store'])->name('invoice.store')->middleware('auth');
+    Route::get('show/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show')->middleware('auth');
+    Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware('auth');
+    Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
+    Route::post('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
+});
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
     Route::post('store',              [InvoiceItemController::class, 'store'])->name('invoiceItem.store')->middleware('auth');
