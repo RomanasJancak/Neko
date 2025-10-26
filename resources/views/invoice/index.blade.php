@@ -29,9 +29,11 @@
             <td>{{ $invoice->id }}</td>
             <td>{{ $invoice->invoice_number }}</td>
             <td>{{ $invoice->client->name }}</td>
+            <td>
             @foreach($invoice->invoiceItems as $item)
-              <td>{{ $item->id }} - ${{ number_format($item->price, 2) }}</td>
+              {{ $item->description }}<br>
             @endforeach
+            </td>
             <td>${{ number_format($invoice->total, 2) }}</td>
             <td>{{ $invoice->invoice_date}}</td>
             <td>

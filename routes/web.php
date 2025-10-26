@@ -134,7 +134,8 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
     Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');
-});
+    Route::post('removeFromInvoiceItem/{job}',            [JobController::class, 'removeFromInvoiceItem'])->name('job.removeFromInvoiceItem')->middleware('auth');
+  });
 Route::group(['prefix'  =>  'tasks'],function(){
     Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
     Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
@@ -283,9 +284,10 @@ Route::group(['prefix'  => 'invoices'],function(){
     Route::get('show/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show')->middleware('auth');
     Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware('auth');
     Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
-    Route::post('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
+    Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
 });
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
     Route::post('store',              [InvoiceItemController::class, 'store'])->name('invoiceItem.store')->middleware('auth');
+    Route::delete('destroy/{invoiceItem}',  [InvoiceItemController::class, 'destroy'])->name('invoiceItem.destroy')->middleware('auth');
 });

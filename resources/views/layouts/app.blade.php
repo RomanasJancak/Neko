@@ -197,10 +197,27 @@
               </div>
           </div>
       </nav>
-      <div id="navAlert" class="alert alert-info text-center fade show position-absolute w-100" 
+      @if (session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                show_Success_Message({ message: @json(session('success')) });
+            });
+        </script>
+      @endif
+
+      @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                show_Error_Message({ message: @json(session('error')) });
+            });
+        </script>
+      @endif
+
+      <div id="navAlert" class="alert text-center fade show position-absolute w-100" 
           style="top: -100px; z-index: 1050; transition: top 0.5s ease;" role="alert">
-          <span id="navAlertText"></span>
+        <span id="navAlertText"></span>
       </div>
+
       <main class="py-4">
           @yield('content')
       </main>
@@ -223,53 +240,36 @@
       }
       
   </script>
-  <script>
-      function show_Error_Message({message, duration = 60000,zIndex=10000}) {
-          const alertBox = document.getElementById('navAlert');
-          const alertText = document.getElementById('navAlertText');
-          const navbar = document.querySelector('nav.navbar');
+<script>
+  function showAlert({message, type = 'info', duration = 3000, zIndex = 10000}) {
+      const alertBox = document.getElementById('navAlert');
+      const alertText = document.getElementById('navAlertText');
+      const navbar = document.querySelector('nav.navbar');
 
-          if (!alertBox || !navbar) return;
+      if (!alertBox || !navbar) return;
 
-          const navbarHeight = navbar.offsetHeight;
-          alertText.textContent = message;
+      const navbarHeight = navbar.offsetHeight;
+      alertText.textContent = message;
 
+      // Reset alert classes
+      alertBox.className = `alert alert-${type} text-center fade show position-absolute w-100`;
+      alertBox.style.top = `${navbarHeight}px`;
+      alertBox.style.zIndex = zIndex;
 
-          alertBox.style.top = `${navbarHeight}px`;
-          alertBox.style.zIndex = zIndex; // Default z-index if not provided
+      // Slide up after duration
+      setTimeout(() => {
+          alertBox.style.top = `-${alertBox.offsetHeight}px`;
+      }, duration);
+  }
 
-          alertBox.classList.add('show-alert');
-          alertBox.classList.add('alert-danger');
+  function show_Success_Message(options) {
+      showAlert({ ...options, type: 'success' });
+  }
 
-          setTimeout(() => {
-              alertBox.style.top = `-${alertBox.offsetHeight}px`;
-              alertBox.classList.remove('show-alert');
-              alertBox.classList.add('alert-danger');
-          }, duration);
-      }
-      function show_Success_Message({message, duration = 2000,zIndex=10000}) {
-          const alertBox = document.getElementById('navAlert');
-          const alertText = document.getElementById('navAlertText');
-          const navbar = document.querySelector('nav.navbar');
+  function show_Error_Message(options) {
+      showAlert({ ...options, type: 'danger' });
+  }
+</script>
 
-          if (!alertBox || !navbar) return;
-
-          const navbarHeight = navbar.offsetHeight;
-          alertText.textContent = message;
-
-
-          alertBox.style.top = `${navbarHeight}px`;
-          alertBox.style.zIndex = zIndex; // Default z-index if not provided
-
-          alertBox.classList.add('show-alert');
-          alertBox.classList.add('alert-success');
-
-          setTimeout(() => {
-              alertBox.style.top = `-${alertBox.offsetHeight}px`;
-              alertBox.classList.remove('show-alert');
-              alertBox.classList.remove('alert-success');
-          }, duration);
-      }
-  </script>
 </body>
 </html>

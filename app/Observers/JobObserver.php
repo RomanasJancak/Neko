@@ -88,21 +88,23 @@ class JobObserver
           //dd($invoice);
           $invoice->save();
       }
-      $invoiceItem = $job->invoiceItem;
+      $invoiceItem = $invoice->invoiceItems()->first();
       if (!$invoiceItem) {
           $invoiceItem = new InvoiceItem();
           $job->invoice_item_id = $invoiceItem->id;
           $invoiceItem->price = $job->price / 100;
+          $invoiceItem->description = "Deliveries from " . $invoice->invoice_date->copy()->subWeeks(2)->format('Y-m-d') . " to " . $invoice->invoice_date->format('Y-m-d');
       }
-      $invoiceItem->invoice_id = $invoice->id;
-      $invoiceItem->description = "Job #" . $job->eilesNumeris;
-      
+      $job->invoice_item_id = $invoiceItem->id;
+      $job->saveQuietly();
+      $invoiceItem->invoice_id = $invoice->id;          
       $invoiceItem->save();
+      
       $invoiceItem->recalculatePrice();
+      //dd($job, $invoiceItem);
       $invoiceItem->save();
       $invoice->recalculatePrice();
       $invoice->save();
-      $job->invoice_item_id = $invoiceItem->id;
-      $job->saveQuietly();
+
     }
 }

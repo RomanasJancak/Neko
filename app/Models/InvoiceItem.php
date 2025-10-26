@@ -17,13 +17,14 @@ class InvoiceItem extends Model
 
     public function jobs()
     {
-        return $this->hasMany(Job::class);
+        return $this->hasMany(Job::class, 'invoice_item_id');
     }
     public function recalculatePrice(): void
     {
-
+        //dd($this->jobs);
         $total = $this->jobs()->sum('price');
         $this->price = $total/100;
         $this->save();
+        //dd('recalculatePrice called', $total, $this->price);
     }
 }

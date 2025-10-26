@@ -6,7 +6,7 @@
     body {
         font-family: DejaVu Sans, Arial, sans-serif;
         font-size: 12px;
-        color: #333;
+        color: #ffffffff;
     }
 
     .invoice-item {
@@ -60,6 +60,7 @@
     th {
         font-weight: bold;
         text-align: left;
+        color : #000000ff;
     }
 
     td.text-right {
@@ -78,7 +79,7 @@
 
     .small-text {
         font-size: 10px;
-        color: #555;
+        color: #fffcfcff;
     }
 
     /* --- Fix table breaking issues --- */
@@ -104,6 +105,7 @@
             <tr>
                 <td><h4>Invoice Item #{{ $item->id }}</h4></td>
                 <td class="total">£{{ number_format($item->price, 2) }}</td>
+                <td><a href="{{ route('invoice.show', $item->invoice->id) }}">Invoice</a></td>
             </tr>
         </table>
     </div>
@@ -121,6 +123,7 @@
                     <th>Deliveries</th>
                     <th>Returns</th>
                     <th class="text-right">Amount (£)</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -152,7 +155,7 @@
                                     {{ $dropOff->packageType->name }} × {{ $dropOff->quantity }}
                                 </span>
                                 @if(!$loop->last)
-                                    <hr style="border:0;border-top:1px dotted #ccc;margin:3px 0;">
+                                    <hr style="border:0;border-top:1px dotted #ffffffff;margin:3px 0;">
                                 @endif
                             @endforeach
                         </td>
@@ -170,6 +173,13 @@
 
                         <td class="text-right">
                             {{ number_format(($job->price()['totalPrice'] ?? 0) / 100, 2) }}
+                        </td>
+                        <td>
+                            <form action="{{ route('job.removeFromInvoiceItem', $job->id) }}" method="POST" style="display:inline;">
+                              @csrf
+                              @method('POST')
+                              <button type="submit" class="btn btn-info btn-sm">Remove From Invoice</button>
+                            </form>
                         </td>
                     </tr>
                 @endforeach

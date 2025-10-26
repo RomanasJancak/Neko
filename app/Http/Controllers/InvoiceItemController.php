@@ -71,6 +71,14 @@ class InvoiceItemController extends Controller
      */
     public function destroy(InvoiceItem $invoiceItem)
     {
-        //
+      try{
+        if($invoiceItem->jobs()->count() > 0) {
+            return redirect()->back()->with('error', 'Cannot delete Invoice Item with associated Jobs.');
+        }
+        $invoiceItem->delete();
+        return redirect()->back()->with('success', 'Invoice deleted successfully.');
+      }catch(\Exception $e){
+          return redirect()->back()->with('error', 'Invoices cannot be deleted.');
+      }
     }
 }

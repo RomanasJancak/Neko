@@ -22,9 +22,13 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceItem::class);
     }
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
     public function recalculatePrice(): void
     {
-        $total = $this->invoiceItems()->sum('price');
+        $total = $this->items()->sum('price');
         $this->total = $total;
         $this->save();
     }

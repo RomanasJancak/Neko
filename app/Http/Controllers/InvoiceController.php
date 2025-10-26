@@ -38,7 +38,7 @@ class InvoiceController extends Controller
      */
     public function show(Invoice $invoice)
     {
-        //
+        return view('invoice.show', compact('invoice'));
     }
 
     /**
@@ -62,6 +62,17 @@ class InvoiceController extends Controller
      */
     public function destroy(Invoice $invoice)
     {
-        //
+      try{
+        foreach($invoice->invoiceItems as $item){
+          if($item->jobs()->count() > 0) {
+              return redirect()->route('invoice.index')->with('error', 'Cannot delete Invoice with associated Jobs.');
+          }
+          $item->delete();
+        }
+        $invoice->delete();
+        return redirect()->route('invoice.index')->with('success', 'Invoice deleted successfully.');
+      }catch(\Exception $e){
+        return redirect()->route('invoice.index')->with('error', 'Invoices cannot be deleted.');
+      }
     }
 }

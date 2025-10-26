@@ -1295,6 +1295,33 @@ public function index(Request $request,SettingsService $settings)
         
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }
+    public function removeFromInvoiceItem(Job $job)
+    {
+      try{
+        $invoiceItem = $job->invoiceItem;
+        $job->invoice_item_id = null;
+        $job->status_id = 23;
+        $job->save();
+        $invoiceItem->recalculatePrice();
+        $invoiceItem->save();
+        $invoiceItem->invoice->recalculatePrice();
+        $invoiceItem->invoice->save();
+        // return response()->json([
+        //   'success' => true,
+        //   'message' => 'Job removed from invoice item successfully.',
+        //   'job' => $job,
+        //   'invoiceItem' => $invoiceItem,
+        // ]);
+        return redirect()->back()->with('success', 'Job removed from invoice item successfully.');
+      }catch (\Exception $e){
+        // return response()->json([
+        //   'success' => false,
+        //   'message' => 'Failed to remove job from invoice item.',
+        //   'error' => $e->getMessage(),
+        // ], 500);
+        return redirect()->back()->with('error', 'Failed to remove job from invoice item: ' . $e->getMessage());
+      }
+    }
 
     
 }
