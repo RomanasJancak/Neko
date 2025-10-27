@@ -87,6 +87,7 @@ class Job extends Model
         'distance',
         'invoice_id',
         'price_adjustment_number',
+        'invoice_item_id',
     ];
     public function status(){
         return $this->belongsTo(Status::class,'status_id');

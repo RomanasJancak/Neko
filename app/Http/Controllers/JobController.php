@@ -1057,7 +1057,8 @@ public function index(Request $request,SettingsService $settings)
                         'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,
                         'package'       =>  isset($task->package)?$task->package:null,
                     ];
-                }),      
+                }),
+                'invoiceItem'           =>  is_null($job->invoiceItem) ? 'none' : $job->invoiceItem,    
                 ]);
         }
 
