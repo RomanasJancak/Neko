@@ -93,18 +93,23 @@ class JobObserver
           $invoiceItem = new InvoiceItem();
           $job->invoice_item_id = $invoiceItem->id;
           $invoiceItem->price = $job->price / 100;
-          $invoiceItem->description = "Deliveries from " . $invoice->invoice_date->copy()->subWeeks(2)->format('Y-m-d') . " to " . $invoice->invoice_date->format('Y-m-d');
+            $fromDate = Carbon::parse($invoice->invoice_date)->copy()->subWeeks(1)->format('Y-m-d');
+            $toDate = Carbon::parse($invoice->invoice_date)->format('Y-m-d');
+          $invoiceItem->description = "Deliveries from " . $fromDate . " to " . $toDate;
+
       }
-      $job->invoice_item_id = $invoiceItem->id;
-      $job->saveQuietly();
-      $invoiceItem->invoice_id = $invoice->id;          
+      $invoiceItem->invoice_id = $invoice->id;
       $invoiceItem->save();
+      
+      $job->invoice_item_id = $invoiceItem->id;
+      //dd($job);
+      $job->saveQuietly();
+                
       
       $invoiceItem->recalculatePrice();
       //dd($job, $invoiceItem);
       $invoiceItem->save();
       $invoice->recalculatePrice();
       $invoice->save();
-
     }
 }
