@@ -3,9 +3,9 @@
 @section('content')
 <div class="container">
   <h1 class="mb-4">Invoices</h1>
-  <div class="mb-3">
+  <!-- <div class="mb-3">
     <a href="{{ route('invoice.create') }}" class="btn btn-primary">Create New Invoice</a>
-  </div>
+  </div>  -->
   @if($invoices->isEmpty())
     <p>No invoices found.</p>
   @else
