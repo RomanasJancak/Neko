@@ -69,7 +69,7 @@ class JobObserver
           
           $invoice = new Invoice();
           $invoice->customer_id = $job->clientToBill_id;
-          $invoice->invoice_date = $nextMonday;
+          $invoice->invoice_date = $nextnextMonday;
           //dd($invoice->invoice_date);
           $invoice->due_date = $nextMonday->copy()->addDays(30);
           $invoice->invoice_number = 'INV-' . Carbon::now()->format('YmdHis') . '-' . $job->clientToBill_id;
