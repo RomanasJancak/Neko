@@ -109,9 +109,14 @@
             </tr>
         </table>
     </div>
-
-    <p class="description">{{ $item->description }}</p>
-
+    <p>
+      <form action="{{ route('invoiceItem.update', $item->id) }}" method="POST">
+        @csrf
+            @method('patch')
+        <label for="invoiceItem_description">Description:</label>
+        <input onchange="this.form.submit()" class="form-control" type="text" id="invoiceItem_description" name="invoiceItem_description" value="{{ $item->description }}">
+      </form>
+    </p>
     @if($item->jobs->count())
         <table>
             <thead>
@@ -120,70 +125,82 @@
                     <th>Status</th>
                     <th>Date</th>
                     <th>Pickup</th>
-                    <th>Deliveries</th>
+                    <th>Package</th>
+                    <th>Drop-off</th>
                     <th>Returns</th>
                     <th class="text-right">Amount (£)</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach($item->jobs as $job)
-                    @php
-                        $pickup = $job->getPickupTask();
-                        $dropOffs = $job->getDropOffs();
-                        $returnTask = $job->hasReturn() ? $job->getReturnTask()->return : null;
-                    @endphp
-                    <tr>
-                        <td>#{{ $job->id }}</td>
-                        <td>{{ ucfirst($job->status->name ?? 'Unknown') }}</td>
-                        <td>{{ $job->date ?? 'N/A' }}</td>
+<tbody>
+    @foreach($item->jobs as $job)
+        @php
+            $pickup = $job->getPickupTask();
+            $dropOffs = $job->getDropOffs();
+            $dropCount = count($dropOffs);
+            $returnTask = $job->hasReturn() ? $job->getReturnTask()->return : null;
+        @endphp
 
-                        <td>
-                            {{ $pickup->addressShort() ?? 'N/A' }}<br>
+        @foreach($dropOffs as $index => $dropOff)
+            <tr>
+                {{-- Only show these columns once per job --}}
+                @if($index === 0)
+                    <td rowspan="{{ $dropCount }}">#{{ $job->id }}</td>
+                    <td rowspan="{{ $dropCount }}">{{ ucfirst($job->status->name ?? 'Unknown') }}</td>
+                    <td rowspan="{{ $dropCount }}">{{ $job->date ?? 'N/A' }}</td>
+
+                    <td rowspan="{{ $dropCount }}">
+                        {{ $pickup->addressShort() ?? 'N/A' }}<br>
+                        <span class="small-text">
+                            {{ $pickup->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $pickup->timeWindowEndFormatted() ?? 'N/A' }}
+                        </span>
+                    </td>
+                @endif
+
+                {{-- Dropoff details --}}
+                <td>
+                    <span class="small-text">
+                        {{ $dropOff->packageType->name }} × {{ $dropOff->quantity }}
+                    </span>
+                </td>
+
+                <td>
+                    {{ $dropOff->addressShort() ?? 'N/A' }}<br>
+                    <span class="small-text">
+                        {{ $dropOff->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $dropOff->timeWindowEndFormatted() ?? 'N/A' }}
+                    </span>
+                </td>
+
+                {{-- Only show these columns once per job --}}
+                @if($index === 0)
+                    <td rowspan="{{ $dropCount }}">
+                        @if($returnTask)
+                            {{ $returnTask->addressShort() ?? 'N/A' }}<br>
                             <span class="small-text">
-                                {{ $pickup->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $pickup->timeWindowEndFormatted() ?? 'N/A' }}
+                                {{ $returnTask->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $returnTask->timeWindowEndFormatted() ?? 'N/A' }}
                             </span>
-                        </td>
+                        @else
+                            —
+                        @endif
+                    </td>
 
-                        <td>
-                            @foreach($dropOffs as $dropOff)
-                                {{ $dropOff->addressShort() ?? 'N/A' }}<br>
-                                <span class="small-text">
-                                    {{ $dropOff->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $dropOff->timeWindowEndFormatted() ?? 'N/A' }}
-                                </span><br>
-                                <span class="small-text">
-                                    {{ $dropOff->packageType->name }} × {{ $dropOff->quantity }}
-                                </span>
-                                @if(!$loop->last)
-                                    <hr style="border:0;border-top:1px dotted #ffffffff;margin:3px 0;">
-                                @endif
-                            @endforeach
-                        </td>
+                    <td rowspan="{{ $dropCount }}" class="text-right">
+                        {{ number_format(($job->price()['totalPrice'] ?? 0) / 100, 2) }}
+                    </td>
 
-                        <td>
-                            @if($returnTask)
-                                {{ $returnTask->addressShort() ?? 'N/A' }}<br>
-                                <span class="small-text">
-                                    {{ $returnTask->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $returnTask->timeWindowEndFormatted() ?? 'N/A' }}
-                                </span>
-                            @else
-                                —
-                            @endif
-                        </td>
+                    <td rowspan="{{ $dropCount }}">
+                        <form action="{{ route('job.removeFromInvoiceItem', $job->id) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('POST')
+                            <button type="submit" class="btn btn-info btn-sm">Remove From Invoice</button>
+                        </form>
+                    </td>
+                @endif
+            </tr>
+        @endforeach
+    @endforeach
+</tbody>
 
-                        <td class="text-right">
-                            {{ number_format(($job->price()['totalPrice'] ?? 0) / 100, 2) }}
-                        </td>
-                        <td>
-                            <form action="{{ route('job.removeFromInvoiceItem', $job->id) }}" method="POST" style="display:inline;">
-                              @csrf
-                              @method('POST')
-                              <button type="submit" class="btn btn-info btn-sm">Remove From Invoice</button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
         </table>
 
         <div class="section-total">

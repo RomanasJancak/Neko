@@ -285,9 +285,12 @@ Route::group(['prefix'  => 'invoices'],function(){
     Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware('auth');
     Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
     Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
+    Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
+    Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware('auth');
 });
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
     Route::post('store',              [InvoiceItemController::class, 'store'])->name('invoiceItem.store')->middleware('auth');
     Route::delete('destroy/{invoiceItem}',  [InvoiceItemController::class, 'destroy'])->name('invoiceItem.destroy')->middleware('auth');
-});
+    Route::patch('{invoiceItem}',      [InvoiceItemController::class, 'update'])->name('invoiceItem.update')->middleware('auth');
+  });

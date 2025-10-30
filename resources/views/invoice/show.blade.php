@@ -5,11 +5,17 @@
   <h1>Invoice Details</h1>
   <div class="card">
     <div class="card-header">
-      Invoice #{{ $invoice->id }}
+      Invoice #{{ $invoice->id }}<br>
+      <form action="{{ route('invoice.update', $invoice->id) }}" method="POST">
+        @csrf
+            @method('patch')
+        <label for="invoice_number">Invoice Number:</label>
+        <input onchange="this.form.submit()" class="form-control" type="text" id="invoice_number" name="invoice_number" value="{{ $invoice->invoice_number }}">
+      </form>
     </div>
     <div class="card-body">
-      <h5 class="card-title">Customer: {{ $invoice->customer_name }}</h5>
-      <p class="card-text">Date: {{ $invoice->date }}</p>
+      <h5 class="card-title">Customer: {{ $invoice->client->name }}</h5>
+      <p class="card-text">Date: {{ $invoice->invoice_date }}</p>
       <p class="card-text">Total Amount: ${{ number_format($invoice->total, 2) }}</p>
     </div>
   </div>

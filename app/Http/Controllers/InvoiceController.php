@@ -54,7 +54,15 @@ class InvoiceController extends Controller
      */
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
-        //
+      try{
+        $validated = $request->validate([
+          'invoice_number' => 'required|string|max:255|unique:invoices,invoice_number,' . $invoice->id,
+        ]);
+        $invoice->update($validated);
+        return redirect()->route('invoice.show', $invoice->id)->with('success', 'Invoice updated successfully.');
+      }catch(\Exception $e){
+        return redirect()->route('invoice.show', $invoice->id)->with('error', 'Invoice could not be updated. ' . $e->getMessage());
+      }
     }
 
     /**
@@ -74,5 +82,11 @@ class InvoiceController extends Controller
       }catch(\Exception $e){
         return redirect()->route('invoice.index')->with('error', 'Invoices cannot be deleted.');
       }
+    }
+    public function viewPDF(Invoice $invoice)
+    {
+        // $pdf = \PDF::loadView('invoice.pdf', compact('invoice'));
+        // return $pdf->stream('invoice_' . $invoice->invoice_number . '.pdf');
+        return view('invoice.pdf', compact('invoice'));
     }
 }

@@ -63,7 +63,18 @@ class InvoiceItemController extends Controller
      */
     public function update(UpdateInvoiceItemRequest $request, InvoiceItem $invoiceItem)
     {
-        //
+      try{
+        $request->merge([
+          'description' => $request->input('invoiceItem_description'),
+        ]);
+        $validated = $request->validate([
+          'description' => 'nullable|string',
+        ]);
+        $invoiceItem->update($validated);
+        return redirect()->route('invoiceItem.show', $invoiceItem->id)->with('success', 'Invoice Item updated successfully.');
+      }catch(\Exception $e){
+          return redirect()->back()->with('error', 'Failed to update Invoice Item.');
+      }
     }
 
     /**

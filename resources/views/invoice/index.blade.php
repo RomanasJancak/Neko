@@ -38,7 +38,7 @@
             <td>{{ $invoice->invoice_date}}</td>
             <td>
               <a href="{{ route('invoice.show', $invoice->id) }}" class="btn btn-info btn-sm">View</a>
-              <a href="{{ route('invoice.edit', $invoice->id) }}" class="btn btn-warning btn-sm">Edit</a>
+              <a href="{{ route('invoice.viewPDF', $invoice->id) }}" class="btn btn-secondary btn-sm" target="_blank">View PDF</a>
               <form action="{{ route('invoice.destroy', $invoice->id) }}" method="POST" class="d-inline">
                 @csrf
                 @method('DELETE')
