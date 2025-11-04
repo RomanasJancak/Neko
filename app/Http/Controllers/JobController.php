@@ -1168,12 +1168,14 @@ public function index(Request $request,SettingsService $settings)
                             }
                         }
                         // include jobs that simply have no package at all
-                        $subQ->orWhereNull('packages.id');
+                        //$subQ->orWhereNull('packages.id');
                     });
                 })
 
 
-                ->distinct()
+                ->distinct();
+                //dd($jobIds->toSql(), $jobIds->getBindings());
+                $jobIds = $jobIds
                 ->pluck('jobs.id'); 
 
             $jobs = Job::with(['clientToBill', 'tasks'])
