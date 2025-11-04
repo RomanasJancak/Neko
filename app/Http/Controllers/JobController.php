@@ -1202,6 +1202,10 @@ public function index(Request $request,SettingsService $settings)
                             'sortField' => $sortField,
                             'sortOrder' => $sortOrder,
                             'package' => $package,
+                            'status' => $statusFilterValue,
+                            'startDate' => $startDate,
+                            'endDate' => $endDate,
+                            'dOsp' => json_encode($dropOffFilterValue),
                         ]);
                 
                         return response()->json([
