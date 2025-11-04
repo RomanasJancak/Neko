@@ -456,6 +456,25 @@ public function index(Request $request,SettingsService $settings)
             $job->status_id =   $request->input('status_id');
             $job->clientToBill_id   =   $request->input('clientId');
             //$job->note  =   $request->input('note');
+            if($request->input('note') !== null && $request->input('note') !== ''){
+              
+              if($job->latestNote){
+                  //dd($job->latestNote->content, $request->input('note'),$job->latestNote->content !== $request->input('note'));
+                  if($job->latestNote->content !== $request->input('note')){
+                    
+                      $job->notes()->create([
+                          'content' => $request->input('note'),
+                          'user_id' => auth()->id(),
+                      ]);
+                  }
+              }else{
+                $job->notes()->create([
+                    'content' => $request->input('note'),
+                    'user_id' => auth()->id(),
+                ]);
+              }
+            }
+
             $job->save();
             return response()->json([
                 'message'   => 'Job updated successfully. ',
@@ -891,7 +910,7 @@ public function index(Request $request,SettingsService $settings)
             return response()->json([
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
-                'note'              =>  $job->latestNote->content ?? 'none',
+                'note'              =>  $job->latestNote,
                 'notes'             =>  $job->notes->isEmpty() ? 'none' : $job->notes->map(function ($note) {
                     return [
                         'id'        =>  $note->id,
