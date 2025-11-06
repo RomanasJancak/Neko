@@ -94,7 +94,7 @@ class Client extends Model
         $address->save();
         return $address;
     }
-    public function createAndAddNewAddress($id = false,$name,$type,$address_line_1,$address_line_2,$postalCode,$city,$country,){
+    public function createAndAddNewAddress($id,$name,$type,$address_line_1,$address_line_2,$postalCode,$city,$country,){
         if($id){
             $address = Address::find($id);
             if (!$address) {
