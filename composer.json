@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.1",
         "alexpechkarev/google-maps": "^10.0",
+        "dedoc/scramble": "^0.13.8",
         "doctrine/dbal": "^4.2",
         "fakerphp/faker": "^1.23",
         "guzzlehttp/guzzle": "^7.2",
