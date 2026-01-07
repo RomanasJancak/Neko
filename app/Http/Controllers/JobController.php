@@ -6,6 +6,8 @@ use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Http\Request;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -635,7 +637,7 @@ public function index(Request $request,SettingsService $settings)
       }
     }
     private function createJobFromTemplate(JobTemplate $template, $date){
-
+        Log::info('Creating job from template ID: '.$template->id.' for date: '.$date);
         $job                    =   new Job();
         $job->eilesNumeris      =   0;
         $job->manager_id        =   auth()->user()->id;
@@ -645,10 +647,11 @@ public function index(Request $request,SettingsService $settings)
         $job->date              =   $date;
         $job->save();
         $job->notes()->create([
-            'content' => $template->notes,
+            'content' => $template->notes ?? '',
             'user_id' => auth()->id(),
         ]);
         $job->save();
+        Log::info('Job created with ID: '.$job->id);
         foreach($template->lockedFields() as $field){
           if($field->is_locked){
             $job->changeLockedField($field->field_name, true);
@@ -662,9 +665,11 @@ public function index(Request $request,SettingsService $settings)
             $task->status_id        =   10;
             $task->save();
             $pickuptaskData = json_decode($template->pickuptask_data, true);
+            //dd($pickuptaskData);
             $pickuptask                 =   new Pickuptask();
             $pickuptask->task_id        =   $task->id;
             $pickuptask->status_id      =   10;
+            $pickuptask->pickupclientname       =   $pickuptaskData['pickupclientname'] ?? null;
             $pickuptask->pickupclientaddressline    =   $pickuptaskData['pickupclientaddressline'] ?? null;
             $pickuptask->pickupclientpostalcode    =   $pickuptaskData['pickupclientpostalcode'] ?? null;
             $pickuptask->pickupclientcity           =   $pickuptaskData['pickupclientcity'] ?? null;
@@ -679,28 +684,41 @@ public function index(Request $request,SettingsService $settings)
           $job->changeLockedField('pickup', true);
         }
         $dropoffData = json_decode($template->dropOffs_data, true);
+        Log::info('Processing '.count($dropoffData).' drop-off(s) from template ID: '.$template->id);
         foreach ($dropoffData as $key => $dropoffDataItem) {
-            //dd($dropoffDataItem);
+            Log::info('Creating drop-off '.($key+1).' for job ID: '.$job->id);
+            Log::debug('Drop-off data: ', $dropoffDataItem);
+
             $task                               =   new Task();
             $task->date         =   $date;
-            $task->order_number =   $dropoffDataItem['order_number'];
+            $task->order_number =   $dropoffDataItem['order_number'] ?? $dropoffDataItem['package']['order_number'] ?? $dropoffDataItem['package']['orderNumber'] ?? 00;
             $task->job_id       =   $job->id;
             $task->status_id       =   10;
             $task->save();
+            Log::info('Created drop-off task ID: '.$task->id.' for job ID: '.$job->id);
             $package                            =   new Package();
             $packageType                        =   PackageType::find($dropoffDataItem['package']['package_type']['id']);
             $package->job_id                    =   $job->id;
             $package->task_id                   =   $task->id;
             $package->packageType_id            =   $packageType->id; 
-            $package->orderNumber               =   $dropoffDataItem['order_number']; 
+            $package->orderNumber               =   $dropoffDataItem['order_number']?? $dropoffDataItem['package']['order_number'] ?? $dropoffDataItem['package']['orderNumber'] ?? 0; 
             $package->weight                    =   $dropoffDataItem['weight'] ?? 0; 
-            $package->dimensions                =   $dropoffDataItem['dimensions'] ?? '0x0x0'; 
+            $package->dimensions                =   $dropoffDataItem['package']['dimensions'] ?? '0x0x0';
             $package->quantity                  =   $dropoffDataItem['package']['quantity'] ?? 1;
-            $package->dropoff_adress_line       =   $dropoffDataItem['address']['address_line_1'] ?? null;
-            $package->dropoff_postal_code       =   $dropoffDataItem['address']['postal_code'] ?? null;
-            $package->dropoff_city              =   $dropoffDataItem['address']['city'] ?? null;
-            $package->dropoff_country           =   $dropoffDataItem['address']['country'] ?? null;
-            $package->dropoff_name              =   $dropoffDataItem['address']['name'] ?? null;
+            // TODO : cleanup naming of the fields below
+            $package->dropoff_name              =   $dropoffDataItem['package']['dropoff_name'] ?? null;
+            $package->dropoff_country           =   $dropoffDataItem['package']['dropoff_country'] ?? null;
+            $package->dropoff_city              =   $dropoffDataItem['package']['dropoff_city'] ?? null;
+            $package->dropoff_postal_code       =   $dropoffDataItem['package']['dropoff_postal_code'] ?? null;
+            $package->dropoff_adress_line       =   $dropoffDataItem['package']['dropoff_adress_line'] ?? null;
+            //
+            //$package->dropoff_adress_line       =   $dropoffDataItem['address']['address_line_1'] ?? null;
+            //$package->dropoff_postal_code       =   $dropoffDataItem['address']['postal_code'] ?? null;
+            //$package->dropoff_city              =   $dropoffDataItem['address']['city'] ?? null;
+            //$package->dropoff_country           =   $dropoffDataItem['address']['country'] ?? null;
+            // $package->dropoff_name              =   $dropoffDataItem['address']['name'] ?? null;
+
+
             $package->packagedropofftimebegin   =   $dropoffDataItem['package']['packagedropofftimebegin'] ?? null;
             $package->packagedropofftimeend     =   $dropoffDataItem['package']['packagedropofftimeend'] ?? null;
             $package->name                      =   $dropoffDataItem['package']['name'] ?? null;
@@ -708,6 +726,11 @@ public function index(Request $request,SettingsService $settings)
             $package->baseQuantityThreshold     =   $dropoffDataItem['package']['baseQuantityThreshold'] ?? null;
             $package->maxQuantityThreshold      =   $dropoffDataItem['package']['maxQuantityThreshold'] ?? null;
             $package->save();
+            Log::info('Created drop-off package ID: '.$package->id.' for job ID: '.$job->id);
+            Log::info('----------------------------');
+            Log::info('');
+            Log::info('');
+            Log::info($package);
         }
         $returnData = json_decode($template->return_data, true);
         //dd(isset($template->returntask_data), $template->returntask_data);
