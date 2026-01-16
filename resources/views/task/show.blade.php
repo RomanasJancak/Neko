@@ -47,7 +47,7 @@
     </div>
     <div class="row justify-content-md-center">
         <div class="col-auto">
-            <h3>Address</h3>
+            <h3>Address <i id="addressMapMarker" class="fa fa-sm text-success fa-map-marker " aria-hidden="true" style="cursor: pointer;"></i></h3>
         </div>
     </div>
     <div class="row justify-content-md-center">
