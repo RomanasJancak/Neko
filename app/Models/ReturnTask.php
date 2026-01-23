@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 use Carbon\Carbon;
 
-class Returntask extends Model
+class ReturnTask extends Model
 {
     use HasFactory;
     protected $fillable = [

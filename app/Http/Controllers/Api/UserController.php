@@ -48,18 +48,52 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\JobTemplate;
 
 use Illuminate\Support\Facades\Hash;
-
+/**
+ * @OA\Info(
+ * title="Neko API Documentation",
+ * version="1.0.0",
+ * description="API endpoints for Neko Project User Management",
+ * @OA\Contact(email="admin@neko.test")
+ * )
+ * * @OA\Server(
+ * url=L5_SWAGGER_CONST_HOST,
+ * description="Main API Server"
+ * )
+ * * @OA\SecurityScheme(
+ * type="http",
+ * scheme="bearer",
+ * bearerFormat="JWT",
+ * securityScheme="sanctum_auth"
+ * )
+ */
 class UserController extends Controller
 {
-    /**
+/**
      * @OA\Get(
      * path="/api/users",
      * summary="Get list of users",
      * tags={"Users"},
+     * security={{"sanctum_auth": {}}},
      * @OA\Parameter(name="id", in="query", description="Filter by ID", required=false, @OA\Schema(type="string")),
      * @OA\Parameter(name="name", in="query", description="Filter by name", required=false, @OA\Schema(type="string")),
      * @OA\Parameter(name="email", in="query", description="Filter by email", required=false, @OA\Schema(type="string")),
-     * @OA\Response(response=200, description="Successful response")
+     * @OA\Response(
+     * response=200,
+     * description="Successful response",
+     * @OA\JsonContent(
+     * @OA\Property(property="success", type="boolean", example=true),
+     * @OA\Property(property="data", type="object",
+     * @OA\Property(property="data", type="array", @OA\Items(
+     * @OA\Property(property="id", type="integer", example=1),
+     * @OA\Property(property="name", type="string", example="John Doe"),
+     * @OA\Property(property="email", type="string", example="john@example.com"),
+     * @OA\Property(property="phone", type="string", example="+3706000000"),
+     * @OA\Property(property="roles", type="array", @OA\Items(type="string", example="admin"))
+     * ))
+     * )
+     * )
+     * ),
+     * @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function index(Request $request)
@@ -100,6 +134,7 @@ class UserController extends Controller
      * path="/api/users",
      * summary="Create a new user",
      * tags={"Users"},
+     * security={{"sanctum_auth": {}}},
      * @OA\RequestBody(
      * required=true,
      * @OA\JsonContent(
@@ -146,6 +181,7 @@ class UserController extends Controller
      * path="/api/users/{user}",
      * summary="Update an existing user",
      * tags={"Users"},
+     * security={{"sanctum_auth": {}}},
      * @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
      * @OA\RequestBody(
      * @OA\JsonContent(
@@ -196,6 +232,7 @@ class UserController extends Controller
      * path="/api/users/{user}",
      * summary="Delete a user",
      * tags={"Users"},
+     * security={{"sanctum_auth": {}}},
      * @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
      * @OA\Response(response=200, description="Deleted"),
      * @OA\Response(response=409, description="Conflict - User has dependencies")
@@ -232,6 +269,7 @@ class UserController extends Controller
      * path="/api/users/{user}",
      * summary="Get a specific user",
      * tags={"Users"},
+     * security={{"sanctum_auth": {}}},
      * @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
      * @OA\Response(response=200, description="User found")
      * )
