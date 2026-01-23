@@ -375,6 +375,206 @@
                     }
                 ]
             }
+        },
+        "/api/workloads": {
+            "get": {
+                "tags": [
+                    "Workloads"
+                ],
+                "summary": "List all workloads",
+                "operationId": "78027fb79bffd235e5160562f1a752b9",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Workloads"
+                ],
+                "summary": "Create a workload",
+                "operationId": "b91b07d190595310f357810d0fc9a9a7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "bike_id",
+                                    "year",
+                                    "month",
+                                    "day"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer"
+                                    },
+                                    "bike_id": {
+                                        "type": "integer"
+                                    },
+                                    "capacity": {
+                                        "type": "string",
+                                        "example": "100%"
+                                    },
+                                    "year": {
+                                        "type": "integer"
+                                    },
+                                    "month": {
+                                        "type": "integer"
+                                    },
+                                    "day": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            }
+        },
+        "/api/workloads/{workload}": {
+            "get": {
+                "tags": [
+                    "Workloads"
+                ],
+                "operationId": "99cd1240845d90a3eafa2d84dc7799fd",
+                "parameters": [
+                    {
+                        "name": "workload",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Workloads"
+                ],
+                "operationId": "2d9ff6e87cb3d285df617b401dd7ed16",
+                "parameters": [
+                    {
+                        "name": "workload",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Workloads"
+                ],
+                "operationId": "59db8d50bbe5eefe4f0eec25c5d2fcd7",
+                "parameters": [
+                    {
+                        "name": "workload",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            }
+        },
+        "/api/workloads/calendar": {
+            "get": {
+                "tags": [
+                    "Workloads"
+                ],
+                "summary": "Get workload calendar data",
+                "operationId": "ac0041ebf0de6e4a9d1a2a32a57e63a1",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "view",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "monthly",
+                                "weekly"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -387,6 +587,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Workloads",
+            "description": "API Endpoints for Workload Management"
+        },
         {
             "name": "Jobs",
             "description": "Jobs"
