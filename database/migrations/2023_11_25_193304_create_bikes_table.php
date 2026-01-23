@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('bikes', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
             $table->string('name');
+            $table->foreignId('status_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

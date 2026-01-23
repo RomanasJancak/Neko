@@ -12,4 +12,7 @@ class Bike extends Model
     {
         return $this->hasMany(Workload::class,'bike_id'); 
     }
+    public function status(){
+        return $this->belongsTo(Status::class,'status_id');
+    }
 }
