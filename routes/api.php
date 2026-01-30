@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Workload Routes
     Route::get('workloads/calendar', [WorkloadController::class, 'calendar']);
     Route::apiResource('workloads', WorkloadController::class);
+    Route::patch('workloads/{workload}/bike', [WorkloadController::class, 'assignBike']);
 
     // Specific User Workload associations
     Route::prefix('users/{user}')->group(function () {

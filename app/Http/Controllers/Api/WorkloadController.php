@@ -10,6 +10,7 @@ use App\Http\Requests\StoreWorkloadRequest;
 use App\Http\Requests\UpdateWorkloadRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Services\BikeAssignmentService;
 
 /**
  * @OA\Tag(name="Workloads", description="API Endpoints for Workload Management")
@@ -188,5 +189,51 @@ class WorkloadController extends Controller
             'data' => $workloadData,
             'bikes' => Bike::all()
         ]);
+    }
+    /**
+     * @OA\Post(
+     *   path="/api/workloads/{workload}/assign-bike",
+     *   summary="Assign or swap a bike for a workload",
+     *   tags={"Workloads"},
+     *   security={{"sanctum_auth":{}}},
+     *   @OA\Parameter(
+     *     name="workload",
+     *     in="path",
+     *     required=true,
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"bike_id"},
+     *       @OA\Property(property="bike_id", type="integer", example=1)
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Bike swapped successfully"
+     *   ),
+     *   @OA\Response(
+     *     response=422,
+     *     description="Validation error"
+     *   )
+     * )
+     */
+    public function assignBike(AssignBikeRequest $request, Workload $workload)
+    {
+      try {
+          // We use the Service to handle the "Zero Argument" execute principle
+          BikeAssignmentService::forCourier($workload->user)
+              ->onDay($workload->day->format('Y-m-d')) // Ensuring correct format
+              ->toBike($request->validated('bike_id'))
+              ->execute();
+
+          return response()->json([
+              'message' => 'Bike swapped successfully',
+              'workload' => $workload->load('bike')
+          ]);
+      } catch (\Exception $e) {
+          return response()->json(['error' => $e->getMessage()], 422);
+      }
     }
 }

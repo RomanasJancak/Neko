@@ -575,9 +575,66 @@
                     }
                 ]
             }
+        },
+        "/api/workloads/{workload}/assign-bike": {
+            "post": {
+                "tags": [
+                    "Workloads"
+                ],
+                "summary": "Assign or swap a bike for a workload",
+                "operationId": "187ce74f5eb6a4eee2dd224cd72da8af",
+                "parameters": [
+                    {
+                        "name": "workload",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "bike_id"
+                                ],
+                                "properties": {
+                                    "bike_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bike swapped successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum_auth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "BikeAssignmentService": {
+                "title": "Bike Assignment Service",
+                "description": "Logic for swapping courier bikes"
+            }
+        },
         "securitySchemes": {
             "sanctum_auth": {
                 "type": "http",

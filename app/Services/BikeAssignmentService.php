@@ -5,7 +5,13 @@ use App\Models\Bike;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Exception;
-
+/**
+ * @OA\Schema(
+ * schema="BikeAssignmentService",
+ * title="Bike Assignment Service",
+ * description="Logic for swapping courier bikes"
+ * )
+ */
 class BikeAssignmentService
 {
     private User $courier;
@@ -46,8 +52,11 @@ class BikeAssignmentService
 
     private function ensureUserIsEligible(): void
     {
+        // Check if user has a workload linked to the specific Day model/date
         $hasWorkload = $this->courier->workloads()
-            ->where('day', $this->day)
+            ->whereHas('day', function($query) {
+                $query->where('date', $this->day);
+            })
             ->where('capacity', '>', 0)
             ->exists();
 
