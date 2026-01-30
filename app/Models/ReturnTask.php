@@ -9,6 +9,7 @@ use Carbon\Carbon;
 
 class ReturnTask extends Model
 {
+    protected $table = 'returntasks';
     use HasFactory;
     protected $fillable = [
         'name',
