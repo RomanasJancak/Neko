@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class UserStatus extends Model
 {
     use HasFactory;
+    protected $fillable = ['status_id'];
+
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
 }

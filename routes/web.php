@@ -23,7 +23,8 @@ use App\Http\Controllers\ExtraTypesController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\InvoiceItemController;
-use App\Http\Controllers\InvoiceController;  
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\UserStatusController;  
    
 /*
 |--------------------------------------------------------------------------
@@ -294,3 +295,8 @@ Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::delete('destroy/{invoiceItem}',  [InvoiceItemController::class, 'destroy'])->name('invoiceItem.destroy')->middleware('auth');
     Route::patch('{invoiceItem}',      [InvoiceItemController::class, 'update'])->name('invoiceItem.update')->middleware('auth');
   });
+Route::resource('user-statuses', UserStatusController::class)
+    ->only(['index', 'store', 'destroy'])
+    ->parameters([
+        'user-statuses' => 'userStatus' // This ensures {user_status} matches your destroy(UserStatus $userStatus) variable
+  ]);

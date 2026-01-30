@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserStatusRequest;
 use App\Http\Requests\UpdateUserStatusRequest;
 use App\Models\UserStatus;
+use App\Models\Status;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UserStatusController extends Controller
 {
@@ -13,7 +16,8 @@ class UserStatusController extends Controller
      */
     public function index()
     {
-        //
+      $userStatuses = UserStatus::with('status')->get();
+      return view('user-statuses.index', compact('userStatuses'));
     }
 
     /**
@@ -29,7 +33,19 @@ class UserStatusController extends Controller
      */
     public function store(StoreUserStatusRequest $request)
     {
-        //
+      $request->validate(['name' => 'required|string|max:255']);
+
+        DB::transaction(function () use ($request) {
+            // 1. Create the global status record
+            $status = Status::create([
+                'name' => $request->name,
+            ]);
+
+            // 2. Map it to the UserStatus table
+            UserStatus::create(['status_id' => $status->id]);
+        });
+
+        return back()->with('success', 'User status created successfully.');
     }
 
     /**
@@ -61,6 +77,13 @@ class UserStatusController extends Controller
      */
     public function destroy(UserStatus $userStatus)
     {
-        //
+        DB::transaction(function () use ($userStatus) {
+            // Delete the master status (Cascade will handle user_status if set, 
+            // but we'll do it explicitly for safety)
+            Status::find($userStatus->status_id)->delete();
+            $userStatus->delete();
+        });
+
+        return back()->with('success', 'Status removed.');
     }
 }
