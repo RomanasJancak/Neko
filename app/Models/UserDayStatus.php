@@ -9,7 +9,7 @@ class UserDayStatus extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id','user_status_id', 'date'];
+    protected $fillable = ['user_id','user_status_id', 'day_id'];
 
     public function userStatus()
     {

@@ -12,6 +12,10 @@
         {
             "url": "http://127.0.0.1:8000",
             "description": "Main API Server"
+        },
+        {
+            "url": "/api",
+            "description": "Main API Server"
         }
     ],
     "paths": {
@@ -376,6 +380,170 @@
                 ]
             }
         },
+        "/user-day-statuses": {
+            "get": {
+                "tags": [
+                    "UserDayStatus"
+                ],
+                "summary": "Get list of user daily statuses",
+                "operationId": "44c4448df2b9bacb8418fba9e36cea77",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of statuses"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "UserDayStatus"
+                ],
+                "summary": "Assign status to user for a specific day",
+                "operationId": "c9323142d6227a70d10f71eaa8ab653c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "user_status_id",
+                                    "day_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "user_status_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "day_id": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Status assigned successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/user-day-statuses/{user_day_status}": {
+            "get": {
+                "tags": [
+                    "UserDayStatus"
+                ],
+                "summary": "Retrieve a specific daily status entry",
+                "operationId": "4026a400f553599c7fbbb1ee698c0b17",
+                "parameters": [
+                    {
+                        "name": "user_day_status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "UserDayStatus"
+                ],
+                "summary": "Update an existing daily status entry",
+                "operationId": "ff6440d62b3ba8f099ffa8612eecc6ce",
+                "parameters": [
+                    {
+                        "name": "user_day_status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "user_status_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "UserDayStatus"
+                ],
+                "summary": "Delete a daily status entry",
+                "operationId": "8ba07d090fb769b09ed04e49573ba086",
+                "parameters": [
+                    {
+                        "name": "user_day_status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted successfully"
+                    }
+                }
+            }
+        },
         "/api/workloads": {
             "get": {
                 "tags": [
@@ -655,6 +823,10 @@
         {
             "name": "Users",
             "description": "Users"
+        },
+        {
+            "name": "UserDayStatus",
+            "description": "UserDayStatus"
         }
     ]
 }

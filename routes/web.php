@@ -300,3 +300,8 @@ Route::resource('user-statuses', UserStatusController::class)
     ->parameters([
         'user-statuses' => 'userStatus' // This ensures {user_status} matches your destroy(UserStatus $userStatus) variable
   ]);
+Route::resource('user-day-statuses', App\Http\Controllers\UserDayStatusController::class)
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->parameters([
+        'user-day-statuses' => 'userDayStatus' // Ensures {user_day_status} matches your controller variable
+]);
