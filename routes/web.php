@@ -24,7 +24,9 @@ use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\InvoiceItemController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\UserStatusController;  
+use App\Http\Controllers\UserStatusController;
+
+use App\Models\User;
    
 /*
 |--------------------------------------------------------------------------
@@ -296,7 +298,7 @@ Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::patch('{invoiceItem}',      [InvoiceItemController::class, 'update'])->name('invoiceItem.update')->middleware('auth');
   });
 Route::resource('user-statuses', UserStatusController::class)
-    ->only(['index', 'store', 'destroy'])
+    ->only(['index','update', 'store', 'destroy'])
     ->parameters([
         'user-statuses' => 'userStatus' // This ensures {user_status} matches your destroy(UserStatus $userStatus) variable
   ]);
@@ -305,3 +307,18 @@ Route::resource('user-day-statuses', App\Http\Controllers\UserDayStatusControlle
     ->parameters([
         'user-day-statuses' => 'userDayStatus' // Ensures {user_day_status} matches your controller variable
 ]);
+
+Route::get('/get-token', function () {
+    // 1. Find the first user (or specify an ID: User::find(1))
+    $user = User::first();
+
+    if (!$user) {
+        return "No user found in the database. Please create a user first.";
+    }
+
+    // 2. Create a new token
+    $token = $user->createToken('SwaggerToken')->plainTextToken;
+
+    // 3. Output the token to the browser
+    return "Your new token is: <br><br><strong>{$token}</strong><br><br>Copy this into Swagger.";
+});

@@ -26,7 +26,7 @@
                 <select name="user_id" required class="bg-gray-800 text-gray-100 border-gray-700 rounded-md">
                     <option value="">Select User</option>
                     @foreach($users as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                        <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }} ({{ $user->email }})</option>
                     @endforeach
                 </select>
             </div>
@@ -35,18 +35,13 @@
                 <select name="user_status_id" required class="bg-gray-800 text-gray-100 border-gray-700 rounded-md">
                     <option value="">Select Status</option>
                     @foreach($userStatuses as $status)
-                        <option value="{{ $status->id }}">{{ $status->status->name ?? $status->id }}</option>
+                        <option value="{{ $status->id }}" {{ old('user_status_id') == $status->id ? 'selected' : '' }}>{{ $status->status->name ?? $status->id }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-gray-300 text-sm mb-1">Day</label>
-                <select name="day_id" required class="bg-gray-800 text-gray-100 border-gray-700 rounded-md">
-                    <option value="">Select Day</option>
-                    @foreach($days as $day)
-                        <option value="{{ $day->id }}">{{ $day->date }}</option>
-                    @endforeach
-                </select>
+                <label class="block text-gray-300 text-sm mb-1">Date</label>
+                <input type="date" name="date" value="{{ old('date') }}" required class="bg-gray-800 text-gray-100 border-gray-700 rounded-md">
             </div>
             <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Add</button>
         </form>
@@ -61,7 +56,7 @@
                 <label class="block text-gray-300 text-sm mb-1">User</label>
                 <select name="user_id" required class="bg-gray-700 text-gray-100 border-gray-600 rounded-md">
                     @foreach($users as $user)
-                        <option value="{{ $user->id }}" @if($editStatus->user_id == $user->id) selected @endif>
+                        <option value="{{ $user->id }}" @if(old('user_id', $editStatus->user_id) == $user->id) selected @endif>
                             {{ $user->name }} ({{ $user->email }})
                         </option>
                     @endforeach
@@ -71,21 +66,15 @@
                 <label class="block text-gray-300 text-sm mb-1">Status</label>
                 <select name="user_status_id" required class="bg-gray-700 text-gray-100 border-gray-600 rounded-md">
                     @foreach($userStatuses as $status)
-                        <option value="{{ $status->id }}" @if($editStatus->user_status_id == $status->id) selected @endif>
+                        <option value="{{ $status->id }}" @if(old('user_status_id', $editStatus->user_status_id) == $status->id) selected @endif>
                             {{ $status->status->name ?? $status->id }}
                         </option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label class="block text-gray-300 text-sm mb-1">Day</label>
-                <select name="day_id" required class="bg-gray-700 text-gray-100 border-gray-600 rounded-md">
-                    @foreach($days as $day)
-                        <option value="{{ $day->id }}" @if($editStatus->day_id == $day->id) selected @endif>
-                            {{ $day->date }}
-                        </option>
-                    @endforeach
-                </select>
+                <label class="block text-gray-300 text-sm mb-1">Date</label>
+                <input type="date" name="date" value="{{ old('date', $editStatus->day->date ?? '') }}" required class="bg-gray-700 text-gray-100 border-gray-600 rounded-md">
             </div>
             <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Update</button>
             <a href="{{ route('user-day-statuses.index') }}" class="text-gray-400 hover:text-gray-200 ml-2">Cancel</a>

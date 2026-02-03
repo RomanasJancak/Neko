@@ -67,9 +67,13 @@ class UserStatusController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserStatusRequest $request, UserStatus $userStatus)
+    public function update(Request $request, UserStatus $userStatus)
     {
-        //
+        $request->validate(['name' => 'required|string|max:255']);
+        $status = $userStatus->status;
+        $status->name = $request->name;
+        $status->save();
+        return redirect()->route('user-statuses.index')->with('success', 'Status updated successfully.');
     }
 
     /**

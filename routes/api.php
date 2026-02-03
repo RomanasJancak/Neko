@@ -3,9 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\JobController as JobController;
+use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkloadController;
+use App\Http\Controllers\Api\UserDayStatusController;
+use App\Http\Controllers\Api\UserStatusController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('jobs', JobController::class);
@@ -23,4 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('workloads', [UserController::class, 'assignWorkload']);
         Route::delete('workloads/{workload}', [UserController::class, 'removeWorkload']);
     });
+    Route::apiResource('user-day-statuses', UserDayStatusController::class);
+Route::apiResource('user-statuses', UserStatusController::class)->parameters([
+    'user-statuses' => 'user_status' // Forces the parameter to be {user_status}
+]);
 });

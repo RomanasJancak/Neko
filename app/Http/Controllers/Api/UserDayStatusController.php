@@ -14,7 +14,7 @@ use OpenApi\Attributes as OA;
 class UserDayStatusController extends Controller
 {
     #[OA\Get(
-        path: "/user-day-statuses",
+        path: "/api/user-day-statuses",
         summary: "Get list of user daily statuses",
         tags: ["UserDayStatus"],
         parameters: [
@@ -37,7 +37,6 @@ class UserDayStatusController extends Controller
                 $query->whereBetween('day_id', [$startDay->id, $endDay->id]);
             }
         }
-
         return response()->json($query->orderByDesc('day_id')->paginate(20));
     }
 
@@ -66,11 +65,18 @@ class UserDayStatusController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'user_status_id' => 'required|exists:user_statuses,id',
-            'day_id' => 'required|exists:days,id',
+            'date' => 'required|date',
         ]);
 
-        $userDayStatus = UserDayStatus::create($validated);
+        // Find or create the Day by date
+        $day = Day::firstOrCreate(['name' => $validated['date'], 'date' => $validated['date']]);
 
+
+        $userDayStatus = UserDayStatus::create([
+            'user_id' => $validated['user_id'],
+            'user_status_id' => $validated['user_status_id'],
+            'day_id' => $day->id,
+        ]);
         return response()->json([
             'message' => 'Created successfully',
             'data' => $userDayStatus->load(['user', 'userStatus.status', 'day'])

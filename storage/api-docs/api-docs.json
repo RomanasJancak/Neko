@@ -380,13 +380,13 @@
                 ]
             }
         },
-        "/user-day-statuses": {
+        "/api/user-day-statuses": {
             "get": {
                 "tags": [
                     "UserDayStatus"
                 ],
                 "summary": "Get list of user daily statuses",
-                "operationId": "44c4448df2b9bacb8418fba9e36cea77",
+                "operationId": "66b78e1e7dba93d613140723cf9f66df",
                 "parameters": [
                     {
                         "name": "start_date",
@@ -412,7 +412,9 @@
                         "description": "Paginated list of statuses"
                     }
                 }
-            },
+            }
+        },
+        "/user-day-statuses": {
             "post": {
                 "tags": [
                     "UserDayStatus"
