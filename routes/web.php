@@ -266,6 +266,7 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
     Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
     Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+    Route::post('/jobtemplate', [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
     Route::patch('addEmptyDropOff', [JobTemplateController::class, 'addEmptyDropOff'])->name('jobTemplate.addEmptyDropOff')->middleware('auth');
     Route::patch('addEmptyReturn', [JobTemplateController::class, 'addEmptyReturn'])->name('jobTemplate.addEmptyReturn')->middleware('auth');
     Route::patch('removeDropOff', [JobTemplateController::class, 'removeDropOff'])->name('jobTemplate.removeDropOff')->middleware('auth');
