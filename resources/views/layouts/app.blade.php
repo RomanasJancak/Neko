@@ -127,7 +127,7 @@
                           </button>
                               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                   <li>
-                                  <a class="dropdown-item " href="{{route('jobTemplate.index')}}">Job templates</a>
+                                  <a class="dropdown-item " href="{{route('jobtemplate.index')}}">Job templates</a>
                                   </li>
                                   <li>
                                   <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>

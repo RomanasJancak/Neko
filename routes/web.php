@@ -262,15 +262,25 @@ Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
 //     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 // });
 Route::group(['prefix'  => 'jobtemplates'],function(){
-    Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
-    Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
-    Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
-    Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
-    Route::post('store', [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
-    Route::patch('addEmptyDropOff', [JobTemplateController::class, 'addEmptyDropOff'])->name('jobTemplate.addEmptyDropOff')->middleware('auth');
-    Route::patch('addEmptyReturn', [JobTemplateController::class, 'addEmptyReturn'])->name('jobTemplate.addEmptyReturn')->middleware('auth');
-    Route::patch('removeDropOff', [JobTemplateController::class, 'removeDropOff'])->name('jobTemplate.removeDropOff')->middleware('auth');
-    Route::patch('removeReturn', [JobTemplateController::class, 'removeReturn'])->name('jobTemplate.removeReturn')->middleware('auth');
+    Route::get('',                                  [JobTemplateController::class, 'index'])->name('jobtemplate.index')->middleware('auth');
+    Route::get('fetch',                             [JobTemplateController::class, 'fetchTemplatesPaginate'])->name('jobtemplate.fetch')->middleware('auth');
+    Route::get('{id}/info',                         [JobTemplateController::class, 'getTemplateInfo'])->name('jobtemplate.info')->middleware('auth');
+    Route::post('',                                 [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
+    Route::patch('{template}',                      [JobTemplateController::class, 'update'])->name('jobtemplate.update')->middleware('auth');
+    Route::delete('{template}',                     [JobTemplateController::class, 'destroy'])->name('jobtemplate.destroy')->middleware('auth');
+    Route::post('createFromJob',                    [JobTemplateController::class, 'createFromJob'])->name('jobtemplate.createFromJob')->middleware('auth');
+    Route::post('createJobsBatch',                  [JobTemplateController::class, 'createJobsBatch'])->name('jobtemplate.createJobsBatch')->middleware('auth');
+    Route::post('{template}/setFieldLock',          [JobTemplateController::class, 'setFieldLock'])->name('jobtemplate.setFieldLock')->middleware('auth');
+    
+    // Old routes (commented - for reference only)
+    // Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
+    // Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
+    // Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+    // Route::post('store', [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
+    // Route::patch('addEmptyDropOff', [JobTemplateController::class, 'addEmptyDropOff'])->name('jobTemplate.addEmptyDropOff')->middleware('auth');
+    // Route::patch('addEmptyReturn', [JobTemplateController::class, 'addEmptyReturn'])->name('jobTemplate.addEmptyReturn')->middleware('auth');
+    // Route::patch('removeDropOff', [JobTemplateController::class, 'removeDropOff'])->name('jobTemplate.removeDropOff')->middleware('auth');
+    // Route::patch('removeReturn', [JobTemplateController::class, 'removeReturn'])->name('jobTemplate.removeReturn')->middleware('auth');
 });
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');

@@ -1,236 +1,466 @@
 @extends('layouts.app')
+
 @section('style')
 <style>
-.container-content{
-    /* border-style: double; */
-}
-.no-padding {
-    padding: 0 !important;
-}
-.info-icon {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-
-.info-icon .tooltip {
-            visibility: hidden;
-            width: 200px;
-            background-color: #f9f9f9;
-            color: #333;
-            text-align: left;
-            border-radius: 5px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%; /* Position the tooltip above the icon */
-            left: 50%;
-            margin-left: -100px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-.info-icon:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-
-.info-icon .tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #f9f9f9 transparent transparent transparent;
-        }
-
-.info-content {
-            display: none;
-            margin-top: 10px;
-        }
-
-.info-content.active {
-            display: block;
-        }
-.input-container {
-    position: relative;
-    width: 100%;}
-.input-container input {
-    width: 100%;
-    padding: 10px 10px 10px 1.5rem; 
-    box-sizing: border-box;}
-
-.input-container .fa-magnifying-glass {
-    position: absolute;
-    top: 50%;
-    left: 1rem;
-    transform: translateY(-50%);
-    color: #aaa; 
+    .template-container {
+        padding: 20px;
     }
-/* Apply to every element when focused */
-/* Base: all elements just have normal border */
-/* Base focus setup */
-*:focus {
-  outline: none;
-  position: relative;
-  border: 2px solid cyan; 
-  border-radius: 8px;
-}
 
-/* Animated border highlight */
-*:focus::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 2px; /* border thickness */
-  background: linear-gradient(
-    90deg,
-    rgba(167, 211, 106, 1) 0%,
-    rgba(111, 87, 199, 1) 20%,
-    rgba(167, 211, 106, 1) 40%,
-    rgba(167, 211, 106, 0) 100%
-  );
-  background-size: 200% 100%;
-  background-repeat: repeat;
-  pointer-events: none;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+    .search-section {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+    }
 
-  animation: slideBorder 3s linear infinite;
-}
+    .search-input {
+        flex: 1;
+        min-width: 300px;
+    }
 
-/* Slide animation */
-@keyframes slideBorder {
-  0% { background-position: 0 0; }
-  100% { background-position: 200% 0; }
-}
-#calendar-modal.modal {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  margin: 0 !important;
-  width: 400px;
-  height: auto;
-  z-index: 9999;
-  display: block;
-}
-#calendar-modal .modal-dialog {
-  margin: 0 !important;
-  position: static !important;
-  width: 100%;
-  height: auto;
-}
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
 
+    .templates-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: transparent;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .templates-table thead {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .templates-table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .templates-table td {
+        padding: 15px;
+        color: rgba(255, 255, 255, 0.8);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .templates-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transition: background 0.2s;
+    }
+
+    .row-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        font-size: 13px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-view {
+        background: #0d6efd;
+        color: white;
+    }
+
+    .btn-view:hover {
+        background: #0956ca;
+    }
+
+    .btn-jobs {
+        background: #198754;
+        color: white;
+    }
+
+    .btn-jobs:hover {
+        background: #146c43;
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #bb2d3b;
+    }
+
+    .pagination-section {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .pagination-info {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+    }
+
+    .modal-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 999;
+    }
+
+    .modal-backdrop.active {
+        display: block;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #212529;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        min-width: 600px;
+        max-width: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+    }
+
+    .modal.active {
+        display: block;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        color: #fff;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .modal-close:hover {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .template-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #fff;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .loading::after {
+        content: '';
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-top: 3px solid #0d6efd;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .success-message {
+        background: rgba(25, 135, 84, 0.2);
+        color: #86efac;
+        padding: 12px 15px;
+        border: 1px solid rgba(25, 135, 84, 0.4);
+        border-radius: 4px;
+        margin-bottom: 15px;
+        display: none;
+    }
+
+    .success-message.show {
+        display: block;
+    }
+
+    .error-message {
+        background: rgba(220, 53, 69, 0.2);
+        color: #fca5a5;
+        padding: 12px 15px;
+        border: 1px solid rgba(220, 53, 69, 0.4);
+        border-radius: 4px;
+        margin-bottom: 15px;
+        display: none;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    /* Bootstrap dark theme form control overrides */
+    .form-control, .form-select {
+        background: #3a3f45;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: #3a3f45;
+        border-color: #0d6efd;
+        color: #fff;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .form-check-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
 </style>
-
-
 @endsection
+
 @section('content')
-<div class="container container-content">
-
-  <!-- Top Pagination -->
-  <div class="d-flex justify-content-center mt-3 links-pagination"></div>
-
-  <!-- Filter + Sort Header -->
-  <div class="row g-3 mb-3">
-    <!-- ID -->
-    <div class="col-12 col-md-4">
-      <label class="form-label d-flex align-items-center justify-content-between">
-        <span>Id</span>
-        <button id="button-sort-id" class="btn btn-sm sort-btn" data-sort-field="id" data-sort-order="asc">
-          <i id="button-sort-id-icon" class="fa-solid fa-up-down" data-default-class="fa-solid fa-up-down"></i>
-        </button>
-      </label>
-      <div class="input-group">
-        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <input type="text" id="search-id" class="form-control" placeholder="Search...">
-      </div>
+<div class="template-container">
+    <!-- Header -->
+    <div style="margin-bottom: 30px;">
+        <h1 class="text-light" style="margin: 0 0 10px 0;">Job Templates</h1>
+        <p class="text-muted" style="margin: 0;">Create and manage job templates for batch job creation</p>
     </div>
 
-    <!-- Name -->
-    <div class="col-12 col-md-4">
-      <label class="form-label d-flex align-items-center justify-content-between">
-        <span>Name</span>
-        <button id="button-sort-name" class="btn btn-sm sort-btn" data-sort-field="name" data-sort-order="asc">
-          <i id="button-sort-name-icon" class="fa-solid fa-up-down" data-default-class="fa-solid fa-up-down"></i>
-        </button>
-      </label>
-      <div class="input-group">
-        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <input type="text" id="search-name" class="form-control" placeholder="Search...">
-      </div>
+    <!-- Search and Actions -->
+    <div class="search-section">
+        <div class="search-input">
+            <input type="text" id="search-input" class="form-control" placeholder="Search by ID or Name...">
+        </div>
+        <div class="action-buttons">
+            <button id="btn-create-template" class="btn btn-success">
+                <i class="fas fa-plus"></i> Create Template
+            </button>
+        </div>
     </div>
 
-    <!-- Client -->
-    <div class="col-12 col-md-4">
-      <label class="form-label d-flex align-items-center justify-content-between">
-        <span>Client</span>
-        <button id="button-sort-clientName" class="btn btn-sm sort-btn" data-sort-field="clientName" data-sort-order="asc">
-          <i id="button-sort-clientName-icon" class="fa-solid fa-up-down" data-default-class="fa-solid fa-up-down"></i>
-        </button>
-      </label>
-      <div class="input-group">
-        <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <input type="text" id="search-clientName" class="form-control" placeholder="Search...">
-      </div>
+    <!-- Success/Error Messages -->
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
+
+    <!-- Templates Table -->
+    <div id="templates-container" class="loading">
+        Loading templates...
     </div>
-  </div>
 
-  <!-- Data Grid -->
-  <div class="row g-3" id="itemListGrid">
-  </div>
-
-  <!-- Create Template Button -->
-  <div class="text-end my-3">
-    <button type="button" class="btn btn-success create-btn" id="createTemplateBtn">
-      <i class="fa fa-plus-circle me-1"></i>Create Template
-    </button>
-  </div>
-
-  <!-- Bottom Pagination -->
-  <div class="d-flex justify-content-center mt-3 links-pagination"></div>
+    <!-- Pagination -->
+    <div id="pagination-container" class="pagination-section"></div>
 </div>
 
-<!-- Modal task end -->
-<!-- Calendar Modal (Bootstrap) -->
-<div class="modal fade" id="calendar-modal" tabindex="-1" aria-labelledby="calendarModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="calendarModalLabel">Select Date Range</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-3 d-flex flex-column flex-md-row gap-2 align-items-center">
-          <label class="form-label mb-0">Start date:
-            <input type="date" id="calendar-modal-start" class="form-control ms-2" style="min-width: 150px; display: inline-block;" />
-          </label>
-          <label class="form-label mb-0">End date:
-            <input type="date" id="calendar-modal-end" class="form-control ms-2" style="min-width: 150px; display: inline-block;" />
-          </label>
-        </div>
-        <div class="mb-3">
-          <label class="form-label fw-bold">Select days:</label>
-          <div id="calendar-modal-days" class="d-flex flex-wrap gap-2">
-            <!-- Checkboxes will be rendered by JS for consistency -->
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer border-0">
-        <button type="button" class="btn btn-success" id="calendar-modal-confirm">Confirm</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-      </div>
+<!-- Template Info Modal -->
+<div id="modal-backdrop" class="modal-backdrop"></div>
+<div id="template-modal" class="modal">
+    <div class="modal-header">
+        <h2 class="modal-title">Edit Template</h2>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
     </div>
-  </div>
+    <div class="modal-body text-light" id="modal-body-content">
+        <!-- Content loaded here -->
+    </div>
+    <div class="modal-footer">
+        <button id="modal-delete-btn" class="btn btn-danger" onclick="handleDeleteTemplate(selectedTemplateId)" style="margin-right: auto;">Delete</button>
+        <button id="modal-close-footer-btn" class="btn btn-secondary">Cancel</button>
+        <button id="modal-save-btn" class="btn btn-success" onclick="handleUpdateTemplate()">Save Changes</button>
+    </div>
 </div>
+
+<!-- Create Template Modal -->
+<div id="create-template-modal" class="modal">
+    <div class="modal-header">
+        <h2 class="modal-title">Create New Template</h2>
+        <button class="modal-close" id="create-template-close-btn">&times;</button>
+    </div>
+    <div class="modal-body text-light">
+        <form id="create-template-form">
+            <div class="form-group mb-3">
+                <label for="template-name" class="form-label">Template Name *</label>
+                <input type="text" id="template-name" class="form-control" placeholder="e.g., Morning Route" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="template-client" class="form-label">Client *</label>
+                <select id="template-client" class="form-control form-select" required>
+                    <option value="">Select a client...</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="template-pickup-address" class="form-label">Pickup Address</label>
+                <select id="template-pickup-address" class="form-control form-select">
+                    <option value="">Select an address...</option>
+                </select>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group mb-3">
+                    <label for="template-pickup-begin" class="form-label">Pickup Time Begin</label>
+                    <input type="time" id="template-pickup-begin" class="form-control">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="template-pickup-end" class="form-label">Pickup Time End</label>
+                    <input type="time" id="template-pickup-end" class="form-control">
+                </div>
+            </div>
+
+            <p class="text-muted" style="font-size: 14px; margin-top: 15px;">
+                <strong>Note:</strong> You can add pickup/dropoff details after creating the template by editing it.
+            </p>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button id="create-template-cancel-btn" class="btn btn-secondary">Cancel</button>
+        <button id="create-template-submit-btn" class="btn btn-success">Create Template</button>
+    </div>
+</div>
+
+<!-- Create Jobs Modal -->
+<div id="create-jobs-modal" class="modal">
+    <div class="modal-header">
+        <h2 class="modal-title">Create Jobs from Template</h2>
+        <button class="modal-close" id="create-jobs-close-btn">&times;</button>
+    </div>
+    <div class="modal-body text-light">
+        <div class="template-info-grid">
+            <div class="info-item">
+                <div class="info-label">Template ID</div>
+                <div class="info-value" id="create-jobs-template-id">-</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Template Name</div>
+                <div class="info-value" id="create-jobs-template-name">-</div>
+            </div>
+        </div>
+
+        <form id="create-jobs-form">
+            <div class="form-group mb-3">
+                <label for="start-date" class="form-label">Start Date</label>
+                <input type="date" id="start-date" class="form-control" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="end-date" class="form-label">End Date</label>
+                <input type="date" id="end-date" class="form-control" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="form-label">Days of Week</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    @php
+                        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                    @endphp
+                    @foreach ($days as $day)
+                        <div class="form-check">
+                            <input class="form-check-input day-checkbox" type="checkbox" value="{{ $day }}" id="day-{{ strtolower($day) }}">
+                            <label class="form-check-label" for="day-{{ strtolower($day) }}">
+                                {{ $day }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Summary</label>
+                <div style="padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; font-size: 14px; color: rgba(255, 255, 255, 0.8);">
+                    <span id="jobs-summary">Select dates and days above</span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button id="create-jobs-cancel-btn" class="btn btn-secondary">Cancel</button>
+        <button id="create-jobs-submit-btn" class="btn btn-success">Create Jobs</button>
+    </div>
+</div>
+
 @endsection
+
 @push('scripts')
 @vite('resources/js/jobtemplate/index.js')
 @endpush
