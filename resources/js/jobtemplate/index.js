@@ -1,4 +1,51 @@
 window.clientIdSpanMap = new Map();
+
+/**
+ * Sanitizes user input to prevent XSS attacks
+ * @param {string} input - The input string to sanitize
+ * @returns {string} - Sanitized string safe for DOM insertion
+ */
+function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return String(input);
+  }
+  
+  const div = document.createElement('div');
+  div.textContent = input;
+  return div.innerHTML;
+}
+
+/**
+ * Safely sets text content, escaping HTML entities
+ * @param {HTMLElement} element - The element to update
+ * @param {string} text - The text to set
+ */
+function safeSetText(element, text) {
+  if (!element) return;
+  element.textContent = text || '';
+}
+
+/**
+ * Safely sets an attribute value
+ * @param {HTMLElement} element - The element to update
+ * @param {string} attr - Attribute name
+ * @param {string} value - Attribute value
+ */
+function safeSetAttribute(element, attr, value) {
+  if (!element || !attr) return;
+  
+  // Prevent javascript: and data: URLs in href/src attributes
+  if ((attr === 'href' || attr === 'src') && value) {
+    const lowerValue = value.toLowerCase().trim();
+    if (lowerValue.startsWith('javascript:') || lowerValue.startsWith('data:')) {
+      console.warn('Blocked potentially malicious URL:', value);
+      return;
+    }
+  }
+  
+  element.setAttribute(attr, sanitizeInput(value));
+}
+
 function getTimeInputElement(){
   const timeInput = document.createElement('input');
   timeInput.type = 'time';
@@ -10,7 +57,7 @@ function getTimeInputElement(){
   return timeInput;
 }
 function enableTimeEditing(span, updateField, itemId, initialValue) {
-  span.textContent = convertTo12Hour(initialValue.split(' ')[1]?.substring(0, 5));
+  safeSetText(span, convertTo12Hour(initialValue.split(' ')[1]?.substring(0, 5)));
   span.className = 'text-muted';
   span.setAttribute('data-updatefield', updateField);
   span.setAttribute('data-template-id', itemId);
@@ -29,7 +76,7 @@ function enableTimeEditing(span, updateField, itemId, initialValue) {
     const removeInput = () => {
       const selectedTime = timeInput.value;
       if (selectedTime) {
-        span.textContent = convertTo12Hour(selectedTime);
+        safeSetText(span, convertTo12Hour(selectedTime));
       }
       document.body.removeChild(timeInput);
     };
@@ -125,7 +172,7 @@ function addTypeHeadSearch_fromClientList(editableSpan) {
 
         items.forEach((item, index) => {
             const li = document.createElement("li");
-            li.textContent = item.name;
+            safeSetText(li, item.name);
             li.style.padding = "5px 10px";
             li.style.cursor = "pointer";
             li.classList.add('bg-dark', 'text-light');
@@ -200,7 +247,7 @@ function addTypeHeadSearch_fromClientList(editableSpan) {
     }
 
     function handleSelect(item) {
-        editableSpan.textContent = item.name;
+        safeSetText(editableSpan, item.name);
         editableSpan.blur(); // <-- Blur here
 
         const clientInfoUrlTemplate = window.ROUTES.WEB.CLIENT.GETINFO;
@@ -294,7 +341,7 @@ function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
 
         items.forEach((item, index) => {
             const li = document.createElement("li");
-            li.textContent = item.name;
+            safeSetText(li, item.name);
             li.style.padding = "5px 10px";
             li.style.cursor = "pointer";
             li.classList.add('bg-dark', 'text-light');
@@ -355,7 +402,7 @@ function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
     }
 
     function handleSelect(item) {
-        editableSpan.textContent = item.name;
+        safeSetText(editableSpan, item.name);
         editableSpan.blur(); // <-- Blur here
 
         const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
@@ -367,7 +414,7 @@ function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
                   editableSpan.setAttribute('data-address-id', `${data.id}`);
                   const nextSpan = editableSpan.nextElementSibling;
                   if (nextSpan && nextSpan.classList.contains('full-address')) {
-                    nextSpan.textContent = `${data.address_line_1}), (${data.postal_code}`;
+                    safeSetText(nextSpan, `${data.address_line_1}), (${data.postal_code}`);
                   }
                 }
                 /* pritaikyti kad tiktu ir droppoffui */
@@ -432,7 +479,7 @@ function addPackageTypeSelect_fromClient(editableSpan) {
 
         data.packageTypes.forEach(packageType => {
           const li = document.createElement("li");
-          li.textContent = packageType.name;
+          safeSetText(li, packageType.name);
           li.style.padding = "5px 10px";
           li.style.cursor = "pointer";
           li.classList.add('bg-dark', 'text-light');
@@ -454,7 +501,7 @@ function addPackageTypeSelect_fromClient(editableSpan) {
   });
 
   function handleSelect(item) {
-    editableSpan.textContent = item.name;
+    safeSetText(editableSpan, item.name);
     editableSpan.blur();
 
     // Send selected package type ID to backend
@@ -535,12 +582,12 @@ function handleClientParagraph(item, element = null){
   const clientName = client ? client.name : 'N/A';
   const clientClass = client ? '' : 'text-danger';
   const spanForIcon = document.createElement('span');
-  spanForIcon.setAttribute('data-updatefield', 'locks.client');
+  safeSetAttribute(spanForIcon, 'data-updatefield', 'locks.client');
   spanForIcon.style.cursor = 'pointer'; 
   const icon = document.createElement('i');
   const iconClass = client.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
   icon.className = iconClass;
-  icon.setAttribute('aria-hidden', 'true');
+  safeSetAttribute(icon, 'aria-hidden', 'true');
   spanForIcon.appendChild(icon);
   lockIconChanger(spanForIcon,item.id,element);
   if(element){
@@ -548,11 +595,11 @@ function handleClientParagraph(item, element = null){
   }
   clientParagraph.appendChild(spanForIcon);
   const spanForClientIdentifier = document.createElement('span');
-  spanForClientIdentifier.textContent = "Client: ";
+  safeSetText(spanForClientIdentifier, "Client: ");
   spanForClientIdentifier.className = 'card-text';
   clientParagraph.appendChild(spanForClientIdentifier);
   const spanForName = document.createElement('span');
-  spanForName.textContent = clientName;
+  safeSetText(spanForName, clientName);
   spanForName.className = clientClass;
   spanForName.classList.add('border-bottom');
   spanForName.setAttribute('data-template-id', item.id);
@@ -603,10 +650,10 @@ function handlePickupParagraph(item,clientSpan,element = null) {
     element.locks ? element.locks.push(spanForIcon) : element.locks = [spanForIcon];
   }
   const label = document.createElement('strong');
-  label.textContent = 'Pickup address: ';
+  safeSetText(label, 'Pickup address: ');
 
   const spanForName = document.createElement('span');
-  spanForName.textContent = item.pickuptask.data.pickupclientname || 'N/A';
+  safeSetText(spanForName, item.pickuptask.data.pickupclientname || 'N/A');
   spanForName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
   spanForName.setAttribute('data-template-id', item.id);
   if (!clientIdSpanMap.has(item.id)) {
@@ -617,7 +664,7 @@ function handlePickupParagraph(item,clientSpan,element = null) {
   addTypeHeadSearch_fromClient_AddressList(spanForName);
   const fullAddress = item.pickuptask.data.pickupclientaddressline+', '+item.pickuptask.data.pickupclientpostalcode;
   const addressSpan = document.createElement('span');
-  addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
+  safeSetText(addressSpan, fullAddress ?  '('+fullAddress+')' : '');
   addressSpan.className = 'text-muted full-address';
 
   const editIconSpan = document.createElement('span');
@@ -801,11 +848,11 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
   var pakuote = null;
   const spanForPackageQuantity = document.createElement('span');
   
-  spanForPackageQuantity.textContent = packageQuantity;
+  safeSetText(spanForPackageQuantity, packageQuantity);
   spanForPackageQuantity.className = 'text-muted';
   spanForPackageQuantity.setAttribute('data-template-id', item.id);
   if(!dropOff) {
-    spanPackageName.textContent = "select package";
+    safeSetText(spanPackageName, "select package");
     //spanPackageName.setAttribute('data-package-id', pakuote.id);
     spanPackageName.setAttribute('data-updatefield', `drop.new.packageTypeId`); // IMPORTANT FOR BACKEND ADJUST NEW POSIBILITY OF NEW PACKAGE
     spanForPackageQuantity.setAttribute('data-updatefield', `drop.new.packageQuantity`);
@@ -814,7 +861,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     if(!(pakuote = dropOff.package)){
       return document.createElement('div');
     };
-    spanPackageName.textContent = pakuote.package_type.name;
+    safeSetText(spanPackageName, pakuote.package_type.name);
     spanPackageName.setAttribute('data-package-id', pakuote.id);
     spanPackageName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageTypeId`);
     packageQuantity = pakuote.quantity;
@@ -837,10 +884,10 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
 
         if (!Number.isInteger(value)) {
           alert("Please enter a valid integer.");
-          spanForPackageQuantity.textContent = oldValue; // restore
+          safeSetText(spanForPackageQuantity, oldValue); // restore
         } else if (value < 0) {
           alert("Quantity cannot be negative.");
-          spanForPackageQuantity.textContent = oldValue; // restore
+          safeSetText(spanForPackageQuantity, oldValue); // restore
         } else if (value === 0) {
           if (confirm("Quantity is 0. Do you want to delete this package?")) {
             updateJobTemplate(
@@ -848,7 +895,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
               buildNestedObject(spanForPackageQuantity.getAttribute('data-updatefield'), 0)
             );
           } else {
-            spanForPackageQuantity.textContent = oldValue; // restore
+            safeSetText(spanForPackageQuantity, oldValue); // restore
           }
         } else {
           updateJobTemplate(
@@ -890,7 +937,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
     const divForAddress = document.createElement('div');
     const spanForAddressName = document.createElement('span');
     const textContentnForspanForAddressName = dropOff ? !dropOff.address ? pakuote.dropoff_name	: dropOff.address.name : '';
-    spanForAddressName.textContent = textContentnForspanForAddressName;
+    safeSetText(spanForAddressName, textContentnForspanForAddressName);
     divForAddress.appendChild(spanForAddressName);
     
     divForAddress.className = 'drop-off-address';
@@ -924,7 +971,7 @@ function getDropOffParagraph({dropOff,item,clientSpan,element = null}) {
       }
     }
     const addressSpan = document.createElement('span');
-    addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
+    safeSetText(addressSpan, fullAddress ?  '('+fullAddress+')' : '');
     addressSpan.className = 'text-muted full-address';
     
     const editIconSpanAddress = document.createElement('span');
@@ -1129,7 +1176,7 @@ function handleDropsParagraph(item, clientSpan,element = null) {
   spanForIcon.style.cursor = 'pointer';
   lockIconChanger(spanForIcon,item.id);
   const label = document.createElement('strong');
-  label.textContent = '<Drop-offs>';
+  safeSetText(label, '<Drop-offs>');
   label.className = 'ms-1';
   const buttonForAddDropOff = document.createElement('button');
   buttonForAddDropOff.className = 'btn btn-sm btn-primary ms-2';
@@ -1237,7 +1284,7 @@ function handleReturnParagraph(item, clientSpan) {
     lockIconSpan.appendChild(lockIcon);
 
     const titleText = document.createElement('strong');
-    titleText.textContent = 'Return';
+    safeSetText(titleText, 'Return');
     titleText.className = 'ms-1';
 
     titleContainer.appendChild(lockIconSpan);
@@ -1254,7 +1301,7 @@ function handleReturnParagraph(item, clientSpan) {
     const addressContainer = document.createElement('div');
     addressContainer.className = 'col';
     const addressNameSpan = document.createElement('span');
-    addressNameSpan.textContent = returnTask.return?.name || 'N/A';
+    safeSetText(addressNameSpan, returnTask.return?.name || 'N/A');
     addressContainer.appendChild(addressNameSpan);
     
     addressNameSpan.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
@@ -1292,7 +1339,7 @@ function handleReturnParagraph(item, clientSpan) {
         fullAddress = returnTask.return.adress_line+', '+returnTask.return.postal_code;
     }
     const addressSpan = document.createElement('span');
-    addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
+    safeSetText(addressSpan, fullAddress ?  '('+fullAddress+')' : '');
     addressSpan.className = 'text-muted full-address';
     addressContainer.appendChild(addressSpan);
     const timeContainer = document.createElement('div');
@@ -1496,7 +1543,7 @@ function fetchJobTemplates() {
           title.className = 'card-title d-flex justify-content-between align-items-center';
           
           const nameSpan = document.createElement('span');
-          nameSpan.textContent = item.name;
+          safeSetText(nameSpan, item.name);
           nameSpan.className = 'fw-bold me-2 border-bottom-grow ';
           
           nameSpan.contentEditable = true;
@@ -1507,7 +1554,7 @@ function fetchJobTemplates() {
             const newName = nameSpan.textContent.trim();
             if (newName === '') {
               alert('Name cannot be empty.');
-              nameSpan.textContent = item.name; // Restore original value
+              safeSetText(nameSpan, item.name); // Restore original value
               return;
             }
             if(newName !== item.name){
@@ -1537,7 +1584,7 @@ function fetchJobTemplates() {
             }
           });
           const idBadge = document.createElement('span');
-          idBadge.textContent = `#${item.id}`;
+          safeSetText(idBadge, `#${item.id}`);
           idBadge.className = 'badge bg-secondary';
           const templateNameDiv = document.createElement('div');
 
@@ -1581,10 +1628,10 @@ function fetchJobTemplates() {
           const fixedPriceDiv = document.createElement('div');
           fixedPriceDiv.className = 'fixed-price-div mb-2';
           const fixedPriceLabel = document.createElement('span');
-          fixedPriceLabel.textContent = 'Price: ';
+          safeSetText(fixedPriceLabel, 'Price: ');
           fixedPriceLabel.className = 'card-text';
           const fixedPriceValue = document.createElement('span');
-          fixedPriceValue.textContent = item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2);
+          safeSetText(fixedPriceValue, item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2));
           fixedPriceValue.className = 'border-bottom fw-bold ms-1';
           if (item.fixedPrice === 0) {
           fixedPriceValue.classList.add('text-muted');
@@ -1618,10 +1665,10 @@ function fetchJobTemplates() {
                 if (!isNaN(newValue)) {
                   if(newValue == '0'){
                     newValue = 0;
-                    fixedPriceValue.textContent = 'Flexible';
+                    safeSetText(fixedPriceValue, 'Flexible');
                     fixedPriceValue.classList.add('text-muted');
                   }else{
-                    fixedPriceValue.textContent = newValue.toFixed(2);
+                    safeSetText(fixedPriceValue, newValue.toFixed(2));
                     fixedPriceValue.classList.remove('text-muted');
                   }
                   item.fixedPrice = newValue;
@@ -1648,7 +1695,7 @@ function fetchJobTemplates() {
           cardBody.appendChild(returnParagraph);
           //==========================================================================================
           const createJobsButton = document.createElement('button');
-          createJobsButton.textContent = 'Create Jobs';
+          safeSetText(createJobsButton, 'Create Jobs');
           createJobsButton.className = 'btn btn-primary';
           createJobsButton.addEventListener('click', () => {
             // Create calendar modal
@@ -1677,12 +1724,12 @@ function fetchJobTemplates() {
               calendarBox.style.alignItems = 'center';
 
               const title = document.createElement('h5');
-              title.textContent = 'Select Date Range';
+              safeSetText(title, 'Select Date Range');
               calendarBox.appendChild(title);
 
               // Use two <input type="date"> for range selection
               const startLabel = document.createElement('label');
-              startLabel.textContent = 'Start date: ';
+              safeSetText(startLabel, 'Start date: ');
               const startInput = document.createElement('input');
               startInput.type = 'date';
               startInput.style.marginRight = '8px';
@@ -1692,7 +1739,7 @@ function fetchJobTemplates() {
               startLabel.appendChild(startInput);
 
               const endLabel = document.createElement('label');
-              endLabel.textContent = 'End date: ';
+              safeSetText(endLabel, 'End date: ');
               const endInput = document.createElement('input');
               endInput.type = 'date';
               endInput.value = today;
@@ -1707,7 +1754,7 @@ function fetchJobTemplates() {
               btnRow.style.gap = '12px';
 
               const confirmBtn = document.createElement('button');
-              confirmBtn.textContent = 'Confirm';
+              safeSetText(confirmBtn, 'Confirm');
               confirmBtn.className = 'btn btn-success';
               confirmBtn.addEventListener('click', () => {
                 const startDate = startInput.value;
@@ -1726,7 +1773,7 @@ function fetchJobTemplates() {
               });
 
               const cancelBtn = document.createElement('button');
-              cancelBtn.textContent = 'Cancel';
+              safeSetText(cancelBtn, 'Cancel');
               cancelBtn.className = 'btn btn-secondary';
               cancelBtn.addEventListener('click', () => {
                 document.body.removeChild(modal);
@@ -1758,7 +1805,7 @@ function fetchJobTemplates() {
               ];
 
               const daysLabel = document.createElement('label');
-              daysLabel.textContent = 'Select days:';
+              safeSetText(daysLabel, 'Select days:');
               daysLabel.style.fontWeight = 'bold';
               daysBox.appendChild(daysLabel);
 
