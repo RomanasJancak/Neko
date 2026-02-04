@@ -77,6 +77,7 @@ Route::group(['prefix' => 'users', 'middleware' => 'auth'], function(){
     Route::get('create',                    [UserController::class, 'create'])->name('user.create');
     Route::post('store',                    [UserController::class, 'store'])->name('user.store');
     Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit');
+    Route::get('delete/{user}',             [UserController::class, 'delete'])->name('user.delete');
     Route::patch('update/{user}',           [UserController::class, 'update'])->name('user.update');
     Route::delete('destroy/{user}',         [UserController::class, 'destroy'])->name('user.destroy');
     Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show');
