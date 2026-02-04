@@ -50,14 +50,21 @@ Route::post('/parse-csv', [App\Http\Controllers\HomeController::class, 'parseCSV
 Route::get('/',  'App\Http\Controllers\UserController@index')->name('users.index')->middleware('auth');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/test-email', function () {
-    Mail::raw('This is a test email from Laravel.', function ($message) {
-        $message->to('romanas.jancak@gmail.com') // Replace with your email
-                ->subject('Test Email from Laravel');
-    });
+// Test email route - Protected: Only available in non-production environments with authentication
+if (!app()->environment('production')) {
+    Route::get('/test-email', function () {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'Authentication required');
+        }
+        
+        Mail::raw('This is a test email from Laravel.', function ($message) {
+            $message->to(auth()->user()->email)
+                    ->subject('Test Email from Laravel');
+        });
 
-    return 'Test email sent!';
-});
+        return 'Test email sent to ' . auth()->user()->email;
+    })->middleware('auth')->name('test.email');
+}
 
 
 
@@ -65,21 +72,19 @@ Route::get('/test-email', function () {
 Route::get('/get-client-info/{clientId}', [ClientController::class, 'getClientInfo'])
     ->name('getClientInfo')->middleware('auth');
 Auth::routes();
-Route::group(['prefix' => 'users'], function(){
-    Route::get('',                          [UserController::class, 'index'])->name('user.index')->middleware('auth');
-    Route::get('create',                    [UserController::class, 'create'])->name('user.create')->middleware('auth');
-    Route::post('store',                    [UserController::class, 'store'])->name('user.store')->middleware('auth');
-    Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit')->middleware('auth');
-    Route::post('update/{user}',            [UserController::class, 'update'])->name('user.update')->middleware('auth');
-    Route::get('delete/{user}',             [UserController::class, 'delete'])->name('user.delete')->middleware('auth');
-    Route::post('destroy/{user}',           [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
-    Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show')->middleware('auth');
-    Route::get('getCouriersWithWorkloadOnDay/{date?}', [UserController::class, 'getCouriersWithWorkloadOnDay'])->name('user.getCouriersWithWorkloadOnDay')->middleware('auth');
+Route::group(['prefix' => 'users', 'middleware' => 'auth'], function(){
+    Route::get('',                          [UserController::class, 'index'])->name('user.index');
+    Route::get('create',                    [UserController::class, 'create'])->name('user.create');
+    Route::post('store',                    [UserController::class, 'store'])->name('user.store');
+    Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit');
+    Route::patch('update/{user}',           [UserController::class, 'update'])->name('user.update');
+    Route::delete('destroy/{user}',         [UserController::class, 'destroy'])->name('user.destroy');
+    Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show');
+    Route::get('getCouriersWithWorkloadOnDay/{date?}', [UserController::class, 'getCouriersWithWorkloadOnDay'])->name('user.getCouriersWithWorkloadOnDay');
     Route::get('workload/{user}/{month?}/{year?}', [UserController::class, 'workload'])
     ->where(['year' => '\d{4}', 'month' => '\d{1,2}'])
-    ->name('user.workload')
-    ->middleware('auth');
-    Route::post('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole')->middleware('auth');
+    ->name('user.workload');
+    Route::patch('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole');
 
 });
 Route::group(['prefix' => 'roles'], function(){
