@@ -69,19 +69,15 @@ class JobTemplateController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'clientToBill_id' => 'nullable|exists:clients,id',
         ]);
-        $template = new JobTemplate();
-        $template->name = $request->name;
-        if ($request->clientToBill_id) {
-            $template->clientToBill_id = $request->clientToBill_id;
+
+        if (is_null($request->clientToBill_id)) {
+            $request->merge(['clientToBill_id' => 1]);
         }
-        $template->fixedPrice = 0;
-        $template->notes = '';
-        $template->pickuptask_data = json_encode([]);
-        $template->dropOffs_data = json_encode([]);
-        $template->return_data = null;
-        $template->save();
+        
+      $template = JobTemplate::findOrFail(1)->replicate();
+      $template->name = $request->name;
+      $template->save();
 
         return response()->json([
             'success' => true,
