@@ -1,3 +1,4 @@
+
 window.clientIdSpanMap = new Map();
 
 /**
@@ -1698,145 +1699,82 @@ function fetchJobTemplates() {
           safeSetText(createJobsButton, 'Create Jobs');
           createJobsButton.className = 'btn btn-primary';
           createJobsButton.addEventListener('click', () => {
-            // Create calendar modal
-            let modal = document.getElementById('calendar-modal');
-            if (!modal) {
-              modal = document.createElement('div');
-              modal.id = 'calendar-modal';
-              modal.style.position = 'fixed';
-              modal.style.top = '0';
-              modal.style.left = '0';
-              //modal.style.width = '50vw';
-              //modal.style.height = '100vh';
-              modal.classList.add('bg-dark');
-              modal.style.display = 'flex';
-              modal.style.justifyContent = 'center';
-              modal.style.alignItems = 'center';
-              modal.style.zIndex = '9999';
-
-              const calendarBox = document.createElement('div');
-              //calendarBox.style.background = '#fff';
-              calendarBox.style.padding = '24px';
-              calendarBox.style.borderRadius = '8px';
-              calendarBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-              calendarBox.style.display = 'flex';
-              calendarBox.style.flexDirection = 'column';
-              calendarBox.style.alignItems = 'center';
-
-              const title = document.createElement('h5');
-              safeSetText(title, 'Select Date Range');
-              calendarBox.appendChild(title);
-
-              // Use two <input type="date"> for range selection
-              const startLabel = document.createElement('label');
-              safeSetText(startLabel, 'Start date: ');
-              const startInput = document.createElement('input');
-              startInput.type = 'date';
-              startInput.style.marginRight = '8px';
-              const today = new Date().toISOString().split('T')[0];
-              startInput.value = today;
-              
-              startLabel.appendChild(startInput);
-
-              const endLabel = document.createElement('label');
-              safeSetText(endLabel, 'End date: ');
-              const endInput = document.createElement('input');
-              endInput.type = 'date';
-              endInput.value = today;
-              endLabel.appendChild(endInput);
-
-              calendarBox.appendChild(startLabel);
-              calendarBox.appendChild(endLabel);
-
-              const btnRow = document.createElement('div');
-              btnRow.style.marginTop = '16px';
-              btnRow.style.display = 'flex';
-              btnRow.style.gap = '12px';
-
-              const confirmBtn = document.createElement('button');
-              safeSetText(confirmBtn, 'Confirm');
-              confirmBtn.className = 'btn btn-success';
-              confirmBtn.addEventListener('click', () => {
-                const startDate = startInput.value;
-                const endDate = endInput.value;
-                if (!startDate || !endDate || startDate > endDate) {
-                  alert('Please select a valid date range.');
-                  return;
-                }
-                createJobsForTemplate({ 
-                                        id: item.id,
-                                        start: startDate,
-                                        end: endDate,
-                                        days: Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value), 
-                });
-                document.body.removeChild(modal);
-              });
-
-              const cancelBtn = document.createElement('button');
-              safeSetText(cancelBtn, 'Cancel');
-              cancelBtn.className = 'btn btn-secondary';
-              cancelBtn.addEventListener('click', () => {
-                document.body.removeChild(modal);
-              });
-
-              btnRow.appendChild(confirmBtn);
-              btnRow.appendChild(cancelBtn);
-              calendarBox.appendChild(btnRow);
-
-              modal.appendChild(calendarBox);
-              const daysBox = document.createElement('div');
-              daysBox.style.marginTop = '16px';
-              daysBox.style.display = 'flex';
-              daysBox.style.flexDirection = 'column';
-              daysBox.style.alignItems = 'flex-start';
-
-              const days = [
-                { label: 'Monday', value: 1 },
-                { label: 'Tuesday', value: 2 },
-                { label: 'Wednesday', value: 3 },
-                { label: 'Thursday', value: 4 },
-                { label: 'Friday', value: 5 },
-                { label: 'Saturday', value: 6 },
-                { label: 'Sunday', value: 7 },
-                { label: 'Workdays', value: [1, 2, 3, 4, 5] },
-                { label: 'Weekends', value: [6,7] },
-                { label: 'Bank Holidays', value: 'bankholidays' },
-                { label: 'All', value: 'all' },
-              ];
-
-              const daysLabel = document.createElement('label');
-              safeSetText(daysLabel, 'Select days:');
-              daysLabel.style.fontWeight = 'bold';
-              daysBox.appendChild(daysLabel);
-
-              const checkboxesContainer = document.createElement('div');
-              checkboxesContainer.style.display = 'flex';
-              checkboxesContainer.style.flexWrap = 'wrap';
-              checkboxesContainer.style.gap = '8px';
-
+            const modal = document.getElementById('calendar-modal');
+            if (!modal) return;
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            const startInput = document.getElementById('calendar-modal-start');
+            const endInput = document.getElementById('calendar-modal-end');
+            if (startInput) startInput.value = today;
+            if (endInput) endInput.value = today;
+            // Render checkboxes for days
+            const days = [
+              { label: 'Monday', value: 1 },
+              { label: 'Tuesday', value: 2 },
+              { label: 'Wednesday', value: 3 },
+              { label: 'Thursday', value: 4 },
+              { label: 'Friday', value: 5 },
+              { label: 'Saturday', value: 6 },
+              { label: 'Sunday', value: 7 },
+              { label: 'Workdays', value: JSON.stringify([1, 2, 3, 4, 5]) },
+              { label: 'Weekends', value: JSON.stringify([6,7]) },
+              { label: 'Bank Holidays', value: 'bankholidays' },
+              { label: 'All', value: 'all' },
+            ];
+            const daysContainer = document.getElementById('calendar-modal-days');
+            if (daysContainer) {
+              daysContainer.innerHTML = '';
               days.forEach(day => {
                 const checkboxLabel = document.createElement('label');
                 checkboxLabel.style.marginRight = '12px';
                 checkboxLabel.style.display = 'flex';
                 checkboxLabel.style.alignItems = 'center';
-
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.value = day.value;
                 checkbox.style.marginRight = '4px';
                 checkbox.classList.add('day-checkbox');
-
+                checkbox.id = `day-checkbox-${day.value}`;
+                if(day.value === 'all'){
+                  checkbox.addEventListener('change', function() {
+                    const allCheckboxes = document.querySelectorAll('#calendar-modal .day-checkbox');
+                    allCheckboxes.forEach(cb => {
+                      if (cb !== this) {
+                        cb.checked = this.checked;
+                      }
+                    });
+                  });
+                }
+                if(day.value === JSON.stringify([1, 2, 3, 4, 5])){
+                  checkbox.addEventListener('change', function() {
+                    const workdayCheckboxes = ['1','2','3','4','5'].map(v => document.getElementById(`day-checkbox-${v}`));
+                    if(this.checked){
+                      workdayCheckboxes.forEach(cb => {
+                        cb.checked = true;
+                      });
+                    }else{
+                    }
+                  });
+                }
+                if(day.value === JSON.stringify([6,7])){
+                  checkbox.addEventListener('change', function() {
+                    const weekendCheckboxes = ['6','7'].map(v => document.getElementById(`day-checkbox-${v}`));
+                    if(this.checked){                      
+                      weekendCheckboxes.forEach(cb => {
+                        cb.checked = true;
+                      });
+                    }
+                  });
+                }
                 checkboxLabel.appendChild(checkbox);
                 checkboxLabel.appendChild(document.createTextNode(day.label));
-                checkboxesContainer.appendChild(checkboxLabel);
+                daysContainer.appendChild(checkboxLabel);
               });
-
-              daysBox.appendChild(checkboxesContainer);
-              calendarBox.appendChild(daysBox);
-              document.body.appendChild(modal);
             }
+            // Store the item id for use on confirm
+            modal.setAttribute('data-template-id', item.id);
+            $('#calendar-modal').modal('show');
           });
-          //==========================================================================================
           cardBody.appendChild(createJobsButton);
           card.appendChild(cardBody);
           col.appendChild(card);
@@ -1848,6 +1786,40 @@ function fetchJobTemplates() {
     .catch(error => {
       console.error('Error fetching job templates:', error);
     });
+}
+function createNewTemplate() {
+  const templateName = prompt('Enter template name:');
+  if (!templateName || templateName.trim() === '') {
+    alert('Template name is required.');
+    return;
+  }
+
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  
+  fetch(window.ROUTES.WEB.JOBTEMPLATE.STORE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRF-TOKEN': csrfToken
+    },
+    body: JSON.stringify({ name: templateName.trim() })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      fetchJobTemplates();
+      if (typeof show_Success_Message === 'function') {
+        show_Success_Message({ message: data.message || 'Template created successfully.' });
+      }
+    } else {
+      alert(data.message || 'Failed to create template.');
+    }
+  })
+  .catch(error => {
+    console.error('Error creating template:', error);
+    alert('Error creating template: ' + error.message);
+  });
 }
 //======================================================================================================================================================================
 //======================================================================================================================================================================
@@ -1869,6 +1841,49 @@ function fetchJobTemplates() {
 //======================================================================================================================================================================
 //======================================================================================================================================================================
 
+// Attach confirm button handler ONCE, robustly, without replacing the node
+let calendarModalConfirmHandlerAttached = false;
+function attachCalendarModalConfirmHandler() {
+  if (calendarModalConfirmHandlerAttached) return;
+  const confirmBtn = document.getElementById('calendar-modal-confirm');
+  if (!confirmBtn) return;
+  confirmBtn.addEventListener('click', () => {
+    const modal = document.getElementById('calendar-modal');
+    const startInput = document.getElementById('calendar-modal-start');
+    const endInput = document.getElementById('calendar-modal-end');
+    const startDate = startInput ? startInput.value : '';
+    const endDate = endInput ? endInput.value : '';
+    if (!startDate || !endDate || startDate > endDate) {
+      alert('Please select a valid date range.');
+      return;
+    }
+    const days = Array.from(document.querySelectorAll('#calendar-modal .day-checkbox:checked')).map(cb => cb.value);
+    const templateId = modal.getAttribute('data-template-id');
+    console.log('Confirm clicked. templateId:', templateId, 'startDate:', startDate, 'endDate:', endDate, 'days:', days);
+    createJobsForTemplate({ 
+      id: templateId,
+      start: startDate,
+      end: endDate,
+      days: days,
+    });
+    // Hide modal
+    if (window.bootstrap && window.bootstrap.Modal) {
+      const bsModal = window.bootstrap.Modal.getOrCreateInstance(modal);
+      bsModal.hide();
+    } else if (window.$ && window.$.fn && window.$.fn.modal) {
+      window.$(modal).modal('hide');
+    }
+  });
+  calendarModalConfirmHandlerAttached = true;
+  console.log('Confirm button handler attached');
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   fetchJobTemplates();
+  const createTemplateBtn = document.getElementById('createTemplateBtn');
+  if (createTemplateBtn) {
+    createTemplateBtn.addEventListener('click', createNewTemplate);
+  }
+  attachCalendarModalConfirmHandler();
+  console.log('DOMContentLoaded: attachCalendarModalConfirmHandler called');
 });

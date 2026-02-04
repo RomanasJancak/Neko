@@ -111,9 +111,26 @@
   0% { background-position: 0 0; }
   100% { background-position: 200% 0; }
 }
-
+#calendar-modal.modal {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  width: 400px;
+  height: auto;
+  z-index: 9999;
+  display: block;
+}
+#calendar-modal .modal-dialog {
+  margin: 0 !important;
+  position: static !important;
+  width: 100%;
+  height: auto;
+}
 
 </style>
+
+
 @endsection
 @section('content')
 <div class="container container-content">
@@ -172,7 +189,7 @@
 
   <!-- Create Template Button -->
   <div class="text-end my-3">
-    <button type="button" class="btn btn-success create-btn">
+    <button type="button" class="btn btn-success create-btn" id="createTemplateBtn">
       <i class="fa fa-plus-circle me-1"></i>Create Template
     </button>
   </div>
@@ -182,6 +199,37 @@
 </div>
 
 <!-- Modal task end -->
+<!-- Calendar Modal (Bootstrap) -->
+<div class="modal fade" id="calendar-modal" tabindex="-1" aria-labelledby="calendarModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="calendarModalLabel">Select Date Range</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3 d-flex flex-column flex-md-row gap-2 align-items-center">
+          <label class="form-label mb-0">Start date:
+            <input type="date" id="calendar-modal-start" class="form-control ms-2" style="min-width: 150px; display: inline-block;" />
+          </label>
+          <label class="form-label mb-0">End date:
+            <input type="date" id="calendar-modal-end" class="form-control ms-2" style="min-width: 150px; display: inline-block;" />
+          </label>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Select days:</label>
+          <div id="calendar-modal-days" class="d-flex flex-wrap gap-2">
+            <!-- Checkboxes will be rendered by JS for consistency -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-success" id="calendar-modal-confirm">Confirm</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 @push('scripts')
 @vite('resources/js/jobtemplate/index.js')
