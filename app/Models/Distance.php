@@ -13,6 +13,12 @@ class Distance extends Model
     // TODO: This TTL is temporary and hard-coded. 
     // Consider moving to a config file or .env
     private static $maxDaysToKeepDistanceStored = 10;
+    
+    /**
+     * Request-level cache to prevent N+1 queries during route calculations.
+     * Cleared after each request automatically.
+     */
+    private static $requestCache = [];
 
     protected $fillable = [
         'origin_address',
@@ -29,6 +35,12 @@ class Distance extends Model
 
     public static function getDistance($origin, $destination, $mode = 'walking')
     {
+        // Check request-level cache first to prevent N+1 queries
+        $cacheKey = md5($origin . '|' . $destination . '|' . $mode);
+        if (isset(self::$requestCache[$cacheKey])) {
+            return self::$requestCache[$cacheKey];
+        }
+        
         $distance = self::where('origin_address', $origin)
                         ->where('destination_address', $destination)
                         ->where('mode_of_travel', $mode)
@@ -38,6 +50,8 @@ class Distance extends Model
             $isStale = $distance->updated_at->diffInDays(Carbon::now()) >= self::$maxDaysToKeepDistanceStored;
 
             if (!$isStale) {
+                // Cache the result for this request
+                self::$requestCache[$cacheKey] = $distance->distance;
                 return $distance->distance;
             }
 
@@ -45,9 +59,22 @@ class Distance extends Model
       }
 
         $newDistance = self::fetchAndStoreDistance($origin, $destination, $mode);
-
-        return $newDistance ? $newDistance->distance : null;
+        $result = $newDistance ? $newDistance->distance : null;
+        
+        // Cache the result for this request
+        self::$requestCache[$cacheKey] = $result;
+        
+        return $result;
     }
+    
+    /**
+     * Clear the request-level cache. Useful for testing.
+     */
+    public static function clearRequestCache()
+    {
+        self::$requestCache = [];
+    }
+    
     private static function geocodeAddress($address)
     {
         $response = Http::get('https://maps.googleapis.com/maps/api/geocode/json', [
