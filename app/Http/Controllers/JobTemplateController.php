@@ -65,9 +65,29 @@ class JobTemplateController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreJobTemplateRequest $request)
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'clientToBill_id' => 'nullable|exists:clients,id',
+        ]);
+        $template = new JobTemplate();
+        $template->name = $request->name;
+        if ($request->clientToBill_id) {
+            $template->clientToBill_id = $request->clientToBill_id;
+        }
+        $template->fixedPrice = 0;
+        $template->notes = '';
+        $template->pickuptask_data = json_encode([]);
+        $template->dropOffs_data = json_encode([]);
+        $template->return_data = null;
+        $template->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Template created successfully.',
+            'template' => $template,
+        ]);
     }
 
     /**
