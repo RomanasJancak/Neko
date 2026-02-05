@@ -36,6 +36,9 @@ window.ROUTES = {
         CREATE_FROM_JOB: APP_URL+'/jobtemplates/createFromJob',
         CREATE_JOBS: APP_URL+'/jobtemplates/createJobsBatch',
         SET_FIELD_LOCK: APP_URL+'/jobtemplates/:id/setFieldLock',
+        ADD_DROPOFF: APP_URL+'/jobtemplates/:id/addDropOff',
+        REMOVE_DROPOFF: APP_URL+'/jobtemplates/:id/removeDropOff',
+        ADD_RETURN: APP_URL+'/jobtemplates/:id/addReturn',
       },
       CLIENT:{
         SEARCHADDRESSES:  APP_URL+'/clients/searchClientAddresses',

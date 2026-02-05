@@ -256,7 +256,8 @@ class Job extends Model
                 'is_locked' => $isLocked,
             ]);
         }
-    }  
+    }
+    /* Unused function - kept for reference */  
     public function calculateShortestRoute($start, $points, $end = null)
     {
         if(!$start){
@@ -331,7 +332,7 @@ class Job extends Model
     {
         $tasks = $this->tasks()->orderBy('order_number')->get();
         $totalDistance = 0;
-
+        //dd($tasks[0]);
         for ($i = 0; $i < $tasks->count() - 1; $i++) {
             $totalDistance += Distance::getDistance(
                 $tasks[$i]->fullAddress(),
@@ -346,6 +347,7 @@ class Job extends Model
         $distance = $this->calculateDistanceBasedOnTasksOrder()*0.0006213712;
         // Round distance down to 2 decimals
         $distance = floor($distance * 100) / 100;
+        //dd($distance);
         $thresholds = [];
         
         foreach($this->addOns_distance as $addOn){
@@ -357,6 +359,7 @@ class Job extends Model
                 ];
             }
         }
+        //dd($thresholds);
         $returnDistance = $distance;
         usort($thresholds, function ($a, $b) {
             return $a['threshold'] <=> $b['threshold'];
@@ -379,7 +382,7 @@ class Job extends Model
                 $lastTreshold = array_pop($thresholds);
             }
         }
-
+        //dd($returnDistance, $price_distance, $freeMile,$distance);
         return [
             'value' =>  $returnDistance,
             'price' =>  $price_distance,
@@ -582,6 +585,7 @@ class Job extends Model
                 ];
             }
         }
+        //dd($timeArray_pickup);
         usort($timeArray_pickup, function ($a, $b) {
             return $a['value'] - $b['value'];
         });
@@ -652,6 +656,7 @@ class Job extends Model
             'dropOff_value'  => $dropoffWindow,
         ];
     }
+
     public function price_timing(){
         $pickup_normal_begin    =   ''; $pickup_normal_end = '';
         $dropoff_normal_begin   =   ''; $dropoff_normal_end = '';

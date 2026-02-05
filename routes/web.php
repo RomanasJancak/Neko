@@ -271,6 +271,9 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::post('createFromJob',                    [JobTemplateController::class, 'createFromJob'])->name('jobtemplate.createFromJob')->middleware('auth');
     Route::post('createJobsBatch',                  [JobTemplateController::class, 'createJobsBatch'])->name('jobtemplate.createJobsBatch')->middleware('auth');
     Route::post('{template}/setFieldLock',          [JobTemplateController::class, 'setFieldLock'])->name('jobtemplate.setFieldLock')->middleware('auth');
+    Route::post('{template}/addDropOff',            [JobTemplateController::class, 'addDropOff'])->name('jobtemplate.addDropOff')->middleware('auth');
+    Route::post('{template}/removeDropOff',         [JobTemplateController::class, 'removeDropOff'])->name('jobtemplate.removeDropOff')->middleware('auth');
+    Route::post('{template}/addReturn',             [JobTemplateController::class, 'addReturn'])->name('jobtemplate.addReturn')->middleware('auth');
     
     // Old routes (commented - for reference only)
     // Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
