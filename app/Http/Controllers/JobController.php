@@ -618,9 +618,10 @@ public function index(Request $request,SettingsService $settings)
         if($job){
           //dd($job,$job->jobTemplate);
           $template = $job->jobTemplate;
+          $templateNote = json_decode($template->template_data, true)['note'] ?? null;
           if($template){
             $job->notes()->create([
-                'content' => $template->notes,
+                'content' => $templateNote,
                 'user_id' => auth()->id(),
             ]);
             $job->save();
