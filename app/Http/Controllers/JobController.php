@@ -31,6 +31,7 @@ use App\Models\Customtask;
 use App\Models\Note;
 use App\Models\InvoiceItem;
 use App\Models\Invoice;
+use App\Services\InvoicePricingService;
 
 
 use App\Services\BackupService;
@@ -506,13 +507,11 @@ public function index(Request $request,SettingsService $settings)
           'invoice_item_id' => 'required|exists:invoice_items,id',
         ]);
         $newItem = InvoiceItem::findOrFail($validated['invoice_item_id']);
-        $job->invoiceItem->recalculatePrice();
+                $pricingService = app(InvoicePricingService::class);
+                $pricingService->recalculateItemAndInvoice($job->invoiceItem);
         $job->invoice_item_id = $newItem->id;
         $job->save();
-        $job->invoiceItem->recalculatePrice();
-        $newItem->save();
-        $job->invoiceItem->invoice->recalculatePrice();
-        $job->invoiceItem->invoice->save();
+                $pricingService->recalculateItemAndInvoice($newItem);
         /*
         return response()->json([
           'success' => true,
@@ -1333,10 +1332,8 @@ public function index(Request $request,SettingsService $settings)
         $job->invoice_item_id = null;
         $job->status_id = 23;
         $job->save();
-        $invoiceItem->recalculatePrice();
-        $invoiceItem->save();
-        $invoiceItem->invoice->recalculatePrice();
-        $invoiceItem->invoice->save();
+                $pricingService = app(InvoicePricingService::class);
+                $pricingService->recalculateItemAndInvoice($invoiceItem);
         // return response()->json([
         //   'success' => true,
         //   'message' => 'Job removed from invoice item successfully.',

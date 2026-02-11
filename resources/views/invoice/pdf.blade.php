@@ -190,7 +190,16 @@
 </head>
 
 <body>
-  <article class="invoice" role="document" aria-label="Invoice {{$invoice->invoice_number}}">
+  @php
+    $invoiceData = $snapshotData['invoice'] ?? [];
+    $clientData = $snapshotData['client'] ?? [];
+    $items = $snapshotData['items'] ?? [];
+    $totals = $snapshotData['totals'] ?? [];
+    $version = $snapshotData['version'] ?? null;
+    $generatedAt = $snapshotData['generated_at'] ?? null;
+  @endphp
+
+  <article class="invoice" role="document" aria-label="Invoice {{$invoiceData['invoice_number'] ?? ''}}">
     <header>
       <div>
         <div class="from">Neko Home Delivery LLP</div>
@@ -203,16 +212,22 @@
       </div>
 
       <div class="invoice-meta">
-        <div class="title">Itemized invoice part of Invoice : {{$invoice->invoice_number}}</div>
+        <div class="title">Itemized invoice part of Invoice : {{$invoiceData['invoice_number'] ?? ''}}</div>
         <div style="margin-top:10px;">
-          <div><strong>Invoice Number:</strong> {{$invoice->invoice_number}}</div>
-          <div><strong>Invoice Date:</strong> {{$invoice->invoice_date}}</div>
-          <div><strong>Due Date:</strong> {{$invoice->due_date}}</div>
+          <div><strong>Invoice Number:</strong> {{$invoiceData['invoice_number'] ?? ''}}</div>
+          <div><strong>Invoice Date:</strong> {{$invoiceData['invoice_date'] ?? ''}}</div>
+          <div><strong>Due Date:</strong> {{$invoiceData['due_date'] ?? ''}}</div>
+          @if($version)
+          <div><strong>Version:</strong> {{$version}}</div>
+          @endif
+          @if($generatedAt)
+          <div><strong>Generated:</strong> {{$generatedAt}}</div>
+          @endif
           <div style="margin-top:8px; font-size:16px;">
-            <strong>Invoice Total:</strong> £{{ number_format($invoice->total, 2) }}
+            <strong>Invoice Total:</strong> £{{ number_format($totals['grand_total'] ?? 0, 2) }}
           </div>
           <div style="color:var(--muted)">
-            <strong>Balance Due:</strong> £{{ number_format($invoice->total - $invoice->amount_paid, 2) }}
+            <strong>Balance Due:</strong> £{{ number_format($totals['balance_due'] ?? 0, 2) }}
           </div>
         </div>
       </div>
@@ -222,11 +237,11 @@
       <div class="address">
         <strong>Bill To</strong>
         <div class="small" style="margin-top:8px;">
-          {{$invoice->client->name}}<br>
-          {{$invoice->client->address_line}}<br>
-          {{$invoice->client->city}} {{$invoice->client->postcode}}<br>
-          {{$invoice->client->country}}<br>
-          <a href="mailto:{{$invoice->client->email}}">{{$invoice->client->email}}</a>
+          {{$clientData['name'] ?? ''}}<br>
+          {{$clientData['address_line'] ?? ''}}<br>
+          {{$clientData['city'] ?? ''}} {{$clientData['postcode'] ?? ''}}<br>
+          {{$clientData['country'] ?? ''}}<br>
+          <a href="mailto:{{$clientData['email'] ?? ''}}">{{$clientData['email'] ?? ''}}</a>
         </div>
       </div>
 
@@ -251,13 +266,13 @@
           </tr>
         </thead>
         <tbody>
-          @foreach($invoice->invoiceItems as $item)
+          @foreach($items as $item)
           <tr>
             <td>
-              <strong>{{ $item->description }}</strong>
+              <strong>{{ $item['description'] ?? '' }}</strong>
             </td>
-            <td class="numeric">{{ $item->jobs->count() }}</td>
-            <td class="numeric">£{{ number_format($item->price, 2) }}</td>
+            <td class="numeric">{{ $item['jobs_count'] ?? 0 }}</td>
+            <td class="numeric">£{{ number_format($item['price'] ?? 0, 2) }}</td>
           </tr>
           <tr>
             <td colspan="3" style="padding:0;">
@@ -275,43 +290,41 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($item->jobs as $job)
+                  @foreach($item['jobs'] ?? [] as $job)
                     @php
-                      $pickup = $job->getPickupTask();
-                      $dropOffs = $job->getDropOffs();
-                      $dropCount = count($dropOffs);
-                      $returnTask = $job->hasReturn() ? $job->getReturnTask()->return : null;
+                      $dropOffs = $job['dropoffs'] ?? [];
+                      $dropCount = max(count($dropOffs), 1);
                     @endphp
 
                     @foreach($dropOffs as $index => $dropOff)
                     <tr>
                       @if($index === 0)
-                        <td rowspan="{{ $dropCount }}">#{{ $job->id }}</td>
-                        <td rowspan="{{ $dropCount }}">{{ ucfirst($job->status->name ?? 'Unknown') }}</td>
-                        <td rowspan="{{ $dropCount }}">{{ $job->date ?? 'N/A' }}</td>
+                        <td rowspan="{{ $dropCount }}">#{{ $job['id'] ?? '' }}</td>
+                        <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status'] ?? 'Unknown') }}</td>
+                        <td rowspan="{{ $dropCount }}">{{ $job['date'] ?? 'N/A' }}</td>
                         <td rowspan="{{ $dropCount }}">
-                          {{ $pickup->addressShort() ?? 'N/A' }}<br>
-                          <span class="small-text">{{ $pickup->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $pickup->timeWindowEndFormatted() ?? 'N/A' }}</span>
+                          {{ $job['pickup']['address'] ?? 'N/A' }}<br>
+                          <span class="small-text">{{ $job['pickup']['time_window_begin'] ?? 'N/A' }} – {{ $job['pickup']['time_window_end'] ?? 'N/A' }}</span>
                         </td>
                       @endif
 
-                      <td><span class="small-text">{{ $dropOff->packageType->name }} × {{ $dropOff->quantity }}</span></td>
+                      <td><span class="small-text">{{ $dropOff['package_type'] ?? '' }} × {{ $dropOff['quantity'] ?? '' }}</span></td>
                       <td>
-                        {{ $dropOff->addressShort() ?? 'N/A' }}<br>
-                        <span class="small-text">{{ $dropOff->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $dropOff->timeWindowEndFormatted() ?? 'N/A' }}</span>
+                        {{ $dropOff['address'] ?? 'N/A' }}<br>
+                        <span class="small-text">{{ $dropOff['time_window_begin'] ?? 'N/A' }} – {{ $dropOff['time_window_end'] ?? 'N/A' }}</span>
                       </td>
 
                       @if($index === 0)
                         <td rowspan="{{ $dropCount }}">
-                          @if($returnTask)
-                            {{ $returnTask->addressShort() ?? 'N/A' }}<br>
-                            <span class="small-text">{{ $returnTask->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $returnTask->timeWindowEndFormatted() ?? 'N/A' }}</span>
+                          @if(!empty($job['return']))
+                            {{ $job['return']['address'] ?? 'N/A' }}<br>
+                            <span class="small-text">{{ $job['return']['time_window_begin'] ?? 'N/A' }} – {{ $job['return']['time_window_end'] ?? 'N/A' }}</span>
                           @else
                             —
                           @endif
                         </td>
                         <td rowspan="{{ $dropCount }}" class="text-right">
-                          £{{ number_format(($job->price()['totalPrice'] ?? 0) / 100, 2) }}
+                          £{{ number_format($job['total'] ?? 0, 2) }}
                         </td>
                       @endif
                     </tr>
@@ -330,23 +343,23 @@
       <table>
         <tr>
           <td>Subtotal</td>
-          <td style="text-align:right">£{{ number_format($invoice->total - $invoice->vat, 2) }}</td>
+          <td style="text-align:right">£{{ number_format($totals['subtotal'] ?? 0, 2) }}</td>
         </tr>
         <tr>
-          <td>VAT 20%</td>
-          <td style="text-align:right">£{{ number_format($invoice->vat, 2) }}</td>
+          <td>VAT {{ number_format(($totals['vat_rate'] ?? 0) * 100, 2) }}%</td>
+          <td style="text-align:right">£{{ number_format($totals['vat_amount'] ?? 0, 2) }}</td>
         </tr>
         <tr class="grand">
           <td>Total</td>
-          <td style="text-align:right">£{{ number_format($invoice->total, 2) }}</td>
+          <td style="text-align:right">£{{ number_format($totals['grand_total'] ?? 0, 2) }}</td>
         </tr>
         <tr>
           <td>Paid to Date</td>
-          <td style="text-align:right">£{{ number_format($invoice->amount_paid, 2) }}</td>
+          <td style="text-align:right">£{{ number_format($totals['amount_paid'] ?? 0, 2) }}</td>
         </tr>
         <tr>
           <td><strong>Balance Due</strong></td>
-          <td style="text-align:right"><strong>£{{ number_format($invoice->total - $invoice->amount_paid, 2) }}</strong></td>
+          <td style="text-align:right"><strong>£{{ number_format($totals['balance_due'] ?? 0, 2) }}</strong></td>
         </tr>
       </table>
     </aside>

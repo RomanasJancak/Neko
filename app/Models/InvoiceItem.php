@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\InvoicePricingService;
 
 class InvoiceItem extends Model
 {
@@ -21,10 +22,6 @@ class InvoiceItem extends Model
     }
     public function recalculatePrice(): void
     {
-        //dd($this->jobs);
-        $total = $this->jobs()->sum('price');
-        $this->price = $total/100;
-        $this->save();
-        //dd('recalculatePrice called', $total, $this->price);
+        app(InvoicePricingService::class)->recalculateInvoiceItem($this);
     }
 }

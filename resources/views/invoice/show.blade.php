@@ -12,6 +12,11 @@
         <label for="invoice_number">Invoice Number:</label>
         <input onchange="this.form.submit()" class="form-control" type="text" id="invoice_number" name="invoice_number" value="{{ $invoice->invoice_number }}">
       </form>
+      <form action="{{ route('invoice.snapshots.generate', $invoice->id) }}" method="POST" class="mt-2">
+        @csrf
+        <button type="submit" class="btn btn-secondary btn-sm">Generate Snapshot</button>
+      </form>
+      <a href="#snapshots" class="btn btn-outline-secondary btn-sm mt-2">View Snapshots</a>
     </div>
     <div class="card-body">
       <h5 class="card-title">Customer: {{ $invoice->client->name }}</h5>
@@ -56,5 +61,32 @@
   </table>
 
   <a href="{{ route('invoice.index') }}" class="btn btn-primary mt-3">Back to Invoices</a>
+
+  <h3 id="snapshots" class="mt-5">Snapshots</h3>
+  @if($invoice->snapshots->isEmpty())
+    <p>No snapshots yet.</p>
+  @else
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Generated At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach ($invoice->snapshots->sortByDesc('version') as $snapshot)
+          <tr>
+            <td>{{ $snapshot->version }}</td>
+            <td>{{ $snapshot->generated_at }}</td>
+            <td>
+              <a href="{{ route('invoice.viewPDF', ['invoice' => $invoice->id, 'snapshot_id' => $snapshot->id]) }}" class="btn btn-secondary btn-sm" target="_blank">View PDF</a>
+              <a href="{{ route('invoice.viewPDF', ['invoice' => $invoice->id, 'snapshot_id' => $snapshot->id, 'download' => 1]) }}" class="btn btn-success btn-sm">Download Invoice</a>
+            </td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  @endif
 </div>
 @endsection

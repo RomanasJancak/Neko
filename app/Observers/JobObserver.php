@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Job;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Services\InvoicePricingService;
 
 use Carbon\Carbon;
 
@@ -106,10 +107,8 @@ class JobObserver
       $job->saveQuietly();
                 
       
-      $invoiceItem->recalculatePrice();
+      $pricingService = app(InvoicePricingService::class);
+      $pricingService->recalculateItemAndInvoice($invoiceItem);
       //dd($job, $invoiceItem);
-      $invoiceItem->save();
-      $invoice->recalculatePrice();
-      $invoice->save();
     }
 }

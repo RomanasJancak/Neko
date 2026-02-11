@@ -117,9 +117,14 @@ public function update(Request $request, SettingsService $settings)
         $validated[$dotKey] = $value;
     }
 
-    // Save each setting for the authenticated user
+    // Save each setting
     $user = auth()->user();
     foreach ($validated as $key => $value) {
+        if (str_starts_with($key, 'global.')) {
+            $settings->setGlobal($key, $value);
+            continue;
+        }
+
         $settings->set($key, $value, $user);
     }
 

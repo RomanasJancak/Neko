@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\InvoicePricingService;
+use App\Models\InvoiceSnapshot;
 
 class Invoice extends Model
 {
@@ -24,14 +26,20 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceItem::class);
     }
+    public function snapshots()
+    {
+        return $this->hasMany(InvoiceSnapshot::class);
+    }
+    public function latestSnapshot()
+    {
+        return $this->hasOne(InvoiceSnapshot::class)->latestOfMany();
+    }
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
     }
     public function recalculatePrice(): void
     {
-        $total = $this->items()->sum('price');
-        $this->total = $total;
-        $this->save();
+        app(InvoicePricingService::class)->recalculateInvoice($this);
     }
 }
