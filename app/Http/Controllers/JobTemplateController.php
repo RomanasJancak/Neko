@@ -48,7 +48,7 @@ class JobTemplateController extends Controller
                 'name', 'client_id'
             ]));
             $template->template_data = json_encode([
-                'pickup' => null,
+                'pickup' => ['time_begin' => '09:00', 'time_end' => '17:00', 'address_id' => null],
                 'dropoffs' => [],
                 'return' => null,
                 'note' => '',
@@ -62,7 +62,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -98,11 +100,12 @@ class JobTemplateController extends Controller
                         'created_at' => $template->created_at->toDateTimeString(),
                         'name' => $template->name,
                         'client_id' => $template->client_id,
-                        'pickup' => ($jsonData = json_decode($template->template_data, true)) 
+                        // 'pickup' => ($jsonData_pickup = json_decode($template->template_data, true)['pickup'] ?? null) ? [true] : [false],
+                        'pickup' => ($jsonData_pickup = json_decode($template->template_data, true)['pickup'] ?? null) 
                           ? [
-                              'time_begin' => $jsonData['pickup']['time_begin'] ?? null,
-                              'time_end' => $jsonData['pickup']['time_end'] ?? null,
-                              'address' => ($address = Address::find($jsonData['pickup']['address_id']))
+                              'time_begin' => $jsonData_pickup['time_begin'] ?? null,
+                              'time_end' => $jsonData_pickup['time_end'] ?? null,
+                              'address' => ($address = Address::find($jsonData_pickup['address_id'] ?? null))
                                   ? [
                                       'id' => $address->id,
                                       'name' => $address->name,
@@ -185,16 +188,17 @@ class JobTemplateController extends Controller
 
             return response()->json([
                 'success' => true,
+                //'dropOffData' => json_decode($template->template_data, true)['dropoffs'],
                 'template' => [
                         'id' => $template->id,
                         'created_at' => $template->created_at->toDateTimeString(),
                         'name' => $template->name,
                         'client_id' => $template->client_id,
-                        'pickup' => ($jsonData = json_decode($template->template_data, true)) 
+                        'pickup' => ($jsonData_pickup = json_decode($template->template_data, true)['pickup'] ?? null)
                           ? [
-                              'time_begin' => $jsonData['pickup']['time_begin'] ?? null,
-                              'time_end' => $jsonData['pickup']['time_end'] ?? null,
-                              'address' => ($address = Address::find($jsonData['pickup']['address_id']))
+                              'time_begin' => $jsonData_pickup['time_begin'] ?? null,
+                              'time_end' => $jsonData_pickup['time_end'] ?? null,
+                              'address' => ($address = Address::find($jsonData_pickup['address_id'] ?? null))
                                   ? [
                                       'id' => $address->id,
                                       'name' => $address->name,
@@ -207,7 +211,7 @@ class JobTemplateController extends Controller
                                   : null,
                           ]
                           : [],
-                        'dropoffs' => ($dropoffs = $jsonData['dropoffs'] ?? []) ? collect($dropoffs)->map(function($dropoff) {
+                        'dropoffs' => ($dropoffs = json_decode($template->template_data, true)['dropoffs'] ?? []) ? collect($dropoffs)->map(function($dropoff) {
                             return [
                                 'order_number' => $dropoff['order_number'] ?? null,
                                 'address' => ($address = Address::find($dropoff['address_id'] ?? null))
@@ -258,7 +262,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -302,7 +308,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -349,7 +357,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -611,7 +621,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -631,7 +643,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
@@ -656,7 +670,9 @@ class JobTemplateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ], 500);
         }
     }
