@@ -185,7 +185,7 @@ class JobTemplateController extends Controller
         try {
             $template = JobTemplate::findOrFail($id);
             $lockedFields = $template->lockedFields();
-
+            //dd($template,json_decode($template->template_data, true),$lockedFields);
             return response()->json([
                 'success' => true,
                 //'dropOffData' => json_decode($template->template_data, true)['dropoffs'],
@@ -237,7 +237,7 @@ class JobTemplateController extends Controller
                                 'note' => $dropoff['note'] ?? '',
                             ];
                         })->toArray() : [],
-                        'return' => ($return = $jsonData['return'] ?? null) ? [
+                        'return' => ($return = json_decode($template->template_data, true)['return'] ?? null) ? [
                             'address' => ($address = Address::find($return['address_id'] ?? null))
                                 ? [
                                     'id' => $address->id,
@@ -798,7 +798,7 @@ class JobTemplateController extends Controller
             $template->template_data = json_encode($jsonData);
             //dd($template->template_data, $jsonData,json_encode($jsonData));
             $template->save();
-            
+            dd($template->template_data, $jsonData,json_encode($jsonData));
             return response()->json([
                 'success' => true,
                 'message' => 'Return added successfully',
