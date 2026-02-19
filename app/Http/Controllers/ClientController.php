@@ -382,14 +382,14 @@ class ClientController extends Controller
     }
     public function searchClients(Request $request)
     {
-        $query = $request->input('query');
+      $query = $request->input('query');
 
-        
-        $clients = Client::where('name', 'like', '%' . $query . '%')
-            ->select('id', 'name') 
-            ->get();
+      $clients = Client::where('name', 'like', '%' . $query . '%')
+        ->select('id', 'name') 
+        ->orderBy('name', 'asc')
+        ->get();
 
-        return response()->json($clients);
+      return response()->json($clients);
     }
     public function searchClientAddresses(Request $request)
     {
