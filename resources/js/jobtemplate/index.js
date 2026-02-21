@@ -1108,9 +1108,6 @@ function closeCreateTemplateModal() {
 function handleCreateTemplate() {
     const name = document.getElementById('template-name').value.trim();
     const clientId = document.getElementById('template-client').value;
-    const pickupAddressId = document.getElementById('template-pickup-address').value;
-    const pickupBegin = document.getElementById('template-pickup-begin').value;
-    const pickupEnd = document.getElementById('template-pickup-end').value;
 
     // Validation
     if (!name) {
@@ -1130,9 +1127,6 @@ function handleCreateTemplate() {
     const payload = {
         name: name,
         client_id: clientId,
-        pickup_address_id: pickupAddressId || null,
-        pickup_time_begin: pickupBegin || null,
-        pickup_time_end: pickupEnd || null,
         template_data: {}
     };
 

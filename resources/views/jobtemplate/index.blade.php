@@ -369,25 +369,6 @@
                 </select>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="template-pickup-address" class="form-label">Pickup Address</label>
-                <select id="template-pickup-address" class="form-control form-select">
-                    <option value="">Select an address...</option>
-                </select>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="form-group mb-3">
-                    <label for="template-pickup-begin" class="form-label">Pickup Time Begin</label>
-                    <input type="time" id="template-pickup-begin" class="form-control">
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="template-pickup-end" class="form-label">Pickup Time End</label>
-                    <input type="time" id="template-pickup-end" class="form-control">
-                </div>
-            </div>
-
             <p class="text-muted" style="font-size: 14px; margin-top: 15px;">
                 <strong>Note:</strong> You can add pickup/dropoff details after creating the template by editing it.
             </p>
