@@ -798,11 +798,37 @@ class JobTemplateController extends Controller
             $template->template_data = json_encode($jsonData);
             //dd($template->template_data, $jsonData,json_encode($jsonData));
             $template->save();
-            dd($template->template_data, $jsonData,json_encode($jsonData));
+            //dd($template->template_data, $jsonData,json_encode($jsonData));
             return response()->json([
                 'success' => true,
                 'message' => 'Return added successfully',
                 'return' => $returnData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove return from template
+     */
+    public function removeReturn(Request $request, JobTemplate $template)
+    {
+        try {
+            $jsonData = json_decode($template->template_data, true) ?? [];
+            $jsonData['return'] = null;
+
+            $template->template_data = json_encode($jsonData);
+            $template->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Return removed successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([

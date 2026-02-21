@@ -39,6 +39,7 @@ window.ROUTES = {
         ADD_DROPOFF: APP_URL+'/jobtemplates/:id/addDropOff',
         REMOVE_DROPOFF: APP_URL+'/jobtemplates/:id/removeDropOff',
         ADD_RETURN: APP_URL+'/jobtemplates/:id/addReturn',
+        REMOVE_RETURN: APP_URL+'/jobtemplates/:id/removeReturn',
       },
       CLIENT:{
         SEARCHADDRESSES:  APP_URL+'/clients/searchClientAddresses',

@@ -58,6 +58,109 @@ function attachEventListeners() {
 
     // Load clients on page init
     loadClients();
+
+    // Templates table actions (event delegation)
+    document.getElementById('templates-container').addEventListener('click', handleTemplatesContainerClick);
+
+    // Pagination actions (event delegation)
+    document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
+
+    // Modal footer buttons
+    document.getElementById('modal-delete-btn').addEventListener('click', () => {
+        if (selectedTemplateId) {
+            handleDeleteTemplate(selectedTemplateId);
+        }
+    });
+    document.getElementById('modal-save-btn').addEventListener('click', handleUpdateTemplate);
+
+    // Modal body actions (event delegation)
+    const modalBody = document.getElementById('modal-body-content');
+    modalBody.addEventListener('click', handleModalBodyClick);
+    modalBody.addEventListener('change', handleModalBodyChange);
+}
+
+/**
+ * Handle templates table button clicks
+ */
+function handleTemplatesContainerClick(event) {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+
+    const action = actionButton.getAttribute('data-action');
+    const templateId = actionButton.getAttribute('data-id');
+
+    switch (action) {
+        case 'view-template':
+            if (templateId) handleViewTemplate(Number(templateId));
+            break;
+        case 'create-jobs':
+            if (templateId) handleCreateJobsClick(Number(templateId));
+            break;
+        case 'delete-template':
+            if (templateId) handleDeleteTemplate(Number(templateId));
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Handle pagination button clicks
+ */
+function handlePaginationClick(event) {
+    const actionButton = event.target.closest('[data-action="go-to-page"]');
+    if (!actionButton) return;
+
+    const page = actionButton.getAttribute('data-page');
+    if (page) {
+        goToPage(Number(page));
+    }
+}
+
+/**
+ * Handle modal body button clicks
+ */
+function handleModalBodyClick(event) {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+
+    const action = actionButton.getAttribute('data-action');
+
+    switch (action) {
+        case 'add-dropoff':
+            handleAddDropOff();
+            break;
+        case 'remove-dropoff': {
+            const orderNumber = actionButton.getAttribute('data-order');
+            if (orderNumber) handleRemoveDropOff(Number(orderNumber));
+            break;
+        }
+        case 'add-return':
+            handleAddReturn();
+            break;
+        case 'remove-return':
+            handleRemoveReturn();
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Handle modal body input changes
+ */
+function handleModalBodyChange(event) {
+    const target = event.target;
+    if (!target) return;
+
+    if (target.id === 'is-price-fixed-toggle') {
+        handlePriceToggle();
+        return;
+    }
+
+    if (target.id === 'return-type-toggle') {
+        handleReturnTypeToggle();
+    }
 }
 
 /**
@@ -138,13 +241,13 @@ function renderTemplates(templates) {
                 <td>${sanitizeHtml(template.name)}</td>
                 <td>
                     <div class="row-actions" style="justify-content: flex-end;">
-                        <button class="btn-action btn-view" onclick="handleViewTemplate(${template.id})">
+                        <button class="btn-action btn-view" data-action="view-template" data-id="${template.id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        <button class="btn-action btn-jobs" onclick="handleCreateJobsClick(${template.id})">
+                        <button class="btn-action btn-jobs" data-action="create-jobs" data-id="${template.id}">
                             <i class="fas fa-plus-circle"></i> Create Jobs
                         </button>
-                        <button class="btn-action btn-delete" onclick="handleDeleteTemplate(${template.id})">
+                        <button class="btn-action btn-delete" data-action="delete-template" data-id="${template.id}">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -175,13 +278,13 @@ function renderPagination(pagination) {
     let html = `<div class="pagination-info">Page ${pagination.current_page} of ${pagination.last_page}</div>`;
     
     if (pagination.current_page > 1) {
-        html += `<button class="btn btn-sm btn-outline-secondary" onclick="goToPage(1)">First</button>`;
-        html += `<button class="btn btn-sm btn-outline-secondary" onclick="goToPage(${pagination.current_page - 1})">Previous</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="1">First</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.current_page - 1}">Previous</button>`;
     }
 
     if (pagination.current_page < pagination.last_page) {
-        html += `<button class="btn btn-sm btn-outline-secondary" onclick="goToPage(${pagination.current_page + 1})">Next</button>`;
-        html += `<button class="btn btn-sm btn-outline-secondary" onclick="goToPage(${pagination.last_page})">Last</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.current_page + 1}">Next</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.last_page}">Last</button>`;
     }
 
     container.innerHTML = html;
@@ -311,14 +414,13 @@ function renderTemplateModal(template, lockedFields) {
           <div class="row g-3 align-items-center">
             <div class="col-12">
               <div class="form-check form-switch">
-                <input 
-                  class="form-check-input inputs-forJobTemplate" 
-                  type="checkbox" 
-                  id="is-price-fixed-toggle"
-                  name="is_price_fixed"
-                  data-orgdata="${template.is_price_fixed ?? false}"
-                  ${template.is_price_fixed ? 'checked' : ''}
-                  onchange="handlePriceToggle()">
+                                <input 
+                                    class="form-check-input inputs-forJobTemplate" 
+                                    type="checkbox" 
+                                    id="is-price-fixed-toggle"
+                                    name="is_price_fixed"
+                                    data-orgdata="${template.is_price_fixed ?? false}"
+                                    ${template.is_price_fixed ? 'checked' : ''}>
                 <label class="form-check-label" for="is-price-fixed-toggle">
                   Fixed Price
                 </label>
@@ -345,7 +447,7 @@ function renderTemplateModal(template, lockedFields) {
         <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h5 style="margin: 0; color: #fff;">Drop-offs</h5>
-                <button type="button" class="btn btn-sm btn-success" onclick="handleAddDropOff()">
+                <button type="button" class="btn btn-sm btn-success" data-action="add-dropoff">
                     <i class="fas fa-plus"></i> Add Drop-off
                 </button>
             </div>
@@ -355,7 +457,7 @@ function renderTemplateModal(template, lockedFields) {
                     <div class="dropoff-item" data-order="${dropoff.order_number}" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <strong style="color: #fff;">Drop-off #${dropoff.order_number}</strong>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="handleRemoveDropOff(${dropoff.order_number})">
+                            <button type="button" class="btn btn-sm btn-danger" data-action="remove-dropoff" data-order="${dropoff.order_number}">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
@@ -424,9 +526,11 @@ function renderTemplateModal(template, lockedFields) {
         <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h5 style="margin: 0; color: #fff;">Return</h5>
-                ${!returnData ? `<button type="button" class="btn btn-sm btn-success" onclick="handleAddReturn()">
+                ${!returnData ? `<button type="button" class="btn btn-sm btn-success" data-action="add-return">
                     <i class="fas fa-plus"></i> Add Return
-                </button>` : ''}
+                </button>` : `<button type="button" class="btn btn-sm btn-danger" data-action="remove-return">
+                    <i class="fas fa-trash"></i> Remove Return
+                </button>`}
             </div>
             <div id="return-container" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
                 ${returnData ? `
@@ -453,8 +557,7 @@ function renderTemplateModal(template, lockedFields) {
                                     id="return-type-toggle"
                                     name="return_is_same_day"
                                     data-orgdata="${returnData.is_same_day ?? 'false'}"
-                                    ${returnData.is_same_day === true || returnData.is_same_day === 'true' ? 'checked' : ''}
-                                    onchange="handleReturnTypeToggle()">
+                                    ${returnData.is_same_day === true || returnData.is_same_day === 'true' ? 'checked' : ''}>
                                 <label class="form-check-label" for="return-type-toggle">
                                     Same Day Return
                                 </label>
@@ -1323,6 +1426,37 @@ function handleAddReturn() {
 }
 
 /**
+ * Handle removing a return
+ */
+function handleRemoveReturn() {
+    if (!selectedTemplateId) return;
+    if (!confirm('Are you sure you want to remove the return?')) return;
+
+    const url = window.ROUTES.WEB.JOBTEMPLATE.REMOVE_RETURN.replace(':id', selectedTemplateId);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            handleViewTemplate(selectedTemplateId);
+            showSuccess('Return removed successfully');
+        } else {
+            showError(data.error || 'Failed to remove return');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing return:', error);
+        showError('Failed to remove return');
+    });
+}
+
+/**
  * Handle return type toggle (Same Day vs Flexible)
  */
 function handleReturnTypeToggle() {
@@ -1440,20 +1574,3 @@ function getTimeInputElement(){
 // ... rest of old code ...
 */
 
-// ================================================================
-// MAKE FUNCTIONS GLOBALLY AVAILABLE FOR ONCLICK HANDLERS
-// ================================================================
-window.fetchTemplates = fetchTemplates;
-window.handleViewTemplate = handleViewTemplate;
-window.handleCreateJobsClick = handleCreateJobsClick;
-window.handleCreateTemplate = handleCreateTemplate;
-window.handleUpdateTemplate = handleUpdateTemplate;
-window.handleDeleteTemplate = handleDeleteTemplate;
-window.goToPage = goToPage;
-window.openCreateTemplateModal = openCreateTemplateModal;
-window.closeCreateTemplateModal = closeCreateTemplateModal;
-window.handleAddDropOff = handleAddDropOff;
-window.handleRemoveDropOff = handleRemoveDropOff;
-window.handleAddReturn = handleAddReturn;
-window.handleReturnTypeToggle = handleReturnTypeToggle;
-window.handlePriceToggle = handlePriceToggle;

@@ -274,6 +274,7 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
     Route::post('{template}/addDropOff',            [JobTemplateController::class, 'addDropOff'])->name('jobtemplate.addDropOff')->middleware('auth');
     Route::post('{template}/removeDropOff',         [JobTemplateController::class, 'removeDropOff'])->name('jobtemplate.removeDropOff')->middleware('auth');
     Route::post('{template}/addReturn',             [JobTemplateController::class, 'addReturn'])->name('jobtemplate.addReturn')->middleware('auth');
+    Route::post('{template}/removeReturn',          [JobTemplateController::class, 'removeReturn'])->name('jobtemplate.removeReturn')->middleware('auth');
     
     // Old routes (commented - for reference only)
     // Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');

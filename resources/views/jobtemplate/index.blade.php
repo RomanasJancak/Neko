@@ -343,9 +343,9 @@
         <!-- Content loaded here -->
     </div>
     <div class="modal-footer">
-        <button id="modal-delete-btn" class="btn btn-danger" onclick="handleDeleteTemplate(selectedTemplateId)" style="margin-right: auto;">Delete</button>
+        <button id="modal-delete-btn" class="btn btn-danger" style="margin-right: auto;">Delete</button>
         <button id="modal-close-footer-btn" class="btn btn-secondary">Cancel</button>
-        <button id="modal-save-btn" class="btn btn-success" onclick="handleUpdateTemplate()">Save Changes</button>
+        <button id="modal-save-btn" class="btn btn-success">Save Changes</button>
     </div>
 </div>
 
