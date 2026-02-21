@@ -790,13 +790,22 @@ function handleUpdateTemplate() {
 
     templateInputs.forEach(input => {
         const originalValue = input.getAttribute('data-orgdata');
-        const currentValue = input.value;
+        let currentValue = input.value;
+
+        if (input.type === 'checkbox') {
+            currentValue = input.checked ? 'true' : 'false';
+        }
+
+        const normalizedOriginal = normalizeInputValue(originalValue, input.type);
+        const normalizedCurrent = normalizeInputValue(currentValue, input.type);
 
         // Only include fields that have changed
-        if (originalValue !== currentValue) {
+        if (normalizedOriginal !== normalizedCurrent) {
             // Use the name attribute directly - much cleaner!
             const fieldName = input.name;
-            changedData[fieldName] = currentValue || null;
+            changedData[fieldName] = input.type === 'checkbox'
+                ? input.checked
+                : (currentValue || null);
             hasChanges = true;
         }
     });
@@ -858,6 +867,17 @@ function handleUpdateTemplate() {
             console.error('Error:', error);
             showError('Failed to update template');
         });
+}
+
+/**
+ * Normalize input values for comparison
+ */
+function normalizeInputValue(value, inputType) {
+    if (inputType === 'checkbox') {
+        return value === true || value === 'true' ? 'true' : 'false';
+    }
+
+    return value ?? '';
 }
 
 /**
