@@ -1028,9 +1028,12 @@ function setJobValues(jobId,buttonClicked){
                                     .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
                 addDropOffArrangeButtons(jobId,buttonClicked);
             }
-            jobNoteField.innerHTML = data.note.content;
-            jobNoteField.value = data.note.content;
-            jobNoteField.setAttribute('data-note-id', data.note.id);
+            if(data.note){
+              jobNoteField.innerHTML = data.note.content;
+              jobNoteField.value = data.note.content;
+              jobNoteField.setAttribute('data-note-id', data.note.id);
+            }
+
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
@@ -1310,8 +1313,11 @@ function setTaskValues(taskId){
             addressCityField.value          =   data.address.city;
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
-            taskNoteField.value             =   data.note;
-            taskNoteField.innerHTML         =   data.note;
+            if(data.note){
+              taskNoteField.value             =   data.note;
+              taskNoteField.innerHTML         =   data.note;
+            }
+
             const dateBegin = new Date(data.time.begin);
             const dateEnd = new Date(data.time.end);
             timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}`;
@@ -1573,7 +1579,12 @@ function getJobNote(jobId){
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            fillNoteModalWithData(data);
+            if (data.success) {
+              fillNoteModalWithData(data);
+            }else{
+              alert('No note found for this job.');
+            }
+            
         })
         .catch(error => {
             console.error('Error fetching job notes:', error);
