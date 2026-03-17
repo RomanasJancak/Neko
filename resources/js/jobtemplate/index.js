@@ -35,7 +35,6 @@ function attachEventListeners() {
     document.getElementById('create-template-close-btn').addEventListener('click', closeCreateTemplateModal);
     document.getElementById('create-template-cancel-btn').addEventListener('click', closeCreateTemplateModal);
     document.getElementById('create-template-submit-btn').addEventListener('click', handleCreateTemplate);
-    document.getElementById('template-client').addEventListener('change', updateClientAddresses);
 
     // Modal close buttons
     document.getElementById('modal-close-btn').addEventListener('click', closeTemplateModal);
@@ -1075,33 +1074,7 @@ function updateClientpackageTypes(clientId) {
       })
       .catch(error => console.error('Error loading package types:', error));
 }
-/**
- * Update available addresses based on selected client
- */
-function updateClientAddresses() {
-    const clientId = document.getElementById('template-client').value;
-    const addressSelect = document.getElementById('template-pickup-address');
-    
-    addressSelect.innerHTML = '<option value="">Select an address...</option>';
 
-    if (!clientId) {
-        return;
-    }
-
-    fetch(window.ROUTES.WEB.CLIENT.SEARCHADDRESSES + '?client_id=' + clientId)
-        .then(response => response.json())
-        .then(data => {
-            if (data && Array.isArray(data)) {
-                data.forEach(address => {
-                    const option = document.createElement('option');
-                    option.value = address.id;
-                    option.textContent = sanitizeHtml(address.name);
-                    addressSelect.appendChild(option);
-                });
-            }
-        })
-        .catch(error => console.error('Error loading addresses:', error));
-}
 
 /**
  * Open create template modal
