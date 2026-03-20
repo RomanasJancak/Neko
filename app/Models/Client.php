@@ -28,6 +28,8 @@ class Client extends Model
                             'pickup_city',
                             'pickup_country',
                             'email',
+                            'invoice_email_subject_template',
+                            'invoice_email_body_template',
                             'vat','regNumber','address','note'];
     public function packageTypes()
     {

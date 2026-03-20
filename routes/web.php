@@ -312,6 +312,7 @@ Route::group(['prefix'  => 'invoices'],function(){
     Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
     Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware('auth');
     Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware('auth');
+    Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware('auth');
 });
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');

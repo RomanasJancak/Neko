@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\InvoiceSendMail;
 use App\Models\Invoice;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Services\SettingsService;
 use App\Services\InvoiceSnapshotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
@@ -17,8 +19,25 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::latest()->paginate(10);
-            return view('invoice.index', compact('invoices'));
+      $invoices = Invoice::with(['client', 'invoiceItems'])->latest()->paginate(10);
+
+      $invoices->getCollection()->transform(function (Invoice $invoice) {
+        $invoice->email_subject_prefill = $this->renderTemplate(
+          $invoice->client->invoice_email_subject_template ?? null,
+          $invoice,
+          'Invoice :invoice_number'
+        );
+
+        $invoice->email_body_prefill = $this->renderTemplate(
+          $invoice->client->invoice_email_body_template ?? null,
+          $invoice,
+          "Hello :client_name,\n\nPlease find attached invoice :invoice_number.\n\nThank you."
+        );
+
+        return $invoice;
+      });
+
+      return view('invoice.index', compact('invoices'));
     }
 
     /**
@@ -133,5 +152,82 @@ class InvoiceController extends Controller
         'invoice' => $invoice->id,
         'snapshot_id' => $snapshot->id,
       ])->with('success', 'Invoice snapshot generated.');
+    }
+
+    public function sendEmail(Request $request, Invoice $invoice, SettingsService $settings)
+    {
+      $invoice->loadMissing('client');
+
+      if (!$invoice->client || empty($invoice->client->email)) {
+        return redirect()->route('invoice.index')->with('error', 'Client email does not exist for this invoice.');
+      }
+
+      $validated = $request->validate([
+        'subject' => 'required|string|max:255',
+        'body' => 'required|string',
+        'save_template' => 'nullable|boolean',
+        'snapshot_id' => 'nullable|integer',
+      ]);
+
+      $vatRate = (float) $settings->get('global.vatRate');
+      $snapshotService = app(InvoiceSnapshotService::class);
+      $snapshotId = $validated['snapshot_id'] ?? null;
+
+      if ($snapshotId) {
+        $snapshot = $invoice->snapshots()->whereKey($snapshotId)->first();
+      } else {
+        $snapshot = $snapshotService->createSnapshot($invoice, $vatRate, auth()->id());
+      }
+
+      if (!$snapshot) {
+        return redirect()->route('invoice.index')->with('error', 'Invalid snapshot selected for invoice email.');
+      }
+
+      $snapshotData = $snapshot->data;
+      $snapshotData['version'] = $snapshot->version;
+      $snapshotData['generated_at'] = $snapshot->generated_at;
+
+      $viewData = [
+        'invoice' => $invoice,
+        'snapshot' => $snapshot,
+        'snapshotData' => $snapshotData,
+      ];
+
+      $pdfContent = Pdf::loadView('invoice.pdf', $viewData)->output();
+      $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
+
+      Mail::to($invoice->client->email)->send(
+        new InvoiceSendMail(
+          $invoice,
+          $validated['subject'],
+          $validated['body'],
+          $pdfContent,
+          $pdfFileName
+        )
+      );
+
+      if ($request->boolean('save_template')) {
+        $invoice->client->update([
+          'invoice_email_subject_template' => $validated['subject'],
+          'invoice_email_body_template' => $validated['body'],
+        ]);
+      }
+
+      return redirect()->route('invoice.index')->with('success', 'Invoice email sent successfully.');
+    }
+
+    private function renderTemplate(?string $template, Invoice $invoice, string $fallback): string
+    {
+      $rawTemplate = $template ?: $fallback;
+      $clientName = $invoice->client->name ?? 'Client';
+      $invoiceDate = $invoice->invoice_date ?: $invoice->created_at?->toDateString();
+
+      return strtr($rawTemplate, [
+        ':invoice_number' => (string) ($invoice->invoice_number ?? $invoice->id),
+        ':invoice_id' => (string) $invoice->id,
+        ':client_name' => (string) $clientName,
+        ':invoice_date' => (string) ($invoiceDate ?: ''),
+        ':invoice_total' => number_format((float) $invoice->total, 2),
+      ]);
     }
 }
