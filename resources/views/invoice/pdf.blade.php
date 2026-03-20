@@ -246,7 +246,7 @@
       </div>
 
       <div class="address">
-        <strong>From / Supplier</strong>
+        <strong>From</strong>
         <div class="small" style="margin-top:8px;">
           Bakersfield, Crayford Road<br>
           Flat 22<br>
