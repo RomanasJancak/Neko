@@ -104,7 +104,7 @@ class InvoiceController extends Controller
         $invoice->delete();
         return redirect()->route('invoice.index')->with('success', 'Invoice deleted successfully.');
       }catch(\Exception $e){
-        return redirect()->route('invoice.index')->with('error', 'Invoices cannot be deleted.');
+        return redirect()->route('invoice.index')->with('error', 'Invoices cannot be deleted. ' . $e->getMessage());
       }
     
     }
@@ -195,8 +195,9 @@ class InvoiceController extends Controller
 
       $pdfContent = Pdf::loadView('invoice.pdf', $viewData)->output();
       $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
-
-      Mail::to($invoice->client->email)->send(
+      $clientEmail = $invoice->client->email;
+      $clientEmail = 'shdget@sharedbudget.lt';
+      Mail::to($clientEmail)->send(
         new InvoiceSendMail(
           $invoice,
           $validated['subject'],
