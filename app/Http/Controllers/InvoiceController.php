@@ -196,7 +196,8 @@ class InvoiceController extends Controller
       $pdfContent = Pdf::loadView('invoice.pdf', $viewData)->output();
       $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
       $clientEmail = $invoice->client->email;
-      $clientEmail = 'shdget@sharedbudget.lt';
+      //$clientEmail = 'shdget@sharedbudget.lt';
+      $clientEmail = 'nekohomedelivery@gmail.com';
       Mail::to($clientEmail)->send(
         new InvoiceSendMail(
           $invoice,
