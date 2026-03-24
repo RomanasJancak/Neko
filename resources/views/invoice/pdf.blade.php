@@ -217,9 +217,9 @@
           <div><strong>Invoice Number:</strong> {{$invoiceData['invoice_number'] ?? ''}}</div>
           <div><strong>Invoice Date:</strong> {{$invoiceData['invoice_date'] ?? ''}}</div>
           <div><strong>Due Date:</strong> {{$invoiceData['due_date'] ?? ''}}</div>
-          @if($version)
+          <!-- @if($version)
           <div><strong>Version:</strong> {{$version}}</div>
-          @endif
+          @endif -->
           @if($generatedAt)
           <div><strong>Generated:</strong> {{$generatedAt}}</div>
           @endif
