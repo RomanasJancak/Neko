@@ -10,7 +10,11 @@
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8000",
+            "url": "http://localhost",
+            "description": "Main API Server"
+        },
+        {
+            "url": "/api",
             "description": "Main API Server"
         },
         {
@@ -546,6 +550,125 @@
                 }
             }
         },
+        "/user-statuses": {
+            "get": {
+                "tags": [
+                    "UserStatus"
+                ],
+                "summary": "Get list of user statuses",
+                "operationId": "c36a44a55e4457b73001644c2564dda4",
+                "responses": {
+                    "200": {
+                        "description": "List of user statuses"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "UserStatus"
+                ],
+                "summary": "Create a new user status",
+                "operationId": "5334b9ddb29d321df89f346ad788e274",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Sick"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User status created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/user-statuses/{user_status}": {
+            "delete": {
+                "tags": [
+                    "UserStatus"
+                ],
+                "summary": "Delete a user status",
+                "operationId": "eadadc095eb1c0eefcc97629d1aa807c",
+                "parameters": [
+                    {
+                        "name": "user_status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status removed."
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "UserStatus"
+                ],
+                "summary": "Update a user status",
+                "operationId": "af548a81dad82161a941cd1e1890c6bf",
+                "parameters": [
+                    {
+                        "name": "user_status",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Vacation"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
         "/api/workloads": {
             "get": {
                 "tags": [
@@ -829,6 +952,10 @@
         {
             "name": "UserDayStatus",
             "description": "UserDayStatus"
+        },
+        {
+            "name": "UserStatus",
+            "description": "UserStatus"
         }
     ]
 }
