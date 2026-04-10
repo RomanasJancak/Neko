@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Invoice {{$invoice->invoice_number}}</title>
+  <title>Invoice {{$invoiceData['invoice_number'] ?? ''}}</title>
 
   <style>
     :root {
@@ -21,7 +21,7 @@
       margin: 0;
     }
 
-    .invoice {
+    #invoice {
       max-width: 960px;
       margin: 0 auto;
       background: var(--paper);
@@ -31,75 +31,67 @@
       border: 1px solid var(--border);
     }
 
-    header {
+    #invoice-title{
+      font-size:28px;
+      margin-bottom:10px;
+    }
+
+    #header {
       display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
+      justify-content: end;
+      gap: 75px;
+      margin-bottom: 30px;
+    }
+
+    #invoice-header {
+      display: flex;
+      gap: 100px;
+    }
+
+    #totals {
+      display: flex;
+      justify-content: end;
+    }
+
+    #footer-title{
+      margin-bottom: 10px;
+    }
+
+    #footer-text{
+      text-align: center;
+      font-size: 12px;
+    }
+
+    #client-info{
+      display: flex;
+      flex-direction: row;
+      gap:20px
+    }
+
+    .span-info {
+      display: flex;
       gap: 20px;
-      margin-bottom: 25px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 15px;
     }
 
-    .from {
-      font-weight: 700;
-      font-size: 20px;
+    .title {
+      color: #1f6feb;
     }
 
-    .small {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .invoice-meta {
-      text-align: right;
-      font-size: 14px;
-    }
-
-    .invoice-meta .title {
-      font-weight: 700;
-      font-size: 22px;
-      color: var(--accent);
-    }
-
-    .addresses {
+    .info {
       display: flex;
-      gap: 50px;
-      margin: 25px 0;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .address {
-      min-width: 240px;
-    }
-
-    table.items {
+    .break {
+      display: block;
+      height: 2px;
+      background-color: lightgray;
+      margin: 16px 0;
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+      border: none;
     }
 
-    table.items th,
-    table.items td {
-      border-bottom: 1px solid var(--border);
-      padding: 10px 8px;
-      vertical-align: top;
-      font-size: 14px;
-    }
-
-    table.items th {
-      background: #f8f8f8;
-      font-weight: 700;
-      color: #222;
-    }
-
-    table.items td.numeric {
-      text-align: right;
-      font-family: monospace;
-    }
-
-    /* Nested job table */
     .job-table {
       width: 100%;
       border-collapse: collapse;
@@ -115,81 +107,15 @@
       vertical-align: top;
     }
 
-    .job-table th {
-      background: #f2f2f2;
-      text-align: left;
-      font-weight: 600;
-    }
-
-    .small-text {
-      font-size: 11px;
+    .time{
       color: var(--muted);
-    }
-
-    .totals {
-      margin-top: 30px;
-      width: 320px;
-      float: right;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .totals table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .totals td {
-      padding: 8px 12px;
-      font-size: 14px;
-      background: #fff;
-    }
-
-    .totals tr:nth-child(even) td {
-      background: #f9f9f9;
-    }
-
-    .totals .grand td {
-      font-weight: 700;
-      font-size: 16px;
-      border-top: 2px solid var(--border);
-    }
-
-    .bank {
-      clear: both;
-      margin-top: 40px;
-      padding-top: 15px;
-      border-top: 1px dashed var(--border);
-      font-size: 14px;
-    }
-
-    footer {
-      margin-top: 20px;
-      font-size: 12px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    /* Print & page layout */
-    @page {
-      margin: 25px 30px;
-    }
-
-    @media print {
-      body {
-        background: #fff;
-      }
-      .invoice {
-        box-shadow: none;
-        border: none;
-        padding: 0;
-      }
+      font-size:11px;
     }
   </style>
 </head>
 
 <body>
+
   @php
     $invoiceData = $snapshotData['invoice'] ?? [];
     $clientData = $snapshotData['client'] ?? [];
@@ -199,184 +125,174 @@
     $generatedAt = $snapshotData['generated_at'] ?? null;
   @endphp
 
-  <article class="invoice" role="document" aria-label="Invoice {{$invoiceData['invoice_number'] ?? ''}}">
-    <header>
-      <div>
-        <div class="from">Neko Home Delivery LLP</div>
-        <div class="small" style="margin-top:6px;">
-          410 1951 42<br>
-          <a href="http://www.nekohomedelivery.com" target="_blank" rel="noopener">www.nekohomedelivery.com</a><br>
-          nekohomedelivery@gmail.com<br>
-          07429381472
+<article id="invoice">
+
+  <!-- HEADER -->
+  <div id="invoice-title"><b>Itemised Invoice of {{ $invoiceData['invoice_number'] }}</b></div>
+
+  <section id="header">
+    <div class="info">
+      <div class="title"><b>Neko Home Delivery LLP</b></div>
+      <div>410 1951 42</div>
+      <div>www.nekohomedelivery.com</div>
+      <div>nekohomedelivery@gmail.com</div>
+      <div>07429381472</div>
+    </div>
+
+    <div class="info">
+      <div>Bakersfield, Crayford Road</div>
+      <div>Flat 22</div>
+      <div>London N7 0LT</div>
+      <div>United Kingdom</div>
+    </div>
+  </section>
+
+  <!-- INVOICE INFO -->
+  <section>
+    <div class="title"><b>INVOICE</b></div>
+    <div class="break"></div>
+
+    <div id="invoice-header">
+      <div class="span-info">
+        <div class="info">
+          <div>Invoice Number</div>
+          <div>Invoice Date</div>
+          <div>Due Date</div>
+          <div>Invoice Total</div>
+        </div>
+
+        <div class="info">
+          <div>{{ $invoiceData['invoice_number'] }}</div>
+          <div>{{ $invoiceData['invoice_date'] }}</div>
+          <div>{{ $invoiceData['due_date'] }}</div>
+          <div>£{{ number_format($totals['grand_total'], 2) }}</div>
         </div>
       </div>
 
-      <div class="invoice-meta">
-        <div class="title">Itemized invoice part of Invoice : {{$invoiceData['invoice_number'] ?? ''}}</div>
-        <div style="margin-top:10px;">
-          <div><strong>Invoice Number:</strong> {{$invoiceData['invoice_number'] ?? ''}}</div>
-          <div><strong>Invoice Date:</strong> {{$invoiceData['invoice_date'] ?? ''}}</div>
-          <div><strong>Due Date:</strong> {{$invoiceData['due_date'] ?? ''}}</div>
-          <!-- @if($version)
-          <div><strong>Version:</strong> {{$version}}</div>
-          @endif -->
-          @if($generatedAt)
-          <div><strong>Generated:</strong> {{$generatedAt}}</div>
+      <div id="client-info">
+        <b>BILL TO:</b>
+        <div class="info">
+          <b>{{ $clientData['name'] }}</b>
+          <div>{{ $clientData['address_line'] }}</div>
+          <div>{{ $clientData['city'] }} {{ $clientData['postcode'] }}</div>
+          <div>{{ $clientData['country'] }}</div>
+          <div>{{ $clientData['email'] }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="break"></div>
+  </section>
+
+  <!-- ITEMS -->
+  @foreach ($items as $item)
+
+  <table class="job-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Jobs Count</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ $item['description'] }}</td>
+        <td>{{ $item['jobs_count'] }}</td>
+        <td>£{{ number_format($item['price'], 2) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="job-table">
+    <thead>
+      <tr>
+        <th>Job ID</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th>Pickup</th>
+        <th>Package</th>
+        <th>Dropoff</th>
+        <th>Return</th>
+        <th>Job Total</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @foreach ($item['jobs'] as $job)
+        @php
+          $dropOffs = $job['dropoffs'] ?? [];
+          $dropCount = max(count($dropOffs), 1);
+        @endphp
+
+        @foreach ($dropOffs as $index => $drop)
+        <tr>
+          @if ($index === 0)
+            <td rowspan="{{ $dropCount }}">#{{ $job['id'] }}</td>
+            <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status']) }}</td>
+            <td rowspan="{{ $dropCount }}">{{ $job['date'] }}</td>
+            <td rowspan="{{ $dropCount }}">
+              {{ $job['pickup']['address'] }}<br>
+              <span class="time">{{ $job['pickup']['time_window_begin'] }} – {{ $job['pickup']['time_window_end'] }}</span>
+            </td>
           @endif
-          <div style="margin-top:8px; font-size:16px;">
-            <strong>Invoice Total:</strong> £{{ number_format($totals['grand_total'] ?? 0, 2) }}
-          </div>
-          <div style="color:var(--muted)">
-            <strong>Balance Due:</strong> £{{ number_format($totals['balance_due'] ?? 0, 2) }}
-          </div>
-        </div>
-      </div>
-    </header>
 
-    <section class="addresses">
-      <div class="address">
-        <strong>Bill To</strong>
-        <div class="small" style="margin-top:8px;">
-          {{$clientData['name'] ?? ''}}<br>
-          {{$clientData['address_line'] ?? ''}}<br>
-          {{$clientData['city'] ?? ''}} {{$clientData['postcode'] ?? ''}}<br>
-          {{$clientData['country'] ?? ''}}<br>
-          
-        </div>
-      </div>
+          <td>{{ $drop['package_type'] }} × {{ $drop['quantity'] }}</td>
 
-      <div class="address">
-        <strong>From</strong>
-        <div class="small" style="margin-top:8px;">
-          Bakersfield, Crayford Road<br>
-          Flat 22<br>
-          London N7 0LT<br>
-          United Kingdom
-        </div>
-      </div>
-    </section>
+          <td>
+            {{ $drop['address'] }}<br>
+            <span class="time">{{ $drop['time_window_begin'] }} – {{ $drop['time_window_end'] }}</span>
+          </td>
 
-    <section aria-label="Line items">
-      <table class="items">
-        <thead>
-          <tr>
-            <th style="width:55%;">Item</th>
-            <th style="width:10%;">Quantity</th>
-            <th style="width:23%; text-align:right;">Line Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($items as $item)
-          <tr>
-            <td>
-              <strong>{{ $item['description'] ?? '' }}</strong>
+          @if ($index === 0)
+            <td rowspan="{{ $dropCount }}">
+              {{ $job['return']['address'] ?? '—' }}
             </td>
-            <td class="numeric">{{ $item['jobs_count'] ?? 0 }}</td>
-            <td class="numeric">£{{ number_format($item['price'] ?? 0, 2) }}</td>
-          </tr>
-          <tr>
-            <td colspan="3" style="padding:0;">
-              <table class="job-table">
-                <thead>
-                  <tr>
-                    <th>Job ID</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Pickup</th>
-                    <th>Package</th>
-                    <th>Dropoff</th>
-                    <th>Return</th>
-                    <th class="text-right">Job Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($item['jobs'] ?? [] as $job)
-                    @php
-                      $dropOffs = $job['dropoffs'] ?? [];
-                      $dropCount = max(count($dropOffs), 1);
-                    @endphp
-
-                    @foreach($dropOffs as $index => $dropOff)
-                    <tr>
-                      @if($index === 0)
-                        <td rowspan="{{ $dropCount }}">#{{ $job['id'] ?? '' }}</td>
-                        <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status'] ?? 'Unknown') }}</td>
-                        <td rowspan="{{ $dropCount }}">{{ $job['date'] ?? 'N/A' }}</td>
-                        <td rowspan="{{ $dropCount }}">
-                          {{ $job['pickup']['address'] ?? 'N/A' }}<br>
-                          <span class="small-text">{{ $job['pickup']['time_window_begin'] ?? 'N/A' }} – {{ $job['pickup']['time_window_end'] ?? 'N/A' }}</span>
-                        </td>
-                      @endif
-
-                      <td><span class="small-text">{{ $dropOff['package_type'] ?? '' }} × {{ $dropOff['quantity'] ?? '' }}</span></td>
-                      <td>
-                        {{ $dropOff['address'] ?? 'N/A' }}<br>
-                        <span class="small-text">{{ $dropOff['time_window_begin'] ?? 'N/A' }} – {{ $dropOff['time_window_end'] ?? 'N/A' }}</span>
-                      </td>
-
-                      @if($index === 0)
-                        <td rowspan="{{ $dropCount }}">
-                          @if(!empty($job['return']))
-                            {{ $job['return']['address'] ?? 'N/A' }}<br>
-                            <span class="small-text">{{ $job['return']['time_window_begin'] ?? 'N/A' }} – {{ $job['return']['time_window_end'] ?? 'N/A' }}</span>
-                          @else
-                            —
-                          @endif
-                        </td>
-                        <td rowspan="{{ $dropCount }}" class="text-right">
-                          £{{ number_format($job['total'] ?? 0, 2) }}
-                        </td>
-                      @endif
-                    </tr>
-                    @endforeach
-                  @endforeach
-                </tbody>
-              </table>
+            <td rowspan="{{ $dropCount }}">
+              £{{ number_format($job['total'], 2) }}
             </td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
-    </section>
+          @endif
+        </tr>
+        @endforeach
+      @endforeach
+    </tbody>
+  </table>
 
-    <aside class="totals">
-      <table>
-        <tr>
-          <td>Subtotal</td>
-          <td style="text-align:right">£{{ number_format($totals['subtotal'] ?? 0, 2) }}</td>
-        </tr>
-        <tr>
-          <td>VAT {{ number_format(($totals['vat_rate'] ?? 0) * 100, 2) }}%</td>
-          <td style="text-align:right">£{{ number_format($totals['vat_amount'] ?? 0, 2) }}</td>
-        </tr>
-        <tr class="grand">
-          <td>Total</td>
-          <td style="text-align:right">£{{ number_format($totals['grand_total'] ?? 0, 2) }}</td>
-        </tr>
-        <tr>
-          <td>Paid to Date</td>
-          <td style="text-align:right">£{{ number_format($totals['amount_paid'] ?? 0, 2) }}</td>
-        </tr>
-        <tr>
-          <td><strong>Balance Due</strong></td>
-          <td style="text-align:right"><strong>£{{ number_format($totals['balance_due'] ?? 0, 2) }}</strong></td>
-        </tr>
-      </table>
-    </aside>
+  <div class="break"></div>
 
-    <section class="bank">
-      <strong>Bank Transfer</strong>
-      <div class="small" style="margin-top:8px;">
-        Starling Bank<br>
-        Neko Home Delivery LLP<br>
-        Account Number: 09592067<br>
-        Sort Code: 60-83-71
+  @endforeach
+
+  <!-- TOTALS -->
+  <section id="totals">
+    <div class="span-info">
+      <div class="info">
+        <div>Subtotal</div>
+        <div>VAT {{ number_format($totals['vat_rate'] * 100, 2) }}%</div>
+        <div>Total</div>
       </div>
-    </section>
 
-    <footer>
-      Invoice generated by Neko Home Delivery LLP
-    </footer>
-  </article>
+      <div class="info">
+        <div>£{{ number_format($totals['subtotal'], 2) }}</div>
+        <div>£{{ number_format($totals['vat_amount'], 2) }}</div>
+        <div>£{{ number_format($totals['grand_total'], 2) }}</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="break"></div>
+
+  <!-- FOOTER -->
+  <section id="footer">
+    <div id="footer-title"><b>Bank Transfer</b></div>
+    <div class="info">
+      <div>Starling Bank</div>
+      <div>Neko Home Delivery LLP</div>
+      <div>Account Number: 09592067</div>
+      <div>Sort Code: 60-83-71</div>
+    </div>
+    <div id="footer-text">Invoice generated by Neko Home Delivery LLP</div>
+  </section>
+
+</article>
 </body>
 </html>
