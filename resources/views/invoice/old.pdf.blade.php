@@ -4,225 +4,202 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Invoice {{$invoice->invoice_number}}</title>
-  <style>
-    /* Simple printable invoice style */
-    :root{
-      --accent:#1f6feb;
-      --muted:#666;
-      --border:#e6e6e6;
-      --paper:#fff;
-      font-family: Arial, Helvetica, sans-serif;
-      color:#111;
-    }
-    body{
-      background:#f4f6f8;
-      padding:20px;
-      margin:0;
-    }
-    .invoice {
-      max-width:900px;
-      margin:0 auto;
-      background:var(--paper);
-      padding:28px;
-      border-radius:8px;
-      box-shadow:0 6px 20px rgba(20,20,30,0.06);
-      border:1px solid var(--border);
-    }
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      margin-bottom:20px;
-    }
-    .from {
-      font-weight:700;
-      font-size:18px;
-    }
-    .small {
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.45;
-    }
-    .invoice-meta {
-      text-align:right;
-      font-size:14px;
-    }
-    .invoice-meta .title{
-      font-weight:700;
-      font-size:20px;
-      color:var(--accent);
-    }
-    .addresses{
-      display:flex;
-      gap:40px;
-      margin:18px 0;
-      flex-wrap:wrap;
-    }
-    .address {
-      min-width:240px;
-    }
-    table.items{
-      width:100%;
-      border-collapse:collapse;
-      margin-top:12px;
-    }
-    table.items th,
-    table.items td{
-      border-bottom:1px solid var(--border);
-      padding:10px 8px;
-      text-align:left;
-      vertical-align:top;
-      font-size:14px;
-    }
-    table.items th {
-      background:#fafafa;
-      font-weight:700;
-      color:#222;
-    }
-    table.items td.numeric { text-align:right; font-family:monospace; }
-    .totals {
-      margin-top:12px;
-      width:320px;
-      float:right;
-      border:1px solid var(--border);
-      border-radius:6px;
-      overflow:hidden;
-    }
-    .totals table {
-      width:100%;
-      border-collapse:collapse;
-    }
-    .totals td{
-      padding:8px 12px;
-      background:#fff;
-      font-size:14px;
-    }
-    .totals tr:nth-child(even) td{ background:#fbfbfb; }
-    .totals .grand { font-weight:700; font-size:16px; }
-    .bank {
-      clear:both;
-      margin-top:26px;
-      padding-top:12px;
-      border-top:1px dashed var(--border);
-      font-size:14px;
-    }
-    footer {
-      margin-top:18px;
-      font-size:13px;
-      color:var(--muted);
-    }
 
-    /* Responsive */
-    @media (max-width:600px){
-      header{flex-direction:column; align-items:flex-start;}
-      .invoice-meta { text-align:left; margin-top:8px; }
-      .totals { width:100%; float:none; }
-    }
-  </style>
   <style>
-    @page {
-        margin: 25px 30px;
+    :root {
+      --accent: #1f6feb;
+      --muted: #555;
+      --border: #ddd;
+      --paper: #fff;
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      color: #111;
     }
 
     body {
-        font-family: DejaVu Sans, Arial, sans-serif;
-        font-size: 12px;
-        /* color: #ffffffff; */
+      background: #f6f8fa;
+      padding: 25px;
+      margin: 0;
     }
 
-    .invoice-item {
-        /* border: 1px solid #ccc; */
-        padding: 15px;
-        margin-bottom: 25px;
-        border-radius: 4px;
-        page-break-before: auto;
-        page-break-after: auto;
-        page-break-inside: auto;
+    .invoice {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--paper);
+      padding: 32px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--border);
     }
 
-    .invoice-header {
-        margin-bottom: 10px;
+    header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 15px;
     }
 
-    .invoice-header h4 {
-        margin: 0 0 5px 0;
-        font-size: 16px;
+    .from {
+      font-weight: 700;
+      font-size: 20px;
     }
 
-    .invoice-header .total {
-        font-weight: bold;
-        font-size: 14px;
-        text-align: right;
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
     }
 
-    .description {
-        /* color: #666; */
-        margin-bottom: 10px;
+    .invoice-meta {
+      text-align: right;
+      font-size: 14px;
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        font-size: 11px;
-        page-break-inside: auto;
+    .invoice-meta .title {
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--accent);
     }
 
-    thead {
-        /* background-color: #f5f5f5; */
+    .addresses {
+      display: flex;
+      gap: 50px;
+      margin: 25px 0;
+      flex-wrap: wrap;
     }
 
-    th, td {
-        /* border: 1px solid #ccc; */
-        padding: 6px 8px;
-        vertical-align: top;
+    .address {
+      min-width: 240px;
     }
 
-    th {
-        font-weight: bold;
-        text-align: left;
-        color : #000000ff;
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
     }
 
-    td.text-right {
-        text-align: right;
+    table.items th,
+    table.items td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      vertical-align: top;
+      font-size: 14px;
     }
 
-    .section-total {
-        text-align: right;
-        font-weight: bold;
-        border-top: 2px solid #000;
-        padding-top: 5px;
-        margin-top: 10px;
-        font-size: 12px;
-        page-break-inside: avoid;
+    table.items th {
+      background: #f8f8f8;
+      font-weight: 700;
+      color: #222;
+    }
+
+    table.items td.numeric {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    /* Nested job table */
+    .job-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 20px;
+      font-size: 12px;
+      background: #fafafa;
+    }
+
+    .job-table th,
+    .job-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    .job-table th {
+      background: #f2f2f2;
+      text-align: left;
+      font-weight: 600;
     }
 
     .small-text {
-        font-size: 10px;
-        /* color: #fffcfcff; */
+      font-size: 11px;
+      color: var(--muted);
     }
 
-    /* --- Fix table breaking issues --- */
-    table, tr, td, th {
-        page-break-inside: avoid !important;
+    .totals {
+      margin-top: 30px;
+      width: 320px;
+      float: right;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
-    /* --- Allow invoice blocks to flow correctly --- */
-    .invoice-item {
-        page-break-inside: avoid;
-        display: block;
+    .totals table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    /* --- Optional: add clear page breaks between invoice items --- */
-    .page-break {
-        page-break-before: always;
+    .totals td {
+      padding: 8px 12px;
+      font-size: 14px;
+      background: #fff;
     }
-</style>
+
+    .totals tr:nth-child(even) td {
+      background: #f9f9f9;
+    }
+
+    .totals .grand td {
+      font-weight: 700;
+      font-size: 16px;
+      border-top: 2px solid var(--border);
+    }
+
+    .bank {
+      clear: both;
+      margin-top: 40px;
+      padding-top: 15px;
+      border-top: 1px dashed var(--border);
+      font-size: 14px;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Print & page layout */
+    @page {
+      margin: 25px 30px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+      .invoice {
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <article class="invoice" role="document" aria-label="Invoice {{$invoice->invoice_number}}">
+  @php
+    $invoiceData = $snapshotData['invoice'] ?? [];
+    $clientData = $snapshotData['client'] ?? [];
+    $items = $snapshotData['items'] ?? [];
+    $totals = $snapshotData['totals'] ?? [];
+    $version = $snapshotData['version'] ?? null;
+    $generatedAt = $snapshotData['generated_at'] ?? null;
+  @endphp
+
+  <article class="invoice" role="document" aria-label="Invoice {{$invoiceData['invoice_number'] ?? ''}}">
     <header>
       <div>
         <div class="from">Neko Home Delivery LLP</div>
@@ -234,35 +211,43 @@
         </div>
       </div>
 
-      <div class="invoice-meta" aria-hidden="false">
-        <div class="title">INVOICE</div>
+      <div class="invoice-meta">
+        <div class="title">Itemized invoice part of Invoice : {{$invoiceData['invoice_number'] ?? ''}}</div>
         <div style="margin-top:10px;">
-          <div><strong>Invoice Number</strong> {{$invoice->invoice_number}}</div>
-          <div><strong>Invoice Date</strong> {{$invoice->invoice_date}}</div>
-          <div><strong>Due Date</strong> {{$invoice->due_date}}</div>
-          <div style="margin-top:8px; font-size:16px;"><strong>Invoice Total</strong> £{{ number_format($invoice->total, 2) }}</div>
-          <div style="color:var(--muted)"><strong>Balance Due</strong> £{{ number_format($invoice->total - $invoice->amount_paid, 2) }}</div>
+          <div><strong>Invoice Number:</strong> {{$invoiceData['invoice_number'] ?? ''}}</div>
+          <div><strong>Invoice Date:</strong> {{$invoiceData['invoice_date'] ?? ''}}</div>
+          <div><strong>Due Date:</strong> {{$invoiceData['due_date'] ?? ''}}</div>
+          <!-- @if($version)
+          <div><strong>Version:</strong> {{$version}}</div>
+          @endif -->
+          @if($generatedAt)
+          <div><strong>Generated:</strong> {{$generatedAt}}</div>
+          @endif
+          <div style="margin-top:8px; font-size:16px;">
+            <strong>Invoice Total:</strong> £{{ number_format($totals['grand_total'] ?? 0, 2) }}
+          </div>
+          <div style="color:var(--muted)">
+            <strong>Balance Due:</strong> £{{ number_format($totals['balance_due'] ?? 0, 2) }}
+          </div>
         </div>
       </div>
     </header>
 
-    <section class="addresses" aria-label="Addresses">
+    <section class="addresses">
       <div class="address">
         <strong>Bill To</strong>
-        <div style="height:8px;"></div>
-        <div class="small">
-          {{$invoice->client->name}}<br>
-          {{$invoice->client->address_line}}<br>
-          {{$invoice->client->city}} {{$invoice->client->postcode}}<br>
-          {{$invoice->client->country}}<br>
-          <a href="mailto:{{$invoice->client->email}}">{{$invoice->client->email}}</a>
+        <div class="small" style="margin-top:8px;">
+          {{$clientData['name'] ?? ''}}<br>
+          {{$clientData['address_line'] ?? ''}}<br>
+          {{$clientData['city'] ?? ''}} {{$clientData['postcode'] ?? ''}}<br>
+          {{$clientData['country'] ?? ''}}<br>
+          <a href="mailto:{{$clientData['email'] ?? ''}}">{{$clientData['email'] ?? ''}}</a>
         </div>
       </div>
 
       <div class="address">
-        <strong>From / Supplier</strong>
-        <div style="height:8px;"></div>
-        <div class="small">
+        <strong>From</strong>
+        <div class="small" style="margin-top:8px;">
           Bakersfield, Crayford Road<br>
           Flat 22<br>
           London N7 0LT<br>
@@ -272,145 +257,125 @@
     </section>
 
     <section aria-label="Line items">
-      <table class="items" role="table" aria-label="Invoice items">
+      <table class="items">
         <thead>
           <tr>
             <th style="width:55%;">Item</th>
-            <!-- <th style="width:12%;">Unit Cost</th> -->
             <th style="width:10%;">Quantity</th>
             <th style="width:23%; text-align:right;">Line Total</th>
           </tr>
         </thead>
         <tbody>
-          @foreach($invoice->invoiceItems as $item)
+          @foreach($items as $item)
           <tr>
             <td>
-              {{ $item->description }}<br>
+              <strong>{{ $item['description'] ?? '' }}</strong>
             </td>
-            <td class="numeric">{{ $item->jobs->count() }}</td>
-            <td class="numeric">£{{ number_format($item->price, 2) }}</td>
+            <td class="numeric">{{ $item['jobs_count'] ?? 0 }}</td>
+            <td class="numeric">£{{ number_format($item['price'] ?? 0, 2) }}</td>
           </tr>
-          <table>
-            <thead>
-              <tr>
-                <th style="width:55%;"><small>Jobs</small></th>
-                <th style="width:12%;"><small>Status</small></th>
-                <th style="width:23%; text-align:right;"><small>Date</small></th>
-                <th style="width:23%; text-align:right;"><small>Pickup</small></th>
-                <th style="width:23%; text-align:right;"><small>Package</small></th>
-                <th style="width:23%; text-align:right;"><small>Dropoff</small></th>
-                <th style="width:23%; text-align:right;"><small>Return</small></th>
-                <th style="width:23%; text-align:right;"><small>Job Total</small></th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($item->jobs as $job)
-        @php
-            $pickup = $job->getPickupTask();
-            $dropOffs = $job->getDropOffs();
-            $dropCount = count($dropOffs);
-            $returnTask = $job->hasReturn() ? $job->getReturnTask()->return : null;
-        @endphp
+          <tr>
+            <td colspan="3" style="padding:0;">
+              <table class="job-table">
+                <thead>
+                  <tr>
+                    <th>Job ID</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Pickup</th>
+                    <th>Package</th>
+                    <th>Dropoff</th>
+                    <th>Return</th>
+                    <th class="text-right">Job Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($item['jobs'] ?? [] as $job)
+                    @php
+                      $dropOffs = $job['dropoffs'] ?? [];
+                      $dropCount = max(count($dropOffs), 1);
+                    @endphp
 
-        @foreach($dropOffs as $index => $dropOff)
-            <tr>
-                {{-- Only show these columns once per job --}}
-                @if($index === 0)
-                    <td rowspan="{{ $dropCount }}">#{{ $job->id }}</td>
-                    <td rowspan="{{ $dropCount }}">{{ ucfirst($job->status->name ?? 'Unknown') }}</td>
-                    <td rowspan="{{ $dropCount }}">{{ $job->date ?? 'N/A' }}</td>
+                    @foreach($dropOffs as $index => $dropOff)
+                    <tr>
+                      @if($index === 0)
+                        <td rowspan="{{ $dropCount }}">#{{ $job['id'] ?? '' }}</td>
+                        <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status'] ?? 'Unknown') }}</td>
+                        <td rowspan="{{ $dropCount }}">{{ $job['date'] ?? 'N/A' }}</td>
+                        <td rowspan="{{ $dropCount }}">
+                          {{ $job['pickup']['address'] ?? 'N/A' }}<br>
+                          <span class="small-text">{{ $job['pickup']['time_window_begin'] ?? 'N/A' }} – {{ $job['pickup']['time_window_end'] ?? 'N/A' }}</span>
+                        </td>
+                      @endif
 
-                    <td rowspan="{{ $dropCount }}">
-                        {{ $pickup->addressShort() ?? 'N/A' }}<br>
-                        <span class="small-text">
-                            {{ $pickup->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $pickup->timeWindowEndFormatted() ?? 'N/A' }}
-                        </span>
-                    </td>
-                @endif
+                      <td><span class="small-text">{{ $dropOff['package_type'] ?? '' }} × {{ $dropOff['quantity'] ?? '' }}</span></td>
+                      <td>
+                        {{ $dropOff['address'] ?? 'N/A' }}<br>
+                        <span class="small-text">{{ $dropOff['time_window_begin'] ?? 'N/A' }} – {{ $dropOff['time_window_end'] ?? 'N/A' }}</span>
+                      </td>
 
-                {{-- Dropoff details --}}
-                <td>
-                    <span class="small-text">
-                        {{ $dropOff->packageType->name }} × {{ $dropOff->quantity }}
-                    </span>
-                </td>
-
-                <td>
-                    {{ $dropOff->addressShort() ?? 'N/A' }}<br>
-                    <span class="small-text">
-                        {{ $dropOff->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $dropOff->timeWindowEndFormatted() ?? 'N/A' }}
-                    </span>
-                </td>
-
-                {{-- Only show these columns once per job --}}
-                @if($index === 0)
-                    <td rowspan="{{ $dropCount }}">
-                        @if($returnTask)
-                            {{ $returnTask->addressShort() ?? 'N/A' }}<br>
-                            <span class="small-text">
-                                {{ $returnTask->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $returnTask->timeWindowEndFormatted() ?? 'N/A' }}
-                            </span>
-                        @else
+                      @if($index === 0)
+                        <td rowspan="{{ $dropCount }}">
+                          @if(!empty($job['return']))
+                            {{ $job['return']['address'] ?? 'N/A' }}<br>
+                            <span class="small-text">{{ $job['return']['time_window_begin'] ?? 'N/A' }} – {{ $job['return']['time_window_end'] ?? 'N/A' }}</span>
+                          @else
                             —
-                        @endif
-                    </td>
-
-                    <td rowspan="{{ $dropCount }}" class="text-right">
-                        {{ number_format(($job->price()['totalPrice'] ?? 0) / 100, 2) }}
-                    </td>
-
-                @endif
-            </tr>
-        @endforeach
-    @endforeach
-</tbody>
-          </table>
-        </td>
-      </tr>
-      @endforeach
+                          @endif
+                        </td>
+                        <td rowspan="{{ $dropCount }}" class="text-right">
+                          £{{ number_format($job['total'] ?? 0, 2) }}
+                        </td>
+                      @endif
+                    </tr>
+                    @endforeach
+                  @endforeach
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          @endforeach
         </tbody>
       </table>
     </section>
 
-    <aside class="totals" aria-label="Totals">
-      <table role="table" aria-hidden="false">
+    <aside class="totals">
+      <table>
+        <tr>
           <td>Subtotal</td>
-          <td style="text-align:right">{{ number_format($invoice->total - $invoice->vat, 2) }}</td>
+          <td style="text-align:right">£{{ number_format($totals['subtotal'] ?? 0, 2) }}</td>
         </tr>
         <tr>
-          <td>VAT 20%</td>
-          <td style="text-align:right">{{ number_format($invoice->total * 0.2, 2) }}</td>
+          <td>VAT {{ number_format(($totals['vat_rate'] ?? 0) * 100, 2) }}%</td>
+          <td style="text-align:right">£{{ number_format($totals['vat_amount'] ?? 0, 2) }}</td>
         </tr>
         <tr class="grand">
           <td>Total</td>
-          <td style="text-align:right">£{{ number_format($invoice->total*1.2, 2) }}</td>
+          <td style="text-align:right">£{{ number_format($totals['grand_total'] ?? 0, 2) }}</td>
         </tr>
         <tr>
           <td>Paid to Date</td>
-          <td style="text-align:right">£0.00</td>
+          <td style="text-align:right">£{{ number_format($totals['amount_paid'] ?? 0, 2) }}</td>
         </tr>
         <tr>
           <td><strong>Balance Due</strong></td>
-          <td style="text-align:right"><strong>£{{ number_format($invoice->total*1.2, 2) }}</strong></td>
+          <td style="text-align:right"><strong>£{{ number_format($totals['balance_due'] ?? 0, 2) }}</strong></td>
         </tr>
       </table>
     </aside>
 
-    <section class="bank" aria-label="Payment details">
+    <section class="bank">
       <strong>Bank Transfer</strong>
-      <div style="height:8px;"></div>
-      <div class="small">
+      <div class="small" style="margin-top:8px;">
         Starling Bank<br>
         Neko Home Delivery LLP<br>
         Account Number: 09592067<br>
-        Sort Code: 608371
+        Sort Code: 60-83-71
       </div>
     </section>
 
     <footer>
-      <div class="small" style="margin-top:8px;">
-        Invoice generated by Neko Home Delivery LLP.
-      </div>
+      Invoice generated by Neko Home Delivery LLP
     </footer>
   </article>
 </body>
