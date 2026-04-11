@@ -889,20 +889,41 @@ function updateFieldChangeUI(input) {
         if (input.type === 'checkbox') {
             displayOldValue = originalValue === 'true' || originalValue === true ? '✓ Checked' : '○ Unchecked';
         }
-        
+
         indicator.innerHTML = `
-            <span class="old-value" title="Click to revert" onclick="handleFieldValueClick(this)">
+            <span class="old-value" title="Click to revert">
                 <strong>Old:</strong> ${sanitizeHtml(displayOldValue)}
             </span>
             <div class="change-actions">
-                <button type="button" class="btn-confirm-field" title="Confirm this change" onclick="confirmFieldChange('${sanitizeHtml(input.name)}')">
+                <button type="button" class="btn-confirm-field" title="Confirm this change">
                     <i class="fas fa-check"></i>
                 </button>
-                <button type="button" class="btn-revert-field" title="Revert this change" onclick="revertFieldChange('${sanitizeHtml(input.name)}')">
+                <button type="button" class="btn-revert-field" title="Revert this change">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         `;
+
+        const oldValueEl = indicator.querySelector('.old-value');
+        if (oldValueEl) {
+            oldValueEl.addEventListener('click', () => {
+                revertFieldChange(input.name);
+            });
+        }
+
+        const confirmBtn = indicator.querySelector('.btn-confirm-field');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                confirmFieldChange(input.name);
+            });
+        }
+
+        const revertBtn = indicator.querySelector('.btn-revert-field');
+        if (revertBtn) {
+            revertBtn.addEventListener('click', () => {
+                revertFieldChange(input.name);
+            });
+        }
     } else {
         // No change - remove indicator
         input.classList.remove('field-changed');
@@ -1128,7 +1149,7 @@ function closeTemplateModal() {
     document.getElementById('template-modal').classList.remove('active');
     document.getElementById('modal-backdrop').classList.remove('active');
     selectedTemplateId = null;
-    fieldChanges = {}; // Reset field changes
+    Object.keys(fieldChanges).forEach(key => delete fieldChanges[key]); // Reset field changes
 }
 
 /**
