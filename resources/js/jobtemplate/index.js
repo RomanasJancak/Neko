@@ -326,6 +326,11 @@ function handleViewTemplate(templateId) {
 }
 
 /**
+ * Track field changes for individual updates
+ */
+const fieldChanges = {};
+
+/**
  * Render template modal content (editable form)
  */
 function renderTemplateModal(template, lockedFields) {
@@ -333,6 +338,71 @@ function renderTemplateModal(template, lockedFields) {
     const returnData = template.return || null;
     const body = document.getElementById('modal-body-content');
     let html = `
+      <style>
+        .field-changed {
+          background-color: #fff3cd !important;
+          border-color: #ffc107 !important;
+          box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+        }
+        
+        .field-change-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 6px;
+        }
+        
+        .old-value {
+          font-size: 0.85em;
+          color: #666;
+          background: #f8f9fa;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-grow: 1;
+        }
+        
+        .old-value:hover {
+          background: #e2e6ea;
+          color: #333;
+        }
+        
+        .change-actions {
+          display: flex;
+          gap: 6px;
+        }
+        
+        .btn-confirm-field {
+          background: #28a745;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.9em;
+        }
+        
+        .btn-confirm-field:hover {
+          background: #218838;
+        }
+        
+        .btn-revert-field {
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.9em;
+        }
+        
+        .btn-revert-field:hover {
+          background: #c82333;
+        }
+      </style>
       <form id="edit-template-form">
         <div class="form-group mb-3">
           <label class="form-label">Template ID</label>
@@ -634,12 +704,8 @@ function renderTemplateModal(template, lockedFields) {
             updateEditReturnAddress(template.client_id);
     }, 500);
     
-    // Load addresses for each dropoff
-    // dropoffs.forEach(dropoff => {
-    //     if (dropoff.address_id) {
-    //         loadDropOffAddresses(template.client_id, dropoff.order_number, dropoff.address_id);
-    //     }
-    // });
+    // Attach change listeners to all form inputs
+    attachFieldChangeListeners();
 }
 
 /**
@@ -772,6 +838,182 @@ function updateEditReturnAddress(clientId) {
 }
 
 /**
+ * Attach change listeners to all form inputs
+ */
+function attachFieldChangeListeners() {
+    const inputs = document.querySelectorAll('.inputs-forJobTemplate');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            updateFieldChangeUI(this);
+        });
+        
+        input.addEventListener('input', function() {
+            updateFieldChangeUI(this);
+        });
+    });
+}
+
+/**
+ * Update field UI when value changes
+ */
+function updateFieldChangeUI(input) {
+    const originalValue = input.getAttribute('data-orgdata');
+    let currentValue = input.value;
+    
+    if (input.type === 'checkbox') {
+        currentValue = input.checked ? 'true' : 'false';
+    }
+    
+    const normalizedOriginal = normalizeInputValue(originalValue, input.type);
+    const normalizedCurrent = normalizeInputValue(currentValue, input.type);
+    
+    const formGroup = input.closest('.form-group');
+    if (!formGroup) return;
+    
+    // Check if value has changed
+    if (normalizedOriginal !== normalizedCurrent) {
+        // Mark as changed
+        input.classList.add('field-changed');
+        
+        // Show change indicator if not already shown
+        let indicator = formGroup.querySelector('.field-change-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'field-change-indicator';
+            formGroup.appendChild(indicator);
+        }
+        
+        // Format old value for display
+        let displayOldValue = originalValue || '(empty)';
+        if (input.type === 'checkbox') {
+            displayOldValue = originalValue === 'true' || originalValue === true ? '✓ Checked' : '○ Unchecked';
+        }
+        
+        indicator.innerHTML = `
+            <span class="old-value" title="Click to revert" onclick="handleFieldValueClick(this)">
+                <strong>Old:</strong> ${sanitizeHtml(displayOldValue)}
+            </span>
+            <div class="change-actions">
+                <button type="button" class="btn-confirm-field" title="Confirm this change" onclick="confirmFieldChange('${sanitizeHtml(input.name)}')">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button type="button" class="btn-revert-field" title="Revert this change" onclick="revertFieldChange('${sanitizeHtml(input.name)}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    } else {
+        // No change - remove indicator
+        input.classList.remove('field-changed');
+        const indicator = formGroup.querySelector('.field-change-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+}
+
+/**
+ * Revert field by clicking on old value
+ */
+function handleFieldValueClick(element) {
+    const indicator = element.closest('.field-change-indicator');
+    if (!indicator) return;
+    
+    const formGroup = indicator.closest('.form-group');
+    const input = formGroup.querySelector('.inputs-forJobTemplate');
+    
+    if (input) {
+        revertFieldChange(input.name);
+    }
+}
+
+/**
+ * Confirm a single field change and send update
+ */
+function confirmFieldChange(fieldName) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    if (!input) return;
+    
+    const payload = {};
+    let value = input.value;
+    
+    if (input.type === 'checkbox') {
+        value = input.checked;
+    }
+    
+    payload[fieldName] = value;
+    
+    const btn = input.closest('.form-group').querySelector('.btn-confirm-field');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    
+    fetch(API_BASE.UPDATE.replace(':id', selectedTemplateId), {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify(payload),
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Update the data-orgdata to mark field as synced
+                input.setAttribute('data-orgdata', input.value);
+                input.classList.remove('field-changed');
+                const indicator = input.closest('.form-group').querySelector('.field-change-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+                showSuccess(`${fieldName} updated successfully`);
+            } else {
+                showError(result.error || 'Failed to update field');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to update field');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        });
+}
+
+/**
+ * Revert a field to its original value
+ */
+function revertFieldChange(fieldName) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    if (!input) return;
+    
+    const originalValue = input.getAttribute('data-orgdata');
+    
+    if (input.type === 'checkbox') {
+        input.checked = originalValue === 'true' || originalValue === true;
+    } else {
+        input.value = originalValue || '';
+    }
+    
+    // Remove change indicator
+    input.classList.remove('field-changed');
+    const formGroup = input.closest('.form-group');
+    const indicator = formGroup.querySelector('.field-change-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+    
+    showSuccess(`${fieldName} reverted`);
+}
+
+/**
  * Handle template update - only sends changed fields
  * Scans all inputs with class "inputs-forJobTemplate" and compares with data-orgdata attribute
  */
@@ -886,6 +1128,7 @@ function closeTemplateModal() {
     document.getElementById('template-modal').classList.remove('active');
     document.getElementById('modal-backdrop').classList.remove('active');
     selectedTemplateId = null;
+    fieldChanges = {}; // Reset field changes
 }
 
 /**
