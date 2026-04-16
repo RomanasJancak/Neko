@@ -16,6 +16,8 @@ export default defineConfig({
                 'resources/js/config.js',
                 'resources/js/routes.js',
                 //-----------------------------------
+                'resources/css/app.css',
+                //-----------------------------------
                 'resources/sass/app.scss',
                                 
             ],
