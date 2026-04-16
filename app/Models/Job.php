@@ -87,6 +87,7 @@ class Job extends Model
         'distance',
         'invoice_id',
         'price_adjustment_number',
+        'invoice_item_id',
     ];
     public function status(){
         return $this->belongsTo(Status::class,'status_id');
@@ -122,7 +123,10 @@ class Job extends Model
         return $this->belongsTo(Group::class, 'group_id');
     }
     public function invoice(){
-        return $this->belongsTo(Invoice::class, 'invoice_id');
+        return $this->invoiceItem ? $this->invoiceItem->invoice : null;
+    }
+    public function invoiceItem(){
+        return $this->belongsTo(InvoiceItem::class, 'invoice_item_id');
     }
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
@@ -139,11 +143,27 @@ class Job extends Model
     {
         return $this->morphOne(Note::class, 'notable')->latestOfMany();
     }
+    public function isNoteDifferentThanTemplateNote(){
+        $latestNote = $this->latestNote;
+        if($latestNote && $this->jobTemplate && $this->jobTemplate->notes){
+            return $latestNote->content !== $this->jobTemplate->notes;
+        }
+        return false;
+    }
     public function getDropOffTasks(){
         $returnValue = [];
         foreach($this->tasks as $task){
             if($task->type() === 'dropOff'){
                 $returnValue[] = $task;
+            }
+        }
+        return $returnValue;
+    }
+    public function getDropOffs(){
+        $returnValue = [];
+        foreach($this->tasks as $task){
+            if($task->type() === 'dropOff'){
+                $returnValue[] = $task->package;
             }
         }
         return $returnValue;
@@ -236,7 +256,8 @@ class Job extends Model
                 'is_locked' => $isLocked,
             ]);
         }
-    }  
+    }
+    /* Unused function - kept for reference */  
     public function calculateShortestRoute($start, $points, $end = null)
     {
         if(!$start){
@@ -311,7 +332,7 @@ class Job extends Model
     {
         $tasks = $this->tasks()->orderBy('order_number')->get();
         $totalDistance = 0;
-
+        //dd($tasks[0]);
         for ($i = 0; $i < $tasks->count() - 1; $i++) {
             $totalDistance += Distance::getDistance(
                 $tasks[$i]->fullAddress(),
@@ -326,6 +347,7 @@ class Job extends Model
         $distance = $this->calculateDistanceBasedOnTasksOrder()*0.0006213712;
         // Round distance down to 2 decimals
         $distance = floor($distance * 100) / 100;
+        //dd($distance);
         $thresholds = [];
         
         foreach($this->addOns_distance as $addOn){
@@ -337,6 +359,7 @@ class Job extends Model
                 ];
             }
         }
+        //dd($thresholds);
         $returnDistance = $distance;
         usort($thresholds, function ($a, $b) {
             return $a['threshold'] <=> $b['threshold'];
@@ -359,7 +382,7 @@ class Job extends Model
                 $lastTreshold = array_pop($thresholds);
             }
         }
-
+        //dd($returnDistance, $price_distance, $freeMile,$distance);
         return [
             'value' =>  $returnDistance,
             'price' =>  $price_distance,
@@ -562,6 +585,7 @@ class Job extends Model
                 ];
             }
         }
+        //dd($timeArray_pickup);
         usort($timeArray_pickup, function ($a, $b) {
             return $a['value'] - $b['value'];
         });
@@ -632,6 +656,7 @@ class Job extends Model
             'dropOff_value'  => $dropoffWindow,
         ];
     }
+
     public function price_timing(){
         $pickup_normal_begin    =   ''; $pickup_normal_end = '';
         $dropoff_normal_begin   =   ''; $dropoff_normal_end = '';
@@ -874,6 +899,9 @@ class Job extends Model
             'isApplicable' => false,
         ];
     }
+    public function recalculatePrice(){
+        return $this->price();
+    }
     public function price(){
         $this->populateVariables();
 
@@ -889,7 +917,8 @@ class Job extends Model
         $price+=$this->oversizePrice();
         $price+=$this->price_sameDayReturn()['price'];
         $price+=$this->price_adjustment_number;
-
+        $this->price = $price;
+        $this->save();
         return [
             'breakdownOfPrice' => [
                 'price_distance'        =>  $this->fixed_price === 0?$this->price_distance()['price']:0,
