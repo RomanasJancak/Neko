@@ -9,6 +9,11 @@ class Workload extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'bike_id',
+        'day_id',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class);
