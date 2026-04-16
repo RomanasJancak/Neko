@@ -12,6 +12,10 @@ class SettingsService
 {
     public function get(string $key, User $user = null)//: ?string
     {
+        if (str_starts_with($key, 'global.')) {
+            return $this->getGlobal($key);
+        }
+
         // Check user-specific setting
         if ($user) {
             $userValue = UserSetting::where('user_id', $user->id)
@@ -23,12 +27,15 @@ class SettingsService
             }
         }
 
-        // Check global cached value
+        return $this->getGlobal($key);
+    }
+
+    protected function getGlobal(string $key)
+    {
         $global = Cache::remember("settings.global.{$key}", 3600, function () use ($key) {
             return Setting::where('key', $key)->value('value');
         });
 
-        // Return global or fallback to hardcoded default
         return $global ?? $this->getCodeDefault($key);
     }
 
