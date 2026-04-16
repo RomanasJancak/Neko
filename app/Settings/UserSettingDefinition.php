@@ -7,6 +7,12 @@ class UserSettingDefinition
     {
       return [
             'global' => [
+                'vatRate' => [
+                    'label' => 'VAT rate',
+                    'type' => 'number',
+                    'rules' => ['required', 'numeric', 'min:0', 'max:1'],
+                    'default' => 0.2,
+                ],
             ],
             'models' => [
                 'job' => [
