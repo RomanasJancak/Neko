@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Address;
 use App\Models\AddOnRule;
 use App\Models\PackageType;
+use App\Models\PostalCode;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 
@@ -381,27 +382,38 @@ class ClientController extends Controller
     }
     public function searchClients(Request $request)
     {
-        $query = $request->input('query');
+      $query = $request->input('query');
 
-        
-        $clients = Client::where('name', 'like', '%' . $query . '%')
-            ->select('id', 'name') 
-            ->get();
+      $clients = Client::where('name', 'like', '%' . $query . '%')
+        ->select('id', 'name') 
+        ->orderBy('name', 'asc')
+        ->get();
 
-        return response()->json($clients);
+      return response()->json($clients);
     }
     public function searchClientAddresses(Request $request)
     {
-        $query = $request->input('query');
-        $clientId = $request->input('client_id');
+      $query = $request->input('query');
+      $clientId = $request->input('client_id');
 
-        $addresses = Address::where('model', 'App\Models\Client')
-            ->where('model_id', $clientId)
-            ->where('name', 'like', '%' . $query . '%')
-            ->select('id', 'name')
-            ->get();
+      $addresses = Address::with('postalCode')
+      ->where('model', 'App\Models\Client')
+      ->where('model_id', $clientId)
+      ->where('name', 'like', '%' . $query . '%')
+      ->get()
+      ->map(function ($address) {
+        return [
+          'id' => $address->id,
+          'name' => $address->name,
+          'address_line_1' => $address->address_line_1,
+          'address_line_2' => $address->address_line_2,
+          'postal_code' => $address->postalCode ? $address->postalCode->postal_code : null,
+          'city' => $address->city,
+          'country' => $address->country,
+        ];
+      });
 
-        return response()->json($addresses);
+      return response()->json($addresses);
     }
     public function fetchClientsPaginate(Request $request)
     {
