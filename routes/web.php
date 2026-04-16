@@ -22,6 +22,11 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\ExtraTypesController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\InvoiceItemController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\UserStatusController;
+
+use App\Models\User;
    
 /*
 |--------------------------------------------------------------------------
@@ -45,14 +50,21 @@ Route::post('/parse-csv', [App\Http\Controllers\HomeController::class, 'parseCSV
 Route::get('/',  'App\Http\Controllers\UserController@index')->name('users.index')->middleware('auth');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/test-email', function () {
-    Mail::raw('This is a test email from Laravel.', function ($message) {
-        $message->to('romanas.jancak@gmail.com') // Replace with your email
-                ->subject('Test Email from Laravel');
-    });
+// Test email route - Protected: Only available in non-production environments with authentication
+if (!app()->environment('production')) {
+    Route::get('/test-email', function () {
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'Authentication required');
+        }
+        
+        Mail::raw('This is a test email from Laravel.', function ($message) {
+            $message->to(auth()->user()->email)
+                    ->subject('Test Email from Laravel');
+        });
 
-    return 'Test email sent!';
-});
+        return 'Test email sent to ' . auth()->user()->email;
+    })->middleware('auth')->name('test.email');
+}
 
 
 
@@ -60,21 +72,20 @@ Route::get('/test-email', function () {
 Route::get('/get-client-info/{clientId}', [ClientController::class, 'getClientInfo'])
     ->name('getClientInfo')->middleware('auth');
 Auth::routes();
-Route::group(['prefix' => 'users'], function(){
-    Route::get('',                          [UserController::class, 'index'])->name('user.index')->middleware('auth');
-    Route::get('create',                    [UserController::class, 'create'])->name('user.create')->middleware('auth');
-    Route::post('store',                    [UserController::class, 'store'])->name('user.store')->middleware('auth');
-    Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit')->middleware('auth');
-    Route::post('update/{user}',            [UserController::class, 'update'])->name('user.update')->middleware('auth');
-    Route::get('delete/{user}',             [UserController::class, 'delete'])->name('user.delete')->middleware('auth');
-    Route::post('destroy/{user}',           [UserController::class, 'destroy'])->name('user.destroy')->middleware('auth');
-    Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show')->middleware('auth');
-    Route::get('getCouriersWithWorkloadOnDay/{date?}', [UserController::class, 'getCouriersWithWorkloadOnDay'])->name('user.getCouriersWithWorkloadOnDay')->middleware('auth');
+Route::group(['prefix' => 'users', 'middleware' => 'auth'], function(){
+    Route::get('',                          [UserController::class, 'index'])->name('user.index');
+    Route::get('create',                    [UserController::class, 'create'])->name('user.create');
+    Route::post('store',                    [UserController::class, 'store'])->name('user.store');
+    Route::get('edit/{user}',               [UserController::class, 'edit'])->name('user.edit');
+    Route::get('delete/{user}',             [UserController::class, 'delete'])->name('user.delete');
+    Route::patch('update/{user}',           [UserController::class, 'update'])->name('user.update');
+    Route::delete('destroy/{user}',         [UserController::class, 'destroy'])->name('user.destroy');
+    Route::get('show/{user}',               [UserController::class, 'show'])->name('user.show');
+    Route::get('getCouriersWithWorkloadOnDay/{date?}', [UserController::class, 'getCouriersWithWorkloadOnDay'])->name('user.getCouriersWithWorkloadOnDay');
     Route::get('workload/{user}/{month?}/{year?}', [UserController::class, 'workload'])
     ->where(['year' => '\d{4}', 'month' => '\d{1,2}'])
-    ->name('user.workload')
-    ->middleware('auth');
-    Route::post('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole')->middleware('auth');
+    ->name('user.workload');
+    Route::patch('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole');
 
 });
 Route::group(['prefix' => 'roles'], function(){
@@ -115,6 +126,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::post('store',            [JobController::class, 'store'])->name('job.store')->middleware('auth');
     Route::post('storeFromString',            [JobController::class, 'storeFromString'])->name('job.storeFromString')->middleware('auth');
     Route::post('storeFromTemplate',            [JobController::class, 'storeFromTemplate'])->name('job.storeFromTemplate')->middleware('auth');
+    Route::patch('restoreNoteFromTemplate',    [JobController::class, 'restoreNoteFromTemplate'])->name('job.restoreNoteFromTemplate')->middleware('auth');
     Route::get('edit/{job}',        [JobController::class, 'edit'])->name('job.edit')->middleware('auth');
     Route::post('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
     Route::patch('update',      [JobController::class, 'update'])->name('job.update')->middleware('auth');
@@ -130,7 +142,9 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
-});
+    Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');
+    Route::post('removeFromInvoiceItem/{job}',            [JobController::class, 'removeFromInvoiceItem'])->name('job.removeFromInvoiceItem')->middleware('auth');
+  });
 Route::group(['prefix'  =>  'tasks'],function(){
     Route::get('',                  [TaskController::class, 'index'])->name('task.index')->middleware('auth');
     Route::post('store',            [TaskController::class, 'store'])->name('task.store')->middleware('auth');
@@ -248,10 +262,29 @@ Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
 //     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 // });
 Route::group(['prefix'  => 'jobtemplates'],function(){
-    Route::get('',                          [JobTemplateController::class, 'index'])->name('jobTemplate.index')->middleware('auth');
-    Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
-    Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
-    Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+    Route::get('',                                  [JobTemplateController::class, 'index'])->name('jobtemplate.index')->middleware('auth');
+    Route::get('fetch',                             [JobTemplateController::class, 'fetchTemplatesPaginate'])->name('jobtemplate.fetch')->middleware('auth');
+    Route::get('{id}/info',                         [JobTemplateController::class, 'getTemplateInfo'])->name('jobtemplate.info')->middleware('auth');
+    Route::post('',                                 [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
+    Route::patch('{template}',                      [JobTemplateController::class, 'update'])->name('jobtemplate.update')->middleware('auth');
+    Route::delete('{template}',                     [JobTemplateController::class, 'destroy'])->name('jobtemplate.destroy')->middleware('auth');
+    Route::post('createFromJob',                    [JobTemplateController::class, 'createFromJob'])->name('jobtemplate.createFromJob')->middleware('auth');
+    Route::post('createJobsBatch',                  [JobTemplateController::class, 'createJobsBatch'])->name('jobtemplate.createJobsBatch')->middleware('auth');
+    Route::post('{template}/setFieldLock',          [JobTemplateController::class, 'setFieldLock'])->name('jobtemplate.setFieldLock')->middleware('auth');
+    Route::post('{template}/addDropOff',            [JobTemplateController::class, 'addDropOff'])->name('jobtemplate.addDropOff')->middleware('auth');
+    Route::post('{template}/removeDropOff',         [JobTemplateController::class, 'removeDropOff'])->name('jobtemplate.removeDropOff')->middleware('auth');
+    Route::post('{template}/addReturn',             [JobTemplateController::class, 'addReturn'])->name('jobtemplate.addReturn')->middleware('auth');
+    Route::post('{template}/removeReturn',          [JobTemplateController::class, 'removeReturn'])->name('jobtemplate.removeReturn')->middleware('auth');
+    
+    // Old routes (commented - for reference only)
+    // Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
+    // Route::get('getJobTemplateInfo/{id}',   [JobTemplateController::class, 'getJobTemplateInfo'])->name('jobTemplate.getJobInfo')->middleware('auth');
+    // Route::get('fetchJobTemplatesPaginate', [JobTemplateController::class, 'fetchJobTemplatesPaginate'])->name('jobTemplate.fetch')->middleware('auth');
+    // Route::post('store', [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
+    // Route::patch('addEmptyDropOff', [JobTemplateController::class, 'addEmptyDropOff'])->name('jobTemplate.addEmptyDropOff')->middleware('auth');
+    // Route::patch('addEmptyReturn', [JobTemplateController::class, 'addEmptyReturn'])->name('jobTemplate.addEmptyReturn')->middleware('auth');
+    // Route::patch('removeDropOff', [JobTemplateController::class, 'removeDropOff'])->name('jobTemplate.removeDropOff')->middleware('auth');
+    // Route::patch('removeReturn', [JobTemplateController::class, 'removeReturn'])->name('jobTemplate.removeReturn')->middleware('auth');
 });
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
@@ -267,4 +300,48 @@ Route::group(['prefix' => 'extratypes'], function(){
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
     Route::get('/', [UserSettingController::class, 'index'])->name('index');
     Route::post('/', [UserSettingController::class, 'update'])->name('update');
+});
+Route::group(['prefix'  => 'invoices'],function(){
+    Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');
+    Route::get('create', [InvoiceController::class, 'create'])->name('invoice.create')->middleware('auth');
+    Route::post('store', [InvoiceController::class, 'store'])->name('invoice.store')->middleware('auth');
+    Route::get('show/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show')->middleware('auth');
+    Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware('auth');
+    Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
+    Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
+    Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
+    Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware('auth');
+    Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware('auth');
+    Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware('auth');
+});
+Route::group(['prefix'  => 'invoiceitems'],function(){
+    Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
+    Route::post('store',              [InvoiceItemController::class, 'store'])->name('invoiceItem.store')->middleware('auth');
+    Route::delete('destroy/{invoiceItem}',  [InvoiceItemController::class, 'destroy'])->name('invoiceItem.destroy')->middleware('auth');
+    Route::patch('{invoiceItem}',      [InvoiceItemController::class, 'update'])->name('invoiceItem.update')->middleware('auth');
+  });
+Route::resource('user-statuses', UserStatusController::class)
+    ->only(['index','update', 'store', 'destroy'])
+    ->parameters([
+        'user-statuses' => 'userStatus' // This ensures {user_status} matches your destroy(UserStatus $userStatus) variable
+  ]);
+Route::resource('user-day-statuses', App\Http\Controllers\UserDayStatusController::class)
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->parameters([
+        'user-day-statuses' => 'userDayStatus' // Ensures {user_day_status} matches your controller variable
+]);
+
+Route::get('/get-token', function () {
+    // 1. Find the first user (or specify an ID: User::find(1))
+    $user = User::first();
+
+    if (!$user) {
+        return "No user found in the database. Please create a user first.";
+    }
+
+    // 2. Create a new token
+    $token = $user->createToken('SwaggerToken')->plainTextToken;
+
+    // 3. Output the token to the browser
+    return "Your new token is: <br><br><strong>{$token}</strong><br><br>Copy this into Swagger.";
 });
