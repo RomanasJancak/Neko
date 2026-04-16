@@ -119,7 +119,8 @@
                       </li> -->
                       <li>
                       <li>
-                        <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
+                        <!-- TODO : uncomment when invoices feature is ready -->
+                        {{-- <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a> --}}
                       </li>
                       <div class="dropdown">
                           <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
@@ -127,7 +128,8 @@
                           </button>
                               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                   <li>
-                                  <a class="dropdown-item " href="{{route('jobtemplate.index')}}">Job templates</a>
+                                  <!-- TODO : uncomment when job templates feature is ready -->
+                                  {{-- <a class="dropdown-item " href="{{route('jobtemplate.index')}}">Job templates</a> --}}
                                   </li>
                                   <li>
                                   <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
