@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
+use Carbon\Carbon;
+
+
 class Pickuptask extends Model
 {
     use HasFactory;
@@ -51,6 +55,22 @@ class Pickuptask extends Model
     }
     public function timeWindowEnd(){
         return $this->pickup_time_end;
+    }
+    public function timeWindowBeginFormatted(): string
+    {
+        if (!$this->pickup_time_begin) return 'N/A';
+        
+        return Carbon::parse($this->pickup_time_begin)
+            //->locale(config('app.locale'))        
+            ->isoFormat('h:mm A');               
+    }
+    public function timeWindowEndFormatted(): string
+    {
+        if (!$this->pickup_time_end) return 'N/A';
+
+        return Carbon::parse($this->pickup_time_end)
+            //->locale(config('app.locale'))
+            ->isoFormat('h:mm A');
     }
     public function setAddress($name,$country,$city,$postalCode,$addressLine){
         $this->pickupclientname         =   $name;
