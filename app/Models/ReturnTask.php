@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ReturnTask extends Model
 {
     use HasFactory;
-    protected $table = 'return_tasks';
+    protected $table = 'returntasks';
     protected $fillable = [
         'name',
         'country',
