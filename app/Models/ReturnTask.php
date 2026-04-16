@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Carbon\Carbon;
+
 class ReturnTask extends Model
 {
-    use HasFactory;
     protected $table = 'returntasks';
+    use HasFactory;
     protected $fillable = [
         'name',
         'country',
@@ -53,6 +55,22 @@ class ReturnTask extends Model
     }
     public function timeWindowEnd(){
         return $this->time_end;
+    }
+    public function timeWindowBeginFormatted(): string
+    {
+        if (!$this->time_begin) return 'N/A';
+        
+        return Carbon::parse($this->time_begin)
+            //->locale(config('app.locale'))        
+            ->isoFormat('h:mm A');               
+    }
+    public function timeWindowEndFormatted(): string
+    {
+        if (!$this->time_end) return 'N/A';
+
+        return Carbon::parse($this->time_end)
+            //->locale(config('app.locale'))
+            ->isoFormat('h:mm A');
     }
     public function setAddress($name,$country,$city,$postalCode,$addressLine){
         $this->name         =   $name;
