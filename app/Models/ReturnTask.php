@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Returntask extends Model
+class ReturnTask extends Model
 {
     use HasFactory;
+    protected $table = 'return_tasks';
     protected $fillable = [
         'name',
         'country',
