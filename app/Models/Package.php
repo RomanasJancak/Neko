@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Carbon\Carbon;
+
 class Package extends Model
 {
     use HasFactory;
@@ -75,6 +77,22 @@ class Package extends Model
     }
     public function timeWindowEnd(){
         return $this->packagedropofftimeend;
+    }
+    public function timeWindowBeginFormatted(): string
+    {
+        if (!$this->packagedropofftimebegin) return 'N/A';
+
+        return Carbon::parse($this->packagedropofftimebegin)
+            //->locale(config('app.locale'))
+            ->isoFormat('h:mm A');
+    }
+    public function timeWindowEndFormatted(): string
+    {
+        if (!$this->packagedropofftimeend) return 'N/A';
+
+        return Carbon::parse($this->packagedropofftimeend)
+            //->locale(config('app.locale'))
+            ->isoFormat('h:mm A');
     }
     public function setAddress($name,$country,$city,$postalCode,$addressLine){
         $this->dropoff_name         =   $name;
