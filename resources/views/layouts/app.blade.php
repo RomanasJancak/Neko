@@ -3,294 +3,273 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Include Bootstrap CSS from a CDN -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"> -->
+    <!-- Bootstrap CSS (via CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"> -->
-    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet"> -->
-
-    <!-- For Dark them -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
-    <!-- Add Bootstrap Typeahead CSS Jquery-->
-
-    <script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.js"></script>
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.css"> -->
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js-bootstrap-css/0.1/typeaheadjs.css"> -->
-
-
-    <!-- Include Font Awesome for icons (if needed) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/fontawesome.min.css">
+    <!-- Font Awesome & Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-
-    <!-- Include Bootstrap icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Include daterangepicker CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <!-- Vite compiled SCSS + JS -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-    <!-- Include additional stylesheets or scripts you might need -->
     @yield('style')
 </head>
 <body>
-    {{-- dd(auth()->user()->role()) --}}
-    <div id="app">
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+<!-- Example single danger button -->
+  <div id="app">
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm">
+          <div class="container">
+              <a class="navbar-brand" href="{{ url('/') }}">
+                  {{ config('app.name', 'Laravel') }}
+              </a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                  <span class="navbar-toggler-icon"></span>
+              </button>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-                    @auth
-                    <ul class="navbar-nav me-auto">
-                        <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Dashboard
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d')) }}">Today</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d', strtotime('+1 day'))) }}">Tommorow</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        @if(auth()->user()->can('user-view') || auth()->user()->can('user-create'))
-                        <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Users
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{route('users.index')}}">List</a></li>
-                                    @can('user-create')
-                                    <li><a class="dropdown-item" href="{{route('user.create')}}">Create</a></li>
-                                    @endcan
-                                </ul>
-                            </div>
-                        </li>
-                        @endif
-                        @if(auth()->user()->can('client-view') || auth()->user()->can('client-create'))
-                        <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Clients
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{route('client.index')}}">List</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                        @endif
-                        @if(auth()->user()->can('job-view') || auth()->user()->can('job-create'))
-                        <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Jobs
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li>
-                                    @can('client-create')
-                                    <li><a class="dropdown-item" href="{{route('job.create')}}">Create pickup</a></li>
-                                    <li><a class="dropdown-item" href="{{route('job.create', ['customjob' => true]) }}">Create custom</a></li>
-                                    @endcan
-                                </ul>
-                            </div>
-                        </li>
-                        @endif
-                        <li>
-                            <div class="btn-group">
-                                <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Workloads
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{{route('workload.index')}}">List</a></li>
-                                    <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li>
-                                    <!-- <li><a class="dropdown-item" href="{{route('job.create')}}">Create</a></li> -->
-                                    <!-- <li><a class="dropdown-item" href="{{route('job.assign')}}">Assign</a></li> -->
-                                    
-                                </ul>
-                            </div>
-                        </li>
-                        <li>
-                            <div>
-                                <form method="POST" action="{{ route('user.updateRole', ['user' => auth()->user()]) }}" id="rolechangeForm">
-                                    @csrf
-                                    <select id="role" name="role" class="form-control" >
-                                        @foreach(auth()->user()->getAllRoles() as $role)
-                                            @if ($role->id === auth()->user()->currentrole()->id)
-                                            <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
-                                            @else
-                                            <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                            @endif
-                                        @endforeach
-                                    </select>
-                                </form>
-                            </div>
-                        </li>
-                        <li>
-                        <div class="dropdown">
-                            <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                Other
-                            </button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('jobTemplate.index')}}">Job templates</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('extratype.index')}}">Addon types</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('addonrule.index')}}">AddOnRules</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('status.index')}}">Statuses</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('packageType.index')}}">Package types</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('role.index')}}">Roles</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>
-                                    </li>
-                                    <li>
-                                    <a class="dropdown-item " href="{{route('setting.index')}}">Settings</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                    </ul>
-                    @endauth
+              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <!-- Left Side Of Navbar -->
+                  @auth
+                  <ul class="navbar-nav me-auto">
+                      <li>
+                          <div class="btn-group">
+                              <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Dashboard
+                              </button>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d')) }}">Today</a></li>
+                                  <li><a class="dropdown-item" href="{{ route('day.showdashboard', date('Y-m-d', strtotime('+1 day'))) }}">Tommorow</a></li>
+                              </ul>
+                          </div>
+                      </li>
+                      @if(auth()->user()->can('user-view') || auth()->user()->can('user-create'))
+                      <li>
+                          <div class="btn-group">
+                              <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Users
+                              </button>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="{{route('users.index')}}">List</a></li>
+                                  @can('user-create')
+                                  <li><a class="dropdown-item" href="{{route('user.create')}}">Create</a></li>
+                                  @endcan
+                              </ul>
+                          </div>
+                      </li>
+                      @endif
+                      @if(auth()->user()->can('client-view') || auth()->user()->can('client-create'))
+                      <li>
+                          <div class="btn-group">
+                              <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Clients
+                              </button>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="{{route('client.index')}}">List</a></li>
+                              </ul>
+                          </div>
+                      </li>
+                      @endif
+                      @if(auth()->user()->can('job-view') || auth()->user()->can('job-create'))
+                      <li>
+                          <div class="btn-group">
+                              <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Jobs
+                              </button>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="{{route('job.index')}}">List</a></li>
+                                  @can('client-create')
+                                  <li><a class="dropdown-item" href="{{route('job.create')}}">Create pickup</a></li>
+                                  <li><a class="dropdown-item" href="{{route('job.create', ['customjob' => true]) }}">Create custom</a></li>
+                                  @endcan
+                              </ul>
+                          </div>
+                      </li>
+                      @endif
+                      <!-- <li>
+                          <div class="btn-group">
+                              <button type="button" class="btn  dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Workloads
+                              </button>
+                              <ul class="dropdown-menu">
+                                  <li><a class="dropdown-item" href="{{route('workload.index')}}">List</a></li>
+                                  <li><a class="dropdown-item" href="{{route('workload.calendar')}}">Calendar view</a></li>
+                              </ul>
+                          </div>
+                      </li> -->
+                      <!-- <li>
+                          <div>
+                              <form method="POST" action="{{ route('user.updateRole', ['user' => auth()->user()]) }}" id="rolechangeForm">
+                                  @csrf
+                                  <select id="role" name="role" class="form-control" >
+                                      @foreach(auth()->user()->getAllRoles() as $role)
+                                          @if ($role->id === auth()->user()->currentrole()->id)
+                                          <option value="{{ $role->id }}" selected>{{ $role->name }}</option>
+                                          @else
+                                          <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                          @endif
+                                      @endforeach
+                                  </select>
+                              </form>
+                          </div>
+                      </li> -->
+                      <li>
+                      <li>
+                        <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
+                      </li>
+                      <div class="dropdown">
+                          <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                              Other
+                          </button>
+                              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('jobtemplate.index')}}">Job templates</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('extratype.index')}}">Addon types</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('addonrule.index')}}">AddOnRules</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('status.index')}}">Statuses</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('packageType.index')}}">Package types</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('role.index')}}">Roles</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('setting.index')}}">Settings</a>
+                                  </li>
+                              </ul>
+                          </div>
+                      </li>
+                  </ul>
+                  @endauth
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
+                  <!-- Right Side Of Navbar -->
+                  <ul class="navbar-nav ms-auto">
+                      <!-- Authentication Links -->
+                      @guest
+                          @if (Route::has('login'))
+                              <li class="nav-item">
+                                  <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                              </li>
+                          @endif
 
-                            @if (Route::has('register'))
-                                <!-- <li class="nav-item"> -->
-                                    <!-- <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a> -->
-                                <!-- </li> -->
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
+                          @if (Route::has('register'))
+                              <!-- <li class="nav-item"> -->
+                                  <!-- <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a> -->
+                              <!-- </li> -->
+                          @endif
+                      @else
+                          <li class="nav-item dropdown">
+                              <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                  {{ Auth::user()->name }}
+                              </a>
 
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
+                              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                  <a class="dropdown-item" href="{{ route('logout') }}"
+                                      onclick="event.preventDefault();
+                                                    document.getElementById('logout-form').submit();">
+                                      {{ __('Logout') }}
+                                  </a>
 
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
-        <div id="navAlert" class="alert alert-info text-center fade show position-absolute w-100" 
-            style="top: -100px; z-index: 1050; transition: top 0.5s ease;" role="alert">
-            <span id="navAlertText"></span>
-        </div>
-        <main class="py-4">
-            @yield('content')
-        </main>
-    </div>
-    @push('scripts')
-        @vite('resources/js/routes.js')
-    @endpush
-     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+                                  <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                      @csrf
+                                  </form>
+                              </div>
+                          </li>
+                      @endguest
+                  </ul>
+              </div>
+          </div>
+      </nav>
+      @if (session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                show_Success_Message({ message: @json(session('success')) });
+            });
+        </script>
+      @endif
 
-    @yield('scripts')
+      @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                show_Error_Message({ message: @json(session('error')) });
+            });
+        </script>
+      @endif
 
-    @stack('scripts')
-    <script>
-        var roleSelect = document.getElementById('role');
-        if(roleSelect){
-            roleSelect.addEventListener('change', function() {
-            document.getElementById('rolechangeForm').submit(); // Submit the form
-        }); 
-        }
-        
-    </script>
-    <script>
-        function show_Error_Message({message, duration = 60000,zIndex=10000}) {
-            const alertBox = document.getElementById('navAlert');
-            const alertText = document.getElementById('navAlertText');
-            const navbar = document.querySelector('nav.navbar');
+      <div id="navAlert" class="alert text-center fade show position-absolute w-100" 
+          style="top: -100px; z-index: 1050; transition: top 0.5s ease;" role="alert">
+        <span id="navAlertText"></span>
+      </div>
 
-            if (!alertBox || !navbar) return;
+      <main class="py-4">
+          @yield('content')
+      </main>
+  </div>
+    <!-- External JS dependencies -->
 
-            const navbarHeight = navbar.offsetHeight;
-            alertText.textContent = message;
+  @yield('scripts')
+  @stack('scripts')
+      <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.js"></script>
+  <script>
+      var roleSelect = document.getElementById('role');
+      if(roleSelect){
+          roleSelect.addEventListener('change', function() {
+          document.getElementById('rolechangeForm').submit(); // Submit the form
+      }); 
+      }
+      
+  </script>
+<script>
+  function showAlert({message, type = 'info', duration = 3000, zIndex = 10000}) {
+      const alertBox = document.getElementById('navAlert');
+      const alertText = document.getElementById('navAlertText');
+      const navbar = document.querySelector('nav.navbar');
 
+      if (!alertBox || !navbar) return;
 
-            alertBox.style.top = `${navbarHeight}px`;
-            alertBox.style.zIndex = zIndex; // Default z-index if not provided
+      const navbarHeight = navbar.offsetHeight;
+      alertText.textContent = message;
 
-            alertBox.classList.add('show-alert');
-            alertBox.classList.add('alert-danger');
+      // Reset alert classes
+      alertBox.className = `alert alert-${type} text-center fade show position-absolute w-100`;
+      alertBox.style.top = `${navbarHeight}px`;
+      alertBox.style.zIndex = zIndex;
 
-            setTimeout(() => {
-                alertBox.style.top = `-${alertBox.offsetHeight}px`;
-                alertBox.classList.remove('show-alert');
-                alertBox.classList.add('alert-danger');
-            }, duration);
-        }
-        function show_Success_Message({message, duration = 2000,zIndex=10000}) {
-            const alertBox = document.getElementById('navAlert');
-            const alertText = document.getElementById('navAlertText');
-            const navbar = document.querySelector('nav.navbar');
+      // Slide up after duration
+      setTimeout(() => {
+          alertBox.style.top = `-${alertBox.offsetHeight}px`;
+      }, duration);
+  }
 
-            if (!alertBox || !navbar) return;
+  function show_Success_Message(options) {
+      showAlert({ ...options, type: 'success' });
+  }
 
-            const navbarHeight = navbar.offsetHeight;
-            alertText.textContent = message;
+  function show_Error_Message(options) {
+      showAlert({ ...options, type: 'danger' });
+  }
+</script>
 
-
-            alertBox.style.top = `${navbarHeight}px`;
-            alertBox.style.zIndex = zIndex; // Default z-index if not provided
-
-            alertBox.classList.add('show-alert');
-            alertBox.classList.add('alert-success');
-
-            setTimeout(() => {
-                alertBox.style.top = `-${alertBox.offsetHeight}px`;
-                alertBox.classList.remove('show-alert');
-                alertBox.classList.remove('alert-success');
-            }, duration);
-        }
-    </script>
 </body>
 </html>
