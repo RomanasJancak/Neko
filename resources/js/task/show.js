@@ -163,4 +163,13 @@ document.getElementById('submitTaskform').addEventListener('click', function(eve
 
 document.addEventListener('DOMContentLoaded', function() {
     addTypeHeadSearchToTaskWindow($('#taskClientNameField'));
+    document.getElementById('addressMapMarker').addEventListener('click', function() {
+        const addressLine = document.getElementById('taskAddressLineField').value;
+        const postalCode = document.getElementById('taskPostalCodeField').value;
+        const country = document.getElementById('taskCountryField').value; // Optionally, you can add country field if needed
+        const city = document.getElementById('taskCityField').value; // Optionally, you can add city field if needed
+        const query = encodeURIComponent(addressLine + ' ' + postalCode + ' ' + city + ' ' + country);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+        window.open(mapsUrl, '_blank');
+    });
 });
