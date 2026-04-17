@@ -233,42 +233,33 @@
         $('#modalWindow').modal('show');
     }
     function deleteClient(clientId) {
-        const form = document.querySelector('#clientForm');
-        if (form) {
+        const form = document.querySelector('#clientForm');       
+        if (form) {          
             form.setAttribute('action', "{{ route('client.delete') }}");
             const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-
+            
             fetch(routeUrl)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
                         document.getElementById('clientid').value = clientId;
                         document.getElementById('nameField').value = data.name;
-
                         document.getElementById('reg-adress-section-adress-country-field').value = data.country;
                         document.getElementById('reg-adress-section-adress-city-field').value = data.city;
                         document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
                         document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-
-
                         document.getElementById('phoneNumberField').value = data.phone;
                     }
                 })
                 .catch(error => {
                     console.error(error);
                 });
-
             document.getElementById('nameField').readOnly = true;
             document.getElementById('reg-adress-section-adress-country-field').readOnly = true;
             document.getElementById('reg-adress-section-adress-city-field').readOnly = true;
             document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = true;
             document.getElementById('reg-adress-section-adress-addressline-field').readOnly = true;
-            document.getElementById('pu-adress-section-adress-country-field').readOnly = true;
-            document.getElementById('pu-adress-section-adress-city-field').readOnly = true;
-            document.getElementById('pu-adress-section-adress-postalcode-field').readOnly = true;
-            document.getElementById('pu-adress-section-adress-addressline-field').readOnly = true;
             document.getElementById('phoneNumberField').readOnly = true;
-
             const submitButton = document.getElementById('submitform');
             submitButton.innerHTML = "Delete";
         }
