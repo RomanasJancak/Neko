@@ -291,9 +291,14 @@ class ClientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request,Client $client)
+    public function destroy(Request $request)
     {
-        $client = Client::findOrFail($request->clientid);
+        $client = Client::findOrFail($request->input('clientid'));
+        if($client->id === 1){
+            return response()->json([
+                'message' => 'Default client cannot be deleted.'
+            ], 403);
+        }
         $client->delete();
 
         return response()->json([
