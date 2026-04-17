@@ -173,6 +173,38 @@ function createLockIcon({lockedFields = null, fieldName = null}){
   }
   return icon;
 }
+function getIconsForIdCell({job = null}){
+  if(job){
+    let icons = [];
+    if(job.template){
+      let templateIcon = document.createElement('img');
+      templateIcon.src = '/files/icons/template.png';
+      templateIcon.style.width = '8%';
+      templateIcon.style.height = '8%';
+      templateIcon.style.objectFit = 'contain'; 
+
+      templateIcon.style.filter = 'invert(49%) sepia(96%) saturate(7000%) hue-rotate(330deg) brightness(1.2)';
+      templateIcon.title = job.template ? job.template.name:'No template';
+      console.log(job.template);
+      icons.push(templateIcon);
+    }
+    if(job.is_note_different_from_template_note){
+      let noteIcon = document.createElement('img');
+      noteIcon.src = '/files/icons/note.png';
+      noteIcon.style.width = '8%';
+      
+      noteIcon.style.height = '8%';
+      noteIcon.style.objectFit = 'contain';
+
+      noteIcon.style.filter = "invert(92%) sepia(100%) saturate(4500%) hue-rotate(5deg) brightness(1.3)";
+
+      noteIcon.title = 'Main note';
+      icons.push(noteIcon);
+    }
+    return icons;
+  }
+  return [];
+}
 function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
@@ -249,15 +281,10 @@ function fetchJobs(page = 1, url) {
             let idSpan = document.createElement('span');
             idSpan.textContent = job.id;
             columnForId.appendChild(idSpan);
-            let templateIcon = document.createElement('img');
-            templateIcon.src = '/files/icons/template.png';
-            templateIcon.style.width = '10%';
-            templateIcon.style.height = '10%';
-            templateIcon.style.objectFit = 'contain'; 
 
-            templateIcon.style.filter = 'invert(49%) sepia(96%) saturate(7000%) hue-rotate(330deg) brightness(1.2)';
-            templateIcon.title = job.template ? job.template.name:'No template';
-            columnForId.appendChild(templateIcon);
+            getIconsForIdCell({job}).forEach(icon => {
+                columnForId.appendChild(icon);
+            });
             row.appendChild(columnForId);
             
             let columnForStatus =  document.createElement('td');
@@ -1018,6 +1045,11 @@ function setJobValues(jobId,buttonClicked){
                 clientSearchField.value =   data.clientName;
                 clientIdField.value     =   data.clientId;
             }
+            if(data.is_note_different_from_template_note){
+                const restoreTemplateNoteIconSpan = document.getElementById('restoreTemplateNoteIcon');
+                restoreTemplateNoteIconSpan.classList.remove('d-none');
+                restoreTemplateNoteIconSpan.title = data.template.notes;
+            }
             jobDateField.value = data.date;
             let multiDrop = data.dropoffs.length > 1;
             data.tasks.forEach(function(task){
@@ -1028,12 +1060,9 @@ function setJobValues(jobId,buttonClicked){
                                     .filter(element => element.id.includes('-type') && element.innerHTML.trim() === 'dropoff');
                 addDropOffArrangeButtons(jobId,buttonClicked);
             }
-            if(data.note){
-              jobNoteField.innerHTML = data.note.content;
-              jobNoteField.value = data.note.content;
-              jobNoteField.setAttribute('data-note-id', data.note.id);
-            }
-
+            jobNoteField.innerHTML = data.note ? data.note.content : '';
+            jobNoteField.value = data.note ? data.note.content : '';
+            jobNoteField.setAttribute('data-note-id', data.note ? data.note.id : '');
             price_total_field.innerHTML = parseFloat(data.price.totalPrice/100);
             distance_total_field.innerHTML = parseFloat(data.price.price_Distance.value).toFixed(3);
             price_distance_field.innerHTML = parseFloat(data.price.price_Distance.price/100);
@@ -1313,11 +1342,8 @@ function setTaskValues(taskId){
             addressCityField.value          =   data.address.city;
             addressPostalCodeField.value    =   data.address.postalCode;
             addressAddressLineField.value   =   data.address.addressLine;
-            if(data.note){
-              taskNoteField.value             =   data.note;
-              taskNoteField.innerHTML         =   data.note;
-            }
-
+            taskNoteField.value             =   data.note;
+            taskNoteField.innerHTML         =   data.note;
             const dateBegin = new Date(data.time.begin);
             const dateEnd = new Date(data.time.end);
             timeBeginField.value            =   `${String(dateBegin.getUTCHours()).padStart(2, '0')}:${String(dateBegin.getUTCMinutes()).padStart(2, '0')}`;
@@ -1579,16 +1605,38 @@ function getJobNote(jobId){
     fetch(routeUrl)
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-              fillNoteModalWithData(data);
-            }else{
-              alert('No note found for this job.');
-            }
-            
+            fillNoteModalWithData(data);
         })
         .catch(error => {
             console.error('Error fetching job notes:', error);
     }   );
+}
+function restoreJobNoteFromTemplate(jobId){
+    const routeUrl = window.ROUTES.WEB.JOB.RESTORE_NOTE_FROM_TEMPLATE;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch(routeUrl, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ jobId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            show_Success_Message({
+                message: 'Job note restored from template successfully.'
+            });
+            document.getElementById('jobNoteField').value = data.noteContent;
+        } else {
+            console.error('Error restoring job note from template:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error restoring job note from template:', error);
+    });
 }
 //=====================================================================
 //=====================================================================
@@ -1634,7 +1682,16 @@ document.addEventListener('DOMContentLoaded', function() {
           getJobNote(nextNoteBtn.getAttribute('data-note-id'));
       }
   });
-
+  const restoreTemplateNoteIconSpan = document.getElementById('restoreTemplateNoteIcon');
+  restoreTemplateNoteIconSpan.addEventListener('click', function() {
+      const jobId = document.getElementById('jobid').value;
+      const jobid = document.getElementById('idField').value;
+      if((jobId && jobId !== '0')||(jobid && jobid !== '0')){
+          restoreJobNoteFromTemplate(jobId ? jobId : jobid);
+      }else{
+          alert('Please save the job first before restoring note from template.');
+      }
+  });
   document.getElementById('jobTemplateWindow_templateCreateButton').addEventListener('click', function(event) {
         event.preventDefault();
         const jobId = event.target.getAttribute('data-jobid');
@@ -1668,9 +1725,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'This Week': [moment().startOf('isoWeek'), moment().endOf('isoWeek')],
             'This Month': [moment().startOf('month'), moment().endOf('month')],
             'This Year': [moment().startOf('year'), moment().endOf('year')],
+            'All':[moment().subtract(2025,'years'),moment().add(99,'years')],
         }
     }, datepicker_function);
-    datepicker_function(initial_datePicker_start, initial_datePicker_end);
+    //datepicker_function(initial_datePicker_start, initial_datePicker_end);
     const inputForDatPicker = document.getElementById('search-date-range');
     inputForDatPicker.addEventListener('change', function () {
         const val = inputForDatPicker.value.trim();
@@ -1680,11 +1738,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const end = moment(parts[3]+"-"+parts[4]+"-"+parts[5], 'YYYY-MM-DD', true);
 
             if (start.isValid() && end.isValid()) {
-                // Update picker selection manually
+
                 datePicker.setStartDate(start);
                 datePicker.setEndDate(end);
 
-                // Trigger the callback
                 datepicker_function(start, end);
             }
         }
@@ -1972,6 +2029,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if(row){
                         row.parentNode.removeChild(row);
                     }
+                }
+                if(data.success){
+                    show_Success_Message({
+                        message: data.message
+                    });
                 }
             })
             .catch(error => {
