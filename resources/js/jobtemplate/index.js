@@ -1,1272 +1,1827 @@
-window.clientIdSpanMap = new Map();
-function enableTimeEditing(span, updateField, itemId, initialValue) {
-  //alert('enableTimeEditing called with updateField: ' + updateField + ', itemId: ' + itemId + ', initialValue: ' + initialValue);
-  span.textContent = convertTo12Hour(initialValue.split(' ')[1]?.substring(0, 5));
-  span.className = 'text-muted';
-  span.setAttribute('data-updatefield', updateField);
-  span.setAttribute('data-template-id', itemId);
+/**
+ * JobTemplate Index JavaScript
+ * Handles AJAX operations for template listing, CRUD, and batch job creation
+ */
 
-  span.addEventListener('click', () => {
-    const timeInput = document.createElement('input');
-    timeInput.type = 'time';
-    timeInput.className = 'form-control';
-    timeInput.style.width = '200px';
-    timeInput.style.position = 'absolute';
-    timeInput.style.zIndex = 9999;
+const API_BASE = window.ROUTES.WEB.JOBTEMPLATE;
 
-    // Parse and set time in 24-hour format expected by input[type="time"]
-    const currentTime = span.textContent.trim();
-    // const date = new Date(`1970-01-01T${convertTo24Hour(currentTime)}`);
-    // timeInput.value = date.toISOString().substring(11, 16); // "HH:MM"
-    timeInput.value = convertTo24Hour(currentTime);
-    const rect = span.getBoundingClientRect();
-    timeInput.style.left = `${rect.left + window.scrollX}px`;
-    timeInput.style.top = `${rect.top + window.scrollY}px`;
+let currentPage = 1;
+let currentSort = { field: 'id', order: 'asc' };
+let selectedTemplateId = null;
+let originalTemplateData = {};
 
-    document.body.appendChild(timeInput);
-    timeInput.focus();
+/**
+ * Initialize page
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    fetchTemplates();
+    attachEventListeners();
+});
 
-    const removeInput = () => {
-      const selectedTime = timeInput.value;
-      if (selectedTime) {
-        span.textContent = convertTo12Hour(selectedTime);
-      }
-      document.body.removeChild(timeInput);
+/**
+ * Attach all event listeners
+ */
+function attachEventListeners() {
+    // Search
+    document.getElementById('search-input').addEventListener('input', debounce(() => {
+        currentPage = 1;
+        fetchTemplates();
+    }, 300));
+
+    // Create Template button
+    document.getElementById('btn-create-template').addEventListener('click', openCreateTemplateModal);
+
+    // Create Template Modal
+    document.getElementById('create-template-close-btn').addEventListener('click', closeCreateTemplateModal);
+    document.getElementById('create-template-cancel-btn').addEventListener('click', closeCreateTemplateModal);
+    document.getElementById('create-template-submit-btn').addEventListener('click', handleCreateTemplate);
+
+    // Modal close buttons
+    document.getElementById('modal-close-btn').addEventListener('click', closeTemplateModal);
+    document.getElementById('modal-close-footer-btn').addEventListener('click', closeTemplateModal);
+    document.getElementById('modal-backdrop').addEventListener('click', closeTemplateModal);
+
+    // Create Jobs Modal
+    document.getElementById('create-jobs-close-btn').addEventListener('click', closeCreateJobsModal);
+    document.getElementById('create-jobs-cancel-btn').addEventListener('click', closeCreateJobsModal);
+    document.getElementById('create-jobs-submit-btn').addEventListener('click', handleCreateJobs);
+
+    // Date inputs for job creation
+    document.getElementById('start-date').addEventListener('change', updateJobsSummary);
+    document.getElementById('end-date').addEventListener('change', updateJobsSummary);
+
+    // Day checkboxes
+    document.querySelectorAll('.day-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateJobsSummary);
+    });
+
+    // Load clients on page init
+    loadClients();
+
+    // Templates table actions (event delegation)
+    document.getElementById('templates-container').addEventListener('click', handleTemplatesContainerClick);
+
+    // Pagination actions (event delegation)
+    document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
+
+    // Modal footer buttons
+    document.getElementById('modal-delete-btn').addEventListener('click', () => {
+        if (selectedTemplateId) {
+            handleDeleteTemplate(selectedTemplateId);
+        }
+    });
+    document.getElementById('modal-save-btn').addEventListener('click', handleUpdateTemplate);
+
+    // Modal body actions (event delegation)
+    const modalBody = document.getElementById('modal-body-content');
+    modalBody.addEventListener('click', handleModalBodyClick);
+    modalBody.addEventListener('change', handleModalBodyChange);
+}
+
+/**
+ * Handle templates table button clicks
+ */
+function handleTemplatesContainerClick(event) {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+
+    const action = actionButton.getAttribute('data-action');
+    const templateId = actionButton.getAttribute('data-id');
+
+    switch (action) {
+        case 'view-template':
+            if (templateId) handleViewTemplate(Number(templateId));
+            break;
+        case 'create-jobs':
+            if (templateId) handleCreateJobsClick(Number(templateId));
+            break;
+        case 'delete-template':
+            if (templateId) handleDeleteTemplate(Number(templateId));
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Handle pagination button clicks
+ */
+function handlePaginationClick(event) {
+    const actionButton = event.target.closest('[data-action="go-to-page"]');
+    if (!actionButton) return;
+
+    const page = actionButton.getAttribute('data-page');
+    if (page) {
+        goToPage(Number(page));
+    }
+}
+
+/**
+ * Handle modal body button clicks
+ */
+function handleModalBodyClick(event) {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+
+    const action = actionButton.getAttribute('data-action');
+
+    switch (action) {
+        case 'add-dropoff':
+            handleAddDropOff();
+            break;
+        case 'remove-dropoff': {
+            const orderNumber = actionButton.getAttribute('data-order');
+            if (orderNumber) handleRemoveDropOff(Number(orderNumber));
+            break;
+        }
+        case 'add-return':
+            handleAddReturn();
+            break;
+        case 'remove-return':
+            handleRemoveReturn();
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Handle modal body input changes
+ */
+function handleModalBodyChange(event) {
+    const target = event.target;
+    if (!target) return;
+
+    if (target.id === 'is-price-fixed-toggle') {
+        handlePriceToggle();
+        return;
+    }
+
+    if (target.id === 'return-type-toggle') {
+        handleReturnTypeToggle();
+    }
+}
+
+/**
+ * Debounce utility
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
+/**
+ * Fetch templates via AJAX
+ */
+function fetchTemplates() {
+    const searchQuery = document.getElementById('search-input').value;
+    const url = new URL(API_BASE.FETCH, window.location.origin);
+    
+    url.searchParams.append('search', searchQuery);
+    url.searchParams.append('sortField', currentSort.field);
+    url.searchParams.append('sortOrder', currentSort.order);
+    url.searchParams.append('page', currentPage);
+
+    const container = document.getElementById('templates-container');
+    container.innerHTML = '<div class="loading">Loading templates...</div>';
+
+    fetch(url.toString())
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderTemplates(data.templates);
+                renderPagination(data.pagination);
+            } else {
+                showError(data.error || 'Failed to fetch templates');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('An error occurred while fetching templates');
+        });
+}
+
+/**
+ * Render templates table
+ */
+function renderTemplates(templates) {
+    const container = document.getElementById('templates-container');
+
+    if (templates.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>No templates found</h3>
+                <p>Create a template to get started</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <table class="templates-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Name</th>
+                    <th style="width: 280px; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    templates.forEach(template => {
+        html += `
+            <tr>
+                <td><strong>#${template.id}</strong></td>
+                <td>${sanitizeHtml(template.name)}</td>
+                <td>
+                    <div class="row-actions" style="justify-content: flex-end;">
+                        <button class="btn-action btn-view" data-action="view-template" data-id="${template.id}">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-action btn-jobs" data-action="create-jobs" data-id="${template.id}">
+                            <i class="fas fa-plus-circle"></i> Create Jobs
+                        </button>
+                        <button class="btn-action btn-delete" data-action="delete-template" data-id="${template.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+            </tbody>
+        </table>
+    `;
+
+    container.innerHTML = html;
+}
+
+/**
+ * Render pagination
+ */
+function renderPagination(pagination) {
+    const container = document.getElementById('pagination-container');
+    
+    if (pagination.last_page <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+
+    let html = `<div class="pagination-info">Page ${pagination.current_page} of ${pagination.last_page}</div>`;
+    
+    if (pagination.current_page > 1) {
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="1">First</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.current_page - 1}">Previous</button>`;
+    }
+
+    if (pagination.current_page < pagination.last_page) {
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.current_page + 1}">Next</button>`;
+        html += `<button class="btn btn-sm btn-outline-secondary" data-action="go-to-page" data-page="${pagination.last_page}">Last</button>`;
+    }
+
+    container.innerHTML = html;
+}
+
+/**
+ * Go to specific page
+ */
+function goToPage(page) {
+    currentPage = page;
+    fetchTemplates();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/**
+ * View template details
+ */
+function handleViewTemplate(templateId) {
+    selectedTemplateId = templateId;
+    const modal = document.getElementById('template-modal');
+    const body = document.getElementById('modal-body-content');
+    
+    body.innerHTML = '<div class="loading">Loading template details...</div>';
+    modal.classList.add('active');
+    document.getElementById('modal-backdrop').classList.add('active');
+
+    fetch(API_BASE.GETINFO.replace(':id', templateId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderTemplateModal(data.template, data.lockedFields);
+            } else {
+                body.innerHTML = `<div class="error-message show">${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            body.innerHTML = `<div class="error-message show">Failed to load template details</div>`;
+        });
+}
+
+/**
+ * Track field changes for individual updates
+ */
+const fieldChanges = {};
+
+/**
+ * Render template modal content (editable form)
+ */
+function renderTemplateModal(template, lockedFields) {
+    const dropoffs = template.dropoffs || [];
+    const returnData = template.return || null;
+    const body = document.getElementById('modal-body-content');
+    let html = `
+      <style>
+        .field-changed {
+          background-color: #fff3cd !important;
+          border-color: #ffc107 !important;
+          box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+        }
+        
+        .field-change-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 6px;
+        }
+        
+        .old-value {
+          font-size: 0.85em;
+          color: #666;
+          background: #f8f9fa;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          flex-grow: 1;
+        }
+        
+        .old-value:hover {
+          background: #e2e6ea;
+          color: #333;
+        }
+        
+        .change-actions {
+          display: flex;
+          gap: 6px;
+        }
+        
+        .btn-confirm-field {
+          background: #28a745;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.9em;
+        }
+        
+        .btn-confirm-field:hover {
+          background: #218838;
+        }
+        
+        .btn-revert-field {
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 6px 10px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-size: 0.9em;
+        }
+        
+        .btn-revert-field:hover {
+          background: #c82333;
+        }
+      </style>
+      <form id="edit-template-form">
+        <div class="form-group mb-3">
+          <label class="form-label">Template ID</label>
+          <input type="text" class="form-control" value="#${template.id}" disabled>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="edit-template-name" class="form-label">Template Name</label>
+          <input 
+            type="text" 
+            id="edit-template-name" 
+            name="name"
+            class="form-control inputs-forJobTemplate" 
+            data-orgdata="${sanitizeHtml(template.name)}"
+            value="${sanitizeHtml(template.name)}" 
+            required>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="edit-template-client" class="form-label">Client</label>
+          <select 
+            id="edit-template-client" 
+            name="client_id"
+            class="form-select inputs-forJobTemplate" 
+            data-orgdata="${template.client_id || ''}"
+            required>
+            <option value="">Loading clients...</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label for="edit-template-address" class="form-label">Pickup Address</label>
+          <select 
+            id="edit-template-address" 
+            name="pickup_address_id"
+            class="form-select inputs-forJobTemplate" 
+            data-orgdata="${template.pickup.address?.id ?? ''}"
+            <option data-fullAddress="${sanitizeHtml(template.pickup.address?.postal_code ?? ''+''+template.pickup.address?.address_line_1 ?? ''+''+template.pickup.address?.address_line_2 ?? '')}"
+            value="">Pickup_option</option>
+          </select>
+          <div id="edit-template-address-details" style="font-size: 0.95em; color: #555; margin-top: 4px; min-height: 18px;">
+          ${sanitizeHtml(template.pickup.address?.postal_code ?? ''+' , '+template.pickup.address?.address_line_1 ?? ''+' '+template.pickup.address?.address_line_2 ?? '')}</div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="edit-template-time-begin" class="form-label">Pickup Time Begin</label>
+              <input 
+                type="time" 
+                id="edit-template-time-begin" 
+                name="pickup_time_begin"
+                class="form-control inputs-forJobTemplate" 
+                data-orgdata="${template.pickup.time_begin || ''}"
+                value="${template.pickup.time_begin || ''}">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-3">
+              <label for="edit-template-time-end" class="form-label">Pickup Time End</label>
+              <input 
+                type="time" 
+                id="edit-template-time-end" 
+                name="pickup_time_end"
+                class="form-control inputs-forJobTemplate" 
+                data-orgdata="${template.pickup_time_end || ''}"
+                value="${template.pickup_time_end || ''}">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: rgba(13, 110, 253, 0.1); border-radius: 4px; border-left: 4px solid #0d6efd;">
+          <small style="color: rgba(255,255,255,0.7);"><strong>Created:</strong> ${new Date(template.created_at).toLocaleDateString()} | <strong>Updated:</strong> ${new Date(template.updated_at).toLocaleDateString()}</small>
+        </div>
+
+        <!-- Pricing Section -->
+        <div style="margin-top: 25px; padding: 15px; background: rgba(255,193,7,0.1); border-radius: 4px; border-left: 4px solid #ffc107;">
+          <div class="row g-3 align-items-center">
+            <div class="col-12">
+              <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input inputs-forJobTemplate" 
+                                    type="checkbox" 
+                                    id="is-price-fixed-toggle"
+                                    name="is_price_fixed"
+                                    data-orgdata="${template.is_price_fixed ?? false}"
+                                    ${template.is_price_fixed ? 'checked' : ''}>
+                <label class="form-check-label" for="is-price-fixed-toggle">
+                  Fixed Price
+                </label>
+              </div>
+            </div>
+            <div class="col-12" id="price-input-container" style="${!template.is_price_fixed ? 'display: none;' : ''}">
+              <label for="template-price" class="form-label">Price (£)</label>
+              <input 
+                type="number" 
+                id="template-price"
+                name="price"
+                class="form-control inputs-forJobTemplate" 
+                data-orgdata="${template.price || 0}"
+                value="${template.price || 0}"
+                step="0.01"
+                min="0"
+                placeholder="0.00">
+              <small style="color: rgba(255,255,255,0.6);">Enter price with up to 2 decimal places</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropoffs Section -->
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h5 style="margin: 0; color: #fff;">Drop-offs</h5>
+                <button type="button" class="btn btn-sm btn-success" data-action="add-dropoff">
+                    <i class="fas fa-plus"></i> Add Drop-off
+                </button>
+            </div>
+            <div id="dropoffs-container">
+                ${dropoffs.length === 0 ? '<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">No drop-offs added yet</p>' : ''}
+                ${dropoffs.map((dropoff, index) => `
+                    <div class="dropoff-item" data-order="${dropoff.order_number}" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong style="color: #fff;">Drop-off #${dropoff.order_number}</strong>
+                            <button type="button" class="btn btn-sm btn-danger" data-action="remove-dropoff" data-order="${dropoff.order_number}">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label">Address</label>
+                                                                <select class="form-select inputs-forJobTemplate dropoff-address-select" 
+                                                                            data-order="${dropoff.order_number}"
+                                                                            name="dropoff_address_${dropoff.order_number}"
+                                                                        data-orgdata="${dropoff.address?.id ?? dropoff.address_id ?? ''}">
+                                    <option value="">Select address...</option>
+                                    ${dropoff.address ? `<option value="${dropoff.address_id}" selected>${sanitizeHtml(dropoff.address.name || dropoff.address.address_line_1)} - ${sanitizeHtml(dropoff.address.postal_code)}</option>` : ''}
+                                </select>
+                                <div class="dropoff-address-details" style="font-size: 0.95em; color: rgba(255,255,255,0.6); margin-top: 4px; min-height: 18px;">
+                                  ${sanitizeHtml((dropoff.address?.postal_code || '') + ' , ' + (dropoff.address?.address_line_1 || '') + ' ' + (dropoff.address?.address_line_2 || ''))}
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Time Begin</label>
+                                <input type="time" class="form-control inputs-forJobTemplate dropoff-time-begin" 
+                                    data-order="${dropoff.order_number}"
+                                    name="dropoff_time_begin_${dropoff.order_number}"
+                                    data-orgdata="${dropoff.time_begin || ''}"
+                                    value="${dropoff.time_begin || ''}">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Time End</label>
+                                <input type="time" class="form-control inputs-forJobTemplate dropoff-time-end" 
+                                    data-order="${dropoff.order_number}"
+                                    name="dropoff_time_end_${dropoff.order_number}"
+                                    data-orgdata="${dropoff.time_end || ''}"
+                                    value="${dropoff.time_end || ''}">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Package Type</label>
+                                <select class="form-select inputs-forJobTemplate dropoff-packagetype" 
+                                    data-order="${dropoff.order_number}"
+                                    name="dropoff_package_type_${dropoff.order_number}"
+                                    data-orgdata="${dropoff.package_type?.id || ''}">
+                                  <option value="">Select package type...</option>
+                                  ${dropoff.package_type ? `<option value="${dropoff.package_type.id}" selected>${sanitizeHtml(dropoff.package_type.name || '')}</option>` : ''}
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control inputs-forJobTemplate dropoff-quantity" 
+                                    data-order="${dropoff.order_number}"
+                                    name="dropoff_quantity_${dropoff.order_number}"
+                                    data-orgdata="${dropoff.quantity || ''}"
+                                    value="${dropoff.quantity || ''}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Note</label>
+                                <textarea class="form-control inputs-forJobTemplate dropoff-note" 
+                                    data-order="${dropoff.order_number}"
+                                    name="dropoff_note_${dropoff.order_number}"
+                                    data-orgdata="${sanitizeHtml(dropoff.note || '')}">${dropoff.note || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <!-- Return Section -->
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h5 style="margin: 0; color: #fff;">Return</h5>
+                ${!returnData ? `<button type="button" class="btn btn-sm btn-success" data-action="add-return">
+                    <i class="fas fa-plus"></i> Add Return
+                </button>` : `<button type="button" class="btn btn-sm btn-danger" data-action="remove-return">
+                    <i class="fas fa-trash"></i> Remove Return
+                </button>`}
+            </div>
+            <div id="return-container" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                ${returnData ? `
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label">Return Address</label>
+                            <select 
+                                id="return-address-select"
+                                class="form-select inputs-forJobTemplate" 
+                                name="return_address_id"
+                                data-orgdata="${returnData.address?.id ?? ''}">
+                                <option value="">Select address...</option>
+                                ${returnData.address ? `<option value="${returnData.address.id}" selected>${sanitizeHtml(returnData.address.name || returnData.address.address_line_1)} - ${sanitizeHtml(returnData.address.postal_code)}</option>` : ''}
+                            </select>
+                            <div id="return-address-details" style="font-size: 0.95em; color: rgba(255,255,255,0.6); margin-top: 4px; min-height: 18px;">
+                              ${sanitizeHtml((returnData.address?.postal_code || '') + ' , ' + (returnData.address?.address_line_1 || '') + ' ' + (returnData.address?.address_line_2 || ''))}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input 
+                                    class="form-check-input inputs-forJobTemplate" 
+                                    type="checkbox" 
+                                    id="return-type-toggle"
+                                    name="return_is_same_day"
+                                    data-orgdata="${returnData.is_same_day ?? 'false'}"
+                                    ${returnData.is_same_day === true || returnData.is_same_day === 'true' ? 'checked' : ''}>
+                                <label class="form-check-label" for="return-type-toggle">
+                                    Same Day Return
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12" id="return-time-container">
+                            ${returnData.is_same_day === true || returnData.is_same_day === 'true' ? `
+                                <label class="form-label">Return Time</label>
+                                <input 
+                                    type="time" 
+                                    class="form-control inputs-forJobTemplate" 
+                                    id="return-time-input"
+                                    name="return_time"
+                                    data-orgdata="${returnData.time_begin || ''}"
+                                    value="${returnData.time_begin || ''}">
+                            ` : `
+                                <label class="form-label">Return Date & Time</label>
+                                <input 
+                                    type="datetime-local" 
+                                    class="form-control inputs-forJobTemplate" 
+                                    id="return-datetime-input"
+                                    name="return_datetime"
+                                    data-orgdata="${returnData.time_begin || ''}"
+                                    value="${returnData.time_begin || ''}">
+                            `}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Return Note</label>
+                            <textarea 
+                                class="form-control inputs-forJobTemplate" 
+                                name="return_note"
+                                data-orgdata="${sanitizeHtml(returnData.note || '')}"
+                                rows="2">${returnData.note || ''}</textarea>
+                        </div>
+                    </div>
+                ` : '<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">No return configured</p>'}
+            </div>
+        </div>
+      </form>
+    `;
+
+    body.innerHTML = html;
+    body.querySelector
+    // Load clients and set selected value
+    loadEditClients(template.client_id);
+
+    // Add event listener for client change to update addresses
+    document.getElementById('edit-template-client').addEventListener('change', function() {
+        updateEditClientAddresses(this.value);
+        updateClientpackageTypes(this.value);
+        updateEditReturnAddress(this.value);
+    });
+    document.getElementById('edit-template-address').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (!selectedOption) return;
+        document.getElementById('edit-template-address-details').textContent = selectedOption.getAttribute('data-fullAddress') ?? '';
+    });
+    
+    // Add event listener for return address select
+    const returnAddressSelect = document.getElementById('return-address-select');
+    if (returnAddressSelect) {
+        returnAddressSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (!selectedOption) return;
+            document.getElementById('return-address-details').textContent = selectedOption.getAttribute('data-fullAddress') ?? '';
+        });
+    }
+    
+    document.getElementById('edit-template-address').value = template.pickup_address_id;
+        setTimeout(() => {
+            let temp = document.getElementById('edit-template-address');
+            temp.value = template.pickup.address?.id ?? '';
+            temp.dispatchEvent(new Event('change'));
+            updateClientpackageTypes(template.client_id);
+            updateEditReturnAddress(template.client_id);
+    }, 500);
+    
+    // Attach change listeners to all form inputs
+    attachFieldChangeListeners();
+}
+
+/**
+ * Load clients for edit modal
+ */
+function loadEditClients(selectedClientId = null) {
+    fetch(window.ROUTES.WEB.CLIENT.SEARCH)
+        .then(response => response.json())
+        .then(data => {
+            const clientSelect = document.getElementById('edit-template-client');
+            clientSelect.innerHTML = '<option value="">Select a client...</option>';
+            
+            if (data && Array.isArray(data)) {
+                data.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = client.name;
+                    if (selectedClientId && client.id == selectedClientId) {
+                        option.selected = true;
+                    }
+                    clientSelect.appendChild(option);
+                });
+                if (selectedClientId) {
+                    updateEditClientAddresses(selectedClientId);
+                }
+            }
+        })
+        .catch(error => console.error('Error loading clients:', error));
+}
+
+/**
+ * Update addresses for selected client in edit modal
+ */
+function updateEditClientAddresses(clientId) {
+    if (!clientId) {
+        document.getElementById('edit-template-address').innerHTML = '<option value="">Select a client first</option>';
+        return;
+    }
+
+    fetch(window.ROUTES.WEB.CLIENT.SEARCHADDRESSES + '?client_id=' + clientId)
+        .then(response => response.json())
+        .then(data => {
+            const addressSelect = document.getElementById('edit-template-address');
+            const dropoffAddressSelects = document.querySelectorAll('.dropoff-address-select');
+            
+            // Store original selected values before clearing
+            const originalValues = {};
+            dropoffAddressSelects.forEach(select => {
+                originalValues[select.getAttribute('data-order')] = select.getAttribute('data-orgdata');
+            });
+            
+            // Clear and rebuild pickup address select
+            addressSelect.innerHTML = '<option value="">Select an address...</option>';
+            
+            if (data && Array.isArray(data)) {
+                data.forEach(address => {
+                    const option = document.createElement('option');
+                    option.value = address.id;
+                    option.textContent = address.name;
+                    option.setAttribute('data-fullAddress', sanitizeHtml(address.postal_code + ' , ' + address.address_line_1 + ' ' + address.address_line_2));
+                    addressSelect.appendChild(option);
+                });
+                
+                // Clear and rebuild dropoff address selects, preserving original values
+                dropoffAddressSelects.forEach(select => {
+                    const orderNumber = select.getAttribute('data-order');
+                    const originalValue = originalValues[orderNumber];
+                    
+                    select.innerHTML = '<option value="">Select address...</option>';
+                    
+                    data.forEach(address => {
+                        const option = document.createElement('option');
+                        option.value = address.id;
+                        option.textContent = address.name;
+                        option.setAttribute('data-fullAddress', sanitizeHtml(address.postal_code + ' , ' + address.address_line_1 + ' ' + address.address_line_2));
+                        
+
+                        if (originalValue && address.id == originalValue) {
+                            option.selected = true;
+                        }
+                        
+                        select.appendChild(option);
+                    });
+                });
+            }
+        })
+        .catch(error => console.error('Error loading addresses:', error));
+}
+
+/**
+ * Update return address for selected client in edit modal
+ */
+function updateEditReturnAddress(clientId) {
+    if (!clientId) {
+        const returnAddressSelect = document.getElementById('return-address-select');
+        if (returnAddressSelect) {
+            returnAddressSelect.innerHTML = '<option value="">Select a client first</option>';
+        }
+        return;
+    }
+
+    fetch(window.ROUTES.WEB.CLIENT.SEARCHADDRESSES + '?client_id=' + clientId)
+        .then(response => response.json())
+        .then(data => {
+            const returnAddressSelect = document.getElementById('return-address-select');
+            if (!returnAddressSelect) return;
+            
+            // Store original selected value before clearing
+            const originalValue = returnAddressSelect.getAttribute('data-orgdata');
+            
+            // Clear and rebuild return address select
+            returnAddressSelect.innerHTML = '<option value="">Select an address...</option>';
+            
+            if (data && Array.isArray(data)) {
+                data.forEach(address => {
+                    const option = document.createElement('option');
+                    option.value = address.id;
+                    option.textContent = address.name;
+                    option.setAttribute('data-fullAddress', sanitizeHtml(address.postal_code + ' , ' + address.address_line_1 + ' ' + address.address_line_2));
+                    
+                    if (originalValue && address.id == originalValue) {
+                        option.selected = true;
+                    }
+                    
+                    returnAddressSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading addresses:', error));
+}
+
+/**
+ * Attach change listeners to all form inputs
+ */
+function attachFieldChangeListeners() {
+    const inputs = document.querySelectorAll('.inputs-forJobTemplate');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            updateFieldChangeUI(this);
+        });
+        
+        input.addEventListener('input', function() {
+            updateFieldChangeUI(this);
+        });
+    });
+}
+
+/**
+ * Update field UI when value changes
+ */
+function updateFieldChangeUI(input) {
+    const originalValue = input.getAttribute('data-orgdata');
+    let currentValue = input.value;
+    
+    if (input.type === 'checkbox') {
+        currentValue = input.checked ? 'true' : 'false';
+    }
+    
+    const normalizedOriginal = normalizeInputValue(originalValue, input.type);
+    const normalizedCurrent = normalizeInputValue(currentValue, input.type);
+    
+    const formGroup = input.closest('.form-group');
+    if (!formGroup) return;
+    
+    // Check if value has changed
+    if (normalizedOriginal !== normalizedCurrent) {
+        // Mark as changed
+        input.classList.add('field-changed');
+        
+        // Show change indicator if not already shown
+        let indicator = formGroup.querySelector('.field-change-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'field-change-indicator';
+            formGroup.appendChild(indicator);
+        }
+        
+        // Format old value for display
+        let displayOldValue = originalValue || '(empty)';
+        if (input.type === 'checkbox') {
+            displayOldValue = originalValue === 'true' || originalValue === true ? '✓ Checked' : '○ Unchecked';
+        }
+
+        indicator.innerHTML = `
+            <span class="old-value" title="Click to revert">
+                <strong>Old:</strong> ${sanitizeHtml(displayOldValue)}
+            </span>
+            <div class="change-actions">
+                <button type="button" class="btn-confirm-field" title="Confirm this change">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button type="button" class="btn-revert-field" title="Revert this change">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        const oldValueEl = indicator.querySelector('.old-value');
+        if (oldValueEl) {
+            oldValueEl.addEventListener('click', () => {
+                revertFieldChange(input.name);
+            });
+        }
+
+        const confirmBtn = indicator.querySelector('.btn-confirm-field');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                confirmFieldChange(input.name);
+            });
+        }
+
+        const revertBtn = indicator.querySelector('.btn-revert-field');
+        if (revertBtn) {
+            revertBtn.addEventListener('click', () => {
+                revertFieldChange(input.name);
+            });
+        }
+    } else {
+        // No change - remove indicator
+        input.classList.remove('field-changed');
+        const indicator = formGroup.querySelector('.field-change-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+}
+
+/**
+ * Revert field by clicking on old value
+ */
+function handleFieldValueClick(element) {
+    const indicator = element.closest('.field-change-indicator');
+    if (!indicator) return;
+    
+    const formGroup = indicator.closest('.form-group');
+    const input = formGroup.querySelector('.inputs-forJobTemplate');
+    
+    if (input) {
+        revertFieldChange(input.name);
+    }
+}
+
+/**
+ * Confirm a single field change and send update
+ */
+function confirmFieldChange(fieldName) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    if (!input) return;
+    
+    const payload = {};
+    let value = input.value;
+    
+    if (input.type === 'checkbox') {
+        value = input.checked;
+    }
+    
+    payload[fieldName] = value;
+    
+    const btn = input.closest('.form-group').querySelector('.btn-confirm-field');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    }
+    
+    fetch(API_BASE.UPDATE.replace(':id', selectedTemplateId), {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify(payload),
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Update the data-orgdata to mark field as synced
+                input.setAttribute('data-orgdata', input.value);
+                input.classList.remove('field-changed');
+                const indicator = input.closest('.form-group').querySelector('.field-change-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+                showSuccess(`${fieldName} updated successfully`);
+            } else {
+                showError(result.error || 'Failed to update field');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to update field');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+            }
+        });
+}
+
+/**
+ * Revert a field to its original value
+ */
+function revertFieldChange(fieldName) {
+    const input = document.querySelector(`[name="${fieldName}"]`);
+    if (!input) return;
+    
+    const originalValue = input.getAttribute('data-orgdata');
+    
+    if (input.type === 'checkbox') {
+        input.checked = originalValue === 'true' || originalValue === true;
+    } else {
+        input.value = originalValue || '';
+    }
+    
+    // Remove change indicator
+    input.classList.remove('field-changed');
+    const formGroup = input.closest('.form-group');
+    const indicator = formGroup.querySelector('.field-change-indicator');
+    if (indicator) {
+        indicator.remove();
+    }
+    
+    showSuccess(`${fieldName} reverted`);
+}
+
+/**
+ * Handle template update - only sends changed fields
+ * Scans all inputs with class "inputs-forJobTemplate" and compares with data-orgdata attribute
+ */
+function handleUpdateTemplate() {
+    const form = document.getElementById('edit-template-form');
+    if (!form.checkValidity()) {
+        showError('Please fill in all required fields');
+        return;
+    }
+
+    // Get all inputs marked for template update
+    const templateInputs = document.querySelectorAll('.inputs-forJobTemplate');
+    const changedData = {};
+    let hasChanges = false;
+
+    templateInputs.forEach(input => {
+        const originalValue = input.getAttribute('data-orgdata');
+        let currentValue = input.value;
+
+        if (input.type === 'checkbox') {
+            currentValue = input.checked ? 'true' : 'false';
+        }
+
+        const normalizedOriginal = normalizeInputValue(originalValue, input.type);
+        const normalizedCurrent = normalizeInputValue(currentValue, input.type);
+
+        // Only include fields that have changed
+        if (normalizedOriginal !== normalizedCurrent) {
+            // Use the name attribute directly - much cleaner!
+            const fieldName = input.name;
+            changedData[fieldName] = input.type === 'checkbox'
+                ? input.checked
+                : (currentValue || null);
+            hasChanges = true;
+        }
+    });
+
+    // Collect dropoff changes separately
+    const dropoffItems = document.querySelectorAll('.dropoff-item');
+    const dropoffsData = [];
+    
+    dropoffItems.forEach(item => {
+        const orderNumber = parseInt(item.getAttribute('data-order'));
+        const addressSelect = item.querySelector(`.dropoff-address-select[data-order="${orderNumber}"]`);
+        const packageTypeSelect = item.querySelector(`.dropoff-packagetype[data-order="${orderNumber}"]`);
+        
+        // Use current value, or fall back to original if current is empty
+        const addressValue = addressSelect?.value || addressSelect?.getAttribute('data-orgdata') || null;
+        const packageTypeValue = packageTypeSelect?.value || packageTypeSelect?.getAttribute('data-orgdata') || null;
+        
+        const dropoff = {
+            order_number: orderNumber,
+            address_id: addressValue,
+            time_begin: item.querySelector(`.dropoff-time-begin[data-order="${orderNumber}"]`)?.value || null,
+            time_end: item.querySelector(`.dropoff-time-end[data-order="${orderNumber}"]`)?.value || null,
+            package_type_id: packageTypeValue,
+            quantity: item.querySelector(`.dropoff-quantity[data-order="${orderNumber}"]`)?.value || null,
+            note: item.querySelector(`.dropoff-note[data-order="${orderNumber}"]`)?.value || '',
+        };
+        dropoffsData.push(dropoff);
+    });
+
+    if (dropoffsData.length > 0) {
+        changedData['dropoffs'] = dropoffsData;
+        hasChanges = true;
+    }
+
+    if (!hasChanges) {
+        showError('No changes were made');
+        return;
+    }
+
+    fetch(API_BASE.UPDATE.replace(':id', selectedTemplateId), {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+        body: JSON.stringify(changedData),
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showSuccess('Template updated successfully');
+                closeTemplateModal();
+                fetchTemplates();
+            } else {
+                showError(result.error || 'Failed to update template');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to update template');
+        });
+}
+
+/**
+ * Normalize input values for comparison
+ */
+function normalizeInputValue(value, inputType) {
+    if (inputType === 'checkbox') {
+        return value === true || value === 'true' ? 'true' : 'false';
+    }
+
+    return value ?? '';
+}
+
+/**
+ * Close template modal
+ */
+function closeTemplateModal() {
+    document.getElementById('template-modal').classList.remove('active');
+    document.getElementById('modal-backdrop').classList.remove('active');
+    selectedTemplateId = null;
+    Object.keys(fieldChanges).forEach(key => delete fieldChanges[key]); // Reset field changes
+}
+
+/**
+ * Open create jobs modal
+ */
+function handleCreateJobsClick(templateId) {
+    selectedTemplateId = templateId;
+    const modal = document.getElementById('create-jobs-modal');
+    
+    // Get template info
+    fetch(API_BASE.GETINFO.replace(':id', templateId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('create-jobs-template-id').textContent = `#${data.template.id}`;
+                document.getElementById('create-jobs-template-name').textContent = sanitizeHtml(data.template.name);
+                
+                // Reset form
+                document.getElementById('create-jobs-form').reset();
+                document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
+                updateJobsSummary();
+                
+                modal.classList.add('active');
+                document.getElementById('modal-backdrop').classList.add('active');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Close create jobs modal
+ */
+function closeCreateJobsModal() {
+    document.getElementById('create-jobs-modal').classList.remove('active');
+    document.getElementById('modal-backdrop').classList.remove('active');
+    selectedTemplateId = null;
+}
+
+/**
+ * Update jobs summary
+ */
+function updateJobsSummary() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    const selectedDays = Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value);
+
+    if (!startDate || !endDate || selectedDays.length === 0) {
+        document.getElementById('jobs-summary').textContent = 'Select dates and days above';
+        return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysCount = countJobsInRange(start, end, selectedDays);
+
+    document.getElementById('jobs-summary').textContent = 
+        `${daysCount} job${daysCount !== 1 ? 's' : ''} will be created from ${startDate} to ${endDate}`;
+}
+
+/**
+ * Count how many jobs will be created
+ */
+function countJobsInRange(start, end, selectedDays) {
+    let count = 0;
+    const current = new Date(start);
+    
+    while (current <= end) {
+        const dayName = current.toLocaleDateString('en-US', { weekday: 'long' });
+        if (selectedDays.includes(dayName)) {
+            count++;
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    
+    return count;
+}
+
+/**
+ * Handle create jobs submission
+ */
+function handleCreateJobs() {
+    if (!selectedTemplateId) return;
+
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    const selectedDays = Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value);
+
+    if (!startDate || !endDate || selectedDays.length === 0) {
+        showError('Please select dates and at least one day');
+        return;
+    }
+
+    const btn = document.getElementById('create-jobs-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+    const payload = {
+        template_id: selectedTemplateId,
+        start_date: startDate,
+        end_date: endDate,
+        days: selectedDays
     };
 
-    timeInput.addEventListener('blur', () => {
-      removeInput();
-      const field = buildNestedObject(updateField,timeInput.value);
-      updateJobTemplate(itemId,field);
-    });
-    //timeInput.addEventListener('change', removeInput);
-  });
-}
-function convertTo12Hour(time24) {
-  const [hour, minute] = time24.split(':');
-  let h = parseInt(hour, 10);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${h}:${minute} ${ampm}`;
-}
-function convertTo24Hour(time12) {
-  const [time, modifier] = time12.split(' ');
-  let [hours, minutes] = time.split(':');
-
-  hours = parseInt(hours, 10);
-  if (modifier === 'PM' && hours !== 12) hours += 12;
-  if (modifier === 'AM' && hours === 12) hours = 0;
-
-  return `${String(hours).padStart(2, '0')}:${minutes}`;
-}
-function addTypeHeadSearch_fromClientList(editableSpan) {
-    if (!editableSpan) return;
-
-    const dropdown = document.createElement("ul");
-    dropdown.style.position = "absolute";
-    dropdown.style.border = "1px solid #ccc";
-    dropdown.style.listStyle = "none";
-    dropdown.style.margin = "0";
-    dropdown.style.padding = "0";
-    dropdown.style.maxHeight = "200px";
-    dropdown.style.overflowY = "auto";
-    dropdown.style.zIndex = "1000";
-    dropdown.style.display = "none";
-
-    dropdown.classList.add('bg-dark', 'text-light');
-
-    document.body.appendChild(dropdown);
-
-    let currentItems = [];
-    let selectedIndex = -1;
-
-    editableSpan.addEventListener("input", onInput);
-    editableSpan.addEventListener("keydown", onKeyDown);
-
-    function onInput() {
-        const query = editableSpan.textContent.trim();
-        if (query.length < 2) {
-            dropdown.style.display = "none";
-            return;
-        }
-
-        const rect = editableSpan.getBoundingClientRect();
-        dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-        dropdown.style.left = `${rect.left + window.scrollX}px`;
-        //dropdown.style.width = `${rect.width}px`;
-        dropdown.style.width = `200px`;
-
-        const apiUrl = window.ROUTES.WEB.CLIENT.SEARCH + "?query=" + encodeURIComponent(query);
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                currentItems = data;
-                selectedIndex = -1;
-                renderDropdown(data);
-            })
-            .catch(error => {
-                console.error('Error fetching client data:', error);
-            });
-    }
-
-    function renderDropdown(items) {
-        dropdown.innerHTML = "";
-
-        if (!items.length) {
-            dropdown.style.display = "none";
-            return;
-        }
-
-        items.forEach((item, index) => {
-            const li = document.createElement("li");
-            li.textContent = item.name;
-            li.style.padding = "5px 10px";
-            li.style.cursor = "pointer";
-            li.classList.add('bg-dark', 'text-light');
-
-            li.addEventListener("mouseenter", () => {
-                highlightItem(index);
-            });
-
-            li.addEventListener("mousedown", (e) => {
-                e.preventDefault(); // prevent blur
-                handleSelect(item);
-                dropdown.style.display = "none";
-            });
-
-            dropdown.appendChild(li);
-        });
-
-        dropdown.style.display = "block";
-    }
-
-    function highlightItem(index) {
-      const lis = dropdown.querySelectorAll("li");
-      lis.forEach((li, i) => {
-          if (i === index) {
-              li.style.backgroundColor = darkenColor(window.getComputedStyle(li).backgroundColor, 0.1);
-              li.style.color = darkenColor(window.getComputedStyle(li).color, 0.1);
-              li.scrollIntoView({ block: "nearest", behavior: "smooth" });
-          } else {
-              //li.style.backgroundColor = styles.backgroundColor;
-              //li.style.color = styles.color;
-          }
-      });
-      selectedIndex = index;
-    }
-
-    function onKeyDown(e) {
-        const lis = dropdown.querySelectorAll("li");
-
-        if (dropdown.style.display === "block") {
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                selectedIndex = (selectedIndex + 1) % lis.length;
-                highlightItem(selectedIndex);
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                selectedIndex = (selectedIndex - 1 + lis.length) % lis.length;
-                highlightItem(selectedIndex);
-            } else if (e.key === "Enter") {
-                e.preventDefault();
-                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
-                    handleSelect(currentItems[selectedIndex]);
-                    dropdown.style.display = "none";
-                }
-            } else if (e.key === "Escape") {
-                dropdown.style.display = "none";
-            }
-        }
-    }
-
-    function handleSelect(item) {
-        editableSpan.textContent = item.name;
-        editableSpan.blur(); // <-- Blur here
-
-        const clientInfoUrlTemplate = window.ROUTES.WEB.CLIENT.GETINFO;
-        const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
-        fetch(clientInfoUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    editableSpan.setAttribute('data-client-id', `${data.id}`);
-                    updateJobTemplate(editableSpan.getAttribute('data-template-id'), { 'clientToBill_id': editableSpan.getAttribute('data-client-id') });
-                    clientIdSpanMap.get(Number(editableSpan.getAttribute('data-template-id'))).forEach(span => span.setAttribute('data-client-id', data.id));
-                }
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-
-
-    document.addEventListener("click", function (e) {
-        if (!editableSpan.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.style.display = "none";
-        }
-    });
-
-    // Utility to darken color (basic RGB manipulation)
-    function darkenColor(color, factor) {
-        const ctx = document.createElement('canvas').getContext('2d');
-        ctx.fillStyle = color;
-        const [r, g, b] = ctx.fillStyle.match(/\d+/g).map(Number);
-        return `rgb(${Math.max(0, r - r * factor)}, ${Math.max(0, g - g * factor)}, ${Math.max(0, b - b * factor)})`;
-    }
-}
-function addTypeHeadSearch_fromClient_AddressList(editableSpan) {
-    if (!editableSpan) return;
-    const dropdown = document.createElement("ul");
-    dropdown.style.position = "absolute";
-    dropdown.style.border = "1px solid #ccc";
-    dropdown.style.listStyle = "none";
-    dropdown.style.margin = "0";
-    dropdown.style.padding = "0";
-    dropdown.style.maxHeight = "200px";
-    dropdown.style.overflowY = "auto";
-    dropdown.style.zIndex = "1000";
-    dropdown.style.display = "none";
-
-    // Match colors from span
-    dropdown.classList.add('bg-dark', 'text-light');
-
-    document.body.appendChild(dropdown);
-
-    let currentItems = [];
-    let selectedIndex = -1;
-
-    editableSpan.addEventListener("input", onInput);
-    editableSpan.addEventListener("keydown", onKeyDown);
-
-    function onInput() {
-        const query = editableSpan.textContent.trim();
-        if (query.length < 2) {
-            dropdown.style.display = "none";
-            return;
-        }
-
-        const rect = editableSpan.getBoundingClientRect();
-        dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-        dropdown.style.left = `${rect.left + window.scrollX}px`;
-        //dropdown.style.width = `${rect.width}px`;
-        dropdown.style.width = `200px`;
-        var apiUrl = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES+"?query=" + encodeURIComponent(query) + "&client_id=" + editableSpan.getAttribute('data-client-id');
-        //const apiUrl = window.ROUTES.WEB.CLIENT.SEARCH + "?query=" + encodeURIComponent(query);
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => {
-                currentItems = data;
-                selectedIndex = -1;
-                renderDropdown(data);
-            })
-            .catch(error => {
-                console.error('Error fetching client data:', error);
-            });
-    }
-
-    function renderDropdown(items) {
-        dropdown.innerHTML = "";
-
-        if (!items.length) {
-            dropdown.style.display = "none";
-            return;
-        }
-
-        items.forEach((item, index) => {
-            const li = document.createElement("li");
-            li.textContent = item.name;
-            li.style.padding = "5px 10px";
-            li.style.cursor = "pointer";
-            li.classList.add('bg-dark', 'text-light');
-
-            li.addEventListener("mouseenter", () => {
-                highlightItem(index);
-            });
-
-            li.addEventListener("mousedown", (e) => {
-                e.preventDefault(); // prevent blur
-                handleSelect(item);
-                dropdown.style.display = "none";
-            });
-
-            dropdown.appendChild(li);
-        });
-
-        dropdown.style.display = "block";
-    }
-
-    function highlightItem(index) {
-      const lis = dropdown.querySelectorAll("li");
-      lis.forEach((li, i) => {
-          if (i === index) {
-              li.style.backgroundColor = darkenColor(window.getComputedStyle(li).backgroundColor, 0.1);
-              li.style.color = darkenColor(window.getComputedStyle(li).color, 0.1);
-              li.scrollIntoView({ block: "nearest", behavior: "smooth" });
-          } else {
-              //li.style.backgroundColor = styles.backgroundColor;
-              //li.style.color = styles.color;
-          }
-      });
-      selectedIndex = index;
-    }
-
-    function onKeyDown(e) {
-        const lis = dropdown.querySelectorAll("li");
-
-        if (dropdown.style.display === "block") {
-            if (e.key === "ArrowDown") {
-                e.preventDefault();
-                selectedIndex = (selectedIndex + 1) % lis.length;
-                highlightItem(selectedIndex);
-            } else if (e.key === "ArrowUp") {
-                e.preventDefault();
-                selectedIndex = (selectedIndex - 1 + lis.length) % lis.length;
-                highlightItem(selectedIndex);
-            } else if (e.key === "Enter") {
-                e.preventDefault();
-                if (selectedIndex >= 0 && currentItems[selectedIndex]) {
-                    handleSelect(currentItems[selectedIndex]);
-                    dropdown.style.display = "none";
-                }
-            } else if (e.key === "Escape") {
-                dropdown.style.display = "none";
-            }
-        }
-    }
-
-    function handleSelect(item) {
-        editableSpan.textContent = item.name;
-        editableSpan.blur(); // <-- Blur here
-
-        const clientInfoUrlTemplate = window.ROUTES.WEB.ADDRESS.GETINFO;
-        const clientInfoUrl = clientInfoUrlTemplate.replace(':id', item.id);
-        fetch(clientInfoUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                  editableSpan.setAttribute('data-address-id', `${data.id}`);
-                  const nextSpan = editableSpan.nextElementSibling;
-                  if (nextSpan && nextSpan.classList.contains('full-address')) {
-                    nextSpan.textContent = ` (${data.postal_code}, ${data.address_line_1})`;
-                  }
-                }
-                /* pritaikyti kad tiktu ir droppoffui */
-                updateJobTemplate(
-                  editableSpan.getAttribute('data-template-id'),
-                  buildNestedObject(editableSpan.getAttribute('data-updatefield'), item.id));
-                  //{ pickup :{addressId: item.id}});
-
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    }
-
-
-    document.addEventListener("click", function (e) {
-        if (!editableSpan.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.style.display = "none";
-        }
-    });
-
-    // Utility to darken color (basic RGB manipulation)
-    function darkenColor(color, factor) {
-        const ctx = document.createElement('canvas').getContext('2d');
-        ctx.fillStyle = color;
-        const [r, g, b] = ctx.fillStyle.match(/\d+/g).map(Number);
-        return `rgb(${Math.max(0, r - r * factor)}, ${Math.max(0, g - g * factor)}, ${Math.max(0, b - b * factor)})`;
-    }
-}
-function addPackageTypeSelect_fromClient(editableSpan) {
-  if (!editableSpan) return;
-
-  const dropdown = document.createElement("ul");
-  dropdown.style.position = "absolute";
-  dropdown.style.border = "1px solid #ccc";
-  dropdown.style.listStyle = "none";
-  dropdown.style.margin = "0";
-  dropdown.style.padding = "0";
-  dropdown.style.maxHeight = "200px";
-  dropdown.style.overflowY = "auto";
-  dropdown.style.zIndex = "1000";
-  dropdown.style.display = "none";
-  dropdown.style.width = "200px";
-  dropdown.classList.add('bg-dark', 'text-light');
-
-  document.body.appendChild(dropdown);
-
-  editableSpan.addEventListener("click", () => {
-    const clientId = editableSpan.getAttribute("data-client-id");
-    if (!clientId) return;
-
-    const apiUrl = window.ROUTES.WEB.CLIENT.FETCHPACKAGETYPES.replace(":id", clientId);
-
-    const rect = editableSpan.getBoundingClientRect();
-    dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-    dropdown.style.left = `${rect.left + window.scrollX}px`;
-
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        dropdown.innerHTML = "";
-
-        data.packageTypes.forEach(packageType => {
-          const li = document.createElement("li");
-          li.textContent = packageType.name;
-          li.style.padding = "5px 10px";
-          li.style.cursor = "pointer";
-          li.classList.add('bg-dark', 'text-light');
-
-          li.addEventListener("mousedown", (e) => {
-            e.preventDefault();
-            handleSelect(packageType);
-            dropdown.style.display = "none";
-          });
-
-          dropdown.appendChild(li);
-        });
-
-        dropdown.style.display = "block";
-      })
-      .catch(error => {
-        console.error("Error fetching package types:", error);
-      });
-  });
-
-  function handleSelect(item) {
-    editableSpan.textContent = item.name;
-    editableSpan.blur();
-
-    // Send selected package type ID to backend
-    buildNestedObject(editableSpan.getAttribute('data-updatefield'), item.id);
-    updateJobTemplate(editableSpan.getAttribute('data-template-id'), buildNestedObject(editableSpan.getAttribute('data-updatefield'), item.id));
-  }
-
-  document.addEventListener("click", function (e) {
-    if (!editableSpan.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = "none";
-    }
-  });
-}
-function updateJobTemplate(id,field){
-  const routeUrl = window.ROUTES.WEB.JOBTEMPLATE.UPDATE;
-  let updateData = {
-    id: id,
-    ...field
-  }
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  fetch(window.ROUTES.WEB.JOBTEMPLATE.UPDATE, { 
-      method: 'PATCH',
-      headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json', 
-          'X-CSRF-TOKEN': csrfToken
-      },
-      body: JSON.stringify(updateData)
-  })
-  .then(response => {
-      return response.json();
-  })
-  .then(data => {
-      if(data.errors){
-          let errorsMessage = '';
-          for (const key in data.errors) {
-              if (data.errors.hasOwnProperty(key)) {
-                  errorsMessage+=(`${data.errors[key]}\n`);
-              }
-          }
-          alert(errorsMessage);
-      };
-  })
-  .catch(error => {
-      console.error('Error:', error.message);
-  });
-}
-function buildNestedObject(path,value){
-  const keys = path.split('.');
-  return keys.reduceRight((acc, key) => {
-    return { [key]: acc };
-  }, value);
-}
-function lockIconChanger(span,id) {
-  span.addEventListener('click', () => {
-    const icon = span.querySelector('i');
-    icon.classList.toggle('fa-lock');
-    icon.classList.toggle('text-danger');
-    icon.classList.toggle('fa-unlock');
-    const path = span.getAttribute('data-updatefield');
-    const field = buildNestedObject(path, !icon.classList.contains('fa-unlock'));
-
-    updateJobTemplate(id, field);
-  });
-}
-function handleClientParagraph(item){
-  const client = item.clientToBill;
-  const clientParagraph = document.createElement('p');
-  const clientName = client ? client.name : 'N/A';
-  const clientClass = client ? '' : 'text-danger';
-  const spanForIcon = document.createElement('span');
-  spanForIcon.setAttribute('data-updatefield', 'locks.client');
-  spanForIcon.style.cursor = 'pointer'; 
-  const icon = document.createElement('i');
-  const iconClass = client.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  icon.className = iconClass;
-  icon.setAttribute('aria-hidden', 'true');
-  spanForIcon.appendChild(icon);
-  lockIconChanger(spanForIcon,item.id);
-  clientParagraph.appendChild(spanForIcon);
-  const spanForClientIdentifier = document.createElement('span');
-  spanForClientIdentifier.textContent = "Client: ";
-  spanForClientIdentifier.className = 'card-text';
-  clientParagraph.appendChild(spanForClientIdentifier);
-  const spanForName = document.createElement('span');
-  spanForName.textContent = clientName;
-  spanForName.className = clientClass;
-  spanForName.setAttribute('data-template-id', item.id);
-  spanForName.setAttribute('data-client-id', client ? item.clientToBill.id : '');
-  if (!clientIdSpanMap.has(item.id)) {
-    clientIdSpanMap.set(item.id, []);
-  }
-  clientIdSpanMap.get(item.id).push(spanForName);
-  clientParagraph.appendChild(spanForName);
-  addTypeHeadSearch_fromClientList(spanForName);
-  const editIconSpan = document.createElement('span');
-  editIconSpan.className = 'edit-pencil';
-  editIconSpan.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
-  editIconSpan.style.cursor = 'pointer';
-  editIconSpan.addEventListener('click', () => {
-    spanForName.contentEditable = true;
-    spanForName.focus();
-    spanForName.addEventListener('blur', function onBlur() {
-      spanForName.contentEditable = false;
-      spanForName.removeEventListener('blur', onBlur);
-    });
-  });
-  clientParagraph.appendChild(editIconSpan);
-
-  return {paragraph : clientParagraph,clientSpan : spanForName};
-}
-function handlePickupParagraph(item,clientSpan) {
-  const paragraph = document.createElement('p');
-  const spanForIcon = document.createElement('span');
-  const icon = document.createElement('i');
-  icon.className = item.pickuptask.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  icon.setAttribute('aria-hidden', 'true');
-  spanForIcon.appendChild(icon);
-  spanForIcon.setAttribute('data-updatefield', 'locks.pickup');
-  spanForIcon.style.cursor = 'pointer';
-  lockIconChanger(spanForIcon,item.id);
-  
-  const label = document.createElement('strong');
-  label.textContent = 'Pickup address: ';
-
-  const spanForName = document.createElement('span');
-  spanForName.textContent = item.pickuptask.data.pickupclientname || 'N/A';
-  spanForName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-  spanForName.setAttribute('data-template-id', item.id);
-  if (!clientIdSpanMap.has(item.id)) {
-    clientIdSpanMap.set(item.id, []);
-  }
-  clientIdSpanMap.get(item.id).push(spanForName);
-  spanForName.setAttribute('data-updatefield', 'pickup.addressId');
-  addTypeHeadSearch_fromClient_AddressList(spanForName);
-  const fullAddress = item.pickuptask.data.pickupclientpostalcode+', '+item.pickuptask.data.pickupclientaddressline;
-  const addressSpan = document.createElement('span');
-  addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
-  addressSpan.className = 'text-muted full-address';
-
-  const editIconSpan = document.createElement('span');
-  editIconSpan.className = 'edit-pencil';
-  editIconSpan.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
-  editIconSpan.style.cursor = 'pointer';
-  editIconSpan.addEventListener('click', () => {
-    spanForName.contentEditable = true;
-    spanForName.focus();
-    spanForName.addEventListener('blur', function onBlur() {
-      spanForName.contentEditable = false;
-      spanForName.removeEventListener('blur', onBlur);
-    });
-  });
-  const timeWindowSpan = document.createElement('span');
-
-  const timeWindowBeginSpan = document.createElement('span');
-
-  enableTimeEditing(timeWindowBeginSpan, 'pickup.time.begin', item.id, item.pickuptask.data.pickup_time_begin);
-  
-  const timeWindowEndSpan = document.createElement('span');
-  enableTimeEditing(timeWindowEndSpan, 'pickup.time.end', item.id, item.pickuptask.data.pickup_time_end);
-  //=========================================================
-  const notesIconSpan = document.createElement('span');
-  notesIconSpan.className = 'notes-icon';
-  notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
-  notesIconSpan.style.cursor = 'pointer';
-  notesIconSpan.addEventListener('click', () => {
-
-    const existingTextarea = notesIconSpan.querySelector('textarea');
-    if (existingTextarea) return;
-
-    const textarea = document.createElement('textarea');
-    textarea.value = item.pickuptask.data.note || '';
-    textarea.style.width = '200px';
-    textarea.style.height = '80px';
-    textarea.style.resize = 'vertical';
-    textarea.style.display = 'block';
-    textarea.style.marginTop = '5px';
-
-    notesIconSpan.appendChild(textarea);
-    textarea.focus();
-
-    textarea.addEventListener('blur', () => {
-      const note = textarea.value.trim();
-      item.pickuptask.data.note = note;
-      updateJobTemplate(item.id, buildNestedObject(`pickup.note`, note));
-      textarea.remove();
-    });
-  });
-  let hoverTimeout;
-  notesIconSpan.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => {
-      notesIconSpan.setAttribute('title', item.pickuptask.data.note || 'No notes');
-    }, 300);
-  });
-  notesIconSpan.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimeout);
-  });
-  //=========================================================
-
-
-  timeWindowSpan.appendChild(timeWindowBeginSpan);
-  timeWindowSpan.appendChild(document.createTextNode(' - '));
-  timeWindowSpan.appendChild(timeWindowEndSpan);
-  paragraph.appendChild(spanForIcon);
-  paragraph.appendChild(label);
-  paragraph.appendChild(spanForName);
-  paragraph.appendChild(addressSpan);
-  paragraph.appendChild(editIconSpan);
-  paragraph.appendChild(document.createElement('br'));
-  paragraph.appendChild(timeWindowSpan);
-  paragraph.appendChild(document.createElement('br'));
-  paragraph.appendChild(notesIconSpan);
-  return paragraph;
-}
-function getDropOffParagraph(dropOff,item,clientSpan) {
-    const pakuote = dropOff.package;
-    const dropOffParagraph = document.createElement('p');
-    dropOffParagraph.className = 'drop-off-item';
-    dropOffParagraph.classList.add('border', 'border-secondary', 'rounded', 'p-2', 'mb-2');
-    dropOffParagraph.setAttribute('data-template-id', item.id);
-    dropOffParagraph.setAttribute('data-dropoff-id', dropOff.id);
-    
-    const spanPackageName = document.createElement('span');
-
-    spanPackageName.textContent = pakuote.package_type.name;
-    addPackageTypeSelect_fromClient(spanPackageName);
-    spanPackageName.className = 'package-name';
-    spanPackageName.setAttribute('data-package-id', pakuote.id);
-    spanPackageName.setAttribute('data-template-id', item.id);
-    spanPackageName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-    spanPackageName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageTypeId`);
-
-    spanPackageName.addEventListener('click', () => {
-      spanPackageName.contentEditable = true;
-      spanPackageName.focus();
-      spanPackageName.addEventListener('blur', function onBlur() {
-        spanPackageName.contentEditable = false;
-        
-        spanPackageName.removeEventListener('blur', onBlur);
-      });
-    });
-    const spanForPackageQuantity = document.createElement('span');
-    const packageQuantity = pakuote.quantity;
-    spanForPackageQuantity.textContent = packageQuantity;
-    spanForPackageQuantity.className = 'text-muted';
-    spanForPackageQuantity.setAttribute('data-updatefield', `drop.${dropOff.order_number}.packageQuantity`);
-    spanForPackageQuantity.setAttribute('data-template-id', item.id);
-    spanForPackageQuantity.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-    spanForPackageQuantity.addEventListener('click', () => {
-      spanForPackageQuantity.contentEditable = true;
-      spanForPackageQuantity.focus();
-      spanForPackageQuantity.addEventListener('blur', function onBlur() {
-        spanForPackageQuantity.contentEditable = false;
-        updateJobTemplate(item.id, buildNestedObject(spanForPackageQuantity.getAttribute('data-updatefield'), spanForPackageQuantity.textContent));
-        spanForPackageQuantity.removeEventListener('blur', onBlur);
-      });
-    });
-    //=================================================================
-    const divForAddress = document.createElement('div');
-    const spanForAddressName = document.createElement('span');
-    spanForAddressName.textContent = !dropOff.address ? pakuote.dropoff_name	: dropOff.address.name;
-    divForAddress.appendChild(spanForAddressName);
-    divForAddress.className = 'drop-off-address';
-    spanForAddressName.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-    spanForAddressName.setAttribute('data-template-id', item.id);
-    spanForAddressName.setAttribute('data-updatefield', `drop.${dropOff.order_number}.addressId`);
-    spanForAddressName.setAttribute('data-address-id', !dropOff.address ? '' : dropOff.address.id);
-    addTypeHeadSearch_fromClient_AddressList(spanForAddressName);
-    spanForAddressName.addEventListener('click', () => {
-      spanForAddressName.contentEditable = true;
-      spanForAddressName.focus();
-      spanForAddressName.addEventListener('blur', function onBlur() {
-        spanForAddressName.contentEditable = false;
-        spanForAddressName.removeEventListener('blur', onBlur);
-      });
-    });
-    var fullAddress = '';
-    if(dropOff.address) {
-      fullAddress = dropOff.address.postal_code+', '+dropOff.address.address_line_1;
-    }else{
-      fullAddress = pakuote.dropoff_postal_code+', '+pakuote.dropoff_address_line;
-    }
-    const addressSpan = document.createElement('span');
-    addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
-    addressSpan.className = 'text-muted full-address';
-    divForAddress.appendChild(addressSpan);
-    //=================================================================
-    const timeWindowSpan = document.createElement('span');
-    const timeWindowBeginSpan = document.createElement('span');
-    enableTimeEditing(timeWindowBeginSpan, `drop.${dropOff.order_number}.time.begin`, item.id, pakuote.packagedropofftimebegin);
-    const timeWindowEndSpan = document.createElement('span');
-    enableTimeEditing(timeWindowEndSpan, `drop.${dropOff.order_number}.time.end`, item.id, pakuote.packagedropofftimeend);
-
-    timeWindowSpan.appendChild(timeWindowBeginSpan);
-    timeWindowSpan.appendChild(document.createTextNode(' - '));
-    timeWindowSpan.appendChild(timeWindowEndSpan);
-    dropOffParagraph.appendChild(spanPackageName);
-    dropOffParagraph.appendChild(document.createTextNode(' x '));
-    dropOffParagraph.appendChild(spanForPackageQuantity);
-    dropOffParagraph.appendChild(divForAddress);
-    dropOffParagraph.appendChild(timeWindowSpan);
-    dropOffParagraph.appendChild(document.createElement('br'));
-    //=========================================================
-    const notesIconSpan = document.createElement('span');
-    notesIconSpan.className = 'notes-icon';
-    notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
-    notesIconSpan.style.cursor = 'pointer';
-    notesIconSpan.addEventListener('click', () => {
-      // Remove any existing textarea to avoid duplicates
-      const existingTextarea = notesIconSpan.querySelector('textarea');
-      if (existingTextarea) return;
-
-      const textarea = document.createElement('textarea');
-      textarea.value = dropOff.note || '';
-      textarea.style.width = '200px';
-      textarea.style.height = '80px';
-      textarea.style.resize = 'vertical';
-      textarea.style.display = 'block';
-      textarea.style.marginTop = '5px';
-
-      notesIconSpan.appendChild(textarea);
-      textarea.focus();
-
-      textarea.addEventListener('blur', () => {
-        const note = textarea.value.trim();
-        dropOff.note = note;
-        updateJobTemplate(item.id, buildNestedObject(`drop.${dropOff.order_number}.note`, note));
-        textarea.remove();
-      });
-    });
-    let hoverTimeout;
-    notesIconSpan.addEventListener('mouseenter', () => {
-      hoverTimeout = setTimeout(() => {
-        notesIconSpan.setAttribute('title', dropOff.note || 'No notes');
-      }, 300);
-    });
-    notesIconSpan.addEventListener('mouseleave', () => {
-      clearTimeout(hoverTimeout);
-    });
-    //=========================================================
-    dropOffParagraph.appendChild(notesIconSpan);
-
-    return dropOffParagraph;
-}
-function handleDropsParagraph(item, clientSpan) {
-  const divForEntireDropOffs = document.createElement('div');
-  divForEntireDropOffs.style.borderRadius = '8px';
-  divForEntireDropOffs.className = 'drop-offs-container';
-
-  const paragraph = document.createElement('p');
-  paragraph.style.display = 'flex';
-  paragraph.style.justifyContent = 'center';
-  paragraph.style.alignItems = 'center';
-  const spanForIcon = document.createElement('span');
-  const icon = document.createElement('i');
-  icon.className = item.dropOfftasks.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  icon.setAttribute('aria-hidden', 'true');
-  spanForIcon.appendChild(icon);
-  spanForIcon.setAttribute('data-updatefield', 'locks.drops');
-  spanForIcon.style.cursor = 'pointer';
-  lockIconChanger(spanForIcon,item.id);
-  const label = document.createElement('strong');
-  label.textContent = 'Drop-offs: ';
-  paragraph.appendChild(spanForIcon);
-  paragraph.appendChild(label);
-  divForEntireDropOffs.appendChild(paragraph);
-  item.dropOfftasks.data.forEach((dropOff) => {
-    const dropOffParagraph = getDropOffParagraph(dropOff,item,clientSpan);
-    divForEntireDropOffs.appendChild(dropOffParagraph);
-  });
-  return divForEntireDropOffs;
-}
-function createJobsForTemplate({id,start,end,days}) {
-  const routeUrl = window.ROUTES.WEB.JOB.STOREFROMTEMPLATE;
-  let postData = {
-    id,
-    start,
-    end,
-    days
-  };
-  console.log('postData : ',postData);
-  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  fetch(routeUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': csrfToken
-      },
-      body: JSON.stringify(postData)
-  }).then(response => response.json())
-    .then(data => {
-      console.log(data);
-    });
-}
-function handleReturnParagraph(item, clientSpan) {
-  const returnTask = item.returntask?.data;
-  if (!returnTask) {
-    return document.createElement('p');
-  }
-
-  const paragraph = document.createElement('p');
-  paragraph.className = 'return-item border border-secondary rounded p-2 mb-2';
-  paragraph.style.display = 'grid';
-  paragraph.style.gridTemplateRows = 'auto 1fr';
-  paragraph.style.rowGap = '0.5rem';
-
-  
-  const titleContainer = document.createElement('div');
-  titleContainer.style.display = 'flex';
-  titleContainer.style.justifyContent = 'center';
-  titleContainer.style.alignItems = 'center';
-  titleContainer.style.gap = '0.5rem';
-
-  const lockIconSpan = document.createElement('span');
-  const lockIcon = document.createElement('i');
-  lockIcon.className = item.returntask.isLocked ? 'fa fa-lock text-danger' : 'fa fa-unlock';
-  lockIcon.setAttribute('aria-hidden', 'true');
-  lockIconSpan.setAttribute('data-updatefield', 'locks.return');
-  lockIconSpan.style.cursor = 'pointer';
-  lockIconChanger(lockIconSpan, item.id);
-  lockIconSpan.appendChild(lockIcon);
-
-  const titleText = document.createElement('strong');
-  titleText.textContent = 'Return';
-  titleText.className = 'ms-1';
-
-  titleContainer.appendChild(lockIconSpan);
-  titleContainer.appendChild(titleText);
-
-  
-  const body = document.createElement('div');
-  body.className = 'return-body row';
-  body.style.display = 'grid';
-  body.style.gridTemplateColumns = '1fr'; // can change to '1fr 1fr' for two columns
-  body.style.rowGap = '0.5rem';
-
-
-  const addressContainer = document.createElement('div');
-  addressContainer.className = 'col';
-  const addressNameSpan = document.createElement('span');
-  addressNameSpan.textContent = returnTask.return?.name || 'N/A';
-  addressContainer.appendChild(addressNameSpan);
-  addressNameSpan.setAttribute('data-client-id', clientSpan.getAttribute('data-client-id') || '');
-  addressNameSpan.setAttribute('data-template-id', item.id);
-  addressNameSpan.setAttribute('data-updatefield', 'return.addressId');
-  addTypeHeadSearch_fromClient_AddressList(addressNameSpan);
-  addressNameSpan.addEventListener('click', () => {
-    addressNameSpan.contentEditable = true;
-    addressNameSpan.focus();
-    addressNameSpan.addEventListener('blur', function onBlur() {
-      addressNameSpan.contentEditable = false;
-      addressNameSpan.removeEventListener('blur', onBlur);
-    });
-  });
-  var fullAddress = '';
-  if(returnTask.return?.address) {
-      fullAddress = returnTask.return.address.postal_code+', '+returnTask.return.address.address_line_1;
-  }else{
-      fullAddress = returnTask.return.postal_code+', '+returnTask.return.adress_line;
-  }
-  const addressSpan = document.createElement('span');
-  addressSpan.textContent = fullAddress ?  '('+fullAddress+')' : '';
-  addressSpan.className = 'text-muted full-address';
-  addressContainer.appendChild(addressSpan);
-  const timeContainer = document.createElement('div');
-  timeContainer.className = 'col';
-  const timeWindowBeginSpan = document.createElement('span');
-  enableTimeEditing(timeWindowBeginSpan, `return.time.begin`, item.id, returnTask.return.time_begin);
-  const timeWindowEndSpan = document.createElement('span');
-  enableTimeEditing(timeWindowEndSpan, `return.time.end`, item.id, returnTask.return.time_end);
-
-  timeContainer.appendChild(timeWindowBeginSpan);
-  timeContainer.appendChild(document.createTextNode(' - '));
-  timeContainer.appendChild(timeWindowEndSpan);
-  body.appendChild(addressContainer);
-  body.appendChild(timeContainer);
-  const bottom = document.createElement('div');
-  bottom.className = 'return-bottom row';
-  const notesIconSpan = document.createElement('span');
-  notesIconSpan.className = 'notes-icon';
-  notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
-  notesIconSpan.style.cursor = 'pointer';
-  notesIconSpan.addEventListener('click', () => {
-    // Remove any existing textarea to avoid duplicates
-    const existingTextarea = notesIconSpan.querySelector('textarea');
-    if (existingTextarea) return;
-
-    const textarea = document.createElement('textarea');
-    textarea.value = returnTask.note || '';
-    textarea.style.width = '200px';
-    textarea.style.height = '80px';
-    textarea.style.resize = 'vertical';
-    textarea.style.display = 'block';
-    textarea.style.marginTop = '5px';
-
-    notesIconSpan.appendChild(textarea);
-    textarea.focus();
-
-    textarea.addEventListener('blur', () => {
-      const note = textarea.value.trim();
-      returnTask.note = note;
-      updateJobTemplate(item.id, buildNestedObject('return.note', note));
-      textarea.remove();
-    });
-  });
-  let hoverTimeout;
-  notesIconSpan.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => {
-      notesIconSpan.setAttribute('title', returnTask.note || 'No notes');
-    }, 300);
-  });
-  notesIconSpan.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimeout);
-  });
-  // --- Assemble ---
-  paragraph.appendChild(titleContainer);
-  paragraph.appendChild(body);
-  paragraph.appendChild(bottom);
-  paragraph.appendChild(notesIconSpan);
-
-  return paragraph;
-}
-
-function fetchJobTemplates() {
-  const routeUrl = window.ROUTES.WEB.JOBTEMPLATE.FETCH;
-  fetch(routeUrl)
+    fetch(API_BASE.CREATE_JOBS, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify(payload)
+    })
     .then(response => response.json())
     .then(data => {
-      const gridContainer = document.querySelector('#itemListGrid');
-      if (data.success) {
-        const fragment = document.createDocumentFragment();
-        gridContainer.innerHTML = '';
-        data.items.forEach(item => {
-          const col = document.createElement('div');
-          col.className = 'col-12 col-md-6 col-lg-4 col-xl-3';
-          col.setAttribute('data-id', item.id);
-          col.setAttribute('id', `template-${item.id}`);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus-circle"></i> Create Jobs';
 
-          const card = document.createElement('div');
-          card.className = 'card h-100 shadow-sm';
-
-          const cardBody = document.createElement('div');
-          cardBody.className = 'card-body';
-
-          const title = document.createElement('h5');
-          title.className = 'card-title';
-          title.textContent = `Template #${item.id}`;
-          cardBody.appendChild(title);
-          //=========================================================================
-          const notesIconSpan = document.createElement('span');
-          notesIconSpan.className = 'notes-icon';
-          notesIconSpan.innerHTML = '<i class="fa fa-sticky-note" aria-hidden="true"></i>';
-          notesIconSpan.style.cursor = 'pointer';
-          notesIconSpan.addEventListener('click', () => {
-
-            const existingTextarea = notesIconSpan.querySelector('textarea');
-            if (existingTextarea) return;
-
-            const textarea = document.createElement('textarea');
-            textarea.value = item.notes || '';
-            textarea.style.width = '200px';
-            textarea.style.height = '80px';
-            textarea.style.resize = 'vertical';
-            textarea.style.display = 'block';
-            textarea.style.marginTop = '5px';
-
-            notesIconSpan.appendChild(textarea);
-            textarea.focus();
-
-            textarea.addEventListener('blur', () => {
-              const note = textarea.value.trim();
-              item.note = note;
-              updateJobTemplate(item.id, buildNestedObject(`note`, note));
-              textarea.remove();
-            });
-          });
-          let hoverTimeout;
-          notesIconSpan.addEventListener('mouseenter', () => {
-            hoverTimeout = setTimeout(() => {
-              notesIconSpan.setAttribute('title', item.notes || 'No notes');
-            }, 300);
-          });
-          notesIconSpan.addEventListener('mouseleave', () => {
-            clearTimeout(hoverTimeout);
-          });
-          cardBody.appendChild(notesIconSpan);
-          cardBody.appendChild(document.createElement('br'));
-          const fixedPriceDiv = document.createElement('div');
-          fixedPriceDiv.className = 'fixed-price-div mb-2';
-          const fixedPriceLabel = document.createElement('span');
-          fixedPriceLabel.textContent = 'Fixed Price: ';
-          fixedPriceLabel.className = 'card-text';
-          const fixedPriceValue = document.createElement('span');
-          fixedPriceValue.textContent = item.fixedPrice === 0 ? 'Flexible' : item.fixedPrice.toFixed(2);
-          fixedPriceValue.className = item.fixedPrice === 0 ? 'text-muted' : '';
-          fixedPriceValue.setAttribute('data-updatefield', 'fixedPrice');
-          fixedPriceDiv.appendChild(fixedPriceLabel);
-          fixedPriceDiv.appendChild(fixedPriceValue);
-          cardBody.appendChild(fixedPriceDiv);
-          fixedPriceValue.addEventListener('click', () => {
-            fixedPriceValue.contentEditable = true;
-            fixedPriceValue.focus();
-            fixedPriceValue.addEventListener('blur', function onBlur() {
-              fixedPriceValue.contentEditable = false;
-              let newValue = parseFloat(fixedPriceValue.textContent);
-              if (/^-?\d+(\.\d+)?$/.test(fixedPriceValue.textContent.trim())) {
-                item.fixedPrice = newValue;
-                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.true`, newValue));
-              } else {
-                fixedPriceValue.textContent = 'Flexible';
-                updateJobTemplate(item.id, buildNestedObject(`fixedPrice.false`, 0));
-              }
-              fixedPriceValue.removeEventListener('blur', onBlur);
-            });
-          });
-          //=========================================================================
-          const nameParagraph = document.createElement('p');
-          const namespan = document.createElement('span');
-          namespan.className = 'card-text';
-          namespan.textContent = `Name:`;
-          nameParagraph.appendChild(namespan);
-          const nameText = document.createElement('span');
-          nameText.textContent = item.name;
-          nameText.className = 'item-Name';
-          nameText.setAttribute('data-updatefield', 'name');
-          nameParagraph.appendChild(nameText);
-          const editPencilSpanName = document.createElement('span');
-          editPencilSpanName.className = 'edit-pencil';
-          editPencilSpanName.innerHTML = '<i class="fa fa-pencil" aria-hidden="true"></i>';
-          editPencilSpanName.style.cursor = 'pointer';
-          editPencilSpanName.addEventListener('click', () => {
-            nameText.contentEditable = true;
-            nameText.focus();
-            nameText.addEventListener('blur', () => {
-              nameText.contentEditable = false;
-              updateJobTemplate(item.id, { name: nameText.textContent });
-            });
-            nameText.addEventListener('keydown', (event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                nameText.blur();
-              }
-            });
-          });
-          nameParagraph.appendChild(editPencilSpanName);
-          cardBody.appendChild(nameParagraph);
-
-          const clientParagraph = handleClientParagraph(item);
-          const pickupParagraph = handlePickupParagraph(item, clientParagraph.clientSpan);
-          const dropsParagraph = handleDropsParagraph(item, clientParagraph.clientSpan);
-          const returnParagraph = handleReturnParagraph(item, clientParagraph.clientSpan);
-          cardBody.appendChild(clientParagraph.paragraph);
-          cardBody.appendChild(pickupParagraph);
-          cardBody.appendChild(dropsParagraph);
-          cardBody.appendChild(returnParagraph);
-          //==========================================================================================
-          const createJobsButton = document.createElement('button');
-          createJobsButton.textContent = 'Create Jobs';
-          createJobsButton.className = 'btn btn-primary';
-          createJobsButton.addEventListener('click', () => {
-            // Create calendar modal
-            let modal = document.getElementById('calendar-modal');
-            if (!modal) {
-              modal = document.createElement('div');
-              modal.id = 'calendar-modal';
-              modal.style.position = 'fixed';
-              modal.style.top = '0';
-              modal.style.left = '0';
-              //modal.style.width = '50vw';
-              //modal.style.height = '100vh';
-              modal.classList.add('bg-dark');
-              modal.style.display = 'flex';
-              modal.style.justifyContent = 'center';
-              modal.style.alignItems = 'center';
-              modal.style.zIndex = '9999';
-
-              const calendarBox = document.createElement('div');
-              //calendarBox.style.background = '#fff';
-              calendarBox.style.padding = '24px';
-              calendarBox.style.borderRadius = '8px';
-              calendarBox.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-              calendarBox.style.display = 'flex';
-              calendarBox.style.flexDirection = 'column';
-              calendarBox.style.alignItems = 'center';
-
-              const title = document.createElement('h5');
-              title.textContent = 'Select Date Range';
-              calendarBox.appendChild(title);
-
-              // Use two <input type="date"> for range selection
-              const startLabel = document.createElement('label');
-              startLabel.textContent = 'Start date: ';
-              const startInput = document.createElement('input');
-              startInput.type = 'date';
-              startInput.style.marginRight = '8px';
-              const today = new Date().toISOString().split('T')[0];
-              startInput.value = today;
-              
-              startLabel.appendChild(startInput);
-
-              const endLabel = document.createElement('label');
-              endLabel.textContent = 'End date: ';
-              const endInput = document.createElement('input');
-              endInput.type = 'date';
-              endInput.value = today;
-              endLabel.appendChild(endInput);
-
-              calendarBox.appendChild(startLabel);
-              calendarBox.appendChild(endLabel);
-
-              const btnRow = document.createElement('div');
-              btnRow.style.marginTop = '16px';
-              btnRow.style.display = 'flex';
-              btnRow.style.gap = '12px';
-
-              const confirmBtn = document.createElement('button');
-              confirmBtn.textContent = 'Confirm';
-              confirmBtn.className = 'btn btn-success';
-              confirmBtn.addEventListener('click', () => {
-                const startDate = startInput.value;
-                const endDate = endInput.value;
-                if (!startDate || !endDate || startDate > endDate) {
-                  alert('Please select a valid date range.');
-                  return;
-                }
-                console.log(Array.from(document.querySelectorAll('.day-checkbox:checked')))
-                createJobsForTemplate({ 
-                                        id: item.id,
-                                        start: startDate,
-                                        end: endDate,
-                                        days: Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value), 
-                });
-              });
-
-              const cancelBtn = document.createElement('button');
-              cancelBtn.textContent = 'Cancel';
-              cancelBtn.className = 'btn btn-secondary';
-              cancelBtn.addEventListener('click', () => {
-                document.body.removeChild(modal);
-              });
-
-              btnRow.appendChild(confirmBtn);
-              btnRow.appendChild(cancelBtn);
-              calendarBox.appendChild(btnRow);
-
-              modal.appendChild(calendarBox);
-              const daysBox = document.createElement('div');
-              daysBox.style.marginTop = '16px';
-              daysBox.style.display = 'flex';
-              daysBox.style.flexDirection = 'column';
-              daysBox.style.alignItems = 'flex-start';
-
-              const days = [
-                { label: 'Monday', value: 1 },
-                { label: 'Tuesday', value: 2 },
-                { label: 'Wednesday', value: 3 },
-                { label: 'Thursday', value: 4 },
-                { label: 'Friday', value: 5 },
-                { label: 'Saturday', value: 6 },
-                { label: 'Sunday', value: 7 },
-                { label: 'Workdays', value: [1, 2, 3, 4, 5] },
-                { label: 'Weekends', value: [6,7] },
-                { label: 'Bank Holidays', value: 'bankholidays' },
-                { label: 'All', value: 'all' },
-              ];
-
-              const daysLabel = document.createElement('label');
-              daysLabel.textContent = 'Select days:';
-              daysLabel.style.fontWeight = 'bold';
-              daysBox.appendChild(daysLabel);
-
-              const checkboxesContainer = document.createElement('div');
-              checkboxesContainer.style.display = 'flex';
-              checkboxesContainer.style.flexWrap = 'wrap';
-              checkboxesContainer.style.gap = '8px';
-
-              days.forEach(day => {
-                const checkboxLabel = document.createElement('label');
-                checkboxLabel.style.marginRight = '12px';
-                checkboxLabel.style.display = 'flex';
-                checkboxLabel.style.alignItems = 'center';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.value = day.value;
-                checkbox.style.marginRight = '4px';
-                checkbox.classList.add('day-checkbox');
-
-                checkboxLabel.appendChild(checkbox);
-                checkboxLabel.appendChild(document.createTextNode(day.label));
-                checkboxesContainer.appendChild(checkboxLabel);
-              });
-
-              daysBox.appendChild(checkboxesContainer);
-              calendarBox.appendChild(daysBox);
-              document.body.appendChild(modal);
-            }
-          });
-          //==========================================================================================
-          cardBody.appendChild(createJobsButton);
-          card.appendChild(cardBody);
-          col.appendChild(card);
-          fragment.appendChild(col);
-        });
-        gridContainer.appendChild(fragment);
-      } 
+        if (data.success) {
+            showSuccess(data.message);
+            closeCreateJobsModal();
+            setTimeout(() => fetchTemplates(), 1000);
+        } else {
+            showError(data.error || 'Failed to create jobs');
+        }
     })
     .catch(error => {
-      console.error('Error fetching job templates:', error);
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus-circle"></i> Create Jobs';
+        showError('An error occurred');
     });
 }
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
-//======================================================================================================================================================================
 
-document.addEventListener('DOMContentLoaded', function () {
+/**
+ * Load clients from server
+ */
+function loadClients() {
+  
+    fetch(window.ROUTES.WEB.CLIENT.SEARCH || '/clients/searchClients')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('template-client');
+            select.innerHTML = '<option value="">Select a client...</option>';
+            
+            if (data && Array.isArray(data)) {
+                data.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = sanitizeHtml(client.name || `Client #${client.id}`);
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading clients:', error));
+}
+function updateClientpackageTypes(clientId) {
+  const packageTypesArray = document.querySelectorAll('.dropoff-packagetype');
+  
+  // Store original selected values before clearing
+  const originalValues = {};
+  packageTypesArray.forEach(select => {
+    originalValues[select.getAttribute('data-order')] = select.getAttribute('data-orgdata');
+  });
+  
+  fetch(window.ROUTES.WEB.CLIENT.FETCHPACKAGETYPES.replace(':id', clientId))
+      .then(response => response.json())
+      .then(data => {
 
-  fetchJobTemplates();
-});
+          if (data) {
+
+              packageTypesArray.forEach(select => {
+                  const orderNumber = select.getAttribute('data-order');
+                  const originalValue = originalValues[orderNumber];
+                  
+                  select.innerHTML = '<option value="">Select package type...</option>';
+                  data.packageTypes.forEach(packageType => {
+                      const option = document.createElement('option');
+                      option.value = packageType.id;
+                      option.textContent = sanitizeHtml(packageType.name);
+                      if (originalValue && packageType.id == originalValue) {
+                        option.selected = true;
+                      }
+                      select.appendChild(option);
+                  });
+              });
+          }
+      })
+      .catch(error => console.error('Error loading package types:', error));
+}
+
+
+/**
+ * Open create template modal
+ */
+function openCreateTemplateModal() {
+    const modal = document.getElementById('create-template-modal');
+    document.getElementById('create-template-form').reset();
+    modal.classList.add('active');
+    document.getElementById('modal-backdrop').classList.add('active');
+}
+
+/**
+ * Close create template modal
+ */
+function closeCreateTemplateModal() {
+    document.getElementById('create-template-modal').classList.remove('active');
+    document.getElementById('modal-backdrop').classList.remove('active');
+    document.getElementById('create-template-form').reset();
+}
+
+/**
+ * Handle create template submission
+ */
+function handleCreateTemplate() {
+    const name = document.getElementById('template-name').value.trim();
+    const clientId = document.getElementById('template-client').value;
+
+    // Validation
+    if (!name) {
+        showError('Template name is required');
+        return;
+    }
+
+    if (!clientId) {
+        showError('Client is required');
+        return;
+    }
+
+    const btn = document.getElementById('create-template-submit-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+    const payload = {
+        name: name,
+        client_id: clientId,
+        template_data: {}
+    };
+
+    fetch(API_BASE.STORE , {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Create Template';
+
+        if (data.success) {
+            showSuccess('Template created successfully!');
+            closeCreateTemplateModal();
+            currentPage = 1;
+            setTimeout(() => fetchTemplates(), 800);
+        } else {
+            showError(data.error || 'Failed to create template');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i> Create Template';
+        showError('An error occurred while creating the template');
+    });
+}
+
+/**
+ * Load addresses for a specific dropoff
+ */
+// function loadDropOffAddresses(clientId, orderNumber, selectedAddressId = null) {
+//     const url = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES + '?client_id=' + clientId;
+    
+//     fetch(url)
+//         .then(response => response.json())
+//         .then(addresses => {
+//             const select = document.querySelector(`.dropoff-address-select[data-order="${orderNumber}"]`);
+//             if (!select) return;
+            
+//             select.innerHTML = '<option value="">Select address...</option>' +
+//                 addresses.map(addr => `
+//                     <option value="${addr.id}" ${addr.id == selectedAddressId ? 'selected' : ''}>
+//                         ${sanitizeHtml(addr.name || addr.address_line_1)} - ${sanitizeHtml(addr.postal_code)}
+//                     </option>
+//                 `).join('');
+//         })
+//         .catch(error => console.error('Error loading dropoff addresses:', error));
+// }
+
+/**
+ * Handle adding a new dropoff
+ */
+// function handleAddDropOff() {
+//     if (!selectedTemplateId) return;
+    
+//     const url = window.ROUTES.WEB.JOBTEMPLATE.ADD_DROPOFF.replace(':id', selectedTemplateId);
+    
+//     fetch(url, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+//         }
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.success) {
+//             // Reload the modal to show updated dropoffs
+//             handleViewTemplate(selectedTemplateId);
+//             showSuccess('Drop-off added successfully');
+//         } else {
+//             showError(data.error || 'Failed to add drop-off');
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error adding dropoff:', error);
+//         showError('Failed to add drop-off');
+//     });
+// }
+
+/**
+ * Handle removing a dropoff
+ */
+// function handleRemoveDropOff(orderNumber) {
+//     if (!selectedTemplateId) return;
+//     if (!confirm('Are you sure you want to remove this drop-off?')) return;
+    
+//     const url = window.ROUTES.WEB.JOBTEMPLATE.REMOVE_DROPOFF.replace(':id', selectedTemplateId);
+    
+//     fetch(url, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+//         },
+//         body: JSON.stringify({ order_number: orderNumber })
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         if (data.success) {
+//             // Reload the modal to show updated dropoffs
+//             handleViewTemplate(selectedTemplateId);
+//             showSuccess('Drop-off removed successfully');
+//         } else {
+//             showError(data.error || 'Failed to remove drop-off');
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error removing dropoff:', error);
+//         showError('Failed to remove drop-off');
+//     });
+// }
+
+/**
+ * Handle delete template
+ */
+function handleDeleteTemplate(templateId) {
+    if (!confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(API_BASE.DELETE.replace(':id', templateId) || `/jobtemplates/${templateId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(data.message);
+            currentPage = 1;
+            setTimeout(() => fetchTemplates(), 800);
+        } else {
+            showError(data.error || 'Failed to delete template');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('An error occurred');
+    });
+}
+
+/**
+ * Show success message
+ */
+function showSuccess(message) {
+    const messageEl = document.getElementById('success-message');
+    messageEl.textContent = message;
+    messageEl.classList.add('show');
+    
+    setTimeout(() => {
+        messageEl.classList.remove('show');
+    }, 5000);
+}
+
+/**
+ * Show error message
+ */
+function showError(message) {
+    const messageEl = document.getElementById('error-message');
+    messageEl.textContent = message;
+    messageEl.classList.add('show');
+    
+    setTimeout(() => {
+        messageEl.classList.remove('show');
+    }, 5000);
+}
+
+/**
+ * Load addresses for a specific dropoff
+ */
+function loadDropOffAddresses(clientId, orderNumber, selectedAddressId = null) {
+    const url = window.ROUTES.WEB.CLIENT.SEARCHADDRESSES + '?client_id=' + clientId;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(addresses => {
+            const select = document.querySelector(`.dropoff-address-select[data-order="${orderNumber}"]`);
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Select address...</option>' +
+                addresses.map(addr => `
+                    <option value="${addr.id}" ${addr.id == selectedAddressId ? 'selected' : ''}>
+                        ${sanitizeHtml(addr.name || addr.address_line_1)} - ${sanitizeHtml(addr.postal_code)}
+                    </option>
+                `).join('');
+        })
+        .catch(error => console.error('Error loading dropoff addresses:', error));
+}
+
+/**
+ * Handle adding a new dropoff
+ */
+function handleAddDropOff() {
+    if (!selectedTemplateId) return;
+    
+    const url = window.ROUTES.WEB.JOBTEMPLATE.ADD_DROPOFF.replace(':id', selectedTemplateId);
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.success) {
+            // Reload the modal to show updated dropoffs
+            handleViewTemplate(selectedTemplateId);
+            showSuccess('Drop-off added successfully');
+        } else {
+            showError(data.error || 'Failed to add drop-off');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding dropoff:', error);
+        showError('Failed to add drop-off');
+    });
+}
+
+/**
+ * Handle removing a dropoff
+ */
+function handleRemoveDropOff(orderNumber) {
+    if (!selectedTemplateId) return;
+    if (!confirm('Are you sure you want to remove this drop-off?')) return;
+    
+    const url = window.ROUTES.WEB.JOBTEMPLATE.REMOVE_DROPOFF.replace(':id', selectedTemplateId);
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ order_number: orderNumber })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the modal to show updated dropoffs
+            handleViewTemplate(selectedTemplateId);
+            showSuccess('Drop-off removed successfully');
+        } else {
+            showError(data.error || 'Failed to remove drop-off');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing dropoff:', error);
+        showError('Failed to remove drop-off');
+    });
+}
+
+/**
+ * Handle adding a return
+ */
+function handleAddReturn() {
+    if (!selectedTemplateId) return;
+    
+    const url = window.ROUTES.WEB.JOBTEMPLATE.ADD_RETURN.replace(':id', selectedTemplateId);
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload the modal to show the return section
+            handleViewTemplate(selectedTemplateId);
+            showSuccess('Return added successfully');
+        } else {
+            showError(data.error || 'Failed to add return');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding return:', error);
+        showError('Failed to add return');
+    });
+}
+
+/**
+ * Handle removing a return
+ */
+function handleRemoveReturn() {
+    if (!selectedTemplateId) return;
+    if (!confirm('Are you sure you want to remove the return?')) return;
+
+    const url = window.ROUTES.WEB.JOBTEMPLATE.REMOVE_RETURN.replace(':id', selectedTemplateId);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            handleViewTemplate(selectedTemplateId);
+            showSuccess('Return removed successfully');
+        } else {
+            showError(data.error || 'Failed to remove return');
+        }
+    })
+    .catch(error => {
+        console.error('Error removing return:', error);
+        showError('Failed to remove return');
+    });
+}
+
+/**
+ * Handle return type toggle (Same Day vs Flexible)
+ */
+function handleReturnTypeToggle() {
+    const toggle = document.getElementById('return-type-toggle');
+    const timeContainer = document.getElementById('return-time-container');
+    
+    if (!toggle || !timeContainer) return;
+    
+    const isSameDay = toggle.checked;
+    
+    // Get current value if exists
+    const currentTimeInput = timeContainer.querySelector('input');
+    const currentValue = currentTimeInput ? currentTimeInput.value : '';
+    
+    // Rebuild the time input based on toggle state
+    if (isSameDay) {
+        // Same day - show only time input
+        timeContainer.innerHTML = `
+            <label class="form-label">Return Time</label>
+            <input 
+                type="time" 
+                class="form-control inputs-forJobTemplate" 
+                id="return-time-input"
+                name="return_time"
+                data-orgdata="${currentValue}"
+                value="${currentValue}">
+        `;
+    } else {
+        // Flexible - show datetime input
+        timeContainer.innerHTML = `
+            <label class="form-label">Return Date & Time</label>
+            <input 
+                type="datetime-local" 
+                class="form-control inputs-forJobTemplate" 
+                id="return-datetime-input"
+                name="return_datetime"
+                data-orgdata="${currentValue}"
+                value="${currentValue}">
+        `;
+    }
+}
+
+/**
+ * Handle price toggle (Fixed Price vs Dynamic)
+ */
+function handlePriceToggle() {
+    const toggle = document.getElementById('is-price-fixed-toggle');
+    const container = document.getElementById('price-input-container');
+    const priceInput = document.getElementById('template-price');
+    
+    if (toggle && container) {
+        if (toggle.checked) {
+            container.style.display = 'block';
+            if (priceInput && !priceInput.value) {
+                priceInput.value = '0.00';
+            }
+        } else {
+            container.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Sanitize HTML to prevent XSS
+ */
+function sanitizeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ==============================================
+// COMMENTED OLD CODE - USE AS REFERENCE ONLY
+// ==============================================
+/*
+window.clientIdSpanMap = new Map();
+
+function sanitizeInput(input) {
+  if (typeof input !== 'string') {
+    return '';
+  }
+  
+  const div = document.createElement('div');
+  div.textContent = input;
+  return div.innerHTML;
+}
+
+function safeSetText(element, text) {
+  if (!element) return;
+  element.textContent = text || '';
+}
+
+function safeSetAttribute(element, attr, value) {
+  if (!element || !attr) return;
+  
+  if ((attr === 'href' || attr === 'src') && value) {
+    if (value.startsWith('javascript:') || value.startsWith('data:')) {
+      return;
+    }
+  }
+  
+  element.setAttribute(attr, sanitizeInput(value));
+}
+
+function getTimeInputElement(){
+  const timeInput = document.createElement('input');
+  timeInput.type = 'time';
+  timeInput.className = 'form-control';
+  timeInput.style.width = '100px';
+  timeInput.style.marginRight = '10px';
+  return timeInput;
+}
+
+// ... rest of old code ...
+*/
+
