@@ -6,6 +6,8 @@ use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Http\Request;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -24,9 +26,12 @@ use App\Models\AddOnRule;
 use App\Models\Task;
 use App\Models\Day;
 use App\Models\Pickuptask;
-use App\Models\Returntask;
-use App\Models\Customtask;
+use App\Models\ReturnTask;
+use App\Models\CustomTask;
 use App\Models\Note;
+use App\Models\InvoiceItem;
+use App\Models\Invoice;
+use App\Services\InvoicePricingService;
 
 
 use App\Services\BackupService;
@@ -184,7 +189,6 @@ public function index(Request $request,SettingsService $settings)
         ));
         
     }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -477,6 +481,7 @@ public function index(Request $request,SettingsService $settings)
 
             $job->save();
             return response()->json([
+                'success' => true,
                 'message'   => 'Job updated successfully. ',
                 'job'       =>  $job,
                 'requestData'   =>  $request->all(),
@@ -494,7 +499,37 @@ public function index(Request $request,SettingsService $settings)
     public function updateStatus(UpdateJobRequest $request, Job $job){
         $job->status_id =   $request->status_id;
         $job->save();
-        return redirect()->route('job.show',['job' => $job])->with('success_message', 'Updated sucsesfully');
+        return redirect()->route('job.show',['job' => $job])->with('success_message', 'Job status updated sucsesfully');
+    }
+    public function moveToOtherInvoiceItem(Request $request, Job $job){
+      try{
+        $validated = $request->validate([
+          'invoice_item_id' => 'required|exists:invoice_items,id',
+        ]);
+        $newItem = InvoiceItem::findOrFail($validated['invoice_item_id']);
+                $pricingService = app(InvoicePricingService::class);
+                $pricingService->recalculateItemAndInvoice($job->invoiceItem);
+        $job->invoice_item_id = $newItem->id;
+        $job->save();
+                $pricingService->recalculateItemAndInvoice($newItem);
+        /*
+        return response()->json([
+          'success' => true,
+          'message' => 'Job moved to new invoice item successfully.',
+          'jobId'   =>  $job->id,
+          'newInvoiceItemId'   =>  $newItem->id,
+          'newInvoiceId'   =>  $newItem->invoice ? $newItem->invoice->id : null,
+        ]);
+        */
+        return redirect()->back()->with('success', 'Job moved to new invoice item successfully.');
+      }catch (\Exception $e){
+            return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'requests'  =>  $request->all(),
+            ], 500);
+      }
     }
     /**
      * Remove the specified resource from storage.
@@ -576,8 +611,33 @@ public function index(Request $request,SettingsService $settings)
         
         }
     }
+    public function restoreNoteFromTemplate(Request $request){
+      if($request->input('jobId') !== null && $request->input('jobId') !== ''){
+        $job = Job::find($request->input('jobId'));
+        if($job){
+          //dd($job,$job->jobTemplate);
+          $template = $job->jobTemplate;
+          $templateNote = json_decode($template->template_data, true)['note'] ?? null;
+          if($template){
+            $job->notes()->create([
+                'content' => $templateNote,
+                'user_id' => auth()->id(),
+            ]);
+            $job->save();
+        }    return response()->json([
+            'success' => true,
+            'message' => 'Note restored from template successfully',
+            'noteContent' => $job->latestNote->content,
+        ], 200);
+          }else{
+            return response()->json(['error' => 'No template associated with this job',], 500);
+          }
+      }else{
+        return response()->json(['error' => 'No job id provided',], 500);
+      }
+    }
     private function createJobFromTemplate(JobTemplate $template, $date){
-
+        Log::info('Creating job from template ID: '.$template->id.' for date: '.$date);
         $job                    =   new Job();
         $job->eilesNumeris      =   0;
         $job->manager_id        =   auth()->user()->id;
@@ -585,11 +645,13 @@ public function index(Request $request,SettingsService $settings)
         $job->courrier_id       =   null;
         $job->clientToBill_id   =   $template->clientToBill_id;
         $job->date              =   $date;
+        $job->save();
         $job->notes()->create([
-            'content' => $template->notes,
+            'content' => $template->notes ?? '',
             'user_id' => auth()->id(),
         ]);
         $job->save();
+        Log::info('Job created with ID: '.$job->id);
         foreach($template->lockedFields() as $field){
           if($field->is_locked){
             $job->changeLockedField($field->field_name, true);
@@ -603,9 +665,11 @@ public function index(Request $request,SettingsService $settings)
             $task->status_id        =   10;
             $task->save();
             $pickuptaskData = json_decode($template->pickuptask_data, true);
+            //dd($pickuptaskData);
             $pickuptask                 =   new Pickuptask();
             $pickuptask->task_id        =   $task->id;
             $pickuptask->status_id      =   10;
+            $pickuptask->pickupclientname       =   $pickuptaskData['pickupclientname'] ?? null;
             $pickuptask->pickupclientaddressline    =   $pickuptaskData['pickupclientaddressline'] ?? null;
             $pickuptask->pickupclientpostalcode    =   $pickuptaskData['pickupclientpostalcode'] ?? null;
             $pickuptask->pickupclientcity           =   $pickuptaskData['pickupclientcity'] ?? null;
@@ -620,28 +684,41 @@ public function index(Request $request,SettingsService $settings)
           $job->changeLockedField('pickup', true);
         }
         $dropoffData = json_decode($template->dropOffs_data, true);
+        Log::info('Processing '.count($dropoffData).' drop-off(s) from template ID: '.$template->id);
         foreach ($dropoffData as $key => $dropoffDataItem) {
-            //dd($dropoffDataItem);
+            Log::info('Creating drop-off '.($key+1).' for job ID: '.$job->id);
+            Log::debug('Drop-off data: ', $dropoffDataItem);
+
             $task                               =   new Task();
             $task->date         =   $date;
-            $task->order_number =   $dropoffDataItem['order_number'];
+            $task->order_number =   $dropoffDataItem['order_number'] ?? $dropoffDataItem['package']['order_number'] ?? $dropoffDataItem['package']['orderNumber'] ?? 00;
             $task->job_id       =   $job->id;
             $task->status_id       =   10;
             $task->save();
+            Log::info('Created drop-off task ID: '.$task->id.' for job ID: '.$job->id);
             $package                            =   new Package();
             $packageType                        =   PackageType::find($dropoffDataItem['package']['package_type']['id']);
             $package->job_id                    =   $job->id;
             $package->task_id                   =   $task->id;
             $package->packageType_id            =   $packageType->id; 
-            $package->orderNumber               =   $dropoffDataItem['order_number']; 
+            $package->orderNumber               =   $dropoffDataItem['order_number']?? $dropoffDataItem['package']['order_number'] ?? $dropoffDataItem['package']['orderNumber'] ?? 0; 
             $package->weight                    =   $dropoffDataItem['weight'] ?? 0; 
-            $package->dimensions                =   $dropoffDataItem['dimensions'] ?? '0x0x0'; 
+            $package->dimensions                =   $dropoffDataItem['package']['dimensions'] ?? '0x0x0';
             $package->quantity                  =   $dropoffDataItem['package']['quantity'] ?? 1;
-            $package->dropoff_adress_line       =   $dropoffDataItem['address']['address_line_1'] ?? null;
-            $package->dropoff_postal_code       =   $dropoffDataItem['address']['postal_code'] ?? null;
-            $package->dropoff_city              =   $dropoffDataItem['address']['city'] ?? null;
-            $package->dropoff_country           =   $dropoffDataItem['address']['country'] ?? null;
-            $package->dropoff_name              =   $dropoffDataItem['address']['name'] ?? null;
+            // TODO : cleanup naming of the fields below
+            $package->dropoff_name              =   $dropoffDataItem['package']['dropoff_name'] ?? null;
+            $package->dropoff_country           =   $dropoffDataItem['package']['dropoff_country'] ?? null;
+            $package->dropoff_city              =   $dropoffDataItem['package']['dropoff_city'] ?? null;
+            $package->dropoff_postal_code       =   $dropoffDataItem['package']['dropoff_postal_code'] ?? null;
+            $package->dropoff_adress_line       =   $dropoffDataItem['package']['dropoff_adress_line'] ?? null;
+            //
+            //$package->dropoff_adress_line       =   $dropoffDataItem['address']['address_line_1'] ?? null;
+            //$package->dropoff_postal_code       =   $dropoffDataItem['address']['postal_code'] ?? null;
+            //$package->dropoff_city              =   $dropoffDataItem['address']['city'] ?? null;
+            //$package->dropoff_country           =   $dropoffDataItem['address']['country'] ?? null;
+            // $package->dropoff_name              =   $dropoffDataItem['address']['name'] ?? null;
+
+
             $package->packagedropofftimebegin   =   $dropoffDataItem['package']['packagedropofftimebegin'] ?? null;
             $package->packagedropofftimeend     =   $dropoffDataItem['package']['packagedropofftimeend'] ?? null;
             $package->name                      =   $dropoffDataItem['package']['name'] ?? null;
@@ -649,6 +726,11 @@ public function index(Request $request,SettingsService $settings)
             $package->baseQuantityThreshold     =   $dropoffDataItem['package']['baseQuantityThreshold'] ?? null;
             $package->maxQuantityThreshold      =   $dropoffDataItem['package']['maxQuantityThreshold'] ?? null;
             $package->save();
+            Log::info('Created drop-off package ID: '.$package->id.' for job ID: '.$job->id);
+            Log::info('----------------------------');
+            Log::info('');
+            Log::info('');
+            Log::info($package);
         }
         $returnData = json_decode($template->return_data, true);
         //dd(isset($template->returntask_data), $template->returntask_data);
@@ -737,12 +819,13 @@ public function index(Request $request,SettingsService $settings)
           }
         }
           return response()->json([
-            'error' => 'This endpoint is disabled for now',
+            'success' => true,
+            'message' => 'Job(s) created from template successfully. ',
             'request'   =>  $request->all(),
             'template'  =>  $template,
             'template_data'  =>  json_decode($template->pickuptask_data, true),
             'job'       =>  $jobs,
-          ], 500);
+          ], 200);
       }
      }catch (\Exception $e){
         return response()->json(['error' => $e->getMessage(),
@@ -788,7 +871,7 @@ public function index(Request $request,SettingsService $settings)
             }
             return response()->json([
                 'success'   => true,
-                'message'   => 'Job created from template successfully. ',
+                'message'   => 'Job(s) created from template successfully. ',
                 'data'      => [
                     'request'   =>  $request->all(),
                     'jobToArray'   =>  $jobData,
@@ -911,6 +994,7 @@ public function index(Request $request,SettingsService $settings)
                 'price'             =>  $job->price(),
                 'id'                =>  $job->id,
                 'note'              =>  $job->latestNote,
+                'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
                 'notes'             =>  $job->notes->isEmpty() ? 'none' : $job->notes->map(function ($note) {
                     return [
                         'id'        =>  $note->id,
@@ -996,7 +1080,8 @@ public function index(Request $request,SettingsService $settings)
                         'packageType'   =>  isset($task->package)?$task->package->packageType->name:null,
                         'package'       =>  isset($task->package)?$task->package:null,
                     ];
-                }),      
+                }),
+                'invoiceItem'           =>  is_null($job->invoiceItem) ? 'none' : $job->invoiceItem,    
                 ]);
         }
 
@@ -1106,12 +1191,14 @@ public function index(Request $request,SettingsService $settings)
                             }
                         }
                         // include jobs that simply have no package at all
-                        $subQ->orWhereNull('packages.id');
+                        //$subQ->orWhereNull('packages.id');
                     });
                 })
 
 
-                ->distinct()
+                ->distinct();
+                //dd($jobIds->toSql(), $jobIds->getBindings());
+                $jobIds = $jobIds
                 ->pluck('jobs.id'); 
 
             $jobs = Job::with(['clientToBill', 'tasks'])
@@ -1138,6 +1225,10 @@ public function index(Request $request,SettingsService $settings)
                             'sortField' => $sortField,
                             'sortOrder' => $sortOrder,
                             'package' => $package,
+                            'status' => $statusFilterValue,
+                            'startDate' => $startDate,
+                            'endDate' => $endDate,
+                            'dOsp' => json_encode($dropOffFilterValue),
                         ]);
                 
                         return response()->json([
@@ -1145,6 +1236,7 @@ public function index(Request $request,SettingsService $settings)
                             'jobs' =>  $jobs->map(function ($job) {
                                 return[
                                     'id'    =>  $job->id,
+                                    'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
                                     'hasReturn' =>  $job->hasReturn(),
                                     'urlToLogo'   =>  $job->urlToLogo(),
                                     'clientName'    =>  $job->clientToBill->name,
@@ -1232,6 +1324,31 @@ public function index(Request $request,SettingsService $settings)
         BackupService::createBackup(new Job());
         
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
+    }
+    public function removeFromInvoiceItem(Job $job)
+    {
+      try{
+        $invoiceItem = $job->invoiceItem;
+        $job->invoice_item_id = null;
+        $job->status_id = 23;
+        $job->save();
+                $pricingService = app(InvoicePricingService::class);
+                $pricingService->recalculateItemAndInvoice($invoiceItem);
+        // return response()->json([
+        //   'success' => true,
+        //   'message' => 'Job removed from invoice item successfully.',
+        //   'job' => $job,
+        //   'invoiceItem' => $invoiceItem,
+        // ]);
+        return redirect()->back()->with('success', 'Job removed from invoice item successfully.');
+      }catch (\Exception $e){
+        // return response()->json([
+        //   'success' => false,
+        //   'message' => 'Failed to remove job from invoice item.',
+        //   'error' => $e->getMessage(),
+        // ], 500);
+        return redirect()->back()->with('error', 'Failed to remove job from invoice item: ' . $e->getMessage());
+      }
     }
 
     
