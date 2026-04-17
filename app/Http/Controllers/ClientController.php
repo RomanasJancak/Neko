@@ -299,10 +299,21 @@ class ClientController extends Controller
                 'message' => 'Default client cannot be deleted.'
             ], 403);
         }
+        if($client->jobs()->count() > 0){
+            return response()->json([
+              
+                'message' => 'Client cannot be deleted because it has associated jobs.'
+            ], 403);
+        }
+        $client->getAllAddresses()->each(function ($address) {
+            $address->delete();
+        });
+        $client->addOnRules()->detach();
+        $client->packageTypes()->detach();
         $client->delete();
 
         return response()->json([
-            'message' => 'Status deleted successfully.'
+            'message' => 'Client deleted successfully.'
         ]);
     }
     public function createBackup()
