@@ -3,7 +3,7 @@
     <input type="hidden" name="clientid" id="clientid" value="{{ $client->id ?? '' }}">
     <div class="col-lg-4 order-lg-1">
         <div class="mb-0">
-            <label for="nameField" class="form-label">Name:</label>
+            <label for="nameField" class="form-label">Company name:</label>
             <input type="text" name="clientname" id="nameField" class="form-control" value="">
         </div>
         <div class="mb-3">
