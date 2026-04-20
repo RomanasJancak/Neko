@@ -330,6 +330,7 @@ class ClientController extends Controller
         $client->getAllAddresses()->each(function ($address) {
             $address->delete();
         });
+        $client->emails()->delete();
         $client->addOnRules()->detach();
         $client->packageTypes()->detach();
         $client->delete();
