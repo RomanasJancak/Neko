@@ -11,7 +11,7 @@ class StoreEmailAddressRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreEmailAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+          'email' => 'required|email',
+          'type' => 'required|string',
+          'emailable_id' => 'required|integer',
+          'emailable_type' => 'required|string',
         ];
     }
 }

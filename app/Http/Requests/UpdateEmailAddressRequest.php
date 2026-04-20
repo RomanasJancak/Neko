@@ -11,7 +11,7 @@ class UpdateEmailAddressRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class UpdateEmailAddressRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+          'email' => 'sometimes|email',
+          'type' => 'sometimes|string',
+          'emailable_id' => 'prohibited',
+          'emailable_type' => 'prohibited',
         ];
     }
 }
