@@ -35,6 +35,7 @@
         <div class="mb-3">
             <button type="button" id="submitform" data-option="create" class="btn btn-primary">Apply</button>
         </div>
+        <div class="mb-3" id="container-emails"></div>
     </div>
     <div class="col-lg-8 order-lg-2 mb-3" id="container-addresses"></div>
 </form>
