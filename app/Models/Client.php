@@ -31,6 +31,10 @@ class Client extends Model
                             'invoice_email_subject_template',
                             'invoice_email_body_template',
                             'vat','regNumber','address','note'];
+    public function emails()
+    {
+        return $this->morphMany(EmailAddress::class, 'emailable');
+    }
     public function packageTypes()
     {
         return $this->belongsToMany(PackageType::class,'client_package_types')->withTimestamps();

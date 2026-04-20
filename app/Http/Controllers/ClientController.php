@@ -200,6 +200,7 @@ class ClientController extends Controller
         } catch (\Exception $e){
             return response()->json(['error' => $e->getMessage(),
             '$request->jobid'   =>  $request->id,
+            'client' => $client,
             'file' => $e->getFile(),
             'line' => $e->getLine(),], 500);
         }
