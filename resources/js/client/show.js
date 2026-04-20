@@ -16,6 +16,7 @@ export function fillClientViewForm(clientId){
 
         document.getElementById('phoneNumberField').value = data.phone;
         populateWithAddresses(data.addresses);
+        populateWithEmails(data.emails);
       } else {
         console.error('Error fetching client info:', data.message);
       }
@@ -39,6 +40,56 @@ export function cleanClientForm(){
   document.getElementById('phoneNumberField').value = '';
   const container = document.getElementById('container-addresses');
   container.innerHTML = '';
+}
+function populateWithEmails(emails){
+  console.log("THIS 1", emails);
+    const container_main = document.getElementById('container-emails');
+    const container = document.createElement('div');
+    container.className = 'row';
+
+    // Add label "Emails" to the main div
+    const label = document.createElement('label');
+    label.textContent = 'Emails';
+    label.style.fontWeight = 'bold';
+    container_main.innerHTML = '';
+    container_main.appendChild(label);
+    container_main.appendChild(container);
+
+    emails.forEach(email => {
+      const emailRow = `
+        <div class="row">        
+            <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value="${email.id}"></div>
+            <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="${email.email}" placeholder="Email" ></div>
+            <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="${email.type}" placeholder="Type (e.g. work, personal)" ></div>
+            <div class="col email-input-field"><button type="button" class="btn btn-info btn-xs text-info" style="background: none; border: none;" id='button-edit-email' idofemail="${email.id}" onclick="editEmail(${email.id})">
+                <i class="fa-solid fa-pencil" aria-hidden="true" style="color: inherit;"></i>
+            </div>
+            <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-email' idofemail="${email.id}" onclick="deleteEmail(${email.id})">
+                <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
+            </div>
+      `;
+      container.insertAdjacentHTML('beforeend', emailRow);
+    });
+
+    // Add "Add Email" button at the bottom
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'btn btn-primary';
+    addButton.textContent = 'Add Email';
+    addButton.onclick = () => {
+        const newEmailRow = `
+            <div class="row">        
+                <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value=""></div>
+                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="" placeholder="Email" ></div>
+                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="" placeholder="Type (e.g. work, personal)" ></div>
+                <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', newEmailRow);
+    };
+    container_main.appendChild(addButton);
 }
 function populateWithAddresses(addresses){
         const container_main = document.getElementById('container-addresses');
