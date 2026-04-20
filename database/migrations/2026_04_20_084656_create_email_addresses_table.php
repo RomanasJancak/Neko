@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('email_addresses', function (Blueprint $table) {
             $table->id();
+            $table->string('email');
+            $table->string('type')->nullable();
+            $table->morphs('emailable');
             $table->timestamps();
         });
     }
