@@ -147,24 +147,22 @@ class ClientController extends Controller
         
         $client->name = $request->input('clientname');
         $client->shortenedName = $request->input('shortenedName');
-        //$client->country = $request->input('reg-addr-country');
-        //$client->city = $request->input('reg-addr-city');
         $client->postal_code = $request->input('reg-addr-postal_code');
         $client->address_line = $request->input('reg-addr-address_line');
         $client->phone  =   $request->input('phone');
-        if($request->has('emails')){
-          foreach($request->input('emails') as $emailData){
-            if (!empty($emailData['id'])) {
+        if($request->has('email')){
+          foreach($request->input('email') as $key => $value){
+            if(isset($request->email_id[$key])){
                 $client->emails()
-                    ->where('id', $emailData['id'])
+                    ->where('id', $request->email_id[$key])
                     ->update([
-                        'email' => $emailData['email'],
-                        'type'  => $emailData['type'],
+                        'email' => $value,
+                        'type'  => $request->email_type[$key],
                     ]);
             } else {
                 $client->createAndAddNewEmailAddress(
-                    $emailData['email'],
-                    $emailData['type']
+                    $value,
+                    $request->email_type[$key]
                 );
             }
           }
@@ -173,8 +171,6 @@ class ClientController extends Controller
             foreach($request->name as $key => $value){
                 if (isset(
                         $request->postal_code[$key], 
-                        //$request->city[$key], 
-                        //$request->country[$key]
                         )&&
                         ((isset($request->address_line_1[$key]))||(isset($request->address_line_2[$key])))) 
                     {
@@ -410,13 +406,13 @@ class ClientController extends Controller
                                             ];
                                         }),
                 'phone'                 =>  $client->phone,
-                'emails'                =>  $client->emails->map(function ($email) {
+                'emails'                =>  $client->emails ? $client->emails->map(function ($email) {
                                             return [
                                                 'id' => $email->id,
                                                 'email' => $email->email,
                                                 'type' => $email->type,
                                             ];
-                                        }),
+                                        }) : [],
                 ]);
             }
 
