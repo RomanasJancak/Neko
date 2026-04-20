@@ -96,6 +96,14 @@ class Client extends Model
         $address->save();
         return $address;
     }
+    public function createAndAddNewEmailAddress($email,$type): void
+    {
+        $this->emails()->create([
+            'email' => $email,
+            'type' => $type,
+        ]);
+
+    }
     public function createAndAddNewAddress($id,$name,$type,$address_line_1,$address_line_2,$postalCode,$city,$country,){
         if($id){
             $address = Address::find($id);

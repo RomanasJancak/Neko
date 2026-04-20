@@ -51,6 +51,14 @@ class ClientController extends Controller
             $client->address_line = $request->input('reg-addr-address_line');
             $client->phone  =   $request->input('phone');
             $client->save();
+            if($request->input('emails')){
+              foreach($request->input('emails') as $emailData){
+                $client->createAndAddNewEmailAddress(
+                    $emailData['email'],
+                    $emailData['type']
+                );
+              }
+            }
             if (!empty($request->name)) {
                 
                 foreach($request->name as $key => $value){
@@ -144,6 +152,23 @@ class ClientController extends Controller
         $client->postal_code = $request->input('reg-addr-postal_code');
         $client->address_line = $request->input('reg-addr-address_line');
         $client->phone  =   $request->input('phone');
+        if($request->has('emails')){
+          foreach($request->input('emails') as $emailData){
+            if (!empty($emailData['id'])) {
+                $client->emails()
+                    ->where('id', $emailData['id'])
+                    ->update([
+                        'email' => $emailData['email'],
+                        'type'  => $emailData['type'],
+                    ]);
+            } else {
+                $client->createAndAddNewEmailAddress(
+                    $emailData['email'],
+                    $emailData['type']
+                );
+            }
+          }
+        }
         if (!empty($request->name)) {
             foreach($request->name as $key => $value){
                 if (isset(
@@ -385,6 +410,13 @@ class ClientController extends Controller
                                             ];
                                         }),
                 'phone'                 =>  $client->phone,
+                'emails'                =>  $client->emails->map(function ($email) {
+                                            return [
+                                                'id' => $email->id,
+                                                'email' => $email->email,
+                                                'type' => $email->type,
+                                            ];
+                                        }),
                 ]);
             }
 
