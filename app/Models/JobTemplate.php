@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Services\FieldLockService;
 
 /**
  * JobTemplate Model
@@ -54,11 +55,7 @@ class JobTemplate extends Model
      */
     public function lockedFields()
     {
-        return \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->get()
-            ->toArray();
+        return app(FieldLockService::class)->getLockedFields('job_template', (int) $this->id);
     }
 
     /**
@@ -66,13 +63,7 @@ class JobTemplate extends Model
      */
     public function isLocked($fieldName)
     {
-        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->where('field_name', $fieldName)
-            ->first();
-
-        return $lockedField ? $lockedField->is_locked : false;
+        return app(FieldLockService::class)->isLocked('job_template', (int) $this->id, (string) $fieldName);
     }
 
     /**
@@ -81,24 +72,7 @@ class JobTemplate extends Model
      */
     public function setLockedField($fieldName, $isLocked)
     {
-        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->where('field_name', $fieldName)
-            ->first();
-
-        if ($lockedField) {
-            \Illuminate\Support\Facades\DB::table('locked_fields')
-                ->where('id', $lockedField->id)
-                ->update(['is_locked' => $isLocked]);
-        } else {
-            \Illuminate\Support\Facades\DB::table('locked_fields')->insert([
-                'model' => 'job_template',
-                'model_id' => $this->id,
-                'field_name' => $fieldName,
-                'is_locked' => $isLocked,
-            ]);
-        }
+        app(FieldLockService::class)->setLock('job_template', (int) $this->id, (string) $fieldName, (bool) $isLocked);
     }
 
     /**
@@ -107,12 +81,7 @@ class JobTemplate extends Model
      */
     public function getChildFields($parentField)
     {
-        return \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->where('field_name', 'like', $parentField . '%')
-            ->get()
-            ->toArray();
+        return app(FieldLockService::class)->getChildFields('job_template', (int) $this->id, (string) $parentField);
     }
 
     /**
@@ -120,11 +89,7 @@ class JobTemplate extends Model
      */
     public function lockChildFields($parentField)
     {
-        \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->where('field_name', 'like', $parentField . '%')
-            ->update(['is_locked' => true]);
+        app(FieldLockService::class)->setChildLocks('job_template', (int) $this->id, (string) $parentField, true);
     }
 
     /**
@@ -132,11 +97,7 @@ class JobTemplate extends Model
      */
     public function unlockChildFields($parentField)
     {
-        \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job_template')
-            ->where('model_id', $this->id)
-            ->where('field_name', 'like', $parentField . '%')
-            ->update(['is_locked' => false]);
+        app(FieldLockService::class)->setChildLocks('job_template', (int) $this->id, (string) $parentField, false);
     }
 
     // ==============================================

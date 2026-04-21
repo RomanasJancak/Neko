@@ -46,4 +46,23 @@ class FieldLockService
             'is_locked' => $isLocked,
         ]);
     }
+
+    public function getChildFields(string $model, int $modelId, string $parentField): array
+    {
+        return LockedField::query()
+            ->where('model', $model)
+            ->where('model_id', $modelId)
+            ->where('field_name', 'like', $parentField . '%')
+            ->get()
+            ->all();
+    }
+
+    public function setChildLocks(string $model, int $modelId, string $parentField, bool $isLocked): void
+    {
+        LockedField::query()
+            ->where('model', $model)
+            ->where('model_id', $modelId)
+            ->where('field_name', 'like', $parentField . '%')
+            ->update(['is_locked' => $isLocked]);
+    }
 }
