@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use App\Models\ApprovedPostalCodeArea;
+use App\Services\FieldLockService;
 
 class Job extends Model
 {
@@ -220,42 +221,15 @@ class Job extends Model
     }
     public function lockedFields()
     {
-        return \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job')
-            ->where('model_id', $this->id)
-            ->get()
-            ->toArray();
+        return app(FieldLockService::class)->getLockedFields('job', (int) $this->id);
     }
     public function isLocked($fieldName)
     {
-        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job')
-            ->where('model_id', $this->id)
-            ->where('field_name', $fieldName)
-            ->first();
-
-        return $lockedField ? $lockedField->is_locked : false;
+        return app(FieldLockService::class)->isLocked('job', (int) $this->id, (string) $fieldName);
     }
     public function changeLockedField($fieldName, $isLocked)
     {
-        $lockedField = \Illuminate\Support\Facades\DB::table('locked_fields')
-            ->where('model', 'job')
-            ->where('model_id', $this->id)
-            ->where('field_name', $fieldName)
-            ->first();
-
-        if ($lockedField) {
-            \Illuminate\Support\Facades\DB::table('locked_fields')
-                ->where('id', $lockedField->id)
-                ->update(['is_locked' => $isLocked]);
-        } else {
-            \Illuminate\Support\Facades\DB::table('locked_fields')->insert([
-                'model' => 'job',
-                'model_id' => $this->id,
-                'field_name' => $fieldName,
-                'is_locked' => $isLocked,
-            ]);
-        }
+        app(FieldLockService::class)->setLock('job', (int) $this->id, (string) $fieldName, (bool) $isLocked);
     }
     /* Unused function - kept for reference */  
     public function calculateShortestRoute($start, $points, $end = null)
