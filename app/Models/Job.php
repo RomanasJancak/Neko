@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use App\Models\ApprovedPostalCodeArea;
 use App\Services\FieldLockService;
+use App\Services\JobPriceSnapshotService;
 
 class Job extends Model
 {
@@ -897,7 +898,7 @@ class Job extends Model
         $price+=$this->price_adjustment_number;
         $this->price = $price;
         $this->save();
-        return [
+        $returnArray = [
             'breakdownOfPrice' => [
                 'price_distance'        =>  $this->fixed_price === 0?$this->price_distance()['price']:0,
                 'price_outsidePostalCodeZone'   =>  $this->fixed_price === 0?$this->price_outsidePostalCodeZone():0,
@@ -926,5 +927,9 @@ class Job extends Model
             'price_time_bankholiday'     =>  $this->fixed_price === 0?$this->price_bankHoliday():0,
             
         ];
+        if (!$this->invoice_item_id) {
+            app(JobPriceSnapshotService::class)->persistLatestSnapshot($this, $returnArray);
+        }
+        return $returnArray;
     }
 }
