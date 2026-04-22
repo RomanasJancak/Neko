@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class JobPrice extends Model
 {
     use HasFactory;
-    protected $fillable = ['job_id', 'type', 'value'];
+
+    protected $fillable = ['job_id', 'type', 'value', 'description', 'calculated_at'];
+
+    protected $casts = [
+        'description' => 'array',
+        'calculated_at' => 'datetime',
+    ];
 
     public function job()
     {
