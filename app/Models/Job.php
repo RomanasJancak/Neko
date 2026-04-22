@@ -132,6 +132,10 @@ class Job extends Model
     public function tasks(){
         return $this->hasMany(Task::class)->orderBy('order_number');
     }
+    public function jobPrices()
+    {
+        return $this->hasMany(JobPrice::class);
+    }
     public function jobTemplate()
     {
         return $this->belongsTo(JobTemplate::class);
