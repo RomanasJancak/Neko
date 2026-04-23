@@ -36,6 +36,64 @@ class JobPriceSnapshotService
     }
 
     /**
+     * Reconstruct the Job::price() response shape from stored snapshot rows.
+     * Returns null when no snapshot exists yet (caller should fall back to live calc).
+     */
+    public function snapshotToPayload(Job $job): ?array
+    {
+        $rows = JobPrice::query()
+            ->where('job_id', $job->id)
+            ->get()
+            ->keyBy('type');
+
+        if ($rows->isEmpty()) {
+            return null;
+        }
+
+        $val  = static fn (string $type): int   => (int) ($rows->get($type)?->value ?? 0);
+        $desc = static fn (string $type): array => $rows->get($type)?->description ?? [];
+
+        $totalDesc           = $desc(JobPrice::TYPE_TOTAL);
+        $isFixed             = !($totalDesc['is_fixed_price'] ?? false);
+        $breakdownPrice      = $totalDesc['breakdown_price'] ?? $val(JobPrice::TYPE_TOTAL);
+
+        $sameDayDesc         = $desc(JobPrice::TYPE_SAME_DAY_RETURN);
+        $sameDayReturnPayload = $sameDayDesc['payload'] ?? $val(JobPrice::TYPE_SAME_DAY_RETURN);
+
+        $oversizeDesc        = $desc(JobPrice::TYPE_OVERSIZE);
+        $oversizePayload     = $oversizeDesc['payload'] ?? [];
+
+        return [
+            'breakdownOfPrice' => [
+                'price_distance'              => $val(JobPrice::TYPE_DISTANCE),
+                'price_outsidePostalCodeZone' => $val(JobPrice::TYPE_OUTSIDE_ZONE),
+                'price_weight'                => $val(JobPrice::TYPE_WEIGHT),
+                'price_timing'                => $val(JobPrice::TYPE_TIMING),
+                'price_packages'              => $val(JobPrice::TYPE_PACKAGES),
+                'price_sunday'                => $val(JobPrice::TYPE_SUNDAY),
+                'price_bankHoliday'           => $val(JobPrice::TYPE_BANK_HOLIDAY),
+                'price_sameDayReturn'         => $sameDayReturnPayload,
+                'oversizePrice'               => $val(JobPrice::TYPE_OVERSIZE),
+                'price_food'                  => $val(JobPrice::TYPE_FOOD),
+                'price_adjustment_number'     => $val(JobPrice::TYPE_PRICE_ADJUSTMENT),
+                'price'                       => $breakdownPrice,
+                'fixed_price'                 => $isFixed,
+            ],
+            'totalPrice'              => $val(JobPrice::TYPE_TOTAL),
+            'price_Distance'          => $desc(JobPrice::TYPE_DISTANCE)['payload']          ?? $val(JobPrice::TYPE_DISTANCE),
+            'price_OutOfZone'         => $desc(JobPrice::TYPE_OUTSIDE_ZONE)['payload']      ?? $val(JobPrice::TYPE_OUTSIDE_ZONE),
+            'weight_price'            => $desc(JobPrice::TYPE_WEIGHT)['payload']            ?? $val(JobPrice::TYPE_WEIGHT),
+            'price-packages'          => $desc(JobPrice::TYPE_PACKAGES)['payload']          ?? $val(JobPrice::TYPE_PACKAGES),
+            'price_oversize_added'    => $oversizePayload['price_oversize_added']    ?? null,
+            'price_oversize_value'    => $oversizePayload['price_oversize_value']    ?? null,
+            'price_package_oversize'  => $oversizePayload['price_package_oversize']  ?? null,
+            'timing_price'            => $desc(JobPrice::TYPE_TIMING)['payload']            ?? $val(JobPrice::TYPE_TIMING),
+            'price_time_sunday'       => $desc(JobPrice::TYPE_SUNDAY)['payload']            ?? $val(JobPrice::TYPE_SUNDAY),
+            'price_time_bankholiday'  => $desc(JobPrice::TYPE_BANK_HOLIDAY)['payload']      ?? $val(JobPrice::TYPE_BANK_HOLIDAY),
+        ];
+    }
+
+    /**
      * Build deterministic rows from current Job::price() response contract.
      */
     public function buildSnapshotRows(array $pricePayload): array

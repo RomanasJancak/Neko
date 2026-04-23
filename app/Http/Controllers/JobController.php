@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
+use App\Services\JobPriceSnapshotService;
 
 use Illuminate\Support\Facades\Log;
 
@@ -990,8 +991,10 @@ public function index(Request $request,SettingsService $settings)
         $job = Job::find($jobId);
 
         if ($job) {
+            $snapshotService = app(JobPriceSnapshotService::class);
+            $pricePayload = $snapshotService->snapshotToPayload($job) ?? $job->price();
             return response()->json([
-                'price'             =>  $job->price(),
+                'price'             =>  $pricePayload,
                 'id'                =>  $job->id,
                 'note'              =>  $job->latestNote,
                 'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
