@@ -895,7 +895,6 @@ class Job extends Model
         return $this->price();
     }
     public function price(){
-        $this->guardAgainstInvoicedPriceMutation();
         $this->populateVariables();
 
         $price = 0;
