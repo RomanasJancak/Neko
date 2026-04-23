@@ -1028,6 +1028,7 @@ class JobController extends Controller
             ], 500);
         }
     }
+
     public function updateJobAjax(UpdateJobRequest $request)
     {
         try{

@@ -138,6 +138,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('assign',            [JobController::class, 'assign'])->name('job.assign')->middleware('auth');
     Route::post('update-job-ajax',      [JobController::class, 'updateJobAjax'])->name('job.updateajax')->middleware('auth');
     Route::get('getJobInfo/{id}',     [JobController::class, 'getJobInfo'])->name('job.getJobInfo')->middleware('auth');
+    Route::get('compareSnapshotPrices/{id}', [JobController::class, 'compareSnapshotPrices'])->name('job.compareSnapshotPrices')->middleware('auth');
     Route::get('getJobToString/{id}',     [JobController::class, 'getJobToString'])->name('job.getJobToString')->middleware('auth');
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');

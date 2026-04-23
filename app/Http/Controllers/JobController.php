@@ -32,6 +32,7 @@ use App\Models\CustomTask;
 use App\Models\Note;
 use App\Models\InvoiceItem;
 use App\Models\Invoice;
+use App\Models\JobPrice;
 use App\Services\InvoicePricingService;
 
 
@@ -44,6 +45,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Validation\Rule;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -1092,6 +1094,65 @@ public function index(Request $request,SettingsService $settings)
             'error' => 'Job not found',
             'jobId' => $jobId,
         ], 404);
+    }
+    public function compareSnapshotPrices($jobId)
+    {
+        $job = Job::find($jobId);
+
+        if (!$job) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Job not found',
+            ], 404);
+        }
+
+        $snapshotService = app(JobPriceSnapshotService::class);
+
+        $snapshotRows = JobPrice::query()
+            ->where('job_id', $job->id)
+            ->get()
+            ->keyBy('type');
+
+        DB::beginTransaction();
+        try {
+            $computedPayload = $job->price();
+            $computedRows = collect($snapshotService->buildSnapshotRows($computedPayload))->keyBy('type');
+            DB::rollBack();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to compute prices',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        $comparison = [];
+        foreach (JobPrice::supportedTypes() as $type) {
+            $snapshotValue = (int) ($snapshotRows->get($type)?->value ?? 0);
+            $computedValue = (int) ($computedRows->get($type)['value'] ?? 0);
+
+            $bigger = 'equal';
+            if ($snapshotValue > $computedValue) {
+                $bigger = 'snapshot';
+            } elseif ($computedValue > $snapshotValue) {
+                $bigger = 'computed';
+            }
+
+            $comparison[$type] = [
+                'snapshot_price' => $snapshotValue,
+                'computed_price' => $computedValue,
+                'bigger' => $bigger,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'job_id' => $job->id,
+            'has_snapshot' => $snapshotRows->isNotEmpty(),
+            'comparison' => $comparison,
+        ]);
     }
     public function update_price_adjustment_number(UpdateJobRequest $request){
         try {
