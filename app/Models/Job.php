@@ -878,10 +878,24 @@ class Job extends Model
             'isApplicable' => false,
         ];
     }
+    public function isInvoiced(): bool
+    {
+        return !is_null($this->invoice_item_id);
+    }
+
+    private function guardAgainstInvoicedPriceMutation(): void
+    {
+        if ($this->isInvoiced()) {
+            throw new \DomainException('Cannot recalculate price for invoiced job.');
+        }
+    }
+
     public function recalculatePrice(){
+        $this->guardAgainstInvoicedPriceMutation();
         return $this->price();
     }
     public function price(){
+        $this->guardAgainstInvoicedPriceMutation();
         $this->populateVariables();
 
         $price = 0;

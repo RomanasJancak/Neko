@@ -1006,6 +1006,14 @@ class JobController extends Controller
     public function update_price_adjustment_number(UpdateJobRequest $request){
         try {
             $job = Job::findOrFail($request->id);
+
+            if ($job->isInvoiced()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoiced jobs are immutable and cannot change price adjustment.',
+                ], 422);
+            }
+
             $job->price_adjustment_number = $request->input('price_adjustment_number');
             $job->save();
 
