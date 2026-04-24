@@ -8,13 +8,39 @@ use Illuminate\Support\Facades\Schema;
 
 class DatabaseSqlBackup
 {
+    private const RESTRICTED_TABLE = 'users';
+
+    public function getDumpDirectory(): string
+    {
+        return storage_path('app/backups/sql');
+    }
+
+    /**
+     * @return array<int, array{name: string, restricted: bool}>
+     */
+    public function getSelectableTables(): array
+    {
+        $connection = DB::connection();
+        $databaseName = $connection->getDatabaseName();
+        $tables = [];
+
+        foreach ($this->getTableNames($databaseName) as $tableName) {
+            $tables[] = [
+                'name' => $tableName,
+                'restricted' => $this->isRestrictedTable($tableName),
+            ];
+        }
+
+        return $tables;
+    }
+
     /**
      * Create SQL restore dump with schema + data.
      * Splits output into chunk files when chunk size is exceeded.
      *
      * @return array{files: array<int, string>, total_bytes: int, chunk_size_bytes: int}
      */
-    public function createRestoreDump(?string $baseName = null, int $chunkSizeBytes = 1048576): array
+    public function createRestoreDump(?string $baseName = null, int $chunkSizeBytes = 1048576, array $tableOptions = []): array
     {
         $connection = DB::connection();
         $databaseName = $connection->getDatabaseName();
@@ -24,7 +50,7 @@ class DatabaseSqlBackup
             $baseName = 'db_restore_' . now()->format('Y_m_d_His');
         }
 
-        $directory = storage_path('app/backups/sql');
+        $directory = $this->getDumpDirectory();
         File::ensureDirectoryExists($directory);
 
         $chunkIndex = 1;
@@ -66,7 +92,9 @@ class DatabaseSqlBackup
         $write("SET FOREIGN_KEY_CHECKS=0;\n");
         $write("SET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n\n");
 
-        foreach ($this->getTableNames($databaseName) as $tableName) {
+        $selectedTables = $this->normalizeTableOptions($databaseName, $tableOptions);
+
+        foreach ($selectedTables as $tableName => $includeData) {
             $createTableData = $connection->select('SHOW CREATE TABLE `' . str_replace('`', '``', $tableName) . '`');
             $createTableSql = array_values((array) $createTableData[0])[1] ?? '';
 
@@ -77,7 +105,10 @@ class DatabaseSqlBackup
             $write($createTableSql . ";\n\n");
 
             $columns = Schema::getColumnListing($tableName);
-            if (empty($columns)) {
+            if (empty($columns) || !$includeData) {
+                if (!$includeData) {
+                    $write('-- Data skipped for `' . $tableName . "`\n\n");
+                }
                 continue;
             }
 
@@ -106,6 +137,144 @@ class DatabaseSqlBackup
             'total_bytes' => $totalBytes,
             'chunk_size_bytes' => $chunkSizeBytes,
         ];
+    }
+
+    /**
+     * @return array<int, array{name: string, size_bytes: int, modified_at: int}>
+     */
+    public function listDumpFiles(): array
+    {
+        $directory = $this->getDumpDirectory();
+        File::ensureDirectoryExists($directory);
+
+        $files = [];
+        foreach (File::files($directory) as $file) {
+            if (strtolower($file->getExtension()) !== 'sql') {
+                continue;
+            }
+
+            $files[] = [
+                'name' => $file->getFilename(),
+                'size_bytes' => $file->getSize(),
+                'modified_at' => $file->getMTime(),
+            ];
+        }
+
+        usort($files, static fn (array $a, array $b): int => $b['modified_at'] <=> $a['modified_at']);
+
+        return $files;
+    }
+
+    public function resolveDumpPath(string $fileName): ?string
+    {
+        $safeName = basename($fileName);
+        if ($safeName === '' || strtolower(pathinfo($safeName, PATHINFO_EXTENSION)) !== 'sql') {
+            return null;
+        }
+
+        $path = $this->getDumpDirectory() . '/' . $safeName;
+
+        return File::exists($path) ? $path : null;
+    }
+
+    public function dumpContainsRestrictedUsersTable(string $filePath): bool
+    {
+        if (!File::exists($filePath)) {
+            return false;
+        }
+
+        $contents = File::get($filePath);
+
+        return str_contains($contents, 'DROP TABLE IF EXISTS `users`')
+            || str_contains($contents, 'CREATE TABLE `users`')
+            || str_contains($contents, 'INSERT INTO `users`');
+    }
+
+    /**
+     * @return array{executed_statements: int}
+     */
+    public function restoreFromSqlFile(string $filePath): array
+    {
+        if (!File::exists($filePath)) {
+            throw new \RuntimeException('SQL file not found: ' . $filePath);
+        }
+
+        if ($this->dumpContainsRestrictedUsersTable($filePath)) {
+            throw new \RuntimeException('Restoring `users` table is blocked.');
+        }
+
+        $handle = fopen($filePath, 'rb');
+        if (!is_resource($handle)) {
+            throw new \RuntimeException('Unable to open SQL file for reading.');
+        }
+
+        $executedStatements = 0;
+        $buffer = '';
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        try {
+            while (($line = fgets($handle)) !== false) {
+                $trimmedLine = trim($line);
+
+                if ($trimmedLine === '' || str_starts_with($trimmedLine, '--')) {
+                    continue;
+                }
+
+                $buffer .= $line;
+
+                if (str_ends_with(rtrim($trimmedLine), ';')) {
+                    DB::unprepared($buffer);
+                    $executedStatements++;
+                    $buffer = '';
+                }
+            }
+
+            if (trim($buffer) !== '') {
+                DB::unprepared($buffer);
+                $executedStatements++;
+            }
+        } finally {
+            fclose($handle);
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+
+        return ['executed_statements' => $executedStatements];
+    }
+
+    /**
+     * @return array<string, bool>
+     */
+    private function normalizeTableOptions(string $databaseName, array $tableOptions): array
+    {
+        $available = $this->getTableNames($databaseName);
+        $availableSet = array_fill_keys($available, true);
+
+        $normalized = [];
+
+        if (empty($tableOptions)) {
+            foreach ($available as $tableName) {
+                if ($this->isRestrictedTable($tableName)) {
+                    continue;
+                }
+                $normalized[$tableName] = true;
+            }
+
+            return $normalized;
+        }
+
+        foreach ($tableOptions as $tableName => $includeData) {
+            if (!isset($availableSet[$tableName])) {
+                continue;
+            }
+            if ($this->isRestrictedTable($tableName)) {
+                continue;
+            }
+
+            $normalized[$tableName] = (bool) $includeData;
+        }
+
+        return $normalized;
     }
 
     /**
@@ -140,5 +309,10 @@ class DatabaseSqlBackup
         }
 
         return $pdo->quote((string) $value);
+    }
+
+    private function isRestrictedTable(string $tableName): bool
+    {
+        return strtolower($tableName) === self::RESTRICTED_TABLE;
     }
 }

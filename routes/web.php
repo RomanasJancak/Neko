@@ -301,7 +301,10 @@ Route::group(['prefix' => 'extratypes'], function(){
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
     Route::get('/', [UserSettingController::class, 'index'])->name('index');
     Route::post('/', [UserSettingController::class, 'update'])->name('update');
-    Route::post('sql-restore-dump', [SettingController::class, 'createSqlRestoreDump'])->name('sqlRestoreDump');
+    Route::get('sql-dump', [SettingController::class, 'sqlDumpInterface'])->name('sqlDump');
+    Route::post('sql-dump/create', [SettingController::class, 'createSqlRestoreDump'])->name('sqlDump.create');
+    Route::get('sql-dump/download/{fileName}', [SettingController::class, 'downloadSqlDump'])->name('sqlDump.download');
+    Route::post('sql-dump/upload', [SettingController::class, 'uploadSqlDump'])->name('sqlDump.upload');
 });
 Route::group(['prefix'  => 'invoices'],function(){
     Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');

@@ -99,22 +99,56 @@ class SettingController extends Controller
         return redirect()->back()->with('succeses', "model_name".' backup created successfully.');
     }
 
+    public function sqlDumpInterface(DatabaseSqlBackup $backup)
+    {
+        $tables = $backup->getSelectableTables();
+        $selectedTables = collect($tables)
+            ->reject(static fn (array $table): bool => $table['restricted'])
+            ->pluck('name')
+            ->all();
+
+        return view('setting.sql_dump', [
+            'files' => $backup->listDumpFiles(),
+            'tables' => $tables,
+            'selectedTables' => old('selected_tables', $selectedTables),
+            'includeDataTables' => old('include_data_tables', $selectedTables),
+        ]);
+    }
+
     public function createSqlRestoreDump(Request $request, DatabaseSqlBackup $backup)
     {
         $validated = $request->validate([
             'name' => 'nullable|string|max:190',
             'chunk_size_kb' => 'nullable|integer|min:1|max:10240',
+            'selected_tables' => 'nullable|array',
+            'selected_tables.*' => 'string',
+            'include_data_tables' => 'nullable|array',
+            'include_data_tables.*' => 'string',
         ]);
 
         $name = $validated['name'] ?? null;
         $chunkSizeKb = (int) ($validated['chunk_size_kb'] ?? 1024);
+        $selectedTables = array_values($validated['selected_tables'] ?? []);
+        $includeDataTables = array_values($validated['include_data_tables'] ?? []);
+
+        $tableOptions = [];
+        foreach ($selectedTables as $tableName) {
+            $tableOptions[$tableName] = in_array($tableName, $includeDataTables, true);
+        }
 
         try {
-            $result = $backup->createRestoreDump($name, $chunkSizeKb * 1024);
+            $result = $backup->createRestoreDump($name, $chunkSizeKb * 1024, $tableOptions);
 
             $files = array_map(static function (string $path): string {
                 return str_replace(storage_path('app') . '/', '', $path);
             }, $result['files']);
+
+            if (!$request->expectsJson()) {
+                return redirect()
+                    ->route('setting.sqlDump')
+                    ->with('success', 'SQL restore dump created successfully.')
+                    ->with('generated_files', $files);
+            }
 
             return response()->json([
                 'success' => true,
@@ -129,6 +163,47 @@ class SettingController extends Controller
                 'message' => 'Failed to create SQL restore dump.',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    public function downloadSqlDump(string $fileName, DatabaseSqlBackup $backup)
+    {
+        $path = $backup->resolveDumpPath($fileName);
+
+        if ($path === null) {
+            abort(404, 'SQL dump file not found.');
+        }
+
+        if ($backup->dumpContainsRestrictedUsersTable($path)) {
+            abort(403, 'Downloading SQL dump with `users` table is blocked.');
+        }
+
+        return response()->download($path, basename($path));
+    }
+
+    public function uploadSqlDump(Request $request, DatabaseSqlBackup $backup)
+    {
+        $validated = $request->validate([
+            'sql_file' => 'required|file|mimes:sql,txt|max:51200',
+        ]);
+
+        $file = $validated['sql_file'];
+        $directory = $backup->getDumpDirectory() . '/uploads';
+        File::ensureDirectoryExists($directory);
+
+        $storedPath = $directory . '/upload_' . now()->format('Y_m_d_His') . '_' . $file->getClientOriginalName();
+        $file->move($directory, basename($storedPath));
+
+        try {
+            $result = $backup->restoreFromSqlFile($storedPath);
+
+            return redirect()
+                ->route('setting.sqlDump')
+                ->with('success', 'SQL restore completed successfully. Executed statements: ' . $result['executed_statements']);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('setting.sqlDump')
+                ->with('error', 'Failed to restore SQL dump: ' . $e->getMessage());
         }
     }
 }
