@@ -301,6 +301,7 @@ Route::group(['prefix' => 'extratypes'], function(){
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
     Route::get('/', [UserSettingController::class, 'index'])->name('index');
     Route::post('/', [UserSettingController::class, 'update'])->name('update');
+    Route::post('sql-restore-dump', [SettingController::class, 'createSqlRestoreDump'])->name('sqlRestoreDump');
 });
 Route::group(['prefix'  => 'invoices'],function(){
     Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');
