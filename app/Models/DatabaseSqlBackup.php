@@ -284,14 +284,56 @@ class DatabaseSqlBackup
     {
         $rows = DB::select('SHOW FULL TABLES FROM `' . str_replace('`', '``', $databaseName) . '` WHERE Table_type = "BASE TABLE"');
 
-        $tables = [];
+        $allTables = [];
         foreach ($rows as $row) {
-            $tables[] = (string) array_values((array) $row)[0];
+            $allTables[] = (string) array_values((array) $row)[0];
         }
 
-        sort($tables);
+        $migrationOrdered = $this->getMigrationOrderedTables($allTables);
 
-        return $tables;
+        $remaining = array_values(array_diff($allTables, $migrationOrdered));
+        sort($remaining);
+
+        return array_merge($migrationOrdered, $remaining);
+    }
+
+    /**
+     * @param array<int, string> $availableTables
+     * @return array<int, string>
+     */
+    private function getMigrationOrderedTables(array $availableTables): array
+    {
+        if (!Schema::hasTable('migrations')) {
+            return [];
+        }
+
+        $availableSet = array_fill_keys($availableTables, true);
+        $orderedTables = [];
+
+        $migrationNames = DB::table('migrations')
+            ->orderBy('id')
+            ->pluck('migration');
+
+        foreach ($migrationNames as $migrationName) {
+            if (!is_string($migrationName)) {
+                continue;
+            }
+
+            if (!preg_match('/^create_(.+)_table$/', $migrationName, $matches)) {
+                continue;
+            }
+
+            $tableName = $matches[1];
+            if (!isset($availableSet[$tableName])) {
+                continue;
+            }
+
+            if (!in_array($tableName, $orderedTables, true)) {
+                $orderedTables[] = $tableName;
+            }
+        }
+
+        return $orderedTables;
     }
 
     private function toSqlValue(mixed $value, \PDO $pdo): string
