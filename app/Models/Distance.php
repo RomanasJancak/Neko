@@ -100,6 +100,11 @@ class Distance extends Model
       $originData = self::geocodeAddress($origin);
       $destData = self::geocodeAddress($destination);
 
+        // Return null if either geocoding fails
+        if (!$originData || !$destData) {
+            return null;
+        }
+
         $url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
         $response = Http::get($url, [
