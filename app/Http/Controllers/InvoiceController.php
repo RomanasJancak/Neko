@@ -199,7 +199,15 @@ class InvoiceController extends Controller
       //$clientEmail = 'shdget@sharedbudget.lt';
       //$clientEmail = 'nekohomedelivery@gmail.com';
       $clientEmail = 'nekoworkshoplondon@gmail.com';
-      Mail::to($clientEmail)->send(
+      //$ccEmail = $settings->get('global.cc_email');
+      $ccEmail = 'jamieholloway477@gmail.com';
+      
+      $mailMessage = Mail::to($clientEmail);
+      if ($ccEmail) {
+        $mailMessage->cc($ccEmail);
+      }
+      
+      $mailMessage->send(
         new InvoiceSendMail(
           $invoice,
           $validated['subject'],
