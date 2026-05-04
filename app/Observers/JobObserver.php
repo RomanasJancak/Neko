@@ -16,7 +16,9 @@ class JobObserver
      */
     public function created(Job $job): void
     {
-        //
+      if($job->status_id === 14) {
+        $this->assignToInvoice($job);
+      }
     }
 
     /**
@@ -60,7 +62,6 @@ class JobObserver
       
       $jobDate = Carbon::parse($job->date);
       $nextMonday = $jobDate->copy()->next(Carbon::MONDAY)->startOfDay();
-      //dd($nextMonday);
       $nextnextMonday = $nextMonday->copy()->addWeek();
       $invoice = Invoice::where('customer_id', $job->clientToBill_id)
                         ->where('invoice_date', '>=', $nextMonday)
