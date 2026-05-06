@@ -195,17 +195,23 @@ class InvoiceController extends Controller
 
       $pdfContent = Pdf::loadView('invoice.pdf', $viewData)->output();
       $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
-      //$clientEmail = $invoice->client->email;
-      //$clientEmail = 'shdget@sharedbudget.lt';
-      //$clientEmail = 'nekohomedelivery@gmail.com';
+
+      $clientEmail = trim((string) $invoice->client->email);
+
+      // Accept comma/semicolon separated CC emails from settings and keep only valid addresses.
+      $rawCc = (string) ($settings->get('global.cc_email') ?? '');
+      $ccEmails = preg_split('/[;,]+/', $rawCc) ?: [];
+      $ccEmails = array_values(array_filter(array_map('trim', $ccEmails), function ($email) {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+      }));
+      //$clientEmail = 'jamieholloway477@gmail.com';
       $clientEmail = 'nekoworkshoplondon@gmail.com';
-      //$ccEmail = $settings->get('global.cc_email');
-      $ccEmails = ['jamieholloway477@gmail.com', 'shdget@sharedbudget.lt'];
-      $ccEmail = implode(',', $ccEmails);
-      
       $mailMessage = Mail::to($clientEmail);
-      if ($ccEmail) {
-        $mailMessage->cc($ccEmail);
+      $ccEmails = [
+        //'romanas.jancak@gmail.com',
+        'jamieholloway477@gmail.com'];
+      if (!empty($ccEmails)) {
+        $mailMessage->cc($ccEmails);
       }
       
       $mailMessage->send(
