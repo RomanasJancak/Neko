@@ -62,16 +62,19 @@ class JobObserver
       
       $jobDate = Carbon::parse($job->date);
       $nextMonday = $jobDate->copy()->next(Carbon::MONDAY)->startOfDay();
+      $nextMondayOnlyYearMonthDay = $nextMonday->format('Y-m-d');
       $nextnextMonday = $nextMonday->copy()->addWeek();
+      
       $invoice = Invoice::where('customer_id', $job->clientToBill_id)
-                        ->where('invoice_date', '>=', $nextMonday)
-                        ->where('invoice_date', '<', $nextnextMonday)
+                        ->where('invoice_date', '=', $nextMondayOnlyYearMonthDay)
+                        //->where('invoice_date', '<=', $nextnextMonday)
                         ->first();
+      //dd($jobDate, $nextMonday, $nextnextMonday, $invoice,$nextMondayOnlyYearMonthDay);
       if (!$invoice) {
           
           $invoice = new Invoice();
           $invoice->customer_id = $job->clientToBill_id;
-          $invoice->invoice_date = $nextnextMonday;
+          $invoice->invoice_date = $nextMondayOnlyYearMonthDay;
           //dd($invoice->invoice_date);
           $invoice->due_date = $nextMonday->copy()->addDays(30);
           $invoice->invoice_number = 'INV-' . Carbon::now()->format('YmdHis') . '-' . $job->clientToBill_id;
