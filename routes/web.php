@@ -301,12 +301,12 @@ Route::group(['prefix' => 'extratypes'], function(){
     Route::get('fetch',             [ExtraTypesController::class, 'fetch'])->name('extratype.fetch')->middleware('auth');
 });
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
-    Route::get('/', [UserSettingController::class, 'index'])->name('index');
-    Route::post('/', [UserSettingController::class, 'update'])->name('update');
-    Route::get('sql-dump', [SettingController::class, 'sqlDumpInterface'])->name('sqlDump');
-    Route::post('sql-dump/create', [SettingController::class, 'createSqlRestoreDump'])->name('sqlDump.create');
-    Route::get('sql-dump/download/{fileName}', [SettingController::class, 'downloadSqlDump'])->name('sqlDump.download');
-    Route::post('sql-dump/upload', [SettingController::class, 'uploadSqlDump'])->name('sqlDump.upload');
+    Route::get('/', [UserSettingController::class, 'index'])->name('index')->middleware('can:setting-view');
+    Route::post('/', [UserSettingController::class, 'update'])->name('update')->middleware('can:setting-edit');
+    Route::get('sql-dump', [SettingController::class, 'sqlDumpInterface'])->name('sqlDump')->middleware('can:setting-view');
+    Route::post('sql-dump/create', [SettingController::class, 'createSqlRestoreDump'])->name('sqlDump.create')->middleware('can:setting-create');
+    Route::get('sql-dump/download/{fileName}', [SettingController::class, 'downloadSqlDump'])->name('sqlDump.download')->middleware('can:setting-view');
+    Route::post('sql-dump/upload', [SettingController::class, 'uploadSqlDump'])->name('sqlDump.upload')->middleware('can:setting-edit');
 });
 Route::group(['prefix'  => 'invoices'],function(){
     Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');

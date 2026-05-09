@@ -153,9 +153,11 @@
                                   <li>
                                   <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>
                                   </li>
+                                  @can('setting-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('setting.index')}}">Settings</a>
                                   </li>
+                                  @endcan
                               </ul>
                           </div>
                       </li>
