@@ -41,6 +41,7 @@
                             <input id="password_confirmation" type="password" class="form-control" name="password_confirmation">
                         </div>
                         @csrf
+                        @method('PATCH')
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary">Update</button>
                         </div>
