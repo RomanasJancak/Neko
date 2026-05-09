@@ -197,7 +197,8 @@ class InvoiceController extends Controller
       $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
 
       $clientEmail = trim((string) $invoice->client->email);
-
+      $clientEmail = "invoice.nekohomedelivery@gmail.com";
+      /*
       // Accept comma/semicolon separated CC emails from settings and keep only valid addresses.
       $rawCc = (string) ($settings->get('global.cc_email') ?? '');
       $ccEmails = preg_split('/[;,]+/', $rawCc) ?: [];
@@ -205,15 +206,16 @@ class InvoiceController extends Controller
         return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
       }));
       //$clientEmail = 'jamieholloway477@gmail.com';
-      $clientEmail = 'nekoworkshoplondon@gmail.com';
-      $mailMessage = Mail::to($clientEmail);
+      
+      
       $ccEmails = [
         //'romanas.jancak@gmail.com',
         'jamieholloway477@gmail.com'];
       if (!empty($ccEmails)) {
         $mailMessage->cc($ccEmails);
       }
-      
+      */
+      $mailMessage = Mail::to($clientEmail);
       $mailMessage->send(
         new InvoiceSendMail(
           $invoice,
