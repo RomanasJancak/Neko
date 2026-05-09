@@ -16,9 +16,9 @@ class AddOnSeeder extends Seeder
      */
     public function run(): void
     {
-        $folderPath = resource_path('files\backups\AddOn');
-        $filePath = $this->getLatestBackup($folderPath);
-        $this->seed($filePath);
+        // $folderPath = resource_path('files\backups\AddOn');
+        // $filePath = $this->getLatestBackup($folderPath);
+        // $this->seed($filePath);
     }
     private function getLatestBackup($directory){
         $files = scandir($directory);
