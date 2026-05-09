@@ -13,6 +13,12 @@ class UserSettingDefinition
                     'rules' => ['required', 'numeric', 'min:0', 'max:1'],
                     'default' => 0.2,
                 ],
+                'invoiceLockDays' => [
+                    'label' => 'Invoice lock age (days)',
+                    'type' => 'number',
+                    'rules' => ['required', 'integer', 'min:0', 'max:3650'],
+                    'default' => 1,
+                ],
             ],
             'models' => [
                 'job' => [

@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Models\ApprovedPostalCodeArea;
 use App\Services\FieldLockService;
 use App\Services\JobPriceSnapshotService;
+use App\Services\SettingsService;
 
 class Job extends Model
 {
@@ -895,7 +896,9 @@ class Job extends Model
             return false;
         }
 
-        return Carbon::today()->gt(Carbon::parse($invoiceDate)->addDay()->startOfDay());
+        $lockDays = (int) (app(SettingsService::class)->get('global.invoiceLockDays') ?? 1);
+
+        return Carbon::today()->gt(Carbon::parse($invoiceDate)->addDays($lockDays)->startOfDay());
     }
 
     public function isLockedForUser(?User $user = null): bool
