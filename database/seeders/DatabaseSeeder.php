@@ -80,87 +80,90 @@ class DatabaseSeeder extends Seeder
             //}
         }
     }
-    private function sortDirectoriesByMigrations($directories) {
-    // Step 1: Fetch migration names from the "migrations" table
-    $migrations = DB::table('migrations')->orderBy('id')->pluck('migration')->toArray();
+    private function sortDirectoriesByMigrations($directories) 
+    {
 
-    // Step 2: Extract table names from migration names
-    $orderedTableNames = array_map(function($migration) {
-        // Assuming the migration name format is "YYYY_MM_DD_HHMMSS_create_table_name"
-        preg_match('/create_(.*)_table/', $migration, $matches);
-        return $matches[1] ?? null;
-    }, $migrations);
+      // Step 1: Fetch migration names from the "migrations" table
+      $migrations = DB::table('migrations')->orderBy('id')->pluck('migration')->toArray();
 
-    // Filter out null values
-    $orderedTableNames = array_filter($orderedTableNames);
+      // Step 2: Extract table names from migration names
+      $orderedTableNames = array_map(function($migration) {
+          // Assuming the migration name format is "YYYY_MM_DD_HHMMSS_create_table_name"
+          preg_match('/create_(.*)_table/', $migration, $matches);
+          return $matches[1] ?? null;
+      }, $migrations);
 
-    // Step 3: Sort the directories based on the order of migrations
-    usort($directories, function($a, $b) use ($orderedTableNames) {
-        // Extract table names from directory names
-        $tableA = basename($a);
-        $tableB = basename($b);
+      // Filter out null values
+      $orderedTableNames = array_filter($orderedTableNames);
 
-        // Get positions in the ordered table names
-        $posA = array_search($tableA, $orderedTableNames);
-        $posB = array_search($tableB, $orderedTableNames);
+      // Step 3: Sort the directories based on the order of migrations
+      usort($directories, function($a, $b) use ($orderedTableNames) {
+          // Extract table names from directory names
+          $tableA = basename($a);
+          $tableB = basename($b);
 
-        // Handle cases where the table is not found in the ordered table names
-        $posA = $posA === false ? PHP_INT_MAX : $posA;
-        $posB = $posB === false ? PHP_INT_MAX : $posB;
+          // Get positions in the ordered table names
+          $posA = array_search($tableA, $orderedTableNames);
+          $posB = array_search($tableB, $orderedTableNames);
 
-        return $posA - $posB;
-    });
-    $items = [
-        "tables/roles",
-        "tables/permissions",
-        "tables/role_has_permissions",
-        "tables/model_has_permissions",
-        "tables/model_has_roles",        
-    ];
-    foreach ($items as $item) {
-        $key = array_search($item, $directories);
-        if ($key !== false) {
-            unset($directories[$key]);
-        }
+          // Handle cases where the table is not found in the ordered table names
+          $posA = $posA === false ? PHP_INT_MAX : $posA;
+          $posB = $posB === false ? PHP_INT_MAX : $posB;
+
+          return $posA - $posB;
+      });
+      $items = [
+          "tables/roles",
+          "tables/permissions",
+          "tables/role_has_permissions",
+          "tables/model_has_permissions",
+          "tables/model_has_roles",        
+      ];
+      foreach ($items as $item) {
+          $key = array_search($item, $directories);
+          if ($key !== false) {
+              unset($directories[$key]);
+          }
+      }
+      $directories = array_merge($directories, $items);
+      $directories = array_values($directories);
+      return $directories;
     }
-    $directories = array_merge($directories, $items);
-    $directories = array_values($directories);
-    return $directories;
-}
-    private function sortBackupFilesByMigrations($directory) {
-    // Step 1: Fetch the list of files from the backup directory
-    $files = Storage::disk('backups')->files($directory);
+    private function sortBackupFilesByMigrations($directory) 
+    {
+      // Step 1: Fetch the list of files from the backup directory
+      $files = Storage::disk('backups')->files($directory);
 
-    // Step 2: Fetch migration names from the "migrations" table
-    $migrations = DB::table('migrations')->orderBy('id')->pluck('migration')->toArray();
+      // Step 2: Fetch migration names from the "migrations" table
+      $migrations = DB::table('migrations')->orderBy('id')->pluck('migration')->toArray();
 
-    // Step 3: Extract table names from migration names
-    $orderedTableNames = array_map(function($migration) {
-        // Assuming the migration name format is "YYYY_MM_DD_HHMMSS_create_table_name"
-        preg_match('/create_(.*)_table/', $migration, $matches);
-        return $matches[1] ?? null;
-    }, $migrations);
+      // Step 3: Extract table names from migration names
+      $orderedTableNames = array_map(function($migration) {
+          // Assuming the migration name format is "YYYY_MM_DD_HHMMSS_create_table_name"
+          preg_match('/create_(.*)_table/', $migration, $matches);
+          return $matches[1] ?? null;
+      }, $migrations);
 
-    // Filter out null values
-    $orderedTableNames = array_filter($orderedTableNames);
+      // Filter out null values
+      $orderedTableNames = array_filter($orderedTableNames);
 
-    // Step 4: Sort the files based on the order of migrations
-    usort($files, function($a, $b) use ($orderedTableNames) {
-        // Extract table names from file names
-        preg_match('/_(.*)_backup_/', $a, $matchesA);
-        preg_match('/_(.*)_backup_/', $b, $matchesB);
-        $tableA = $matchesA[1] ?? null;
-        $tableB = $matchesB[1] ?? null;
+      // Step 4: Sort the files based on the order of migrations
+      usort($files, function($a, $b) use ($orderedTableNames) {
+          // Extract table names from file names
+          preg_match('/_(.*)_backup_/', $a, $matchesA);
+          preg_match('/_(.*)_backup_/', $b, $matchesB);
+          $tableA = $matchesA[1] ?? null;
+          $tableB = $matchesB[1] ?? null;
 
-        // Get positions in the ordered table names
-        $posA = array_search($tableA, $orderedTableNames);
-        $posB = array_search($tableB, $orderedTableNames);
+          // Get positions in the ordered table names
+          $posA = array_search($tableA, $orderedTableNames);
+          $posB = array_search($tableB, $orderedTableNames);
 
-        return $posA - $posB;
-    });
+          return $posA - $posB;
+      });
 
-    return $files;
-}
+      return $files;
+    }
     private function seed2($file,$model):void
     {
         //echo $tableName = with(new $model)->getTable();
@@ -222,7 +225,8 @@ class DatabaseSeeder extends Seeder
         // Handle cases where no valid file was uploaded
         //return response()->json(['error' => 'No valid file uploaded.'], 400);
     }
-    private function getLatestBackup($directory){
+    private function getLatestBackup($directory)
+    {
         $files = scandir($directory);
         $files = array_diff($files, array('.', '..'));
         $files = array_filter($files, function ($file) use ($directory) {
@@ -232,7 +236,8 @@ class DatabaseSeeder extends Seeder
         $filepath = $directory.'/'.end($files);
         return $filepath;
     }
-    private function getAllModels(){
+    private function getAllModels()
+    {
         $models = [];
         $modelsPath = app_path('Models'); // Models directory path
         $namespace = 'App\\Models\\'; // Models namespace
@@ -248,11 +253,6 @@ class DatabaseSeeder extends Seeder
         return $models;
     
     }
-        /**
-     * Get all model seeders dynamically based on model names.
-     *
-     * @return array
-     */
     private function getAllModelSeeders(): array
     {
         $seeders = [];
