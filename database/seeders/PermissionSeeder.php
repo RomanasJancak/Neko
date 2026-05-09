@@ -14,6 +14,8 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        $guardName = 'web';
+
         $permissions = [
             'role-view',
             'role-create',
@@ -41,8 +43,11 @@ class PermissionSeeder extends Seeder
             'job-delete',
             'job-create-chooseAnyPostalCode'
         ];
-        foreach($permissions as $permission){
-            Permission::create(['name'=> $permission]);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => $guardName,
+            ]);
         }
     }
 }

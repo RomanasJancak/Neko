@@ -16,12 +16,24 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-        $superAdmin     = Role::create([  'name'      =>  'superadmin','display_name' => 'superadmin']);
+
+        $superAdmin = Role::firstOrCreate(
+            ['name' => 'superadmin', 'guard_name' => 'web'],
+            ['display_name' => 'superadmin']
+        );
         $superAdmin->syncPermissions(Permission::all());
-        $admin      = Role::create([  'name'      =>  'admin','display_name' => 'admin']);
+
+        $admin = Role::firstOrCreate(
+            ['name' => 'admin', 'guard_name' => 'web'],
+            ['display_name' => 'admin']
+        );
         $admin->syncPermissions(Permission::all());
-        $manager  = Role::create([  'name'      =>  'manager','display_name' => 'manager']);
-        $manager->givePermissionTo([
+
+        $manager = Role::firstOrCreate(
+            ['name' => 'manager', 'guard_name' => 'web'],
+            ['display_name' => 'manager']
+        );
+        $manager->syncPermissions([
             'user-view',
             'client-view',
             'client-create',
@@ -35,8 +47,12 @@ class RoleSeeder extends Seeder
             'setting-view',
             'setting-edit'
         ]);
-        $client     = Role::create([  'name'      =>  'client_admin','display_name' => 'admin']);
-        $client->givePermissionTo([
+
+        $client = Role::firstOrCreate(
+            ['name' => 'client_admin', 'guard_name' => 'web'],
+            ['display_name' => 'admin']
+        );
+        $client->syncPermissions([
             'user-view',
             'client-view',
             'client-edit',
@@ -45,13 +61,17 @@ class RoleSeeder extends Seeder
             'job-edit',
             'job-delete',
         ]);
-        $courier    = Role::create([  'name'      =>  'courier','display_name' => 'courier']);
-        $courier->givePermissionTo([
+
+        $courier = Role::firstOrCreate(
+            ['name' => 'courier', 'guard_name' => 'web'],
+            ['display_name' => 'courier']
+        );
+        $courier->syncPermissions([
             'user-view',
             'client-view',
             'job-view',
             'job-edit',
         ]);
-        
+
     }
 }
