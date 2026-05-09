@@ -189,10 +189,11 @@
                     </td>
 
                     <td rowspan="{{ $dropCount }}">
+                        @php($isJobLocked = $job->isLockedForUser(auth()->user()))
                         <form action="{{ route('job.removeFromInvoiceItem', $job->id) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('POST')
-                            <button type="submit" class="btn btn-info btn-sm">Remove From Invoice</button>
+                            <button type="submit" class="btn btn-info btn-sm" @if($isJobLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>Remove From Invoice</button>
                         </form>
                     </td>
                 @endif

@@ -36,8 +36,9 @@
                         @endforeach
                     </div>
                     <div class="row">
+                        @php($isJobLocked = $job->isLockedForUser(auth()->user()))
                         <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
-                        <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
+                        <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal" @if($isJobLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>Edit</button></div>
                     </div>
                 </li>
             @endforeach
@@ -76,8 +77,9 @@
                             </div>
                         </div>
                         <div class="row">
+                            @php($isJobLocked = $job->isLockedForUser(auth()->user()))
                             <div class="col"><button data-show-url="{{ asset('jobs/show') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-primary job-details" data-bs-toggle="modal" data-bs-target="#jobModal">More</button></div>
-                            <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal">Edit</button></div>
+                            <div class="col"><button data-edit-url="{{ asset('jobs/edit') }}/{{ $job->id }}" data-job-id="{{ $job->id }}" type="button" class="btn btn-secondary job-edit" data-bs-toggle="modal" data-bs-target="#jobModal" @if($isJobLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>Edit</button></div>
                         </div>
                             <!-- </div> -->
                     </li>

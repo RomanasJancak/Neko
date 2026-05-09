@@ -87,6 +87,11 @@ class User extends Authenticatable
         // Assuming a user has only one role at a time
         return $this->roles()->first();
     }
+
+    public function isAdminOrSuperAdmin(): bool
+    {
+        return $this->roles()->whereIn('roles.id', [1, 2])->exists();
+    }
     public function tasks()
     {
         return $this->hasManyThrough(Task::class, Job::class, 'courrier_id', 'job_id')->orderBy('order_number');

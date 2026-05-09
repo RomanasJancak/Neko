@@ -454,6 +454,12 @@ public function index(Request $request,SettingsService $settings)
 
         try{
             $job = Job::findOrFail($request->id);
+            if ($job->isLockedForUser(auth()->user())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This job is locked and cannot be updated.',
+                ], 422);
+            }
             if($request->courierId == '0'){
                 $job->courrier_id   =   null;
             }else{
@@ -500,12 +506,18 @@ public function index(Request $request,SettingsService $settings)
         }
     }
     public function updateStatus(UpdateJobRequest $request, Job $job){
+                if ($job->isLockedForUser(auth()->user())) {
+                        return redirect()->back()->with('error', 'This job is locked and cannot be updated.');
+                }
         $job->status_id =   $request->status_id;
         $job->save();
         return redirect()->route('job.show',['job' => $job])->with('success_message', 'Job status updated sucsesfully');
     }
     public function moveToOtherInvoiceItem(Request $request, Job $job){
       try{
+                if ($job->isLockedForUser(auth()->user())) {
+                        return redirect()->back()->with('error', 'This job is locked and cannot be moved to another invoice item.');
+                }
         $validated = $request->validate([
           'invoice_item_id' => 'required|exists:invoice_items,id',
         ]);
@@ -541,6 +553,11 @@ public function index(Request $request,SettingsService $settings)
     {
         try{
             $job = Job::findOrFail($request->id);
+            if ($job->isLockedForUser(auth()->user())) {
+                return response()->json([
+                    'message' => 'This job is locked and cannot be deleted.',
+                ], 422);
+            }
             foreach($job->tasks as $task){
                 if(isset($task->pickup)){
                     $task->pickup->delete();
@@ -1165,10 +1182,10 @@ public function index(Request $request,SettingsService $settings)
         try {
             $job = Job::findOrFail($request->id);
 
-            if ($job->isInvoiced()) {
+            if ($job->isInvoiced() || $job->isLockedForUser(auth()->user())) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invoiced jobs are immutable and cannot change price adjustment.',
+                    'message' => 'This job is locked and cannot change price adjustment.',
                 ], 422);
             }
 
@@ -1198,6 +1215,12 @@ public function index(Request $request,SettingsService $settings)
     {
         try{
             $job = Job::findOrFail($request->id);            
+            if ($job->isLockedForUser(auth()->user())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This job is locked and cannot be updated.',
+                ], 422);
+            }
             if($request->input('courrier_id')){
                 if($request->input('courrier_id') === 'none'){
                     $job->courrier_id = null;
@@ -1315,6 +1338,7 @@ public function index(Request $request,SettingsService $settings)
                             'jobs' =>  $jobs->map(function ($job) {
                                 return[
                                     'id'    =>  $job->id,
+                                    'is_locked_for_non_admin_users' => $job->isLockedForUser(auth()->user()),
                                     'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
                                     'hasReturn' =>  $job->hasReturn(),
                                     'urlToLogo'   =>  $job->urlToLogo(),
@@ -1407,6 +1431,9 @@ public function index(Request $request,SettingsService $settings)
     public function removeFromInvoiceItem(Job $job)
     {
       try{
+                if ($job->isLockedForUser(auth()->user())) {
+                        return redirect()->back()->with('error', 'This job is locked and cannot be removed from invoice item.');
+                }
         $invoiceItem = $job->invoiceItem;
         $job->invoice_item_id = null;
         $job->status_id = 23;

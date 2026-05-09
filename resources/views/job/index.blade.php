@@ -192,6 +192,7 @@
         </thead>
         <tbody id="jobsTableBody">
             @foreach ($jobs as $job)
+            @php($isJobLocked = $job->isLockedForUser(auth()->user()))
             <tr id="jobTableRow_{{$job->id}}">
                 <td >
                     {{$job->id}}
@@ -258,7 +259,7 @@
                     <button class="btn btn-success view-btn job-view-btn" data-jobid="{{ $job->id }}">
                         <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-primary edit-btn job-edit-btn" data-jobid="{{ $job->id }}">
+                    <button class="btn btn-primary edit-btn job-edit-btn" data-jobid="{{ $job->id }}" @if($isJobLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>
                         <i class="bi bi-pen"></i>
                     </button>
                     <button class="btn btn-danger delete-btn job-delete-btn" data-jobid="{{ $job->id }}">

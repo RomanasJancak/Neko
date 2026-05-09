@@ -883,6 +883,34 @@ class Job extends Model
         return !is_null($this->invoice_item_id);
     }
 
+    public function isCompletedAndPastInvoiceLockDate(): bool
+    {
+        $statusName = strtolower((string) ($this->status->name ?? ''));
+        if ($statusName !== 'completed') {
+            return false;
+        }
+
+        $invoiceDate = $this->invoiceItem?->invoice?->invoice_date;
+        if (empty($invoiceDate)) {
+            return false;
+        }
+
+        return Carbon::today()->gt(Carbon::parse($invoiceDate)->addDay()->startOfDay());
+    }
+
+    public function isLockedForUser(?User $user = null): bool
+    {
+        if (!$this->isCompletedAndPastInvoiceLockDate()) {
+            return false;
+        }
+
+        if ($user && $user->isAdminOrSuperAdmin()) {
+            return false;
+        }
+
+        return true;
+    }
+
     private function guardAgainstInvoicedPriceMutation(): void
     {
         if ($this->isInvoiced()) {

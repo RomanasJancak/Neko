@@ -32,6 +32,10 @@ function viewJob(jobId) {
     $('#jobModalWindow').modal('show');
 }
 function editJob(jobId) {
+    if (isJobLockedInUi(jobId)) {
+        alert('This job is locked and cannot be edited.');
+        return;
+    }
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
     const statusIdField = document.getElementById('statusIdField');
@@ -99,6 +103,10 @@ function getShareLinkJob(jobId){
   var newUrl = `${window.location.origin}${window.location.pathname}?${queryParams.toString()}`;
     navigator.clipboard.writeText(newUrl)
     .then(() => alert('Copied to clipboard!'))
+}
+function isJobLockedInUi(jobId) {
+    const button = document.querySelector(`.job-edit-btn[data-jobid="${jobId}"]`);
+    return Boolean(button && button.disabled);
 }
 function openJobTemplateCreateModal(jobId) {
         document.getElementById('jobTemplateCreateModalWindow_modalHeader_JobId').textContent = `${jobId}`;
@@ -369,6 +377,7 @@ function fetchJobs(page = 1, url) {
             columnForPrice.appendChild(span2);
             row.appendChild(columnForPrice);
             let columnForActions =  document.createElement('td');
+            const isJobLocked = Boolean(job.is_locked_for_non_admin_users);
             let jobViewButton   =   document.createElement('button');
             jobViewButton.className = 'btn btn-success view-btn job-view-btn';
             jobViewButton.dataset.jobid = job.id;
@@ -377,6 +386,11 @@ function fetchJobs(page = 1, url) {
             jobEditButton.className = 'btn btn-primary edit-btn job-edit-btn';
             jobEditButton.dataset.jobid = job.id;
             jobEditButton.innerHTML = '<i class="bi bi-pen"></i>';
+            if (isJobLocked) {
+                jobEditButton.disabled = true;
+                jobEditButton.title = 'Locked after invoice date';
+                jobEditButton.setAttribute('aria-disabled', 'true');
+            }
             let jobDeleteButton   =   document.createElement('button');
             jobDeleteButton.className = 'btn btn-danger delete-btn job-delete-btn';
             jobDeleteButton.dataset.jobid = job.id;
@@ -1499,6 +1513,7 @@ function repopulateJobRow(jobId,jobRow){
             columnForPrice.appendChild(span2);
             row.appendChild(columnForPrice);
             let columnForActions =  document.createElement('td');
+            const isJobLocked = Boolean(job.is_locked_for_non_admin_users);
             let jobViewButton   =   document.createElement('button');
             jobViewButton.className = 'btn btn-success view-btn job-view-btn';
             jobViewButton.dataset.jobid = job.id;
@@ -1507,6 +1522,11 @@ function repopulateJobRow(jobId,jobRow){
             jobEditButton.className = 'btn btn-primary edit-btn job-edit-btn';
             jobEditButton.dataset.jobid = job.id;
             jobEditButton.innerHTML = '<i class="bi bi-pen"></i>';
+            if (isJobLocked) {
+                jobEditButton.disabled = true;
+                jobEditButton.title = 'Locked after invoice date';
+                jobEditButton.setAttribute('aria-disabled', 'true');
+            }
             let jobDeleteButton   =   document.createElement('button');
             jobDeleteButton.className = 'btn btn-danger delete-btn job-delete-btn';
             jobDeleteButton.dataset.jobid = job.id;
