@@ -35,10 +35,14 @@ return new class extends Migration
             $table->string('dropoff_postal_code')->nullable();//CSV
             $table->string('dropoff_city')->nullable();//CSV
             $table->string('dropoff_country')->nullable();//CSV
-            $table->string('public_notes')->nullable();//CSV
-            $table->string('contact_phone')->nullable();//CSV
-            $table->string('first_name')->nullable();//CSV
-            $table->string('last_name')->nullable();//CSV
+            // CLEANUP 2026-05-09: unused by application code
+            // $table->string('public_notes')->nullable();//CSV
+            // CLEANUP 2026-05-09: unused by application code
+            // $table->string('contact_phone')->nullable();//CSV
+            // CLEANUP 2026-05-09: unused by application code
+            // $table->string('first_name')->nullable();//CSV
+            // CLEANUP 2026-05-09: unused by application code
+            // $table->string('last_name')->nullable();//CSV
             $table->string('email')->nullable();
             $table->string('Credit_Balance')->nullable();//CSV
             //==================================

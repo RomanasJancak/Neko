@@ -31,10 +31,12 @@ return new class extends Migration
             $table->unsignedBigInteger('distance')->nullable();
             $table->unsignedBigInteger('invoice_id')->nullable();
             $table->bigInteger('price_adjustment_number')->default(0);
-            $table->unsignedBigInteger('jobTemplate_id')->nullable();
+            // CLEANUP 2026-05-09: superseded by job_template_id and unused by application code
+            // $table->unsignedBigInteger('jobTemplate_id')->nullable();
             $table->date('date');
             $table->bigInteger('fixed_price')->default(0);
-            $table->string('distance_calculation_method')->default('optimal');
+            // CLEANUP 2026-05-09: unused by application code
+            // $table->string('distance_calculation_method')->default('optimal');
             $table->foreignId('job_template_id')->nullable()->constrained()->onDelete('set null');
             $table->index('job_template_id');
             $table->foreignId('invoice_item_id')->nullable()->constrained('invoice_items')->nullOnDelete();
