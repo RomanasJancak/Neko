@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
+use Database\Seeders\UserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -17,26 +20,22 @@ class UserCrudTest extends TestCase
         parent::setUp();
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $this->seed([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
+        ]);
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
     public function test_admin_can_perform_user_crud_via_web_routes(): void
     {
-        $superAdminRole = Role::create([
-            'name' => 'superadmin',
-            'display_name' => 'superadmin',
-            'guard_name' => 'web',
-        ]);
+        $superAdminRole = Role::where('name', 'superadmin')->firstOrFail();
+        $adminRole = Role::where('name', 'admin')->firstOrFail();
 
-        $adminRole = Role::create([
-            'name' => 'admin',
-            'display_name' => 'admin',
-            'guard_name' => 'web',
-        ]);
-
-        $actingUser = User::factory()->create([
-            'password' => 'password',
-        ]);
-        $actingUser->assignRole($superAdminRole);
+        $actingUser = User::where('email', 'SAdmin@localhost.lt')->firstOrFail();
 
         $this->actingAs($actingUser);
 
