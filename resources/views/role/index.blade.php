@@ -1,80 +1,37 @@
-<!-- resources/views/roles/index.blade.php -->
 @extends('layouts.app')
 
-@section('title', 'Roles and Permissions')
-@section('style')
-<style>
-    .highlight {
-        background-color: #f0f8ff 
-        !important
-        ; /* Light blue background for highlighted cells */
-    }
-    .table-bordered th,
-    .table-bordered td {
-        transition: background-color 0.3s ease; /* Smooth transition for highlighting */
-    }
-</style>
-@endsection    
+@section('title', 'Users and Roles')
+
 @section('content')
-    <h1>Roles and Permissions</h1>
-    <div class="table-responsive" >
-        <table class="table table-bordered" id="rolesTable">
-            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+    <h1>Users and Their Roles</h1>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
                 <tr>
-                    <th>Permission / Role</th>
-                    @foreach($roles as $role)
-                        <th>{{ $role->name }}</th>
-                    @endforeach
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role(s)</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($permissions as $permission)
+                @forelse($users as $user)
                     <tr>
-                        <td class="roleName-cell">{{ $permission->name }}</td>
-                        @foreach($roles as $role)
-                            <td>
-                                @if($role->permissions->contains($permission))
-                                    <span class="text-success">Yes</span>
-                                @else
-                                    <span class="text-danger">No</span>
-                                @endif
-                            </td>
-                        @endforeach
+                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if($user->roles->isEmpty())
+                                <span class="text-muted">No role assigned</span>
+                            @else
+                                {{ $user->roles->pluck('name')->join(', ') }}
+                            @endif
+                        </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">No users found.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-@endsection
-
-@section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const table = document.getElementById('rolesTable');
-
-        table.addEventListener('click', function (e) {
-            if (e.target.tagName === 'TD' || e.target.tagName === 'SPAN') {
-                const cell = e.target.closest('td');
-                const row = cell.parentNode;
-                const columnIndex = Array.from(row.children).indexOf(cell);
-
-                // Remove previous highlights
-                table.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
-
-                // Highlight the clicked row
-                row.querySelectorAll('td').forEach(td => td.classList.add('highlight'));
-                
-
-                // Highlight the clicked column
-                table.querySelectorAll('tr').forEach(tr => {
-                    const td = tr.children[columnIndex];
-                    if (td) {
-                        td.classList.add('highlight');
-                    }
-                });
-            }
-        });
-    });
-</script>
-
 @endsection

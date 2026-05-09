@@ -145,7 +145,10 @@
                                   <a class="dropdown-item " href="{{route('packageType.index')}}">Package types</a>
                                   </li>
                                   <li>
-                                  <a class="dropdown-item " href="{{route('role.index')}}">Roles</a>
+                                  <a class="dropdown-item " href="{{route('role.index')}}">Users and roles</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('role.permissionsMatrix')}}">Roles and permissions</a>
                                   </li>
                                   <li>
                                   <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>

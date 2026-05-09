@@ -88,8 +88,10 @@ Route::group(['prefix' => 'users', 'middleware' => 'auth'], function(){
     Route::patch('updateRole/{user}',    [UserController::class, 'updateRole'])->name('user.updateRole');
 
 });
-Route::group(['prefix' => 'roles'], function(){
-    Route::get('',                          [RoleController::class, 'index'])->name('role.index')->middleware('auth'); 
+Route::group(['prefix' => 'roles', 'middleware' => 'auth'], function(){
+    Route::get('',                          [RoleController::class, 'index'])->name('role.index');
+    Route::get('permissions-matrix',        [RoleController::class, 'permissionsMatrix'])->name('role.permissionsMatrix');
+    Route::patch('{role}/permissions',      [RoleController::class, 'updatePermissions'])->name('role.updatePermissions');
 });
 Route::group(['prefix' => 'clients'], function(){
     Route::get('',                  [ClientController::class, 'index'])->name('client.index')->middleware('auth');
