@@ -16,7 +16,7 @@ class JobObserver
      */
     public function created(Job $job): void
     {
-      if($job->status_id === 14) {
+      if((int)$job->status_id === 14) {
         $this->assignToInvoice($job);
       }
     }
@@ -27,10 +27,8 @@ class JobObserver
     public function updated(Job $job): void
     {
       
-      if ($job->isDirty('status_id') && ($job->status->id === 14)) {
-        
+      if ($job->isDirty('status_id') && ((int)$job->status_id === 14)) {
         $this->assignToInvoice($job);
-        
       }
     }
 
