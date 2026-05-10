@@ -20,3 +20,4 @@ yarn-error.log
 /.vscode
 files_to_migrate.txt
 env.testing
+current_structure.sql
