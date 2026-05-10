@@ -80,13 +80,15 @@ public function index(Request $request,SettingsService $settings)
     $sortOrder = $request->get('sortOrder')?: $settings->get('models.job.view.index.sortOrder', $user);
     $openModal = $request->get('openModal', false);
     if ($openModal && !empty($id)) {
-        $jobs = Job::paginate(10)->appends($request->query());
+        $jobs = Job::with(['clientToBill', 'tasks', 'tasks.package', 'invoiceItem.invoice'])
+            ->paginate(10)
+            ->appends($request->query());
         $jobToOpen = Job::find($id);
         return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen','optionsForDropOffsSearch','dropOffSearchFields'));
     }
 
     // Base query
-    $query = Job::with(['clientToBill', 'tasks', 'tasks.package']);
+    $query = Job::with(['clientToBill', 'tasks', 'tasks.package', 'invoiceItem.invoice']);
 
     // Apply filters
     if (!empty($id)) {

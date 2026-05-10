@@ -196,6 +196,17 @@
             <tr id="jobTableRow_{{$job->id}}">
                 <td >
                     {{$job->id}}
+                    @if($job->invoiceItem && $job->invoiceItem->invoice)
+                        <a
+                            href="{{ route('invoice.show', $job->invoiceItem->invoice->id) }}"
+                            class="info-icon ms-1 text-danger text-decoration-none"
+                            title="{{ $job->invoiceItem->invoice->invoice_number }}"
+                            aria-label="Invoice {{ $job->invoiceItem->invoice->invoice_number }}"
+                        >
+                            <i class="fa-solid fa-biohazard"></i>
+                            <span class="tooltip">{{ $job->invoiceItem->invoice->invoice_number }}</span>
+                        </a>
+                    @endif
                 </td>
                 <td>
                     {{ $job->status->name}}
