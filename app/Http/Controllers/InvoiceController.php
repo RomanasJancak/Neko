@@ -158,7 +158,7 @@ class InvoiceController extends Controller
     {
       $invoice->loadMissing('client');
 
-      if (!$invoice->client || empty($invoice->client->email)) {
+      if (!$invoice->canBeSent()) {
         return redirect()->route('invoice.index')->with('error', 'Client email does not exist for this invoice.');
       }
 
@@ -196,7 +196,7 @@ class InvoiceController extends Controller
       $pdfContent = Pdf::loadView('invoice.pdf', $viewData)->output();
       $pdfFileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
 
-      $clientEmail = trim((string) $invoice->client->email);
+      $clientEmail = trim((string) $invoice->getInvoiceEmail());
       $clientEmail = "invoice.nekohomedelivery@gmail.com";
       /*
       // Accept comma/semicolon separated CC emails from settings and keep only valid addresses.

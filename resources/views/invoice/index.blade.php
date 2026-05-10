@@ -49,12 +49,12 @@
               <a href="{{ route('invoice.show', $invoice->id) }}" class="btn btn-info btn-sm">View</a>
               <a href="{{ route('invoice.viewPDF', $invoice->id) }}" class="btn btn-secondary btn-sm" target="_blank">View PDF</a>
               <a href="{{ route('invoice.viewPDF', ['invoice' => $invoice->id, 'download' => 1]) }}" class="btn btn-success btn-sm">Download Invoice</a>
-              @if(!empty(optional($invoice->client)->email))
+              @if($invoice->canBeSent())
                 <button
                   type="button"
                   class="btn btn-warning btn-sm js-open-send-email-modal"
                   data-send-url="{{ route('invoice.sendEmail', $invoice->id) }}"
-                  data-client-email="{{ $invoice->client->email }}"
+                  data-client-email="{{ $invoice->getInvoiceEmail() }}"
                   data-invoice-number="{{ $invoice->invoice_number }}"
                   data-subject="{{ base64_encode($invoice->email_subject_prefill) }}"
                   data-body="{{ base64_encode($invoice->email_body_prefill) }}"

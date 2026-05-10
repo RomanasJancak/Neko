@@ -35,6 +35,24 @@ class Client extends Model
     {
         return $this->morphMany(EmailAddress::class, 'emailable');
     }
+    public function hasInvoiceEmail(): bool
+    {
+        return $this->emails()
+            ->where('type', 'invoice')
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->exists();
+    }
+    public function getInvoiceEmail(): ?string
+    {
+        $email = $this->emails()
+            ->where('type', 'invoice')
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->value('email');
+
+        return $email ? trim((string) $email) : null;
+    }
     public function packageTypes()
     {
         return $this->belongsToMany(PackageType::class,'client_package_types')->withTimestamps();

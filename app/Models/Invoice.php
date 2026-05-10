@@ -42,4 +42,12 @@ class Invoice extends Model
     {
         app(InvoicePricingService::class)->recalculateInvoice($this);
     }
+    public function canBeSent(): bool
+    {
+        return $this->client?->hasInvoiceEmail() ?? false;
+    }
+    public function getInvoiceEmail(): ?string
+    {
+        return $this->client?->getInvoiceEmail();
+    }
 }
