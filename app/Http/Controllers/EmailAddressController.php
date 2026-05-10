@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEmailAddressRequest;
 use App\Http\Requests\UpdateEmailAddressRequest;
 use App\Models\EmailAddress;
+use Illuminate\Http\Request;
 
 class EmailAddressController extends Controller
 {
@@ -59,8 +60,32 @@ class EmailAddressController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EmailAddress $emailAddress)
+    public function destroy(Request $request, EmailAddress $emailAddress)
     {
-        //
+        try {
+            $clientId = (int) $request->input('client_id');
+
+            if (
+                $emailAddress->emailable_type !== 'App\\Models\\Client' ||
+                ($clientId > 0 && (int) $emailAddress->emailable_id !== $clientId)
+            ) {
+                return response()->json([
+                    'error' => 'Email does not belong to the selected client.',
+                ], 403);
+            }
+
+            $emailAddress->delete();
+
+            return response()->json([
+                'message' => 'Email deleted successfully.',
+                'email_id' => $emailAddress->id,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 }

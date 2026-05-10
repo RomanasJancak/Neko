@@ -41,6 +41,54 @@ export function cleanClientForm(){
   const container = document.getElementById('container-addresses');
   container.innerHTML = '';
 }
+
+function deleteEmail(emailId = null){
+    const container = document.getElementById('container-emails');
+
+    if (!emailId) {
+        return;
+    }
+
+    const emailElement = document.querySelector(`input[name="email_id[]"][value="${emailId}"]`);
+    if (!emailElement) {
+        return;
+    }
+
+    const routeUrl = window.ROUTES.WEB.EMAIL.DELETE.replace(':id', emailId);
+    const clientId = document.getElementById('clientid') ? document.getElementById('clientid').value : null;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    fetch(routeUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+            client_id: clientId,
+        }),
+    })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete email.');
+            }
+            return data;
+        })
+        .then(() => {
+            const row = emailElement.closest('.row');
+            if (row && container.contains(row)) {
+                row.remove();
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting email:', error);
+            alert(error.message || 'Error deleting email. Please try again.');
+        });
+}
+
+window.deleteEmail = deleteEmail;
 function populateWithEmails(emails){
   console.log("THIS 1", emails);
     const container_main = document.getElementById('container-emails');

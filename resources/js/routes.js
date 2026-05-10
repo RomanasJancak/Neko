@@ -56,6 +56,9 @@ window.ROUTES = {
       ADDRESS:{
         GETINFO:  APP_URL+'/addresses/getAddressInfo/:id',
       },
+      EMAIL: {
+        DELETE: APP_URL+'/emails/delete/:id',
+      },
       PACKAGETYPE:{
         GETINFO: APP_URL+'/packageTypes/getPackageTypeInfo/:id',
       },

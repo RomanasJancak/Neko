@@ -25,6 +25,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\InvoiceItemController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\UserStatusController;
+use App\Http\Controllers\EmailAddressController;
 
 use App\Models\User;
    
@@ -292,6 +293,9 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
     Route::get('getAddressInfo/{id}',         [AddressController::class, 'getAddressInfo'])->name('address.getAddressInfo')->middleware('auth');    
+});
+Route::group(['prefix'  => 'emails'],function(){
+    Route::post('delete/{emailAddress}',      [EmailAddressController::class, 'destroy'])->name('email.delete')->middleware('auth');
 });
 Route::group(['prefix' => 'extratypes'], function(){
     Route::get('',                  [ExtraTypesController::class, 'index'])->name('extratype.index')->middleware('auth');
