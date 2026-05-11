@@ -128,8 +128,8 @@ function populateWithEmails(emails){
         const newEmailRow = `
             <div class="row">        
                 <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value=""></div>
-                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="" placeholder="Email" ></div>
-                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="" placeholder="Type (e.g. work, personal)" ></div>
+                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="" placeholder="Email" ></div>
+                <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="" placeholder="Type (e.g. work, personal)" ></div>
                 <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" onclick="this.parentElement.parentElement.remove()">
                     <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
                 </div>
