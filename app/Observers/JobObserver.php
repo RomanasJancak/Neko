@@ -30,6 +30,9 @@ class JobObserver
       if ($job->isDirty('status_id') && ((int)$job->status_id === 14)) {
         $this->assignToInvoice($job);
       }
+      if($job->isDirty('status_id') && (int)$job->getOriginal('status_id') === 14 && (int)$job->status_id !== 14){        
+        $this->removeFromInvoice($job);
+      } 
     }
 
     /**
@@ -112,5 +115,19 @@ class JobObserver
       $pricingService = app(InvoicePricingService::class);
       $pricingService->recalculateItemAndInvoice($invoiceItem);
       //dd($job, $invoiceItem);
+    }
+    protected function removeFromInvoice(Job $job): void
+    {
+      if (!$job->invoiceItem) {
+        return;
+      }
+      $invoiceItem = $job->invoiceItem;
+      $job->invoice_item_id = null;
+      $job->saveQuietly();
+      if($invoiceItem){
+        $pricingService = app(InvoicePricingService::class);
+        $pricingService->recalculateItemAndInvoice($invoiceItem);
+      }
+      
     }
 }

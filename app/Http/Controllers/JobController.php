@@ -1442,12 +1442,9 @@ public function index(Request $request,SettingsService $settings)
                 if ($job->isLockedForUser(auth()->user())) {
                         return redirect()->back()->with('error', 'This job is locked and cannot be removed from invoice item.');
                 }
-        $invoiceItem = $job->invoiceItem;
-        $job->invoice_item_id = null;
-        $job->status_id = 23;
-        $job->save();
-                $pricingService = app(InvoicePricingService::class);
-                $pricingService->recalculateItemAndInvoice($invoiceItem);
+          $job->update([
+            'status_id' => 23 
+          ]);
         // return response()->json([
         //   'success' => true,
         //   'message' => 'Job removed from invoice item successfully.',
