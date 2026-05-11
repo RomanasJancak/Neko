@@ -196,6 +196,21 @@ function getIconsForIdCell({job = null}){
       console.log(job.template);
       icons.push(templateIcon);
     }
+    if(job.invoice){
+      let invoiceLink = document.createElement('a');
+      invoiceLink.href = `${window.location.origin}/invoices/show/${job.invoice.id}`;
+      invoiceLink.className = 'info-icon ms-1 text-danger text-decoration-none';
+      invoiceLink.title = job.invoice.invoice_number;
+      invoiceLink.setAttribute('aria-label', `Invoice ${job.invoice.invoice_number}`);
+      let invoiceIcon = document.createElement('i');
+      invoiceIcon.className = 'fa-solid fa-biohazard';
+      let invoiceTooltip = document.createElement('span');
+      invoiceTooltip.className = 'tooltip';
+      invoiceTooltip.textContent = job.invoice.invoice_number;
+      invoiceLink.appendChild(invoiceIcon);
+      invoiceLink.appendChild(invoiceTooltip);
+      icons.push(invoiceLink);
+    }
     if(job.is_note_different_from_template_note){
       let noteIcon = document.createElement('img');
       noteIcon.src = '/files/icons/note.png';

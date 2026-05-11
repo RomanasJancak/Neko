@@ -1305,7 +1305,7 @@ public function index(Request $request,SettingsService $settings)
                 $jobIds = $jobIds
                 ->pluck('jobs.id'); 
 
-            $jobs = Job::with(['clientToBill', 'tasks'])
+            $jobs = Job::with(['clientToBill', 'tasks', 'invoiceItem.invoice'])
                 ->whereIn('jobs.id', $jobIds)
                 ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
                     $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
@@ -1358,6 +1358,12 @@ public function index(Request $request,SettingsService $settings)
                                     'price' =>  $job->price()['totalPrice'],
                                     'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
                                     'fixed_price'           =>  $job->fixed_price === 0,
+                                    'invoice'               =>  ($job->invoiceItem && $job->invoiceItem->invoice)
+                                        ? [
+                                            'id'             => $job->invoiceItem->invoice->id,
+                                            'invoice_number' => $job->invoiceItem->invoice->invoice_number,
+                                        ]
+                                        : null,
                                     'template'              =>  is_null($job->jobTemplate) ? 'none' : $job->jobTemplate,
                                     'lockedFields' => empty($job->lockedFields())
                                         ? 'none'
