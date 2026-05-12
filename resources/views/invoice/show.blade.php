@@ -2,7 +2,13 @@
 
 @section('content')
 <div class="container">
+  @php($isInvoiceLocked = $invoice->isLockedForUser(auth()->user()))
   <h1>Invoice Details</h1>
+  @if($isInvoiceLocked)
+    <div class="alert alert-warning">
+      This invoice is locked after invoice date and cannot be edited.
+    </div>
+  @endif
   <div class="card">
     <div class="card-header">
       Invoice #{{ $invoice->id }}<br>
@@ -10,7 +16,7 @@
         @csrf
             @method('patch')
         <label for="invoice_number">Invoice Number:</label>
-        <input onchange="this.form.submit()" class="form-control" type="text" id="invoice_number" name="invoice_number" value="{{ $invoice->invoice_number }}">
+        <input onchange="this.form.submit()" class="form-control" type="text" id="invoice_number" name="invoice_number" value="{{ $invoice->invoice_number }}" @if($isInvoiceLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>
       </form>
       <form action="{{ route('invoice.snapshots.generate', $invoice->id) }}" method="POST" class="mt-2">
         @csrf
@@ -51,7 +57,7 @@
           <form action="{{ route('invoiceItem.destroy', $item->id) }}" method="POST" class="d-inline">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')" @if($isInvoiceLocked) disabled title="Locked after invoice date" aria-disabled="true" @endif>Delete</button>
           </form>
         @endif
           </td>

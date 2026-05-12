@@ -10,6 +10,7 @@ use App\Services\SettingsService;
 use App\Services\InvoiceSnapshotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceController extends Controller
@@ -19,7 +20,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-      $invoices = Invoice::with(['client', 'invoiceItems'])->latest()->paginate(10);
+      $invoices = Invoice::with(['client', 'invoiceItems', 'sentByUser'])->latest()->paginate(10);
 
       $invoices->getCollection()->transform(function (Invoice $invoice) {
         $invoice->email_subject_prefill = $this->renderTemplate(
@@ -79,6 +80,10 @@ class InvoiceController extends Controller
     public function update(UpdateInvoiceRequest $request, Invoice $invoice)
     {
       try{
+        if ($invoice->isLockedForUser(auth()->user())) {
+          return redirect()->route('invoice.show', $invoice->id)->with('error', 'This invoice is locked and cannot be updated.');
+        }
+
         $validated = $request->validate([
           'invoice_number' => 'required|string|max:255|unique:invoices,invoice_number,' . $invoice->id,
         ]);
@@ -95,6 +100,10 @@ class InvoiceController extends Controller
     public function destroy(Invoice $invoice)
     {
       try{
+        if ($invoice->isLockedForUser(auth()->user())) {
+          return redirect()->route('invoice.index')->with('error', 'This invoice is locked and cannot be deleted.');
+        }
+
         foreach($invoice->invoiceItems as $item){
           if($item->jobs()->count() > 0) {
               return redirect()->route('invoice.index')->with('error', 'Cannot delete Invoice with associated Jobs.');
@@ -232,6 +241,14 @@ class InvoiceController extends Controller
           'invoice_email_body_template' => $validated['body'],
         ]);
       }
+
+      $invoice->status = 'sent';
+      $invoice->sent_at = now();
+      $invoice->sent_by = auth()->id();
+      if (Schema::hasColumn('invoices', 'status_id')) {
+        $invoice->status_id = Invoice::STATUS_SENT_ID;
+      }
+      $invoice->save();
 
       return redirect()->route('invoice.index')->with('success', 'Invoice email sent successfully.');
     }

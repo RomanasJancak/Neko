@@ -64,6 +64,10 @@ class InvoiceItemController extends Controller
     public function update(UpdateInvoiceItemRequest $request, InvoiceItem $invoiceItem)
     {
       try{
+        if ($invoiceItem->invoice && $invoiceItem->invoice->isLockedForUser(auth()->user())) {
+          return redirect()->back()->with('error', 'This invoice is locked and invoice items cannot be updated.');
+        }
+
         $request->merge([
           'description' => $request->input('invoiceItem_description'),
         ]);
@@ -83,6 +87,10 @@ class InvoiceItemController extends Controller
     public function destroy(InvoiceItem $invoiceItem)
     {
       try{
+      if ($invoiceItem->invoice && $invoiceItem->invoice->isLockedForUser(auth()->user())) {
+        return redirect()->back()->with('error', 'This invoice is locked and invoice items cannot be deleted.');
+      }
+
         if($invoiceItem->jobs()->count() > 0) {
             return redirect()->back()->with('error', 'Cannot delete Invoice Item with associated Jobs.');
         }
