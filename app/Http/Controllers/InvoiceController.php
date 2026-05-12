@@ -141,14 +141,14 @@ class InvoiceController extends Controller
         'snapshotData' => $snapshotData,
       ];
 
-      if ($request->boolean('download')) {
-        $fileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
-          $pdf = Pdf::loadView('invoice.pdf', $viewData);
+      $fileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
+      $pdf = Pdf::loadView('invoice.pdf', $viewData);
 
+      if ($request->boolean('download')) {
         return $pdf->download($fileName);
       }
 
-      return view('invoice.pdf', $viewData)->render();
+      return $pdf->stream($fileName);
     }
 
     public function generateSnapshot(Request $request, Invoice $invoice, SettingsService $settings)
