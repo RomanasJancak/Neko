@@ -2,127 +2,96 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Invoice {{$invoiceData['invoice_number'] ?? ''}}</title>
+  <title>Invoice {{ $invoiceData['invoice_number'] ?? '' }}</title>
 
   <style>
-    *{
-    }
-    :root {
-      --accent: #1f6feb;
-      --muted: #555;
-      --border: #ddd;
-      --paper: #fff;
-      font-family: "DejaVu Sans", Arial, sans-serif;
-      color: #111;
-    }
-
+    /* DomPDF works best with DejaVu Sans for special characters like £ */
     body {
-      background: #f6f8fa;
-      max-width: 210mm;
-      /* padding: 25px; */
-      /* margin: 0; */
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 12px;
+      color: #111;
+      background: #fff;
+      margin: 0;
+      padding: 0;
     }
 
     #invoice {
-      max-width: 210mm;
-      /* margin: 0 auto; */
-      background: var(--paper);
-      /* padding: 32px; */
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-      border: 1px solid var(--border);
+      padding: 10px;
     }
 
-    #invoice-title{
-      font-size:27px;
-      /* margin-bottom:10px; */
+    #invoice-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #1f6feb;
+      padding-bottom: 10px;
     }
 
-    #header {
-      display: flex;
-      justify-content: end;
-      gap: 75px;
-      text-align: right;
-      /* margin-bottom: 30px; */
+    /* Table layout replacements for Flexbox */
+    .layout-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
     }
 
-    #header .info {
-      align-items: flex-start;
-      text-align: left;
-    }
-
-    #invoice-header {
-      display: flex;
-      gap: 100px;
-    }
-
-    #totals {
-      display: flex;
-      justify-content: end;
-    }
-
-    #footer-title{
-      margin-bottom: 10px;
-    }
-
-    #footer-text{
-      text-align: center;
-      font-size: 12px;
-    }
-
-    #client-info{
-      display: flex;
-      flex-direction: row;
-      gap:20px
-    }
-
-    .span-info {
-      display: flex;
-      gap: 20px;
+    .layout-table td {
+      vertical-align: top;
+      padding: 0;
     }
 
     .title {
       color: #1f6feb;
+      font-weight: bold;
     }
 
-    .info {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .main-info {
-      text-align: left;
+    .text-right {
+      text-align: right;
     }
 
     .break {
-      display: block;
-      height: 2px;
-      background-color: lightgray;
-      /* margin: 16px 0; */
-      width: 100%;
+      height: 1px;
+      background-color: #ddd;
+      margin: 15px 0;
       border: none;
     }
 
+    /* Job Tables */
     .job-table {
       width: 100%;
       border-collapse: collapse;
-      /* margin: 8px 0 20px; */
-      font-size: 12px;
-      background: #fafafa;
+      margin-bottom: 15px;
+      font-size: 11px;
     }
 
-    .job-table th,
+    .job-table th {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+    }
+
     .job-table td {
-      border: 1px solid var(--border);
-      /* padding: 6px 8px; */
+      border: 1px solid #ddd;
+      padding: 6px;
       vertical-align: top;
     }
 
-    .time{
-      color: var(--muted);
-      font-size:11px;
+    .time {
+      color: #555;
+      font-size: 10px;
+    }
+
+    #footer {
+      margin-top: 30px;
+      font-size: 11px;
+    }
+
+    .muted {
+      color: #555;
+    }
+
+    /* Force page breaks if invoice is long */
+    .page-break {
+      page-break-after: always;
     }
   </style>
 </head>
@@ -134,180 +103,176 @@
     $clientData = $snapshotData['client'] ?? [];
     $items = $snapshotData['items'] ?? [];
     $totals = $snapshotData['totals'] ?? [];
-    $version = $snapshotData['version'] ?? null;
-    $generatedAt = $snapshotData['generated_at'] ?? null;
   @endphp
 
-<article id="invoice">
+<div id="invoice">
 
-  <!-- HEADER -->
+  <!-- HEADER: REPLACED FLEX WITH TABLE -->
   <div id="invoice-title">
     <b>Itemised Invoice of {{ $invoiceData['invoice_number'] }}</b>
   </div>
 
-  <section class="grid" id="header">
-    <div class="info">
-      <div class="title"><b>Neko Home Delivery LLP</b></div>
-      <div class="main-info">410 1951 42</div>
-      <div class="main-info">www.nekohomedelivery.com</div>
-      <div class="main-info">nekohomedelivery@gmail.com</div>
-      <div class="main-info">07429381472</div>
-    </div>
+  <table class="layout-table">
+    <tr>
+      <td style="width: 50%;">
+        <div class="title">Neko Home Delivery LLP</div>
+        <div>410 1951 42</div>
+        <div>www.nekohomedelivery.com</div>
+        <div>nekohomedelivery@gmail.com</div>
+        <div>07429381472</div>
+      </td>
+      <td style="width: 50%; text-align: right;">
+        <div>Bakersfield, Crayford Road</div>
+        <div>Flat 22</div>
+        <div>London N7 0LT</div>
+        <div>United Kingdom</div>
+      </td>
+    </tr>
+  </table>
 
-    <div class="info">
-      <div class="main-info">Bakersfield, Crayford Road</div>
-      <div class="main-info">Flat 22</div>
-      <div class="main-info">London N7 0LT</div>
-      <div class="main-info">United Kingdom</div>
-    </div>
-  </section>
+  <div class="title" style="margin-bottom: 5px;">INVOICE</div>
+  <hr class="break">
 
-  <!-- INVOICE INFO -->
-  <section>
-    <div class="title"><b>INVOICE</b></div>
-    <div class="break"></div>
-
-    <div id="invoice-header">
-      <div class="span-info">
-        <div class="info">
-          <div>Invoice Number</div>
-          <div>Invoice Date</div>
-          <div>Due Date</div>
-          <div>Invoice Total</div>
+  <!-- INVOICE INFO & CLIENT: REPLACED FLEX WITH TABLE -->
+  <table class="layout-table">
+    <tr>
+      <td style="width: 50%;">
+        <table style="width: 100%;">
+          <tr>
+            <td style="padding-right: 20px; line-height: 1.6;">
+              <div>Invoice Number:</div>
+              <div>Invoice Date:</div>
+              <div>Due Date:</div>
+              <div class="title">Invoice Total:</div>
+            </td>
+            <td style="line-height: 1.6;">
+              <div>{{ $invoiceData['invoice_number'] }}</div>
+              <div>{{ $invoiceData['invoice_date'] }}</div>
+              <div>{{ $invoiceData['due_date'] }}</div>
+              <div class="title">£{{ number_format($totals['grand_total'], 2) }}</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td style="width: 50%;">
+        <div style="margin-left: 40px;">
+          <b>BILL TO:</b><br>
+          <div style="margin-top: 5px;">
+            <b>{{ $clientData['name'] }}</b><br>
+            {{ $clientData['address_line'] }}<br>
+            {{ $clientData['city'] }} {{ $clientData['postcode'] }}<br>
+            {{ $clientData['country'] }}<br>
+            <span class="muted">{{ $clientData['email'] }}</span>
+          </div>
         </div>
+      </td>
+    </tr>
+  </table>
 
-        <div class="info">
-          <div>{{ $invoiceData['invoice_number'] }}</div>
-          <div>{{ $invoiceData['invoice_date'] }}</div>
-          <div>{{ $invoiceData['due_date'] }}</div>
-          <div>£{{ number_format($totals['grand_total'], 2) }}</div>
-        </div>
-      </div>
-
-      <div id="client-info">
-        <b>BILL TO:</b>
-        <div class="info">
-          <b>{{ $clientData['name'] }}</b>
-          <div>{{ $clientData['address_line'] }}</div>
-          <div>{{ $clientData['city'] }} {{ $clientData['postcode'] }}</div>
-          <div>{{ $clientData['country'] }}</div>
-          <div>{{ $clientData['email'] }}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="break"></div>
-  </section>
+  <hr class="break">
 
   <!-- ITEMS -->
   @foreach ($items as $item)
 
-  <table class="job-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Jobs Count</th>
-        <th>Price</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>{{ $item['description'] }}</td>
-        <td>{{ $item['jobs_count'] }}</td>
-        <td>£{{ number_format($item['price'], 2) }}</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <table class="job-table">
-    <thead>
-      <tr>
-        <th>Job ID</th>
-        <th>Status</th>
-        <th>Date</th>
-        <th>Pickup</th>
-        <th>Package</th>
-        <th>Dropoff</th>
-        <th>Return</th>
-        <th>Job Total</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      @foreach ($item['jobs'] as $job)
-        @php
-          $dropOffs = $job['dropoffs'] ?? [];
-          $dropCount = max(count($dropOffs), 1);
-        @endphp
-
-        @foreach ($dropOffs as $index => $drop)
+    <table class="job-table">
+      <thead>
         <tr>
-          @if ($index === 0)
-            <td rowspan="{{ $dropCount }}">#{{ $job['id'] }}</td>
-            <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status']) }}</td>
-            <td rowspan="{{ $dropCount }}">{{ $job['date'] }}</td>
-            <td rowspan="{{ $dropCount }}">
-              {{ $job['pickup']['address'] }}<br>
-              <span class="time">{{ $job['pickup']['time_window_begin'] }} – {{ $job['pickup']['time_window_end'] }}</span>
-            </td>
-          @endif
-
-          <td>{{ $drop['package_type'] }} × {{ $drop['quantity'] }}</td>
-
-          <td>
-            {{ $drop['address'] }}<br>
-            <span class="time">{{ $drop['time_window_begin'] }} – {{ $drop['time_window_end'] }}</span>
-          </td>
-
-          @if ($index === 0)
-            <td rowspan="{{ $dropCount }}">
-              {{ $job['return']['address'] ?? '—' }}
-            </td>
-            <td rowspan="{{ $dropCount }}">
-              £{{ number_format($job['total'], 2) }}
-            </td>
-          @endif
+          <th style="width: 60%;">Item Description</th>
+          <th style="width: 20%;">Jobs Count</th>
+          <th style="width: 20%;">Price</th>
         </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ $item['description'] }}</td>
+          <td>{{ $item['jobs_count'] }}</td>
+          <td>£{{ number_format($item['price'], 2) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="job-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Pickup</th>
+          <th>Package</th>
+          <th>Dropoff</th>
+          <th>Return</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach ($item['jobs'] as $job)
+          @php
+            $dropOffs = $job['dropoffs'] ?? [];
+            $dropCount = max(count($dropOffs), 1);
+          @endphp
+          @foreach ($dropOffs as $index => $drop)
+          <tr>
+            @if ($index === 0)
+              <td rowspan="{{ $dropCount }}">#{{ $job['id'] }}</td>
+              <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status']) }}</td>
+              <td rowspan="{{ $dropCount }}">{{ $job['date'] }}</td>
+              <td rowspan="{{ $dropCount }}">
+                {{ $job['pickup']['address'] }}<br>
+                <span class="time">{{ $job['pickup']['time_window_begin'] }}–{{ $job['pickup']['time_window_end'] }}</span>
+              </td>
+            @endif
+            <td>{{ $drop['package_type'] }} × {{ $drop['quantity'] }}</td>
+            <td>
+              {{ $drop['address'] }}<br>
+              <span class="time">{{ $drop['time_window_begin'] }}–{{ $drop['time_window_end'] }}</span>
+            </td>
+            @if ($index === 0)
+              <td rowspan="{{ $dropCount }}">{{ $job['return']['address'] ?? '—' }}</td>
+              <td rowspan="{{ $dropCount }}">£{{ number_format($job['total'], 2) }}</td>
+            @endif
+          </tr>
+          @endforeach
         @endforeach
-      @endforeach
-    </tbody>
-  </table>
-
-  <div class="break"></div>
-
+      </tbody>
+    </table>
   @endforeach
 
-  <!-- TOTALS -->
-  <section id="totals">
-    <div class="span-info">
-      <div class="info">
-        <div>Subtotal</div>
-        <div>VAT {{ number_format($totals['vat_rate'] * 100, 2) }}%</div>
-        <div>Total</div>
-      </div>
-
-      <div class="info">
-        <div>£{{ number_format($totals['subtotal'], 2) }}</div>
-        <div>£{{ number_format($totals['vat_amount'], 2) }}</div>
-        <div>£{{ number_format($totals['grand_total'], 2) }}</div>
-      </div>
-    </div>
-  </section>
-
-  <div class="break"></div>
+  <!-- TOTALS: REPLACED FLEX WITH TABLE -->
+  <table class="layout-table">
+    <tr>
+      <td style="width: 60%;"></td>
+      <td style="width: 40%;">
+        <table style="width: 100%; line-height: 1.8;">
+          <tr>
+            <td style="text-align: right; padding-right: 15px;">Subtotal:</td>
+            <td style="text-align: right;">£{{ number_format($totals['subtotal'], 2) }}</td>
+          </tr>
+          <tr>
+            <td style="text-align: right; padding-right: 15px;">VAT {{ number_format($totals['vat_rate'] * 100, 2) }}%:</td>
+            <td style="text-align: right;">£{{ number_format($totals['vat_amount'], 2) }}</td>
+          </tr>
+          <tr style="font-weight: bold; font-size: 14px;">
+            <td style="text-align: right; padding-right: 15px; border-top: 1px solid #000;">Total:</td>
+            <td style="text-align: right; border-top: 1px solid #000;">£{{ number_format($totals['grand_total'], 2) }}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 
   <!-- FOOTER -->
-  <section id="footer">
-    <div id="footer-title"><b>Bank Transfer</b></div>
-    <div class="info">
-      <div>Starling Bank</div>
-      <div>Neko Home Delivery LLP</div>
-      <div>Account Number: 09592067</div>
-      <div>Sort Code: 60-83-71</div>
+  <div id="footer">
+    <hr class="break">
+    <b>Bank Transfer Details</b>
+    <div style="margin-top: 5px;">
+      Starling Bank | Neko Home Delivery LLP<br>
+      Account Number: 09592067 | Sort Code: 60-83-71
     </div>
-    <div id="footer-text">Invoice generated by Neko Home Delivery LLP</div>
-  </section>
+    <div style="text-align: center; margin-top: 20px; color: #888;">
+      Invoice generated by Neko Home Delivery LLP
+    </div>
+  </div>
 
-</article>
+</div>
 </body>
 </html>
