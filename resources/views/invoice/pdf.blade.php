@@ -6,6 +6,8 @@
   <title>Invoice {{$invoiceData['invoice_number'] ?? ''}}</title>
 
   <style>
+    *{
+    }
     :root {
       --accent: #1f6feb;
       --muted: #555;
@@ -17,30 +19,37 @@
 
     body {
       background: #f6f8fa;
-      padding: 25px;
-      margin: 0;
+      max-width: 210mm;
+      /* padding: 25px; */
+      /* margin: 0; */
     }
 
     #invoice {
-      max-width: 960px;
-      margin: 0 auto;
+      max-width: 210mm;
+      /* margin: 0 auto; */
       background: var(--paper);
-      padding: 32px;
+      /* padding: 32px; */
       border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
       border: 1px solid var(--border);
     }
 
     #invoice-title{
-      font-size:28px;
-      margin-bottom:10px;
+      font-size:27px;
+      /* margin-bottom:10px; */
     }
 
     #header {
       display: flex;
       justify-content: end;
       gap: 75px;
-      margin-bottom: 30px;
+      text-align: right;
+      /* margin-bottom: 30px; */
+    }
+
+    #header .info {
+      align-items: flex-start;
+      text-align: left;
     }
 
     #invoice-header {
@@ -83,11 +92,15 @@
       gap: 8px;
     }
 
+    .main-info {
+      text-align: left;
+    }
+
     .break {
       display: block;
       height: 2px;
       background-color: lightgray;
-      margin: 16px 0;
+      /* margin: 16px 0; */
       width: 100%;
       border: none;
     }
@@ -95,7 +108,7 @@
     .job-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 8px 0 20px;
+      /* margin: 8px 0 20px; */
       font-size: 12px;
       background: #fafafa;
     }
@@ -103,7 +116,7 @@
     .job-table th,
     .job-table td {
       border: 1px solid var(--border);
-      padding: 6px 8px;
+      /* padding: 6px 8px; */
       vertical-align: top;
     }
 
@@ -128,22 +141,24 @@
 <article id="invoice">
 
   <!-- HEADER -->
-  <div id="invoice-title"><b>Itemised Invoice of {{ $invoiceData['invoice_number'] }}</b></div>
+  <div id="invoice-title">
+    <b>Itemised Invoice of {{ $invoiceData['invoice_number'] }}</b>
+  </div>
 
-  <section id="header">
+  <section class="grid" id="header">
     <div class="info">
       <div class="title"><b>Neko Home Delivery LLP</b></div>
-      <div>410 1951 42</div>
-      <div>www.nekohomedelivery.com</div>
-      <div>nekohomedelivery@gmail.com</div>
-      <div>07429381472</div>
+      <div class="main-info">410 1951 42</div>
+      <div class="main-info">www.nekohomedelivery.com</div>
+      <div class="main-info">nekohomedelivery@gmail.com</div>
+      <div class="main-info">07429381472</div>
     </div>
 
     <div class="info">
-      <div>Bakersfield, Crayford Road</div>
-      <div>Flat 22</div>
-      <div>London N7 0LT</div>
-      <div>United Kingdom</div>
+      <div class="main-info">Bakersfield, Crayford Road</div>
+      <div class="main-info">Flat 22</div>
+      <div class="main-info">London N7 0LT</div>
+      <div class="main-info">United Kingdom</div>
     </div>
   </section>
 

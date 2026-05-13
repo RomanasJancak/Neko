@@ -63,6 +63,7 @@
             <td>
               <a href="{{ route('invoice.show', $invoice->id) }}" class="btn btn-info btn-sm">View</a>
               <a href="{{ route('invoice.viewPDF', $invoice->id) }}" class="btn btn-secondary btn-sm" target="_blank">View PDF</a>
+              <a href="{{ route('invoice.viewHTML', $invoice->id) }}" class="btn btn-secondary btn-sm" target="_blank">View HTML</a>
               <a href="{{ route('invoice.viewPDF', ['invoice' => $invoice->id, 'download' => 1]) }}" class="btn btn-success btn-sm">Download Invoice</a>
               @if($invoice->canBeSent())
                 <button

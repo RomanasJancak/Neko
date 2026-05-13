@@ -322,6 +322,7 @@ Route::group(['prefix'  => 'invoices'],function(){
     Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
     Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
     Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware('auth');
+    Route::get('viewHTML/{invoice}', [InvoiceController::class, 'viewHTML'])->name('invoice.viewHTML')->middleware('auth');
     Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware('auth');
     Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware('auth');
 });

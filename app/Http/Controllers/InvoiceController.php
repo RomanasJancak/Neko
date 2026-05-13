@@ -117,6 +117,38 @@ class InvoiceController extends Controller
       }
     
     }
+    public function viewHTML(Request $request, Invoice $invoice, SettingsService $settings)
+    {
+      // $pdf = \PDF::loadView('invoice.pdf', compact('invoice'));
+        // return $pdf->stream('invoice_' . $invoice->invoice_number . '.pdf');
+      $vatRate = (float) $settings->get('global.vatRate');
+      $snapshotService = app(InvoiceSnapshotService::class);
+      $snapshotId = $request->query('snapshot_id');
+
+      if ($snapshotId) {
+        $snapshot = $invoice->snapshots()->whereKey($snapshotId)->firstOrFail();
+      } else {
+        $snapshot = $snapshotService->createSnapshot($invoice, $vatRate, auth()->id());
+      }
+
+      $snapshotData = $snapshot->data;
+      $snapshotData['version'] = $snapshot->version;
+      $snapshotData['generated_at'] = $snapshot->generated_at;
+
+      $viewData = [
+        'invoice' => $invoice,
+        'snapshot' => $snapshot,
+        'snapshotData' => $snapshotData,
+      ];
+
+      $fileName = 'invoice_' . ($snapshotData['invoice']['invoice_number'] ?? $invoice->id) . '_v' . $snapshot->version . '.pdf';
+      $pdf = Pdf::loadView('invoice.pdf', $viewData);
+
+      if ($request->boolean('download')) {
+        return $pdf->download($fileName);
+      }
+      return view('invoice.pdf', $viewData)->render();
+    }
     public function viewPDF(Request $request, Invoice $invoice, SettingsService $settings)
     {
         // $pdf = \PDF::loadView('invoice.pdf', compact('invoice'));
