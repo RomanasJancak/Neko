@@ -34,6 +34,7 @@ class JobObserver
         $this->removeFromInvoice($job);
       }
       if($job->isDirty('clientToBill_id') && (int)$job->status_id === 14){
+        $this->removeFromInvoice($job);
         $this->assignToInvoice($job);
       }
     }
