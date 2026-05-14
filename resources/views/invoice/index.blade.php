@@ -24,8 +24,8 @@
           <th>#</th>
           <th>ID</th>
           <th>Invoice Number</th>
-          <th>Customer</th>
-          <th>Lines</th>
+          <th>Client</th>
+          <th>Invoicing Period</th>
           <th>Amount</th>
           <th>Sent Date</th>
           <th>Actions</th>
@@ -43,7 +43,7 @@
               {{ $item->description }}<br>
             @endforeach
             </td>
-            <td>${{ number_format($invoice->total, 2) }}</td>
+            <td>£{{ number_format($invoice->total, 2) }}</td>
             <td>
               @php($isSent = $invoice->isSentStatus())
               @if($isSent)
