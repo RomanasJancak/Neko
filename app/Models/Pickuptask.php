@@ -23,6 +23,9 @@ class Pickuptask extends Model
         'task_id',
         'status_id',
     ];
+    public function task(){
+        return $this->belongsTo(Task::class);
+    }
     public function nameOfAddress(){
         return $this->pickupclientname;
     }
