@@ -26,7 +26,10 @@ class JobObserver
      */
     public function updated(Job $job): void
     {
-      
+      if($job->isDirty('price')){
+        $this->removeFromInvoice($job);
+        $this->assignToInvoice($job);
+      }
       if ($job->isDirty('status_id') && ((int)$job->status_id === 14)) {
         $this->assignToInvoice($job);
       }

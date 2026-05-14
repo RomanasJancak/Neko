@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Models\Job;
+use App\Models\Pickuptask;
 use App\Observers\JobObserver;
+use App\Observers\PickupTaskObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +24,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
       Job::observe(JobObserver::class);
+      Pickuptask::observe(PickupTaskObserver::class);
     }
 }
