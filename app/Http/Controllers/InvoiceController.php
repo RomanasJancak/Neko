@@ -256,12 +256,15 @@ class InvoiceController extends Controller
         $mailMessage->cc($ccEmails);
       }
       */
+      $renderedSubject = $this->renderTemplate($validated['subject'], $invoice, 'Invoice :invoice_number');
+      $renderedBody = $this->renderTemplate($validated['body'], $invoice, "Hello :client_name,\n\nPlease find attached invoice :invoice_number.\n\nThank you.");
+
       $mailMessage = Mail::to($clientEmail);
       $mailMessage->send(
         new InvoiceSendMail(
           $invoice,
-          $validated['subject'],
-          $validated['body'],
+          $renderedSubject,
+          $renderedBody,
           $pdfContent,
           $pdfFileName
         )
@@ -283,6 +286,19 @@ class InvoiceController extends Controller
       $invoice->save();
 
       return redirect()->route('invoice.index')->with('success', 'Invoice email sent successfully.');
+    }
+
+    public function getInfo(Invoice $invoice): \Illuminate\Http\JsonResponse
+    {
+        $invoice->loadMissing('client');
+        $invoiceDate = $invoice->invoice_date ?: $invoice->created_at?->toDateString();
+
+        return response()->json([
+            'invoice_number' => (string) ($invoice->invoice_number ?? $invoice->id),
+            'client_name'    => (string) ($invoice->client->name ?? 'Client'),
+            'invoice_date'   => (string) ($invoiceDate ?: ''),
+            'invoice_total'  => '£' . number_format((float) $invoice->total, 2),
+        ]);
     }
 
     private function renderTemplate(?string $template, Invoice $invoice, string $fallback): string

@@ -70,6 +70,7 @@
                   type="button"
                   class="btn btn-warning btn-sm js-open-send-email-modal"
                   data-send-url="{{ route('invoice.sendEmail', $invoice->id) }}"
+                  data-info-url="{{ route('invoice.getInfo', $invoice->id) }}"
                   data-client-email="{{ $invoice->getInvoiceEmail() }}"
                   data-invoice-number="{{ $invoice->invoice_number }}"
                   data-subject="{{ base64_encode($invoice->email_subject_prefill) }}"
@@ -139,6 +140,13 @@
 
           <div class="mb-3">
             <label for="invoiceEmailBody" class="form-label">Body</label>
+            <div class="mb-1 d-flex flex-wrap gap-1">
+              <small class="text-muted me-1 align-self-center">Insert:</small>
+              <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":invoice_number">Invoice Number</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":client_name">Client Name</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":invoice_date">Invoice Date</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":invoice_total">Invoice Total</button>
+            </div>
             <textarea class="form-control" id="invoiceEmailBody" name="body" rows="10" required></textarea>
           </div>
 
@@ -183,6 +191,45 @@
     const modal = new bootstrap.Modal(modalElement);
     const sentInfoModal = sentInfoModalElement ? new bootstrap.Modal(sentInfoModalElement) : null;
 
+    // ---- cursor tracking & token insertion ----
+    let lastField = null;
+    let lastStart = 0;
+    let lastEnd = 0;
+
+    function rememberCursor(field) {
+      lastField = field;
+      lastStart = field.selectionStart != null ? field.selectionStart : field.value.length;
+      lastEnd   = field.selectionEnd   != null ? field.selectionEnd   : field.value.length;
+    }
+
+    [subjectField, bodyField].forEach(function (field) {
+      ['focus', 'click', 'keyup', 'mouseup', 'select'].forEach(function (evName) {
+        field.addEventListener(evName, function () { rememberCursor(field); });
+      });
+    });
+
+    document.querySelectorAll('.js-insert-token').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var token = btn.getAttribute('data-token') || '';
+        if (!token) return;
+
+        if (!lastField) {
+          lastField = bodyField;
+          lastStart = bodyField.value.length;
+          lastEnd   = bodyField.value.length;
+        }
+
+        var val = lastField.value;
+        lastField.value = val.slice(0, lastStart) + token + val.slice(lastEnd);
+
+        var newPos = lastStart + token.length;
+        lastField.focus();
+        lastField.setSelectionRange(newPos, newPos);
+        rememberCursor(lastField);
+      });
+    });
+    // ---- end token insertion ----
+
     sentInfoTriggers.forEach(function (trigger) {
       trigger.addEventListener('click', function () {
         if (!sentInfoModal || !sentInfoInvoiceNumber || !sentInfoSentBy || !sentInfoSentAt) {
@@ -226,6 +273,49 @@
         subjectField.value = subject;
         bodyField.value = body;
         modalTitle.textContent = 'Send Invoice Email - ' + invoiceNumber;
+
+        // Reset token button labels while loading
+        var tokenButtons = modalElement.querySelectorAll('.js-insert-token');
+        var defaultLabels = {
+          ':invoice_number': 'Invoice Number',
+          ':client_name': 'Client Name',
+          ':invoice_date': 'Invoice Date',
+          ':invoice_total': 'Invoice Total',
+        };
+        tokenButtons.forEach(function (btn) {
+          var tk = btn.getAttribute('data-token');
+          btn.textContent = defaultLabels[tk] || tk;
+          
+        });
+
+        var infoUrl = button.getAttribute('data-info-url') || '';
+        if (infoUrl) {
+          fetch(infoUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+          })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (!data) return;
+            var labelMap = {
+              ':invoice_number': 'Invoice Number (' + data.invoice_number + ')',
+              ':client_name':    'Client Name ('    + data.client_name    + ')',
+              ':invoice_date':   'Invoice Date ('   + data.invoice_date   + ')',
+              ':invoice_total':  'Invoice Total ('  + data.invoice_total  + ')',
+            };
+            tokenButtons.forEach(function (btn) {
+              var tk = btn.getAttribute('data-token');
+              if (labelMap[tk]) {
+                btn.textContent = labelMap[tk];
+                let fullLabel = labelMap[tk];
+                let matches = fullLabel.match(/\(([^)]+)\)/);
+                let cleanValue = matches ? matches[1] : fullLabel;
+                btn.setAttribute('data-token', cleanValue);
+              }
+            });
+
+          })
+          .catch(function () { /* labels stay as defaults on error */ });
+        }
 
         modal.show();
       });

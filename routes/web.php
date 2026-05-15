@@ -325,6 +325,7 @@ Route::group(['prefix'  => 'invoices'],function(){
     Route::get('viewHTML/{invoice}', [InvoiceController::class, 'viewHTML'])->name('invoice.viewHTML')->middleware('auth');
     Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware('auth');
     Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware('auth');
+    Route::get('{invoice}/info', [InvoiceController::class, 'getInfo'])->name('invoice.getInfo')->middleware('auth');
 });
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
