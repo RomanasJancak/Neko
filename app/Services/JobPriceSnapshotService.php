@@ -5,23 +5,31 @@ namespace App\Services;
 use App\Models\Job;
 use App\Models\JobPrice;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class JobPriceSnapshotService
 {
+    private ?bool $jobPriceValueSupportsNegative = null;
+
     public function persistLatestSnapshot(Job $job, array $pricePayload): void
     {
         $rows = $this->buildSnapshotRows($pricePayload);
         $now = Carbon::now();
+        $supportsNegative = $this->jobPriceValueSupportsNegative();
 
         foreach ($rows as $row) {
+            $rawValue = (int) ($row['value'] ?? 0);
+            $description = is_array($row['description'] ?? null) ? $row['description'] : [];
+            $description['signed_value'] = $rawValue;
+
             JobPrice::query()->updateOrCreate(
                 [
                     'job_id' => $job->id,
                     'type' => $row['type'],
                 ],
                 [
-                    'value' => $row['value'],
-                    'description' => $row['description'],
+                    'value' => $supportsNegative ? $rawValue : max(0, $rawValue),
+                    'description' => $description,
                     'calculated_at' => $now,
                 ]
             );
@@ -50,8 +58,8 @@ class JobPriceSnapshotService
             return null;
         }
 
-        $val  = static fn (string $type): int   => (int) ($rows->get($type)?->value ?? 0);
         $desc = static fn (string $type): array => $rows->get($type)?->description ?? [];
+        $val = static fn (string $type): int => (int) ($desc($type)['signed_value'] ?? ($rows->get($type)?->value ?? 0));
 
         $totalDesc           = $desc(JobPrice::TYPE_TOTAL);
         $isFixed             = !($totalDesc['is_fixed_price'] ?? false);
@@ -91,6 +99,24 @@ class JobPriceSnapshotService
             'price_time_sunday'       => $desc(JobPrice::TYPE_SUNDAY)['payload']            ?? $val(JobPrice::TYPE_SUNDAY),
             'price_time_bankholiday'  => $desc(JobPrice::TYPE_BANK_HOLIDAY)['payload']      ?? $val(JobPrice::TYPE_BANK_HOLIDAY),
         ];
+    }
+
+    private function jobPriceValueSupportsNegative(): bool
+    {
+        if ($this->jobPriceValueSupportsNegative !== null) {
+            return $this->jobPriceValueSupportsNegative;
+        }
+
+        try {
+            $column = DB::selectOne("SHOW COLUMNS FROM `job_prices` LIKE 'value'");
+            $type = strtolower((string) ($column->Type ?? ''));
+            $this->jobPriceValueSupportsNegative = $type === '' || !str_contains($type, 'unsigned');
+        } catch (\Throwable $e) {
+            // Fail open: if schema lookup is unavailable, preserve previous behavior.
+            $this->jobPriceValueSupportsNegative = true;
+        }
+
+        return $this->jobPriceValueSupportsNegative;
     }
 
     /**
