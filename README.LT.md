@@ -1,5 +1,5 @@
-[English](README.MD)
-[Lietuvių](README.LT.MD)
+[English](README.md)
+[Lietuvių](README.LT.md)
 # Neko – Paskutinės Mylios Logistikos ir Siuntų Paskirstymo Valdymo Platforma
 
 **Neko** yra gamyboje naudojama žiniatinklio pagrįsta operacijų ir atsiskaitymų platforma kurjeriams ir dviračių pristatymo bendrovėms. Ji valdo užsakymų kūrimą, kasdieninį paskirstymą, darbuotojų/dviračių priskyrimą, dinaminę kainodarą ir automatizuotą sąskaitų faktūrų generavimą vienoje integruotoje sistemoje.
