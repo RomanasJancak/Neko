@@ -309,7 +309,7 @@
                 let fullLabel = labelMap[tk];
                 let matches = fullLabel.match(/\(([^)]+)\)/);
                 let cleanValue = matches ? matches[1] : fullLabel;
-                btn.setAttribute('data-token', cleanValue);
+                btn.setAttribute('data-token', ":" + cleanValue);
               }
             });
 

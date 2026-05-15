@@ -297,7 +297,7 @@ class InvoiceController extends Controller
             'invoice_number' => (string) ($invoice->invoice_number ?? $invoice->id),
             'client_name'    => (string) ($invoice->client->name ?? 'Client'),
             'invoice_date'   => (string) ($invoiceDate ?: ''),
-            'invoice_total'  => '£' . number_format((float) $invoice->total, 2),
+            'invoice_total'  => number_format((float) $invoice->total, 2),
         ]);
     }
 
