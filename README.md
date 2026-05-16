@@ -372,7 +372,10 @@ Or visit `/get-token` (non-production only) to generate and display a token.
 
 ## API Documentation
 
-All API endpoints require Sanctum token authentication via the `Authorization: Bearer {token}` header.
+Most API endpoints require Sanctum token authentication via the `Authorization: Bearer {token}` header.
+
+Authentication endpoint exception:
+- `POST /api/login` — Exchange valid credentials for an API token
 
 ### Base URL
 ```
@@ -380,6 +383,9 @@ All API endpoints require Sanctum token authentication via the `Authorization: B
 ```
 
 ### Key Endpoints
+
+#### Auth
+- `POST /api/login` — Authenticate user and return API token
 
 #### Jobs
 - `GET /api/jobs` — List jobs with pagination and filtering

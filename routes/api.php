@@ -3,11 +3,14 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkloadController;
 use App\Http\Controllers\Api\UserDayStatusController;
 use App\Http\Controllers\Api\UserStatusController;
+
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('jobs', JobController::class);
