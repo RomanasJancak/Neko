@@ -157,6 +157,9 @@
                                   <li>
                                   <a class="dropdown-item " href="{{route('permission.index')}}">Permissions</a>
                                   </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('role.hierarchy')}}">Hierarchy</a>
+                                  </li>
                                   @endif
                                   <li>
                                   <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>

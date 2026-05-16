@@ -9,6 +9,7 @@ use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -164,6 +165,70 @@ class RoleController extends Controller
         }
         $role->delete();
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'deleted']);
+    }
+
+    public function hierarchy()
+    {
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            abort(403);
+        }
+        $roles = Role::orderBy('name')->get(['id', 'name']);
+        $links = DB::table('role_hierarchy')
+            ->join('roles as parent', 'parent.id', '=', 'role_hierarchy.parent_role_id')
+            ->join('roles as child',  'child.id',  '=', 'role_hierarchy.child_role_id')
+            ->select(
+                'role_hierarchy.parent_role_id',
+                'role_hierarchy.child_role_id',
+                'parent.name as parent_name',
+                'child.name  as child_name'
+            )
+            ->orderBy('parent.name')
+            ->orderBy('child.name')
+            ->get();
+
+        return view('role.hierarchy', compact('roles', 'links'));
+    }
+
+    public function storeHierarchy(Request $request)
+    {
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $validated = $request->validate([
+            'parent_role_id' => ['required', 'integer', 'exists:roles,id'],
+            'child_role_id'  => ['required', 'integer', 'exists:roles,id', 'different:parent_role_id'],
+        ]);
+
+        // Prevent duplicate
+        $exists = DB::table('role_hierarchy')
+            ->where('parent_role_id', $validated['parent_role_id'])
+            ->where('child_role_id',  $validated['child_role_id'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'This relationship already exists.'], 422);
+        }
+
+        DB::table('role_hierarchy')->insert($validated);
+
+        return response()->json(['message' => 'created']);
+    }
+
+    public function destroyHierarchy($parent, $child)
+    {
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $deleted = DB::table('role_hierarchy')
+            ->where('parent_role_id', $parent)
+            ->where('child_role_id',  $child)
+            ->delete();
+
+        if (!$deleted) {
+            return response()->json(['message' => 'Relationship not found.'], 404);
+        }
+
         return response()->json(['message' => 'deleted']);
     }
 }

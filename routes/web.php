@@ -98,6 +98,9 @@ Route::group(['prefix' => 'roles', 'middleware' => 'auth'], function(){
     Route::patch('{role}/permissions',      [RoleController::class, 'updatePermissions'])->name('role.updatePermissions');
     Route::patch('{role}',                  [RoleController::class, 'update'])->name('role.update');
     Route::delete('{role}',                 [RoleController::class, 'destroy'])->name('role.destroy');
+    Route::get('hierarchy',                 [RoleController::class, 'hierarchy'])->name('role.hierarchy');
+    Route::post('hierarchy',                [RoleController::class, 'storeHierarchy'])->name('role.hierarchy.store');
+    Route::delete('hierarchy/{parent}/{child}', [RoleController::class, 'destroyHierarchy'])->name('role.hierarchy.destroy');
 });
 Route::group(['prefix' => 'permissions', 'middleware' => 'auth'], function(){
     Route::get('',                          [PermissionController::class, 'index'])->name('permission.index');
