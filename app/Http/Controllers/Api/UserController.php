@@ -276,9 +276,12 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
+        $user->load('roles:id,name,display_name,client_id');
+        $user->roles->makeHidden(['pivot']);
+
         return response()->json([
             'success' => true,
-            'user' => $user->load('roles'),
+            'user' => $user->only(['id', 'name','phone', 'email','client_id', 'roles']),
         ]);
     }
 }
