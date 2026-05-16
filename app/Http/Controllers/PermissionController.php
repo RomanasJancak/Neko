@@ -5,62 +5,68 @@ namespace App\Http\Controllers;
 use App\Models\Permission;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\UpdatePermissionRequest;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PermissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            abort(403);
+        }
+        $permissions = Permission::orderBy('name')->get();
+        return view('permission.index', compact('permissions'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StorePermissionRequest $request)
+    public function store(Request $request)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:125', 'unique:permissions,name'],
+        ]);
+        $permission = Permission::create(['name' => $validated['name'], 'guard_name' => 'web']);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'created', 'permission' => $permission]);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Permission $permission)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Permission $permission)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePermissionRequest $request, Permission $permission)
+    public function update(Request $request, Permission $permission)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:125', Rule::unique('permissions', 'name')->ignore($permission->id)],
+        ]);
+        $permission->update(['name' => $validated['name']]);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'updated', 'permission' => $permission]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Permission $permission)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $permission->delete();
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'deleted']);
     }
 }

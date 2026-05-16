@@ -26,6 +26,7 @@ use App\Http\Controllers\InvoiceItemController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\UserStatusController;
 use App\Http\Controllers\EmailAddressController;
+use App\Http\Controllers\PermissionController;
 
 use App\Models\User;
    
@@ -91,8 +92,18 @@ Route::group(['prefix' => 'users', 'middleware' => 'auth'], function(){
 });
 Route::group(['prefix' => 'roles', 'middleware' => 'auth'], function(){
     Route::get('',                          [RoleController::class, 'index'])->name('role.index');
+    Route::get('manage',                    [RoleController::class, 'manage'])->name('role.manage');
     Route::get('permissions-matrix',        [RoleController::class, 'permissionsMatrix'])->name('role.permissionsMatrix');
+    Route::post('',                         [RoleController::class, 'store'])->name('role.store');
     Route::patch('{role}/permissions',      [RoleController::class, 'updatePermissions'])->name('role.updatePermissions');
+    Route::patch('{role}',                  [RoleController::class, 'update'])->name('role.update');
+    Route::delete('{role}',                 [RoleController::class, 'destroy'])->name('role.destroy');
+});
+Route::group(['prefix' => 'permissions', 'middleware' => 'auth'], function(){
+    Route::get('',                          [PermissionController::class, 'index'])->name('permission.index');
+    Route::post('',                         [PermissionController::class, 'store'])->name('permission.store');
+    Route::patch('{permission}',            [PermissionController::class, 'update'])->name('permission.update');
+    Route::delete('{permission}',           [PermissionController::class, 'destroy'])->name('permission.destroy');
 });
 Route::group(['prefix' => 'clients'], function(){
     Route::get('',                  [ClientController::class, 'index'])->name('client.index')->middleware('auth');

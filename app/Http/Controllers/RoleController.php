@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoleController extends Controller
 {
@@ -85,6 +86,15 @@ class RoleController extends Controller
         return response()->json(['message' => 'Permissions updated.']);
     }
 
+    public function manage()
+    {
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            abort(403);
+        }
+        $roles = Role::withCount('users')->orderBy('name')->get();
+        return view('role.manage', compact('roles'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -96,9 +106,17 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreRoleRequest $request)
+    public function store(Request $request)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:125', 'unique:roles,name'],
+        ]);
+        $role = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'created', 'role' => $role]);
     }
 
     /**
@@ -120,9 +138,17 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRoleRequest $request, Role $role)
+    public function update(Request $request, Role $role)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:125', Rule::unique('roles', 'name')->ignore($role->id)],
+        ]);
+        $role->update(['name' => $validated['name']]);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'updated', 'role' => $role]);
     }
 
     /**
@@ -130,6 +156,14 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
-        //
+        if (!auth()->user()->isAdminOrSuperAdmin()) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        if ($role->users()->count() > 0) {
+            return response()->json(['message' => 'Cannot delete a role that has users assigned to it.'], 422);
+        }
+        $role->delete();
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        return response()->json(['message' => 'deleted']);
     }
 }

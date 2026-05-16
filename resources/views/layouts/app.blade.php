@@ -150,6 +150,14 @@
                                   <li>
                                   <a class="dropdown-item " href="{{route('role.permissionsMatrix')}}">Roles and permissions</a>
                                   </li>
+                                  @if(auth()->user()->isAdminOrSuperAdmin())
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('role.manage')}}">Roles</a>
+                                  </li>
+                                  <li>
+                                  <a class="dropdown-item " href="{{route('permission.index')}}">Permissions</a>
+                                  </li>
+                                  @endif
                                   <li>
                                   <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>
                                   </li>
