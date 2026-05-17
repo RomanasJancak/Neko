@@ -20,7 +20,17 @@
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone</label>
-                            <input id="phone" type="text" class="form-control" name="phone" value="{{ $user->phone }}">
+                            <input id="phone" type="text" class="form-control" name="phone" value="{{ old('phone', $user->phone) }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="client_id">Client</label>
+                            <select class="form-select" name="client_id" id="client_id">
+                                <option value="">No client</option>
+                                @foreach ($clients as $client)
+                                <option value="{{ $client->id }}" {{ (string) old('client_id', $user->client_id) === (string) $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="username">Roles</label>

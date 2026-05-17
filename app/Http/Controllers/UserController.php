@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Client;
 use App\Models\Workload;
 use App\Models\Bike;
 use App\Models\Day;
@@ -35,7 +36,9 @@ class UserController extends Controller
      */
     public function index() 
     {
-
+        if(!auth()->user()->can('user-view')){
+            abort(403, 'You do not have permission to view users.');
+        }
         $users = User::latest()->paginate(10);
 
         return view('user.index', compact('users'));
@@ -107,8 +110,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+            $clients = Client::orderBy('name')->get(['id', 'name']);
 
-            return view('user.edit', ['user' => $user]);
+            return view('user.edit', ['user' => $user, 'clients' => $clients]);
     }
 
     /**
@@ -132,6 +136,7 @@ class UserController extends Controller
             $user->phone = $request->get('phone', '');
 
             $user->email = $request->user_email;
+            $user->client_id = $request->filled('client_id') ? (int) $request->client_id : null;
 
         $user->syncRoles(Role::find($request->role));
         //dd(Role::find($request->role));
