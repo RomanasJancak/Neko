@@ -17,12 +17,17 @@ use Illuminate\Support\Facades\Schema;
 
 class ClientController extends Controller
 {
+    protected function visibleClientsQuery()
+    {
+        return Client::query()->visibleTo(auth()->user());
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $clients = Client::latest()->paginate(10);
+        $clients = $this->visibleClientsQuery()->latest()->paginate(10);
         $packageTypes = PackageType::all();
         return view('client.index'
         , compact('clients', 'packageTypes'));
@@ -108,7 +113,12 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        $allClients = Client::all()->pluck('id')->toArray();
+        $allClients = $this->visibleClientsQuery()->orderBy('id')->pluck('id')->toArray();
+
+        if (!in_array($client->id, $allClients, true)) {
+            abort(403, 'You do not have permission to view this client.');
+        }
+
         $currentIndex = array_search($client->id, $allClients);
     
         $totalClients = count($allClients);
@@ -362,7 +372,7 @@ class ClientController extends Controller
     {
         try{
             // Fetch the client's information based on the $clientId
-            $client = Client::find($clientId);
+            $client = $this->visibleClientsQuery()->whereKey($clientId)->first();
 
             if ($client) {
             return response()->json([
@@ -430,7 +440,7 @@ class ClientController extends Controller
     {
       $query = $request->input('query');
 
-      $clients = Client::where('name', 'like', '%' . $query . '%')
+            $clients = $this->visibleClientsQuery()->where('name', 'like', '%' . $query . '%')
         ->select('id', 'name') 
         ->orderBy('name', 'asc')
         ->get();
@@ -470,7 +480,7 @@ class ClientController extends Controller
             $sortField = $request->get('sortField', 'id');
             $sortOrder = $request->get('sortOrder', 'asc');
 
-            $clients = Client::when($id, function ($queryBuilder) use ($id) {
+            $clients = $this->visibleClientsQuery()->when($id, function ($queryBuilder) use ($id) {
                     $queryBuilder->where('id', 'like', '%' . $id . '%');
                 })
                 ->when($name, function ($queryBuilder) use ($name) {

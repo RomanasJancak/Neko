@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -31,6 +32,16 @@ class Client extends Model
                             'invoice_email_subject_template',
                             'invoice_email_body_template',
                             'vat','regNumber','address','note'];
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ((int) $user->client_id === 1) {
+            return $query;
+        }
+
+        return $query->where('id', (int) $user->client_id);
+    }
+
     public function emails()
     {
         return $this->morphMany(EmailAddress::class, 'emailable');
