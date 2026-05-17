@@ -22,6 +22,17 @@ class ClientController extends Controller
         return Client::query()->visibleTo(auth()->user());
     }
 
+    protected function resolveVisibleClientOrAbort($clientId): Client
+    {
+        $client = $this->visibleClientsQuery()->whereKey($clientId)->first();
+
+        if (!$client) {
+            abort(403, 'You do not have permission to access this client.');
+        }
+
+        return $client;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -153,7 +164,7 @@ class ClientController extends Controller
     public function update(UpdateClientRequest $request)
     {
         try {
-        $client = Client::find($request->clientid);
+        $client = $this->resolveVisibleClientOrAbort($request->clientid);
         
         $client->name = $request->input('clientname');
         $client->shortenedName = $request->input('shortenedName');
@@ -219,7 +230,7 @@ class ClientController extends Controller
     public function updateDistanceRules(UpdateClientRequest $request)
     {
         try {
-            $client = Client::find($request->input('id'));
+            $client = $this->resolveVisibleClientOrAbort($request->input('id'));
             $rules = $request->input('rules');
             $psosibleRule = null;
             foreach ($rules as $rule) {
@@ -268,7 +279,7 @@ class ClientController extends Controller
     }
     public function updateWeightRules(UpdateClientRequest $request){
         try {
-            $client = Client::find($request->input('id'));
+            $client = $this->resolveVisibleClientOrAbort($request->input('id'));
             $rules = $request->input('rules');
             $psosibleRule = null;
             foreach ($rules as $rule) {
@@ -325,7 +336,7 @@ class ClientController extends Controller
      */
     public function destroy(Request $request)
     {
-        $client = Client::findOrFail($request->input('clientid'));
+        $client = $this->resolveVisibleClientOrAbort($request->input('clientid'));
         if($client->id === 1){
             return response()->json([
                 'message' => 'Default client cannot be deleted.'
@@ -529,8 +540,10 @@ class ClientController extends Controller
     public function fetchPackageTypes(Client $id)
     {
         try {
+            $client = $this->resolveVisibleClientOrAbort($id->id);
+
             return response()->json([
-                'packageTypes' => $id->packageTypes,
+                'packageTypes' => $client->packageTypes,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage(),
@@ -541,15 +554,17 @@ class ClientController extends Controller
     public function fetchAddOns(Client $id)
     {
         try {
+            $client = $this->resolveVisibleClientOrAbort($id->id);
+
             return response()->json([
                 'addOns' => [
-                    'distanceRules' => $id->addOnRules->filter(function ($rule) {
+                    'distanceRules' => $client->addOnRules->filter(function ($rule) {
                         return strpos($rule->name, 'distance') === 0;
                     }),
-                    'weightRules' => $id->addOnRules->filter(function ($rule) {
+                    'weightRules' => $client->addOnRules->filter(function ($rule) {
                         return strpos($rule->name, 'weight') === 0;
                     }),
-                    'timingRules' => $id->addOnRules->filter(function ($rule) {
+                    'timingRules' => $client->addOnRules->filter(function ($rule) {
                         return strpos($rule->name, 'time') === 0;
                     }),
                 ],            
@@ -563,6 +578,8 @@ class ClientController extends Controller
     public function fetchUnassignedPackageTypes(Client $client)
     {
         try {
+            $client = $this->resolveVisibleClientOrAbort($client->id);
+
             $assignedPackageTypeIds = $client->packageTypes->pluck('id')->toArray();
             $unassignedPackageTypes = PackageType::whereNotIn('id', $assignedPackageTypeIds)->get();
 
@@ -578,7 +595,7 @@ class ClientController extends Controller
     public function addPackageType(Request $request)
     {
         try {
-            $client = Client::find($request->client_id);
+            $client = $this->resolveVisibleClientOrAbort($request->client_id);
             $client->packageTypes()->attach($request->package_type_id);
 
             return response()->json([
@@ -594,7 +611,7 @@ class ClientController extends Controller
     public function removePackageType(Request $request)
     {
         try {
-            $client = Client::find($request->client_id);
+            $client = $this->resolveVisibleClientOrAbort($request->client_id);
             $client->packageTypes()->detach($request->package_type_id);
 
             return response()->json([
