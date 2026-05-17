@@ -39,7 +39,7 @@ class UserController extends Controller
         if(!auth()->user()->can('user-view')){
             abort(403, 'You do not have permission to view users.');
         }
-        $users = User::latest()->paginate(10);
+        $users = auth()->user()->getVisibleUsers()->paginate(10);
 
         return view('user.index', compact('users'));
     }

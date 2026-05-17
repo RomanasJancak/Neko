@@ -4,7 +4,9 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -49,6 +51,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    
     public function settings()
     {
         return $this->hasMany(UserSetting::class);
@@ -91,6 +94,65 @@ class User extends Authenticatable
     public function isAdminOrSuperAdmin(): bool
     {
         return $this->roles()->whereIn('roles.id', [1, 2])->exists();
+    }
+
+    public function getVisibleUsers(): Builder
+    {
+        if ($this->isAdminOrSuperAdmin()) {
+            return self::query()->orderBy('name');
+        }
+
+        $visibleRoleIds = $this->getDescendantRoleIds();
+
+        $query = self::query();
+
+        if ((int) $this->client_id !== 1) {
+            $query->where('client_id', $this->client_id);
+        }
+
+        if (empty($visibleRoleIds)) {
+            return $query->where('id', $this->id)
+                ->orderBy('name');
+        }
+
+        return $query->where(function ($query) use ($visibleRoleIds) {
+            $query->where('id', $this->id)
+                ->orWhereHas('roles', function ($rolesQuery) use ($visibleRoleIds) {
+                    $rolesQuery->whereIn('roles.id', $visibleRoleIds);
+                });
+        })
+            ->orderBy('name');
+    }
+
+    protected function getDescendantRoleIds(): array
+    {
+        $currentRoleIds = $this->roles()->pluck('roles.id')->map(static fn ($id) => (int) $id)->all();
+
+        if (empty($currentRoleIds)) {
+            return [];
+        }
+
+        $descendantRoleIds = [];
+        $frontier = $currentRoleIds;
+
+        while (!empty($frontier)) {
+            $children = DB::table('role_hierarchy')
+                ->whereIn('parent_role_id', $frontier)
+                ->pluck('child_role_id')
+                ->map(static fn ($id) => (int) $id)
+                ->all();
+
+            $newChildren = array_values(array_diff($children, $descendantRoleIds));
+
+            if (empty($newChildren)) {
+                break;
+            }
+
+            $descendantRoleIds = array_values(array_unique(array_merge($descendantRoleIds, $newChildren)));
+            $frontier = $newChildren;
+        }
+
+        return $descendantRoleIds;
     }
     public function tasks()
     {
