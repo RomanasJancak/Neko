@@ -4,9 +4,13 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Models\Job;
+use App\Models\Package;
 use App\Models\Pickuptask;
+use App\Models\ReturnTask;
 use App\Observers\JobObserver;
+use App\Observers\PackageObserver;
 use App\Observers\PickupTaskObserver;
+use App\Observers\ReturnTaskObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,5 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
       Job::observe(JobObserver::class);
       Pickuptask::observe(PickupTaskObserver::class);
+      Package::observe(PackageObserver::class);
+      ReturnTask::observe(ReturnTaskObserver::class);
     }
 }

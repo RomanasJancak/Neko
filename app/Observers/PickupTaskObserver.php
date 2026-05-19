@@ -30,8 +30,10 @@ class PickupTaskObserver
     
     $job = $task->job;
     if ((int) $job->status_id !== 14 || !$job->invoiceItem) {
+      $job->recalculatePrice();
       return;
     }
+    
     //$pricingService = app(InvoicePricingService::class);
     //$pricingService->recalculateItemAndInvoice($job->invoiceItem);
   }
