@@ -79,7 +79,7 @@
             <div class="modal-body">
                 <form id="packageTypeForm" action="" method="POST">
                     @csrf
-                    <div class="col-10">
+                    <div class="col-auto">
                         <div class="row">
                             <input type="hidden" name="packageTypeId" id="packageTypeId" value="">
                             <input type="hidden" name="packageTypeClientIdOld" id="packageTypeClientIdOld" value="">
@@ -100,6 +100,10 @@
                                 <label for="maxQuantityThresholdField">Max allowable : </label>
                                 <input type="number" name="maxQuantityThreshold" id="maxQuantityThresholdField" value="1">
                             </div>
+                            <div class="col-md-3">
+                                <label for="return-surchager-field">ReturnCost : </label>
+                                <input type="number" name="returnSurcharge" id="return-surchager-field" value="0.00">
+                            </div>
                         </div>
                         <hr class="my-divider">
                         <div class="row">
@@ -107,7 +111,9 @@
                             <div class="col-md-6"><button type="button" id="unCheckAllClientsButton" class="btn btn-primary">Uncheck All</button></div>
                         </div>
                         <hr class="my-divider">
-                        <div class="col-12" id="container-extras"></div>
+                        <div class="row">
+                          <div class="col-12" id="container-extras"></div>
+                        </div>
                         <hr class="my-divider">
                         <div class="row">
                             <!-- <label for="clientNameField">Used by : </label> -->
