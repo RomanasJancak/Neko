@@ -435,6 +435,28 @@ class TaskController extends Controller
                                                                         'addressLine'   =>  $task->return->addressLine(),
                                                 ],
                                                 'is_flexible'   =>  $task->return->is_flexible,
+                                                'packages'      =>  collect($task->job->getDropOffTasks())
+                                                                        ->filter(function ($dropOffTask) {
+                                                                            return $dropOffTask->package && $dropOffTask->package->packageType;
+                                                                        })
+                                                                        ->groupBy(function ($dropOffTask) {
+                                                                            return $dropOffTask->package->packageType->name;
+                                                                        })
+                                                                        ->map(function ($tasks, $typeName) {
+                                                                            return [
+                                                                                'type'          => $typeName,
+                                                                                'quantity'      => $tasks->sum(function ($dropOffTask) {
+                                                                                    return (int) $dropOffTask->package->quantity;
+                                                                                }),
+                                                                            ];
+                                                                        })
+                                                                        ->values(),
+                                                // 'packages' => $task->job->packages()->map(function($package){
+                                                //     return [
+                                                //         'type'          =>  $package->packageType,
+                                                //         'quantity'      =>  $package->quantity,
+                                                //     ];
+                                                // }),
                                             ]
                                             :'none',
                 ]);

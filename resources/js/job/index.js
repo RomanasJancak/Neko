@@ -1357,6 +1357,7 @@ function setTaskValues(taskId){
     const timeEndField   =   document.getElementById('taskTimeEnd');
     const crateCollection   =   document.getElementById('crateCollection');
     const taskNoteField  =   document.getElementById('taskNoteField');
+    const packagesParagraph = document.getElementById('packageInfoContent');
     idField.value = taskId;
     idField.disabled =  true;
     typeField.disabled =  true;
@@ -1409,6 +1410,9 @@ function setTaskValues(taskId){
                     } else {
                         container_taskTimeDate.style.visibility = 'hidden';
                     }
+                });
+                data.returnTask.packages.forEach(function(pakuote){
+                    packagesParagraph.innerHTML += `<span style="color: green;"> ${pakuote.type} :  * <input type="number" value="${pakuote.quantity}"></input><input type="checkbox" checked></span><br>` ;
                 });
             }else{
                 container_return.style.visibility = 'hidden';

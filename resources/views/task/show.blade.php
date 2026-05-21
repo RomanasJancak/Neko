@@ -102,6 +102,12 @@
             <label for="returnTask_isFlexible">Flexible Return</label>
         </div>          
     </div>
+    <div class="row justify-content-md-center">
+        <div class="col" id="package-info">
+          <p><strong>Package info:</strong></p>
+          <p id="packageInfoContent"></p>
+        </div>          
+    </div>
     <div class="row">
         <div class="col">
             <label for="taskNoteField">Note</label>
