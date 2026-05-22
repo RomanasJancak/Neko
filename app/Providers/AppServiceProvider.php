@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Job;
 use App\Models\Package;
@@ -27,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+      URL::forceScheme('https');
+
       Job::observe(JobObserver::class);
       Pickuptask::observe(PickupTaskObserver::class);
       Package::observe(PackageObserver::class);

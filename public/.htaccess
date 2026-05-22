@@ -5,6 +5,15 @@
 
     RewriteEngine On
 
+    # Refuse plain HTTP requests; only HTTPS is allowed.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ - [F,L]
+
+    <IfModule mod_headers.c>
+        Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    </IfModule>
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
