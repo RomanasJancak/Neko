@@ -1,5 +1,20 @@
 import { fillClientViewForm,clientInforReadOnlyState } from '../client/show.js';
+function setControlButtonsState(id,state = false){
+  let buttonsContainer = document.getElementById(`container-tasks`);
+  let buttons ;
+  setTimeout(() => {
+    buttons = buttonsContainer.querySelectorAll(`[id^="container-task"][id*="upDownButtonsContainer"]`);
 
+    console.log(buttons);
+    buttons.forEach(button => {
+      if(state){           
+            button.style.visibility = 'visible';
+        }else{
+            button.style.visibility = 'hidden';
+        }
+    });
+  }, 1000);
+}
 function viewJob(jobId) {
     const jobIdField = document.getElementById('idField');
     const courierIdField = document.getElementById('courierIdField');
@@ -29,6 +44,7 @@ function viewJob(jobId) {
         createNewTaskButton.style.visibility = 'hidden';
     }
     toggle_CreateNewTaskButton(false);
+    setControlButtonsState(jobId, false);
     $('#jobModalWindow').modal('show');
 }
 function editJob(jobId) {
@@ -63,6 +79,7 @@ function editJob(jobId) {
         createNewTaskButton.style.visibility = 'visible';
     }
     toggle_CreateNewTaskButton(true);
+    setControlButtonsState(jobId, true);
     $('#jobModalWindow').modal('show');
 }
 function deleteJob(jobId) {
@@ -93,6 +110,7 @@ function deleteJob(jobId) {
         createNewTaskButton.style.visibility = 'hidden';
     }
     toggle_CreateNewTaskButton(false);
+    setControlButtonsState(jobId, false);
     $('#jobModalWindow').modal('show');
 }
 function getShareLinkJob(jobId){
