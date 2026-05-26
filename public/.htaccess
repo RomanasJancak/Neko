@@ -5,7 +5,11 @@
 
     RewriteEngine On
 
-    # Refuse plain HTTP requests; only HTTPS is allowed.
+    # Refuse plain HTTP requests outside local env.
+    # For Apache, APP_ENV must be exposed via server env (SetEnv APP_ENV local) if needed.
+    # Localhost/127.0.0.1 are always allowed for local development.
+    RewriteCond %{ENV:APP_ENV} !local
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
     RewriteCond %{HTTPS} !=on
     RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
     RewriteRule ^ - [F,L]

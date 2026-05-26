@@ -10,6 +10,10 @@ class EnforceHttps
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (app()->environment('local')) {
+            return $next($request);
+        }
+
         if (! $request->isSecure()) {
             abort(403, 'HTTP is not allowed. Use HTTPS.');
         }

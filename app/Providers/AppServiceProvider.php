@@ -28,7 +28,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-      URL::forceScheme('https');
+      if (!app()->environment('local')) {
+        URL::forceScheme('https');
+      }
 
       Job::observe(JobObserver::class);
       Pickuptask::observe(PickupTaskObserver::class);
