@@ -32,6 +32,7 @@
                                 @endforeach
                             </select>
                         </div>
+                        @if(auth()->user()->can('user-edit'))
                         <div class="form-group">
                             <label for="username">Roles</label>
                             <select class="form-select" aria-label="Default select example" name="role" id="roles" required>
@@ -40,6 +41,7 @@
                                 @endforeach
                             </select>
                         </div>
+                        @endif
 
                         <div class="form-group">
                             <label for="password">Password</label>

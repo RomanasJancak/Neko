@@ -17,9 +17,9 @@
                             @endforeach
                             </div>
                             <div class="col-md-1"><a href="{{route('user.show',$user)}}">More...</a></div>
-                            @can('user-edit')
+                            @if(auth()->id() === $user->id || auth()->user()->can('user-edit'))
                             <div class="col-md-1"><a href="{{route('user.edit',$user)}}">Edit</a></div>
-                            @endcan
+                            @endif
                             @can('user-delete')
                             <div class="col-md-1"><a href="{{route('user.delete',$user)}}">Delete</a></div>
                             @endcan

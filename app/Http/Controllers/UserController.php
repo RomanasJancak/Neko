@@ -111,8 +111,10 @@ class UserController extends Controller
     public function edit(User $user)
     { 
             $clients = Client::orderBy('name')->get(['id', 'name']);
-            if(!auth()->user()->can('user-edit')){
-                abort(403, 'You do not have permission to edit users.');
+            if(!(auth()->user()->id === $user->id)){     
+              if(!auth()->user()->can('user-edit')){
+                  abort(403, 'You do not have permission to edit users.');
+              }
             }
             return view('user.edit', ['user' => $user, 'clients' => $clients]);
     }
@@ -125,8 +127,9 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        //
-        //dd();
+        if (auth()->id() !== $user->id && !auth()->user()->can('user-edit')) {
+            abort(403, 'You do not have permission to edit this user.');
+        }
 
 
             $user->name = $request->user_name;
@@ -135,7 +138,9 @@ class UserController extends Controller
             $user->email = $request->user_email;
             $user->client_id = $request->filled('client_id') ? (int) $request->client_id : null;
 
-        $user->syncRoles(Role::find($request->role));
+        if (auth()->user()->can('user-edit') && $request->filled('role')) {
+            $user->syncRoles(Role::find($request->role));
+        }
         //dd(Role::find($request->role));
         $user->save();
         return redirect()->route('user.show',['user' => $user])->with('success_message', 'Sėkmingai pakeistas.');
