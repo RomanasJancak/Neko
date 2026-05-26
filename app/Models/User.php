@@ -103,7 +103,8 @@ class User extends Authenticatable
         }
 
         $visibleRoleIds = $this->getDescendantRoleIds();
-
+        // Include the user's own roles as well
+        $visibleRoleIds = array_merge($visibleRoleIds, $this->roles()->pluck('roles.id')->map(static fn ($id) => (int) $id)->all());
         $query = self::query();
 
         if ((int) $this->client_id !== 1) {
