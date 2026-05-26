@@ -9,14 +9,20 @@
                         <div class="row">
                             <div class="col-md-1">{{ $user->id }}</div>
                             <div class="col-md-3">{{ $user->name }}</div>
-                            <div class="col-md-1">{{ $user->email }}</div>
+                            <div class="col-md-2">{{ $user->email }}</div>
                             <div class="col-md-2">{{ $user->username }}</div>
+                            <div class="col-md-1">
                             @foreach($user->getRoleNames() as $rolename)
-                                {{$rolename.' , '}}
+                                {{$rolename}}<br>
                             @endforeach
+                            </div>
                             <div class="col-md-1"><a href="{{route('user.show',$user)}}">More...</a></div>
+                            @can('user-edit')
                             <div class="col-md-1"><a href="{{route('user.edit',$user)}}">Edit</a></div>
+                            @endcan
+                            @can('user-delete')
                             <div class="col-md-1"><a href="{{route('user.delete',$user)}}">Delete</a></div>
+                            @endcan
                         </div>
                     </li>
                 @endforeach
