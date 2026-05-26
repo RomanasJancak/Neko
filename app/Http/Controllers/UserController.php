@@ -105,27 +105,24 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Budget  $budget
+     * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function edit(User $user)
-    {
+    { 
             $clients = Client::orderBy('name')->get(['id', 'name']);
-
+            if(!auth()->user()->can('user-edit')){
+                abort(403, 'You do not have permission to edit users.');
+            }
             return view('user.edit', ['user' => $user, 'clients' => $clients]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateBudgetRequest  $request
-     * @param  \App\Models\Budget  $budget
      * @return \Illuminate\Http\Response
      */
-    public function addBudget(UpdateUserRequest $request,User $user, Budget $budget)
-    {
-        $user->budgets()->attach($budget);
-    }
+
     public function update(UpdateUserRequest $request, User $user)
     {
         //
