@@ -150,9 +150,9 @@
                     <td rowspan="{{ $dropCount }}">{{ $job->date ?? 'N/A' }}</td>
 
                     <td rowspan="{{ $dropCount }}">
-                        {{ $pickup->addressShort() ?? 'N/A' }}<br>
+                        {{$pickup ? $pickup->addressShort() : 'N/A' }}<br>
                         <span class="small-text">
-                            {{ $pickup->timeWindowBeginFormatted() ?? 'N/A' }} – {{ $pickup->timeWindowEndFormatted() ?? 'N/A' }}
+                            {{ $pickup ? $pickup->timeWindowBeginFormatted() : 'N/A' }} – {{ $pickup ? $pickup->timeWindowEndFormatted() : 'N/A' }}
                         </span>
                     </td>
                 @endif
