@@ -105,7 +105,6 @@
             <tr>
                 <td><h4>Invoice Item #{{ $item->id }}</h4></td>
                 <td class="total">£{{ number_format($item->price, 2) }}</td>
-                <td><a href="{{ route('invoice.show', $item->invoice->id) }}">Invoice</a></td>
             </tr>
         </table>
     </div>
@@ -200,14 +199,15 @@
             </tr>
         @endforeach
     @endforeach
-</tbody>
-
-        </table>
-
-        <div class="section-total">
-            Item Total: £{{ number_format($item->price, 2) }}
-        </div>
-    @else
-        <p class="description">No jobs linked to this invoice item.</p>
-    @endif
+  </tbody>
+</table>
+  <div>
+    <a class="btn btn-primary mt-3" href="{{ route('invoice.show', $item->invoice->id) }}">Invoice</a>
+  </div>
+  <div class="section-total">
+    Item Total: £{{ number_format($item->price, 2) }}
+  </div>
+@else
+  <p class="description">No jobs linked to this invoice item.</p>
+@endif
 </div>
