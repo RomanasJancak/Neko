@@ -161,6 +161,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('compareSnapshotPrices/{id}', [JobController::class, 'compareSnapshotPrices'])->name('job.compareSnapshotPrices')->middleware('auth');
     Route::get('getJobToString/{id}',     [JobController::class, 'getJobToString'])->name('job.getJobToString')->middleware('auth');
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
+    Route::get('fetchJobsPaginateLight', [JobController::class, 'fetchJobsPaginateLight'])->name('job.fetch.light')->middleware('auth');
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
     Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');

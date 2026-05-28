@@ -1400,6 +1400,164 @@ public function index(Request $request,SettingsService $settings)
                         ], 500);
                     }
     }
+    public function fetchJobsPaginateLight(Request $request)
+    {
+        try {
+            $id = $request->get('id', '');
+            $clientName = $request->get('clientName', '');
+            $date = $request->get('date', '');
+            $statusFilterValue = $request->get('status', '');
+            $package = $request->get('package', '');
+            $startDate = $request->get('startDate', '');
+            $endDate = $request->get('endDate', '');
+
+            $sortField = $request->get('sortField', 'id');
+            $sortOrder = $request->get('sortOrder', 'asc');
+            $dropOffFilterValue = $request->get('dOsp', []);
+            $dropOffFilterValue = is_string($dropOffFilterValue) ? json_decode($dropOffFilterValue, true) : $dropOffFilterValue;
+
+            $jobIds = Job::query()
+                ->leftJoin('tasks', 'tasks.job_id', '=', 'jobs.id')
+                ->leftJoin('packages', 'packages.task_id', '=', 'tasks.id')
+                ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+                ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
+                ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
+                ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('jobs.date', [$startDate, $endDate]);
+                })
+                ->when($clientName, fn($q) => $q->where('clients.name', 'like', "%$clientName%"))
+                ->when($statusFilterValue, function ($q) use ($statusFilterValue) {
+                    if (is_array($statusFilterValue)) {
+                        $q->whereIn('jobs.status_id', $statusFilterValue);
+                    } else {
+                        $q->where('jobs.status_id', $statusFilterValue);
+                    }
+                })
+                ->when($package && is_array($dropOffFilterValue) && count($dropOffFilterValue) > 0, function ($q) use ($package, $dropOffFilterValue) {
+                    $q->where(function ($subQ) use ($package, $dropOffFilterValue) {
+                        foreach ($dropOffFilterValue as $column) {
+                            if ($column === 'packageType_id') {
+                                $matchingTypeIds = \App\Models\PackageType::where('name', 'LIKE', "%{$package}%")->pluck('id');
+                                if ($matchingTypeIds->isNotEmpty()) {
+                                    $subQ->orWhereIn('packages.packageType_id', $matchingTypeIds);
+                                }
+                            } else {
+                                $subQ->orWhere("packages.$column", 'LIKE', "%{$package}%");
+                            }
+                        }
+                    });
+                })
+                ->distinct()
+                ->pluck('jobs.id');
+
+            $jobs = Job::with([
+                'status:id,name',
+                'clientToBill:id,name,shortenedName,pickup_postal_code',
+                'tasks',
+                'tasks.pickup',
+                'tasks.return',
+                'tasks.customTask',
+                'tasks.package',
+                'tasks.package.packageType',
+                'tasks.package.packageType.extras',
+                'invoiceItem.invoice:id,invoice_number',
+                'jobTemplate:id,name',
+            ])
+                ->whereIn('jobs.id', $jobIds)
+                ->when($sortField === 'clientName', function ($q) use ($sortOrder) {
+                    $q->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
+                        ->orderBy('clients.name', $sortOrder)
+                        ->select('jobs.*');
+                })
+                ->when($sortField === 'status', function ($q) use ($sortOrder) {
+                    $q->join('statuses', 'jobs.status_id', '=', 'statuses.id')
+                        ->orderBy('statuses.name', $sortOrder)
+                        ->select('jobs.*');
+                }, function ($q) use ($sortField, $sortOrder) {
+                    $q->orderBy("jobs.$sortField", $sortOrder);
+                })
+                ->paginate(10);
+
+            $jobs->appends([
+                'id' => $id,
+                'clientName' => $clientName,
+                'date' => $date,
+                'sortField' => $sortField,
+                'sortOrder' => $sortOrder,
+                'package' => $package,
+                'status' => $statusFilterValue,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'dOsp' => json_encode($dropOffFilterValue),
+            ]);
+
+            return response()->json([
+                'jobs' => $jobs->map(function ($job) {
+                    $pickupTask = $job->getPickupTask();
+                    return [
+                        'id' => $job->id,
+                        'is_locked_for_non_admin_users' => $job->isLockedForUser(auth()->user()),
+                        'is_note_different_from_template_note' => $job->isNoteDifferentThanTemplateNote(),
+                        'hasReturn' => $job->hasReturn(),
+                        'urlToLogo' => $job->urlToLogo(),
+                        'clientName' => $job->clientToBill->name,
+                        'status' => [
+                            'name' => $job->status->name,
+                        ],
+                        'tasks' => $job->tasks
+                            ->filter(fn($task) => !is_null($task->package))
+                            ->map(function ($task) {
+                                return [
+                                    'package' => [
+                                        'dropoff_name' => $task->package->dropoff_name,
+                                        'dropoff_adress_line' => $task->package->dropoff_adress_line,
+                                        'dropoff_postal_code' => $task->package->dropoff_postal_code,
+                                    ],
+                                ];
+                            })->values(),
+                        'date' => $job->getDate(),
+                        'pickup' => !is_null($pickupTask) ? [
+                            'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
+                            'namdeOfAddress' => $pickupTask->nameOfAddress(),
+                            'fullAddress' => $pickupTask->pickupAddressFull(),
+                        ] : '',
+                        'clientToBill' => [
+                            'id' => $job->clientToBill->id,
+                            'name' => $job->clientToBill->name,
+                            'shortenedName' => $job->clientToBill->shortenedName,
+                            'pickup_postal_code' => $job->clientToBill->pickup_postal_code,
+                        ],
+                        'price' => $job->fixed_price === 0 ? $job->price()['totalPrice'] : $job->fixed_price,
+                        'invoice' => ($job->invoiceItem && $job->invoiceItem->invoice)
+                            ? [
+                                'id' => $job->invoiceItem->invoice->id,
+                                'invoice_number' => $job->invoiceItem->invoice->invoice_number,
+                            ]
+                            : null,
+                        'template' => is_null($job->jobTemplate)
+                            ? null
+                            : [
+                                'id' => $job->jobTemplate->id,
+                                'name' => $job->jobTemplate->name,
+                            ],
+                    ];
+                }),
+                'links' => (string) $jobs->links(),
+            ]);
+        } catch (QueryException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
+    }
     public function create_JobTemplate_fromThisJob(Request $request, $jobId ){
         try{
             $job = Job::findOrFail($jobId);

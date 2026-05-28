@@ -468,6 +468,9 @@ function fetchJobs(page = 1, url) {
   if(url){
     xhr.open('GET', url, true);
   }else{
+    /*This replaced :*/
+    //xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
+    /* This */
     xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
         &${statusParams.join('&').toString()}
         &date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}

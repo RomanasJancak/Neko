@@ -21,6 +21,7 @@ window.ROUTES = {
         STOREFROMTEMPLATE:  APP_URL+'/jobs/storeFromTemplate',
         RESTORE_NOTE_FROM_TEMPLATE: APP_URL+'/jobs/restoreNoteFromTemplate',
         FETCH:  APP_URL+'/jobs/fetchJobsPaginate',
+        FETCHLIGHT:  APP_URL+'/jobs/fetchJobsPaginateLight',
         GETINFO: APP_URL+'/jobs/getJobInfo/:id',
         GETJOBTOSTRING: APP_URL+'/jobs/getJobToString/:id',
         COPY:  APP_URL+'/jobs/copy',
