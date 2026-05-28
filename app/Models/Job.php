@@ -208,7 +208,7 @@ class Job extends Model
     }
     public function getDate(){
         $returnValue = '';
-        $task = $this->tasks()->first();
+        $task = $this->tasks->first();
         if ($task) {
             $returnValue = Carbon::parse($task->date)->format('Y-m-d');
         } else {
