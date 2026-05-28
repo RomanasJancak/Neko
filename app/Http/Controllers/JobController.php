@@ -1028,6 +1028,10 @@ public function index(Request $request,SettingsService $settings)
                     ];
                 }),
                 'eilesNumeris'      =>  $job->eilesNumeris,
+                'status'          =>  [
+                    'id'    =>  is_null($job->status) ? 'none' : $job->status->id,
+                    'name'  =>  is_null($job->status) ? 'none' : $job->status->name,
+                ],  
                 'hasReturn' =>  $job->hasReturn(),
                 'urlToLogo'   =>  $job->urlToLogo(),
                 'courierId'             =>  is_null($job->courier) ? 'none' : $job->courier->id,

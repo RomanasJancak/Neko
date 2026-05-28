@@ -246,6 +246,179 @@ function getIconsForIdCell({job = null}){
   }
   return [];
 }
+function buildJobRowElement({
+    job,
+    includeStatus = true,
+    includeIconsInId = true,
+    includeTemplateButton = true,
+    clientNameAsLink = true,
+}) {
+    console.log(job);
+    let packageCounter = 1;
+    const row = document.createElement('tr');
+    row.id = 'jobTableRow_' + job.id;
+
+    const isAddressSameAsClientAdress = Boolean(job.pickup?.isAddressSameAsClientAdress ?? job.pickup?.isAddressSameAsClientAddress);
+    const addressNameToDisplay = isAddressSameAsClientAdress
+        ? ((job.clientToBill?.shortenedName || '') !== ''
+            ? job.clientToBill.shortenedName + ' ' + job.clientToBill.pickup_postal_code
+            : (job.clientToBill?.name || ''))
+        : (job.pickup?.namdeOfAddress || job.pickup?.nameOfAddress || '');
+
+    const columnForId = document.createElement('td');
+    if (includeIconsInId) {
+        const idSpan = document.createElement('span');
+        idSpan.textContent = job.id;
+        columnForId.appendChild(idSpan);
+        getIconsForIdCell({job}).forEach(icon => {
+            columnForId.appendChild(icon);
+        });
+    } else {
+        columnForId.textContent = job.id;
+    }
+    row.appendChild(columnForId);
+
+    if (includeStatus) {
+        const columnForStatus = document.createElement('td');
+        columnForStatus.textContent = job.status?.name || '';
+        row.appendChild(columnForStatus);
+    }
+
+    const columnForLogoAndClientName = document.createElement('td');
+    columnForLogoAndClientName.className = 'no-padding';
+    const img = document.createElement('img');
+    img.src = job.urlToLogo;
+    img.style.maxWidth = '2rem';
+    img.style.height = 'auto';
+    const spanLinkToClient = document.createElement('span');
+    spanLinkToClient.textContent = job.clientName;
+    if (clientNameAsLink) {
+        spanLinkToClient.className = 'span-toClientShow';
+        spanLinkToClient.dataset.clientid = job.clientToBill?.id;
+        spanLinkToClient.style.cursor = 'pointer';
+    }
+    columnForLogoAndClientName.appendChild(img);
+    columnForLogoAndClientName.appendChild(spanLinkToClient);
+    row.appendChild(columnForLogoAndClientName);
+
+    const columnForDate = document.createElement('td');
+    columnForDate.textContent = job.date;
+    row.appendChild(columnForDate);
+
+    const columnForAddress = document.createElement('td');
+    const addressDiv = document.createElement('div');
+    const spanAddressName = document.createElement('span');
+    spanAddressName.textContent = addressNameToDisplay;
+    const spanInfoIcon = document.createElement('span');
+    spanInfoIcon.className = 'info-icon';
+    const infoIcon = document.createElement('i');
+    infoIcon.className = 'bi bi-info-circle-fill';
+    const spanTooltip = document.createElement('span');
+    spanTooltip.className = 'tooltip';
+    spanTooltip.textContent = job.pickup?.fullAddress || '';
+    spanInfoIcon.appendChild(infoIcon);
+    spanInfoIcon.appendChild(spanTooltip);
+    addressDiv.appendChild(spanAddressName);
+    addressDiv.appendChild(spanInfoIcon);
+    columnForAddress.appendChild(addressDiv);
+    row.appendChild(columnForAddress);
+
+    const columnForDropOffs = document.createElement('td');
+    (job.tasks || []).forEach(task => {
+        if (task.package) {
+            const div = document.createElement('div');
+            div.className = 'row';
+            const div2 = document.createElement('div');
+            div2.className = 'col';
+            const blockquote = document.createElement('blockquote');
+            blockquote.className = 'blockquote border';
+            const h6 = document.createElement('h6');
+            h6.textContent = `Package No [${packageCounter++}]`;
+            const p = document.createElement('p');
+            p.className = 'mb-0';
+            p.textContent = task.package.dropoff_name;
+            if (job.hasReturn) {
+                const returnIcon = document.createElement('i');
+                returnIcon.className = 'bi bi-arrow-counterclockwise';
+                returnIcon.style.color = '#00DD00';
+                p.appendChild(returnIcon);
+            }
+            const footer = document.createElement('footer');
+            footer.className = 'blockquote-footer';
+            const cite = document.createElement('cite');
+            cite.title = 'Source Title';
+            cite.textContent = task.package.dropoff_adress_line + task.package.dropoff_postal_code;
+            footer.appendChild(cite);
+            blockquote.appendChild(h6);
+            blockquote.appendChild(p);
+            blockquote.appendChild(footer);
+            div2.appendChild(blockquote);
+            div.appendChild(div2);
+            columnForDropOffs.appendChild(div);
+        }
+    });
+    row.appendChild(columnForDropOffs);
+
+    const columnForPrice = document.createElement('td');
+    const pricePrefix = document.createElement('span');
+    pricePrefix.textContent = '£';
+    const priceValue = document.createElement('span');
+    const rawPrice = typeof job.price === 'number' ? job.price : (job.price?.totalPrice || 0);
+    priceValue.textContent = parseFloat(rawPrice / 100, 2);
+    columnForPrice.appendChild(pricePrefix);
+    columnForPrice.appendChild(priceValue);
+    row.appendChild(columnForPrice);
+
+    const columnForActions = document.createElement('td');
+    const isJobLocked = Boolean(job.is_locked_for_non_admin_users);
+
+    const jobViewButton = document.createElement('button');
+    jobViewButton.className = 'btn btn-success view-btn job-view-btn';
+    jobViewButton.dataset.jobid = job.id;
+    jobViewButton.innerHTML = '<i class="bi bi-eye"></i>';
+
+    const jobEditButton = document.createElement('button');
+    jobEditButton.className = 'btn btn-primary edit-btn job-edit-btn';
+    jobEditButton.dataset.jobid = job.id;
+    jobEditButton.innerHTML = '<i class="bi bi-pen"></i>';
+    if (isJobLocked) {
+        jobEditButton.disabled = true;
+        jobEditButton.title = 'Locked after invoice date';
+        jobEditButton.setAttribute('aria-disabled', 'true');
+    }
+
+    const jobDeleteButton = document.createElement('button');
+    jobDeleteButton.className = 'btn btn-danger delete-btn job-delete-btn';
+    jobDeleteButton.dataset.jobid = job.id;
+    jobDeleteButton.innerHTML = '<i class="bi bi-trash"></i>';
+
+    const jobCopyButton = document.createElement('button');
+    jobCopyButton.className = 'btn btn-info copy-btn job-copy-btn';
+    jobCopyButton.dataset.jobid = job.id;
+    jobCopyButton.innerHTML = '<i class="fa-solid fa-copy"></i>';
+
+    const jobShareLinkButton = document.createElement('button');
+    jobShareLinkButton.className = 'btn btn-info sharelink-btn job-sharelink-btn';
+    jobShareLinkButton.dataset.jobid = job.id;
+    jobShareLinkButton.innerHTML = '<i class="fa fa-share-alt" aria-hidden="true"></i>';
+
+    columnForActions.appendChild(jobViewButton);
+    columnForActions.appendChild(jobEditButton);
+    columnForActions.appendChild(jobDeleteButton);
+    columnForActions.appendChild(jobCopyButton);
+    columnForActions.appendChild(jobShareLinkButton);
+
+    if (includeTemplateButton) {
+        const jobTemplateCreateButton = document.createElement('button');
+        jobTemplateCreateButton.className = 'btn btn-secondary job-template-create-btn';
+        jobTemplateCreateButton.dataset.jobid = job.id;
+        jobTemplateCreateButton.innerHTML = '<i class="bi bi-file-earmark-plus"></i>';
+        columnForActions.appendChild(jobTemplateCreateButton);
+    }
+
+    row.appendChild(columnForActions);
+    return row;
+}
 function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
@@ -1455,7 +1628,8 @@ function repopulateJobRow(jobId,jobRow){
     const routeUrl = window.ROUTES.WEB.JOB.GETINFO.replace(':id', jobId);
     fetch(routeUrl)
         .then(response => response.json())
-        .then(job => {
+        /*.then(job => 
+          {
             
             let packageCounter = 1;
             let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAddress;
@@ -1589,7 +1763,24 @@ function repopulateJobRow(jobId,jobRow){
             addEventListenerToViewJobButton_click(jobViewButton);
             addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
             jobRow.replaceWith(row);
-        })
+          })
+        */
+       .then(job => {
+        let row = buildJobRowElement({job});
+        jobRow.replaceWith(row);
+        let jobViewButton = row.getElementsByClassName('job-view-btn')[0];
+        let jobEditButton = row.getElementsByClassName('job-edit-btn')[0];
+        let jobDeleteButton = row.getElementsByClassName('job-delete-btn')[0];
+        let jobCopyButton = row.getElementsByClassName('job-copy-btn')[0];
+        let jobShareLinkButton = row.getElementsByClassName('job-sharelink-btn')[0];
+        let spanToClientShow = row.getElementsByClassName('span-toClientShow')[0];
+        addEventListenerToCopyJobButton_click(jobCopyButton);
+        addEventListenerToDeleteJobButton_click(jobDeleteButton);
+        addEventListenerToEditJobButton_click(jobEditButton);
+        addEventListenerToViewJobButton_click(jobViewButton);
+        addEventListenerToShareLinkJobButton_click(jobShareLinkButton);
+        addEventListenerToViewClientButton_click(spanToClientShow);
+       })
         .catch(error => {
             console.error('Error fetching job info:', error);
     }   );
