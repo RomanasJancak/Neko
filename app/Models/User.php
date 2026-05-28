@@ -177,4 +177,18 @@ class User extends Authenticatable
             $query->where('day_id', $day->id);
         })->get();
     }
+
+    public function scopeCouriers(Builder $query): Builder
+    {
+        return $query->whereHas('roles', function (Builder $roleQuery) {
+            $roleQuery->where('name', 'courier');
+        });
+    }
+
+    public function scopeWithWorkloadOnDate(Builder $query, string $date): Builder
+    {
+        return $query->whereHas('workloads.day', function (Builder $dayQuery) use ($date) {
+            $dayQuery->whereDate('date', $date);
+        });
+    }
 }

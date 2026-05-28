@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CourierController;
+use App\Http\Controllers\Api\CourierWorkloadController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkloadController;
@@ -29,7 +31,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('workloads/{workload}', [UserController::class, 'removeWorkload']);
     });
     Route::apiResource('user-day-statuses', UserDayStatusController::class);
-Route::apiResource('user-statuses', UserStatusController::class)->parameters([
-    'user-statuses' => 'user_status' // Forces the parameter to be {user_status}
-]);
+    Route::apiResource('user-statuses', UserStatusController::class)->parameters([
+        'user-statuses' => 'user_status' // Forces the parameter to be {user_status}
+    ]);
+
+    // Courier
+    Route::get('courier/today-jobs', [CourierController::class, 'todayJobs']);
+    Route::get('couriers/with-workload', CourierWorkloadController::class);
 });

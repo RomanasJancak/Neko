@@ -44,6 +44,8 @@ use App\Models\User;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+Route::get('/courier/today', [App\Http\Controllers\CourierController::class, 'today'])->name('courier.today')->middleware('auth');
+
 Route::get('/upload-csv', function () {
     return view('upload_csv');
 })->name('uploadCSV');

@@ -24,6 +24,10 @@ class HomeController extends Controller
      */
     public function index()
     {
+        if (auth()->user()->hasRole('courier')) {
+            return redirect()->route('courier.today');
+        }
+
         return view('home');
     }
     public function parseCSV(Request $request)

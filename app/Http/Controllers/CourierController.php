@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Job;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+
+class CourierController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    public function today()
+    {
+        $user  = auth()->user();
+        $today = Carbon::today()->toDateString();
+
+        $jobs = Job::with([
+                'clientToBill',
+                'status',
+                'tasks' => fn ($q) => $q->orderBy('order_number')
+                    ->with(['pickup', 'package', 'return', 'customTask', 'status']),
+            ])
+            ->where('courrier_id', $user->id)
+            ->whereDate('date', $today)
+            ->orderBy('pickup_time_begin')
+            ->get();
+
+        return view('courier.today', compact('jobs', 'today'));
+    }
+    
+}
