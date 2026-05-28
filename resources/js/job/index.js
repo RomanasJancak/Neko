@@ -423,6 +423,7 @@ function fetchJobs(page = 1, url) {
   const id = document.getElementById('search-id').value;
   const clientName = document.getElementById('search-clientName').value;
   const date = document.getElementById('search-date').value;
+  console.log('date:', date);
   const pakuote = document.getElementById('search-package').value;
   const dropOffSearchFields = document.getElementById('dropOffSearchFields').selectedOptions;
   const sortField = document.querySelector('.sort-btn.active')?.dataset.sortField || 'id';
@@ -471,7 +472,7 @@ function fetchJobs(page = 1, url) {
     /*This replaced :*/
     //xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
     /* This */
-    xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCHLIGHT+`?id=${id}&clientName=${clientName}
         &${statusParams.join('&').toString()}
         &date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}
         &sortOrder=${sortOrder}&page=${page}

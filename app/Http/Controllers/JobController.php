@@ -1406,6 +1406,7 @@ public function index(Request $request,SettingsService $settings)
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');
             $date = $request->get('date', '');
+            dd($request->all());
             $statusFilterValue = $request->get('status', '');
             $package = $request->get('package', '');
             $startDate = $request->get('startDate', '');
