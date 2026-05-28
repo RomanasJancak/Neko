@@ -17,7 +17,10 @@ class Day extends Model
         'name','date',
         // Add other attributes to the $fillable array as needed
     ];
-
+    public static function getDayByDate($date)
+    {
+        return self::whereDate('date', Carbon::parse($date)->toDateString())->first();
+    }
     public function month(){
         return $this->date->format('m');
     }
@@ -58,6 +61,16 @@ class Day extends Model
     public function freeCouriers()
     {
         return User::whereDoesntHave('workloads', function ($query) {
+            $query->where('day_id', $this->id);
+        })
+        ->whereHas('roles', function ($query) {
+            $query->where('name', 'courier');
+        })
+        ->get();
+    }
+    public function allCouriersForThisDay()
+    {
+        return User::whereHas('workloads', function ($query) {
             $query->where('day_id', $this->id);
         })
         ->whereHas('roles', function ($query) {

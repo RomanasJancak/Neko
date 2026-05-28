@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\User;
+use App\Models\Day;
 
 class CourierController extends Controller
 {
@@ -31,5 +33,34 @@ class CourierController extends Controller
 
         return view('courier.today', compact('jobs', 'today'));
     }
-    
+    public function getJobsForCourier($courier,$date){
+        $date = Carbon::parse($date)->toDateString();
+        $jobs = Job::with([
+                'clientToBill',
+                'status',
+                'tasks' => fn ($q) => $q->orderBy('order_number')
+                    ->with(['pickup', 'package', 'return', 'customTask', 'status']),
+            ])
+            ->where('courrier_id', $courier)
+            ->whereDate('date', $date)
+            ->orderBy('pickup_time_begin')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'date'    => $date,
+            'jobs'    => $jobs,
+        ]);
+    }
+    public function getCouriersForDate(Request $request, $date){
+        $date = Carbon::parse($date)->toDateString();
+        $couriers = User::getCouriersForDate($date);
+        //$day = Day::getDayByDate($date);
+        //$allCouriers = $day ? $day->allCouriersForThisDay() : collect();
+        return response()->json([
+            'success' => true,
+            'date' => $date,
+            'couriers' => $couriers,
+        ]);
+    }
 }

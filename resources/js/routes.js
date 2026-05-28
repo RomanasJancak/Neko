@@ -62,5 +62,8 @@ window.ROUTES = {
       PACKAGETYPE:{
         GETINFO: APP_URL+'/packageTypes/getPackageTypeInfo/:id',
       },
+      COURIER: {
+        GET_COURIERS_FOR_DATE: APP_URL+'/courier/getCouriersForDate/:date',
+      },
   }
 };

@@ -45,7 +45,8 @@ use App\Models\User;
 //     return view('welcome');
 // });
 Route::get('/courier/today', [App\Http\Controllers\CourierController::class, 'today'])->name('courier.today')->middleware('auth');
-
+Route::get('/courier/getCouriersForDate/{date}', [App\Http\Controllers\CourierController::class, 'getCouriersForDate'])->name('courier.getCouriersForDate')->middleware('auth');
+Route::get('/courier/getJobsForCourier/{courier}/{date}', [App\Http\Controllers\CourierController::class, 'getJobsForCourier'])->name('courier.getJobsForCourier')->middleware('auth');
 Route::get('/upload-csv', function () {
     return view('upload_csv');
 })->name('uploadCSV');

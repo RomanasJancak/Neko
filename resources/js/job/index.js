@@ -2031,12 +2031,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             $('#jobModalWindow').modal('show');
     });
-
+    // Add Event Listenr to the date change field to allow dissalow assigning courier, and populating based on what date it is
+    document.getElementById('jobDateField').addEventListener('change', function(){
+      const value = this.value;
+      fetch(window.ROUTES.WEB.COURIER.GET_COURIERS_FOR_DATE.replace(':date', value))        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            const courierIdField = document.getElementById('courierIdField');
+            courierIdField.innerHTML = '<option value="0">Select Courier</option>';
+            data.couriers.forEach(courier => {
+                const option = document.createElement('option');
+                option.value = courier.id;
+                option.textContent = courier.name;
+                courierIdField.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching available couriers:', error);
+        });
+    });
     document.getElementById('taskModalWindowCloseButton').addEventListener('click', function() {
         setJobValues(document.getElementById('idField').value, global_typeOfButtonClickedToOpenJobModal);
         $('#taskModalWindow').modal('hide');
         $('#jobModalWindow').modal('show');        
     });
+
     document.getElementById('submitform').addEventListener('click', function(event) {
         let submitFormInnerHTML = document.getElementById('submitform').innerHTML;
       

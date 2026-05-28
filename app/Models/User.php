@@ -51,7 +51,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    
+    public static function getCouriersForDate($date)
+    {
+        $date = \Carbon\Carbon::parse($date)->toDateString();
+        return self::whereHas('roles', function ($query) {
+            $query->where('name', 'courier');
+        })->whereHas('workloads.day', function ($query) use ($date) {
+            $query->whereDate('date', $date);
+        })->get();
+    }
     public function settings()
     {
         return $this->hasMany(UserSetting::class);
