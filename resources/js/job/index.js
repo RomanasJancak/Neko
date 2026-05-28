@@ -2288,18 +2288,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     alert(errorsMessage);
                 };
-                if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
-                    $('#jobModalWindow').modal('hide');
-                    let row = document.getElementById('jobTableRow_'+updateData.id);
-                    console.log(row);
-                    
-                    if(row){
-                        row.parentNode.removeChild(row);
-                    }
-                }
-                if(data.success){
+
+                if(data.success === true){
                     show_Success_Message({
                         message: data.message
+                    });
+                    if(submitFormInnerHTML == `<i class="bi bi-trash"></i>`){
+                      $('#jobModalWindow').modal('hide');
+                      let row = document.getElementById('jobTableRow_'+updateData.id);
+                      
+                      if(row){
+                          row.parentNode.removeChild(row);
+                      }
+                    }
+                }else{
+                    $('#jobModalWindow').modal('hide');
+                    console.error('Error updating job:', data);
+                    show_Error_Message({
+                        message: data.message || 'An error occurred while updating the job.'
                     });
                 }
             })

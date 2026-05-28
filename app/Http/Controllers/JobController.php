@@ -557,6 +557,7 @@ public function index(Request $request,SettingsService $settings)
             $job = Job::findOrFail($request->id);
             if ($job->isLockedForUser(auth()->user())) {
                 return response()->json([
+                    'success' => false,
                     'message' => 'This job is locked and cannot be deleted.',
                 ], 422);
             }
@@ -578,6 +579,7 @@ public function index(Request $request,SettingsService $settings)
             $job->delete();
 
             return response()->json([
+                'success' => true,
                 'message' => 'Job deleted successfully.'
             ]);
         } catch (\Exception $e){
