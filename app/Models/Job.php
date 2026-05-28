@@ -71,6 +71,10 @@ class Job extends Model
     private $workingHours_minimum = "07:00:00";
     private $workingHours_maximum = "17:00:00";
     private $timeWindowSize_minimumJourneyTime = "00:15:00";
+    protected $casts = [
+        'date' => 'date',
+    ];
+
     protected $fillable = [
         'eilesNumeris',
         'courrier_id',

@@ -1406,7 +1406,7 @@ public function index(Request $request,SettingsService $settings)
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');
             $date = $request->get('date', '');
-            dd($request->all());
+            //dd($request->all());
             $statusFilterValue = $request->get('status', '');
             $package = $request->get('package', '');
             $startDate = $request->get('startDate', '');
@@ -1422,7 +1422,7 @@ public function index(Request $request,SettingsService $settings)
                 ->leftJoin('packages', 'packages.task_id', '=', 'tasks.id')
                 ->join('clients', 'jobs.clientToBill_id', '=', 'clients.id')
                 ->when($id, fn($q) => $q->where('jobs.id', 'like', "%$id%"))
-                ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
+                // ->when($date, fn($q) => $q->where('jobs.date', 'like', "%$date%"))
                 ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('jobs.date', [$startDate, $endDate]);
                 })
