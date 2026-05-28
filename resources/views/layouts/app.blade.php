@@ -229,8 +229,8 @@
         </script>
       @endif
 
-      <div id="navAlert" class="alert text-center fade show position-absolute w-100" 
-          style="top: -100px; z-index: 1050; transition: top 0.5s ease;" role="alert">
+      <div id="navAlert" class="alert text-center fade show w-100" 
+          style="position: fixed; top: -100px; left: 0; z-index: 1050; transition: top 0.5s ease;" role="alert">
         <span id="navAlertText"></span>
       </div>
 
@@ -260,16 +260,16 @@
   function showAlert({message, type = 'info', duration = 3000, zIndex = 10000}) {
       const alertBox = document.getElementById('navAlert');
       const alertText = document.getElementById('navAlertText');
-      const navbar = document.querySelector('nav.navbar');
 
-      if (!alertBox || !navbar) return;
+      if (!alertBox) return;
 
-      const navbarHeight = navbar.offsetHeight;
       alertText.textContent = message;
 
       // Reset alert classes
-      alertBox.className = `alert alert-${type} text-center fade show position-absolute w-100`;
-      alertBox.style.top = `${navbarHeight}px`;
+      alertBox.className = `alert alert-${type} text-center fade show w-100`;
+      alertBox.style.position = 'fixed';
+      alertBox.style.left = '0';
+      alertBox.style.top = '0';
       alertBox.style.zIndex = zIndex;
 
       // Slide up after duration
