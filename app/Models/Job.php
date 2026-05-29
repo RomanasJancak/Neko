@@ -851,8 +851,9 @@ class Job extends Model
     }
     public function price_bankHoliday(){
         $bankHolidayAddon;
+        $jobDate = $this->getDate();
         foreach($this->bankHolidays as $holiday){
-            if($this->getDate() == $holiday['date']){
+            if($jobDate == $holiday['date']){
                 foreach($this->addOns_time as $addOn){
                     if(strpos($addOn['name'], 'time-bankHoliday') === 0){
                         $bankHolidayAddon = $addOn;
