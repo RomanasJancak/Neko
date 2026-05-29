@@ -11,7 +11,6 @@ class InvoiceSnapshotService
     public function buildSnapshotData(Invoice $invoice, float $vatRate): array
     {
         $invoice->loadMissing(['client', 'invoiceItems.jobs', 'invoiceItems.jobs.status']);
-
         $subtotal = $invoice->total;
         $vatAmount = round($subtotal * $vatRate, 2);
         $grandTotal = $subtotal + $vatAmount;
@@ -74,7 +73,7 @@ class InvoiceSnapshotService
                 'name' => $invoice->client->name ?? null,
                 'address_line' => $invoice->client->address_line ?? null,
                 'city' => $invoice->client->city ?? null,
-                'postcode' => $invoice->client->postcode ?? null,
+                'postcode' => $invoice->client->postal_code ?? null,
                 'country' => $invoice->client->country ?? null,
                 'email' => $invoice->client->email ?? null,
             ],
