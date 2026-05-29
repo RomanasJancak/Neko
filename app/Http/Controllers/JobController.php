@@ -958,6 +958,7 @@ public function index(Request $request,SettingsService $settings)
 
             $job = Job::find($request->id);
             $newJob = $job->replicate()->fill([
+              'status_id' => 10,
             ]);
             $newJob->save();
             foreach($job->tasks as $task){
