@@ -104,6 +104,9 @@ class DayController extends Controller
         })
         ->whereBetween('pickup_time_begin', [Carbon::parse($date)->startOfDay(), Carbon::parse($date)->endOfDay()])
                 ->get();
+        $jobsUn = Job::where('status_id', 10)->where('date', '>=', Carbon::parse($date)->startOfDay())->where('date', '<=', Carbon::parse($date)->endOfDay())->get();
+        $jobsUnassigned = $jobsUn;
+        //dd($jobsUnassigned,$jobsUn);
         return view('day.dashboard', compact('date','jobsUnassigned','users','day'));
     }
     /**
