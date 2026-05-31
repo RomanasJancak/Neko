@@ -38,5 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Courier
     Route::get('courier/today-jobs', [CourierController::class, 'todayJobs']);
     Route::get('courier/jobs/{date}', [CourierController::class, 'jobsByDate']);
+    Route::post('courier/tasks/{task}/status', [CourierController::class, 'updateTaskStatus']);
     Route::get('couriers/with-workload', CourierWorkloadController::class);
 });

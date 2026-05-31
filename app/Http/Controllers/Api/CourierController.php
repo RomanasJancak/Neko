@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Job;
+use App\Models\Status;
+use App\Models\Task;
+use App\Services\TaskStatusTransitionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -158,6 +161,101 @@ class CourierController extends Controller
             'success' => true,
             'date'    => $targetDate,
             'jobs'    => $data,
+        ]);
+    }
+
+    /**
+     * Initiate task status transition for authenticated courier and return next options.
+     */
+    public function updateTaskStatus(Request $request, Task $task): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->hasRole('courier')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access restricted to couriers.',
+            ], 403);
+        }
+
+        $task->load(['job', 'status', 'pickup', 'package', 'return', 'customTask']);
+
+        if (! $task->job || (int) $task->job->courrier_id !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task is not assigned to the authenticated courier.',
+            ], 403);
+        }
+
+        $transitionService = app(TaskStatusTransitionService::class);
+        $targetStatus = $request->filled('status_id')
+            ? Status::find((int) $request->input('status_id'))
+            : $transitionService->getNextStatusInfo($task)['status_next_instance'];
+
+        if (! $targetStatus) {
+            $nextInfo = $transitionService->getNextStatusInfo($task);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid next status found for this task.',
+                'task_id' => (int) $task->id,
+                'current_status' => [
+                    'id' => (int) ($task->status?->id ?? 0),
+                    'name' => (string) ($task->status?->name ?? ''),
+                ],
+                'possible_status_options' => $nextInfo['status_next_options'],
+            ], 422);
+        }
+
+        if (! $transitionService->isTransitionAllowed($task, (int) $targetStatus->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid status transition.',
+                'allowed_flow' => $transitionService->getAllowedFlowLabel($task),
+                'task_id' => (int) $task->id,
+                'current_status' => [
+                    'id' => (int) ($task->status?->id ?? 0),
+                    'name' => (string) ($task->status?->name ?? ''),
+                ],
+                'requested_status' => [
+                    'id' => (int) $targetStatus->id,
+                    'name' => (string) $targetStatus->name,
+                ],
+            ], 422);
+        }
+
+        $task->status_id = $targetStatus->id;
+        $task->save();
+
+        if ($task->pickup) {
+            $task->pickup->status_id = $targetStatus->id;
+            $task->pickup->save();
+        } elseif ($task->package) {
+            $task->package->status_id = $targetStatus->id;
+            $task->package->save();
+        } elseif ($task->return) {
+            $task->return->status_id = $targetStatus->id;
+            $task->return->save();
+        } elseif ($task->customTask) {
+            $task->customTask->status_id = $targetStatus->id;
+            $task->customTask->save();
+        }
+
+        $task->refresh();
+        $task->load(['status', 'pickup.status', 'package.status', 'return.status', 'customTask.status']);
+
+        $nextInfo = $transitionService->getNextStatusInfo($task);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Task status updated successfully.',
+            'task_id' => (int) $task->id,
+            'job_id' => (int) ($task->job?->id ?? 0),
+            'new_status' => [
+                'id' => (int) $targetStatus->id,
+                'name' => (string) $targetStatus->name,
+            ],
+            'possible_status_options' => $nextInfo['status_next_options'],
         ]);
     }
 
