@@ -92,6 +92,75 @@ class CourierController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/courier/jobs/{date}",
+     *     summary="Get jobs for the authenticated courier on a specific date",
+     *     tags={"Courier"},
+     *     security={{"sanctum_auth": {}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="path",
+     *         required=true,
+     *         description="Date in YYYY-MM-DD format",
+     *         @OA\Schema(type="string", format="date", example="2026-05-31")
+     *     ),
+     *     @OA\Response(response=200, description="Jobs for the given date"),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Not a courier"),
+     *     @OA\Response(response=422, description="Invalid date format")
+     * )
+     */
+    public function jobsByDate(Request $request, string $date): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->hasRole('courier')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access restricted to couriers.',
+            ], 403);
+        }
+
+        try {
+            $targetDate = Carbon::parse($date)->toDateString();
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid date format. Use YYYY-MM-DD.',
+            ], 422);
+        }
+
+        $jobs = Job::with([
+                'clientToBill',
+                'status',
+                'tasks' => fn ($q) => $q->orderBy('order_number')
+                    ->with(['pickup', 'package', 'return', 'customTask', 'status']),
+            ])
+            ->where('courrier_id', $user->id)
+            ->whereDate('date', $targetDate)
+            ->orderBy('pickup_time_begin')
+            ->get();
+
+        $data = $jobs->map(function (Job $job) {
+            return [
+                'id'                 => $job->id,
+                'client'             => optional($job->clientToBill)->name,
+                'status'             => optional($job->status)->name,
+                'pickup_address'     => trim($job->pickupclientaddressline . ' ' . $job->pickupclientpostalcode),
+                'pickup_time_begin'  => $job->pickup_time_begin,
+                'pickup_time_end'    => $job->pickup_time_end,
+                'tasks'              => $job->tasks->map(fn ($task) => $this->formatTask($task)),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'date'    => $targetDate,
+            'jobs'    => $data,
+        ]);
+    }
+
     private function formatTask($task): array
     {
         $type  = $task->type();
