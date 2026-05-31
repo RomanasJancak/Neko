@@ -8,6 +8,7 @@ window.ROUTES = {
           STORE:  APP_URL+'/tasks/store',
           GETINFO:  APP_URL+'/tasks/getTaskInfo/:id',
           SWAP_ORDER: APP_URL+'/tasks/swap_order',
+          UPDATE_STATUS: APP_URL+'/tasks/updateStatus',
       },
       NOTE: {
           GETINFO: APP_URL+'/notes/getNoteInfo/:id',

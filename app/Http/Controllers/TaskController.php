@@ -176,7 +176,7 @@ class TaskController extends Controller
             $task = Task::findOrFail($request->id);
             $task->date = $request->filled('date') ? $request->input('date') : $task->date;
             //$task->job_id           =   $request->input('jobId');
-            $task->status_id        =   $request->input('status_id');
+            //$task->status_id        =   $request->input('status_id');
             $task->note = $request->filled('note') ? $request->input('note') : $task->note;
             $task->order_number = $request->filled('order_number') ? $request->input('order_number') : $task->order_number;
             $task->save();
@@ -260,7 +260,7 @@ class TaskController extends Controller
                 $address['addressLine'],
             );
             $returnTask->save();
-            $taskTypeObject = $pickupTask;
+            $taskTypeObject = $returnTask;
         }
         
         if($request->input('type') === 'dropOff'){
@@ -358,6 +358,75 @@ class TaskController extends Controller
                 'message'   => 'Task order swapped successfully. ',
                 'task_origin'      =>  $task_origin,
                 'task_destination' =>  $task_destination,
+                'requestData' =>  $request->all(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage(),
+            'requests' => $request->all(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),], 500);
+        }
+    }
+    public function updateStatus(UpdateTaskRequest $request)
+    {
+        try{
+            $task = Task::findOrFail($request->id);
+            $transitionService = app(\App\Services\TaskStatusTransitionService::class);
+            $nextInfo = $transitionService->getNextStatusInfo($task);
+
+            $nextStatus = $request->filled('status_id')
+                ? Status::find($request->input('status_id'))
+                : $nextInfo['status_next_instance'];
+            //dd($task->status);
+            if (! $nextStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No next status is available for this task.',
+                    'new_status_name' => $task->status?->name,
+                    'next_status_options' => $nextInfo['status_next_options'] ?? [],
+                ], 200);
+            }
+
+            if (! $transitionService->isTransitionAllowed($task, (int) $nextStatus->id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid status transition. Allowed flow: '.$transitionService->getAllowedFlowLabel($task).'.',
+                    'current_status_name' => $task->status?->name,
+                    'requested_status_name' => $nextStatus->name,
+                    'next_status_options' => $nextInfo['status_next_options'] ?? [],
+                ], 422);
+            }
+
+            $task->status_id = $nextStatus->id;
+            $task->save();
+
+            if (isset($task->pickup) && $task->pickup) {
+                $task->pickup->status_id = $nextStatus->id;
+                $task->pickup->save();
+            } elseif (isset($task->package) && $task->package) {
+                $task->package->status_id = $nextStatus->id;
+                $task->package->save();
+            } elseif (isset($task->return) && $task->return) {
+                $task->return->status_id = $nextStatus->id;
+                $task->return->save();
+            } elseif (isset($task->customTask) && $task->customTask) {
+                $task->customTask->status_id = $nextStatus->id;
+                $task->customTask->save();
+            }
+
+            $task->refresh();
+            $updatedNextInfo = $transitionService->getNextStatusInfo($task);
+  
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Task status updated successfully. ',
+                'task'      =>  $task,
+                'new_status_name' => $task->status?->name,
+                'new_status_color' => $task->job?->status?->color_main,
+                'new_status_color_pickup' => $task->job?->status?->color_pickup,
+                'new_status_color_dropoff' => $task->job?->status?->color_dropoff,
+                'next_status_options' => $updatedNextInfo['status_next_options'] ?? [],
                 'requestData' =>  $request->all(),
             ]);
         } catch (\Exception $e) {

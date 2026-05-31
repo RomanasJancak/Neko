@@ -11,12 +11,13 @@ use Carbon\Carbon;
 
 class JobObserver
 {
+    private const COMPLETED_STATUS_ID = 14;
     /**
      * Handle the Job "created" event.
      */
     public function created(Job $job): void
     {
-      if((int)$job->status_id === 14) {
+      if((int)$job->status_id === self::COMPLETED_STATUS_ID) {
         $this->assignToInvoice($job);
       }
     }
@@ -26,21 +27,32 @@ class JobObserver
      */
     public function updated(Job $job): void
     {
-      if($job->isDirty('price')){
-        if ((int)$job->status_id === 14) {        
+      $curStatusId = (int)$job->status_id;
+      $originalStatusId = (int)$job->getOriginal('status_id');
+      //$isInvoiced = $job->invoiceItem()->exists();
+      $isCompleted = $curStatusId === self::COMPLETED_STATUS_ID;
+      $wasCompleted = $originalStatusId === self::COMPLETED_STATUS_ID;
+      if($job->isDirty(['price','clientToBill_id'])){
+        if ($isCompleted) {        
           $this->removeFromInvoice($job);
           $this->assignToInvoice($job);
         }
       }
-      if ($job->isDirty('status_id') && ((int)$job->status_id === 14)) {
-        $this->assignToInvoice($job);
+      if ($job->isDirty('status_id')) {
+        if($isCompleted){
+          $this->assignToInvoice($job);
+        }else if ($job->status_id == 10){
+          $job->tasks()->update(['status_id' => 24]);
+        }
       }
-      if($job->isDirty('status_id') && (int)$job->getOriginal('status_id') === 14 && (int)$job->status_id !== 14){        
+      if($job->isDirty('status_id') && $wasCompleted && !$isCompleted){        
         $this->removeFromInvoice($job);
       }
-      if($job->isDirty('clientToBill_id') && (int)$job->status_id === 14){
-        $this->removeFromInvoice($job);
-        $this->assignToInvoice($job);
+      if($job->isDirty('date')){
+        $job->tasks()->update(['date' => $job->date]);
+      }
+      if($job->isDirty('courier_id')){
+        $job->tasks()->update(['status_id' => 24]);
       }
     }
 

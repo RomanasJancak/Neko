@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\TaskStatusTransitionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
@@ -54,8 +56,31 @@ class Task extends Model
     public function job(){
         return $this->belongsTo(Job::class);
     }
-    public function status(){
-        return $this->belongsTo(Status::class,'status_id');
+
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(Status::class, 'status_id');
+    }
+    public function revertToFirstStatus(): void
+    {
+        app(TaskStatusTransitionService::class)->revertToFirstStatus($this);
+    }
+    public function resolvedStatus()
+    {
+        return isset($this->pickup)
+            ? $this->pickup()->first()?->status
+            : (isset($this->package)
+                ? $this->package()->first()?->status
+                : (isset($this->return)
+                    ? $this->return()->first()?->status
+                    : (isset($this->customTask)
+                        ? $this->customTask()->first()?->status
+                        : null)));
+    }
+
+    public function statusNextInfo(): array
+    {
+        return app(TaskStatusTransitionService::class)->getNextStatusInfo($this);
     }
     public function nameOfAddress()
     {

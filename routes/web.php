@@ -177,6 +177,7 @@ Route::group(['prefix'  =>  'tasks'],function(){
     Route::get('getTaskInfo/{id}',  [TaskController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
     Route::get('show/{id}',         [TaskController::class, 'show'])->name('task.show')->middleware('auth');
     Route::post('swap_order',           [TaskController::class, 'swap_order'])->name('task.swap_order')->middleware('auth');
+    Route::post('updateStatus',           [TaskController::class, 'updateStatus'])->name('task.updateStatus')->middleware('auth');
 });
 Route::group(['prefix' => 'days'], function(){
     Route::get('',                  [DayController::class, 'index'])->name('day.index')->middleware('auth');

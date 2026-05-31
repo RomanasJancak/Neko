@@ -21,7 +21,7 @@
               NJ{{$task->job->id}}
             </div>
             <div class="col job-status-div">
-                {{$task->status->name}} [{{$task->order_number}}]
+                {{$task->resolvedStatus()->name}} [{{$task->order_number}}]
             </div>
           </div>
           @isset($task->pickup)  
@@ -39,9 +39,6 @@
                 <div class="row"><div class="col">{{$task->pickup->pickupclientname}}</div></div>
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
-            </div>
-            <div class="col-2">
-              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -61,9 +58,6 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimebegin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimeend)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->package->addressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
-            </div>
           </div>
           @endisset
           @isset($task->return)
@@ -82,9 +76,6 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->return->addressShort()}}</div></div>
             </div>
-            <div class="col-2">
-              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
-            </div>
           </div>
           @endisset
           @isset($task->customTask)
@@ -102,9 +93,6 @@
                 <div class="row"><div class="col">{{$task->customTask->name}}</div></div>
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->customTask->addressShort()}}</div></div>
-            </div>
-            <div class="col-2">
-              <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
             </div>
           </div>
           @endisset
@@ -125,7 +113,7 @@
         <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="taskElement-{{$task->id}}" data-jobid="{{$task->job->id}}">
           <div class="row job-header-div">
             <div class="col job-id-div">
-              NJ{{$task->job->id}}
+              NJ {{$task->job->id}}
             </div>
             <div class="col job-status-div">
                 {{$task->status->name}} [{{$task->order_number}}]
@@ -146,14 +134,6 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->pickup->pickup_time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->pickup->pickupAddressShort()}}</div></div>
             </div>
-            <!-- <div class="col-2 btn-group btn-group-sm"> -->
-              <!-- <div class="row"> -->
-                <!-- <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button> -->
-              <!-- </div> -->
-              <!-- <div class="row"> -->
-                
-              <!-- </div> -->
-            <!-- </div> -->
           </div>
           @endisset
           @isset($task->package)
@@ -172,9 +152,6 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimebegin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->package->packagedropofftimeend)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->package->addressShort()}}</div></div>
             </div>
-            <!-- <div class="col-2">
-              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div> -->
           </div>
           @endisset
           @isset($task->return)
@@ -193,9 +170,6 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->return->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->return->addressShort()}}</div></div>
             </div>
-            <!-- <div class="col-2">
-              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div> -->
           </div>
           @endisset
           @isset($task->customTask)
@@ -214,14 +188,30 @@
                 <div class="row"><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_begin)->format('H:i') }}</div><div class="col">{{ \Illuminate\Support\Carbon::parse($task->customTask->time_end)->format('H:i') }}</div></div>
                 <div class="row"><div class="col">{{$task->customTask->addressShort()}}</div></div>
             </div>
-            <!-- <div class="col-2">
-              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}"><span class="bi bi-check"></span></button>
-            </div> -->
           </div>
           @endisset
           <div class="row btn-group btn-group-sm" role="group">
+            @php
+              $nextStatusInfo = $task->statusNextInfo();
+              $nextStatusOptions = $nextStatusInfo['status_next_options'] ?? [];
+            @endphp
             <div class="col-auto">
-              <button class="btn btn-success button-changeTaskStatus" data-jobid="{{$task->id}}" id="button-changeTaskStatus-{{$task->id}}">AtPU</span></button>
+              <button type="button" class="btn btn-success" id="button-currentTaskStatus-{{$task->id}}" disabled>{{$task->status->name}}</button>
+            </div>
+            <div class="col-auto task-next-status-container" id="task-next-status-container-{{$task->id}}">
+              @if(count($nextStatusOptions) > 0)
+                @foreach($nextStatusOptions as $statusOption)
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary button-changeTaskStatus"
+                    data-jobid="{{$task->id}}"
+                    data-statusid="{{$statusOption['id']}}"
+                    id="button-changeTaskStatus-{{$task->id}}-{{$statusOption['id']}}"
+                  >{{$statusOption['name']}}</button>
+                @endforeach
+              @else
+                <button type="button" class="btn btn-secondary" disabled>No next status</button>
+              @endif
             </div>
           </div>
         </div> 
@@ -235,6 +225,7 @@
 @endsection
 @section('scripts')
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
   var datepicker = document.getElementById('datepicker');
 
@@ -244,8 +235,126 @@ document.addEventListener('DOMContentLoaded', function() {
                 url = url.replace(':date', selectedDate);
                 window.location.href = url;
             });
-  const taskStatusChangeButtons = document.querySelectorAll('.button-changeTaskStatus');
-  console.log(taskStatusChangeButtons);
+  const updateTaskStatusRouteUrl =
+    (window.ROUTES && window.ROUTES.WEB && window.ROUTES.WEB.TASK && window.ROUTES.WEB.TASK.UPDATE_STATUS)
+      ? window.ROUTES.WEB.TASK.UPDATE_STATUS
+      : '{{ route("task.updateStatus") }}';
+
+  function renderNextStatusButtons(taskId, nextStatusOptions) {
+    const container = document.getElementById('task-next-status-container-' + taskId);
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = '';
+
+    if (!Array.isArray(nextStatusOptions) || nextStatusOptions.length === 0) {
+      const disabledButton = document.createElement('button');
+      disabledButton.type = 'button';
+      disabledButton.className = 'btn btn-secondary';
+      disabledButton.disabled = true;
+      disabledButton.textContent = 'No next status';
+      container.appendChild(disabledButton);
+      return;
+    }
+
+    nextStatusOptions.forEach(function(option) {
+      const nextButton = document.createElement('button');
+      nextButton.type = 'button';
+      nextButton.className = 'btn btn-outline-primary button-changeTaskStatus';
+      nextButton.setAttribute('data-jobid', String(taskId));
+      nextButton.setAttribute('data-statusid', String(option.id));
+      nextButton.id = 'button-changeTaskStatus-' + taskId + '-' + option.id;
+      nextButton.textContent = option.name;
+      container.appendChild(nextButton);
+    });
+  }
+
+  document.addEventListener('click', function(event) {
+    const button = event.target.closest('.button-changeTaskStatus');
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const taskId = button.getAttribute('data-jobid');
+    const selectedStatusId = button.getAttribute('data-statusid');
+
+    if (!taskId || !selectedStatusId) {
+      return;
+    }
+
+    const postData = {
+      id: taskId,
+      status_id: selectedStatusId,
+    };
+
+    fetch(updateTaskStatusRouteUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify(postData)
+    })
+    .then(async response => {
+      const data = await response.json().catch(() => ({}));
+      return {
+        ok: response.ok,
+        status: response.status,
+        data: data,
+      };
+    })
+    .then(result => {
+      const data = result.data || {};
+
+      if (!result.ok) {
+        renderNextStatusButtons(taskId, data.next_status_options || []);
+        if (data.message) {
+          console.warn('Task status update rejected:', data.message);
+        }
+        return;
+      }
+
+      if (!data.success) {
+        renderNextStatusButtons(taskId, data.next_status_options || []);
+        if (data.message) {
+          console.warn('Task status update skipped:', data.message);
+        }
+        return;
+      }
+
+      const currentStatusButton = document.getElementById('button-currentTaskStatus-' + taskId);
+      if (currentStatusButton && data.new_status_name) {
+        currentStatusButton.textContent = data.new_status_name;
+      }
+
+      renderNextStatusButtons(taskId, data.next_status_options || []);
+
+      const jobElement = button.closest('.draggable');
+      if (jobElement) {
+        jobElement.style.backgroundColor = data.new_status_color;
+
+        jobElement.querySelectorAll('.pickup-row').forEach(function(element) {
+          if (element) {
+            element.style.backgroundColor = data.new_status_color_pickup;
+          }
+        });
+
+        jobElement.querySelectorAll('.package-row').forEach(function(element) {
+          if (element) {
+            element.style.backgroundColor = data.new_status_color_dropoff;
+          }
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error.message);
+    });
+  });
+
   var draggableElements = document.querySelectorAll('.draggable');
   var jobdropableListAreas = document.querySelectorAll('.job-dropableListArea');
   var jobdropableListAreas2 = document.querySelectorAll('.job-columenToGetDropEvent');
@@ -536,7 +645,6 @@ function updateTaskCourierAndStatus(taskId,userId = 0,statusId,order_number){
             status_id: statusId,
             order_number: order_number,
         };
-        console.log(data);
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         // Send a POST request to the server using the generated route
         fetch('{{ route("task.updateOrder") }}', { // Blade syntax to generate the route URL
