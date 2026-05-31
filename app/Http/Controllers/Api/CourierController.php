@@ -165,7 +165,52 @@ class CourierController extends Controller
     }
 
     /**
-     * Initiate task status transition for authenticated courier and return next options.
+     * @OA\Post(
+     *     path="/api/courier/tasks/{task}/status",
+     *     summary="Initiate courier task status transition and return next possible status options",
+     *     tags={"Courier"},
+     *     security={{"sanctum_auth": {}}},
+     *     @OA\Parameter(
+     *         name="task",
+     *         in="path",
+     *         required=true,
+     *         description="Task ID",
+     *         @OA\Schema(type="integer", example=123)
+     *     ),
+     *     @OA\RequestBody(
+     *         required=false,
+     *         description="Optional explicit target status. If omitted, service auto-selects the first allowed next status.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status_id", type="integer", example=26)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Task status updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Task status updated successfully."),
+     *             @OA\Property(property="task_id", type="integer", example=123),
+     *             @OA\Property(property="job_id", type="integer", example=77),
+     *             @OA\Property(property="new_status", type="object",
+     *                 @OA\Property(property="id", type="integer", example=26),
+     *                 @OA\Property(property="name", type="string", example="Available")
+     *             ),
+     *             @OA\Property(property="possible_status_options", type="array",
+     *                 @OA\Items(type="object",
+     *                     @OA\Property(property="id", type="integer", example=18),
+     *                     @OA\Property(property="name", type="string", example="Completed - POD - proof of delivery")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=403, description="Not a courier or task not assigned to courier"),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid transition or no valid next status"
+     *     )
+     * )
      */
     public function updateTaskStatus(Request $request, Task $task): JsonResponse
     {
