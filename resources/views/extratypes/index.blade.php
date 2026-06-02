@@ -3,7 +3,9 @@
 @section('content')
 <div class="container">
   <h1>AddOn Types</h1>
+  @can('extratype-create')
   <a href="" class="btn btn-primary">Add New AddOn Type</a>
+  @endcan
   <div class="row mb-3">
     <div class="col-md-4">
       <input type="text" id="search-id" class="form-control" placeholder="Search by ID">
@@ -33,8 +35,12 @@
         <td>{{ $extraType->model_type}}</td>
         <td>{{ $extraType->description }}</td>
         <td>
+          @can('extratype-edit')
           <button class="btn btn-warning">Edit</button>
+          @endcan
+          @can('extratype-delete')
           <button class="btn btn-danger">Delete</button>
+          @endcan
           </form>
         </td>
       </tr>

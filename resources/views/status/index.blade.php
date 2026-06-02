@@ -10,13 +10,17 @@
         <div class="col-md-12">
             <div class="row justify-content-start">
                 <div class="col-2">
+                    @can('status-create')
                     <button class="btn btn-secondary create-btn">Add new Status</button>
+                    @endcan
                 </div>
                 <div class="col-2">
+                    @can('status-create')
                     <form method="POST" action="{{ route('status.createBackup') }}">
                         @csrf
                         <button type="submit" class="btn btn-primary">Create Backup</button>
                     </form>
+                    @endcan
                 </div>
                 <div class="col-3">
                     <form method="GET" action="{{ route('status.index') }}">
@@ -57,6 +61,7 @@
                             <td style="background-color: {{ $status->color_return }}">{{ $status->color_return }}</td>
                             <td style="background-color: {{ $status->color_custom }}">{{ $status->color_custom }}</td>
                             <td>
+                                @can('status-edit')
                                 <button class="btn btn-primary edit-btn" 
                                     data-statusid="{{ $status->id }}"
                                     data-name="{{ $status->name }}"
@@ -67,6 +72,8 @@
                                     data-custom="{{ $status->color_custom }}">
                                     <i class="bi bi-pen"></i>
                                 </button>
+                                @endcan
+                                @can('status-delete')
                                 <button class="btn btn-danger delete-btn" 
                                     data-statusid="{{ $status->id }}"
                                     data-name="{{ $status->name }}"
@@ -77,6 +84,7 @@
                                     data-custom="{{ $status->color_custom }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                @endcan
                             </td>
                         </tr>
                         @endforeach

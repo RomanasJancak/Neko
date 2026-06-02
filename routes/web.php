@@ -162,7 +162,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('getJobToString/{id}',     [JobController::class, 'getJobToString'])->name('job.getJobToString')->middleware('auth');
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::get('fetchJobsPaginateLight', [JobController::class, 'fetchJobsPaginateLight'])->name('job.fetch.light')->middleware('auth');
-    Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware('auth');
+    Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware(['auth', 'can:jobtemplate-create']);
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
     Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');
     Route::post('removeFromInvoiceItem/{job}',            [JobController::class, 'removeFromInvoiceItem'])->name('job.removeFromInvoiceItem')->middleware('auth');
@@ -213,16 +213,16 @@ Route::group(['prefix' => 'workloads'], function(){
     ->middleware('auth');
 });
 Route::group(['prefix' => 'addonrules'], function(){
-    Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
-    Route::post('store',            [AddOnRuleController::class, 'store'])->name('addonrule.store')->middleware('auth');
-    Route::post('update',   [AddOnRuleController::class, 'update'])->name('addonrule.update')->middleware('auth');
-    Route::post('delete',   [AddOnRuleController::class, 'destroy'])->name('addonrule.delete')->middleware('auth');
-    Route::post('createBackup',     [AddOnRuleController::class, 'createBackup'])->name('addonrule.createBackup')->middleware('auth');
-    Route::get('getAddOnRuleInfo/{id}',     [AddOnRuleController::class, 'getAddOnRuleInfo'])->name('addonrule.getAddOnRuleInfo')->middleware('auth');
-    Route::get('getRulesForDate/{date}',     [AddOnRuleController::class, 'getRulesForDate'])->name('addonrule.getRulesForDate')->middleware('auth');
-    Route::get('getRulesForDateAndClient/{date}/{client}',     [AddOnRuleController::class, 'getRulesForDateAndClient'])->name('addonrule.getRulesForDateAndClient')->middleware('auth');
-    Route::get('getDistancePriceForDateAndClient/{date}/{client}',     [AddOnRuleController::class, 'getDistancePriceForDateAndClient'])->name('addonrule.getDistancePriceForDateAndClient')->middleware('auth');
-    Route::get('getPriceForDistance/{date}/{client}/{distance}',     [AddOnRuleController::class, 'getPriceForDistance'])->name('addonrule.getPriceForDistance')->middleware('auth');
+    Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware(['auth', 'can:addonrule-view']);
+    Route::post('store',            [AddOnRuleController::class, 'store'])->name('addonrule.store')->middleware(['auth', 'can:addonrule-create']);
+    Route::post('update',   [AddOnRuleController::class, 'update'])->name('addonrule.update')->middleware(['auth', 'can:addonrule-edit']);
+    Route::post('delete',   [AddOnRuleController::class, 'destroy'])->name('addonrule.delete')->middleware(['auth', 'can:addonrule-delete']);
+    Route::post('createBackup',     [AddOnRuleController::class, 'createBackup'])->name('addonrule.createBackup')->middleware(['auth', 'can:addonrule-create']);
+    Route::get('getAddOnRuleInfo/{id}',     [AddOnRuleController::class, 'getAddOnRuleInfo'])->name('addonrule.getAddOnRuleInfo')->middleware(['auth', 'can:addonrule-view']);
+    Route::get('getRulesForDate/{date}',     [AddOnRuleController::class, 'getRulesForDate'])->name('addonrule.getRulesForDate')->middleware(['auth', 'can:addonrule-view']);
+    Route::get('getRulesForDateAndClient/{date}/{client}',     [AddOnRuleController::class, 'getRulesForDateAndClient'])->name('addonrule.getRulesForDateAndClient')->middleware(['auth', 'can:addonrule-view']);
+    Route::get('getDistancePriceForDateAndClient/{date}/{client}',     [AddOnRuleController::class, 'getDistancePriceForDateAndClient'])->name('addonrule.getDistancePriceForDateAndClient')->middleware(['auth', 'can:addonrule-view']);
+    Route::get('getPriceForDistance/{date}/{client}/{distance}',     [AddOnRuleController::class, 'getPriceForDistance'])->name('addonrule.getPriceForDistance')->middleware(['auth', 'can:addonrule-view']);
 });
 Route::group(['prefix' => 'distances'], function(){
     //Route::get('',                  [AddOnRuleController::class, 'index'])->name('addonrule.index')->middleware('auth');
@@ -238,26 +238,26 @@ Route::group(['prefix' => 'distances'], function(){
     Route::get('getDistance', [DistanceController::class, 'getDistance'])->name('distance.getDistance')->middleware('auth'); 
 });
 Route::group(['prefix'  =>  'bikes'],function(){
-    Route::get('',                  [BikeController::class, 'index'])->name('bike.index')->middleware('auth');
-    Route::post('update',           [BikeController::class, 'update'])->name('bike.update')->middleware('auth');
-    Route::post('delete',           [BikeController::class, 'destroy'])->name('bike.delete')->middleware('auth');
-    Route::post('store',            [BikeController::class, 'store'])->name('bike.store')->middleware('auth');
+    Route::get('',                  [BikeController::class, 'index'])->name('bike.index')->middleware(['auth', 'can:bike-view']);
+    Route::post('update',           [BikeController::class, 'update'])->name('bike.update')->middleware(['auth', 'can:bike-edit']);
+    Route::post('delete',           [BikeController::class, 'destroy'])->name('bike.delete')->middleware(['auth', 'can:bike-delete']);
+    Route::post('store',            [BikeController::class, 'store'])->name('bike.store')->middleware(['auth', 'can:bike-create']);
 });
 Route::group(['prefix'  => 'statuses'],function(){
-    Route::get('/',                 [StatusController::class, 'index'])->name('status.index')->middleware('auth');
-    Route::post('update',           [StatusController::class, 'update'])->name('status.update')->middleware('auth');
-    Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware('auth');
-    Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware('auth');
-    Route::post('createBackup',     [StatusController::class, 'createBackup'])->name('status.createBackup')->middleware('auth');
-    Route::get('getStatusInfo/{id}',     [StatusController::class, 'getStatusInfo'])->name('status.getStatusInfo')->middleware('auth');
+    Route::get('/',                 [StatusController::class, 'index'])->name('status.index')->middleware(['auth', 'can:status-view']);
+    Route::post('update',           [StatusController::class, 'update'])->name('status.update')->middleware(['auth', 'can:status-edit']);
+    Route::post('delete',           [StatusController::class, 'destroy'])->name('status.delete')->middleware(['auth', 'can:status-delete']);
+    Route::post('store',            [StatusController::class, 'store'])->name('status.store')->middleware(['auth', 'can:status-create']);
+    Route::post('createBackup',     [StatusController::class, 'createBackup'])->name('status.createBackup')->middleware(['auth', 'can:status-create']);
+    Route::get('getStatusInfo/{id}',     [StatusController::class, 'getStatusInfo'])->name('status.getStatusInfo')->middleware(['auth', 'can:status-view']);
 });
 Route::group(['prefix'  => 'packageTypes'],function(){
-    Route::get('',                  [PackageTypeController::class, 'index'])->name('packageType.index')->middleware('auth');
-    Route::post('update',           [PackageTypeController::class, 'update'])->name('packageType.update')->middleware('auth');
-    Route::post('delete',           [PackageTypeController::class, 'destroy'])->name('packageType.delete')->middleware('auth');
-    Route::post('store',            [PackageTypeController::class, 'store'])->name('packageType.store')->middleware('auth');
-    Route::post('createBackup',     [PackageTypeController::class, 'createBackup'])->name('packageType.createBackup')->middleware('auth');
-    Route::get('getPackageTypeInfo/{id}',     [PackageTypeController::class, 'getPackageTypeInfo'])->name('packageType.getPackageTypeInfo')->middleware('auth');
+    Route::get('',                  [PackageTypeController::class, 'index'])->name('packageType.index')->middleware(['auth', 'can:packageType-view']);
+    Route::post('update',           [PackageTypeController::class, 'update'])->name('packageType.update')->middleware(['auth', 'can:packageType-edit']);
+    Route::post('delete',           [PackageTypeController::class, 'destroy'])->name('packageType.delete')->middleware(['auth', 'can:packageType-delete']);
+    Route::post('store',            [PackageTypeController::class, 'store'])->name('packageType.store')->middleware(['auth', 'can:packageType-create']);
+    Route::post('createBackup',     [PackageTypeController::class, 'createBackup'])->name('packageType.createBackup')->middleware(['auth', 'can:packageType-create']);
+    Route::get('getPackageTypeInfo/{id}',     [PackageTypeController::class, 'getPackageTypeInfo'])->name('packageType.getPackageTypeInfo')->middleware(['auth', 'can:packageType-view']);
 });
 Route::group(['prefix'  => 'postalCode'],function(){
     Route::get('',                  [PostalCodeController::class, 'index'])->name('postalCode.index')->middleware('auth');
@@ -269,11 +269,11 @@ Route::group(['prefix'  => 'postalCode'],function(){
 });
 //approvedpostalcodearea
 Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
-    Route::get('',                  [ApprovedPostalCodeAreaController::class, 'index'])->name('approvedpostalcodearea.index')->middleware('auth');
-    Route::get('getById/{id}',  [ApprovedPostalCodeAreaController::class, 'getById'])->name('approvedpostalcodearea.getById')->middleware('auth');
-    Route::post('store',            [ApprovedPostalCodeAreaController::class, 'store'])->name('approvedpostalcodearea.store')->middleware('auth');
-    Route::post('update',           [ApprovedPostalCodeAreaController::class, 'update'])->name('approvedpostalcodearea.update')->middleware('auth');
-    Route::post('delete',           [ApprovedPostalCodeAreaController::class, 'destroy'])->name('approvedpostalcodearea.delete')->middleware('auth');
+    Route::get('',                  [ApprovedPostalCodeAreaController::class, 'index'])->name('approvedpostalcodearea.index')->middleware(['auth', 'can:approvedpostalcodearea-view']);
+    Route::get('getById/{id}',  [ApprovedPostalCodeAreaController::class, 'getById'])->name('approvedpostalcodearea.getById')->middleware(['auth', 'can:approvedpostalcodearea-view']);
+    Route::post('store',            [ApprovedPostalCodeAreaController::class, 'store'])->name('approvedpostalcodearea.store')->middleware(['auth', 'can:approvedpostalcodearea-create']);
+    Route::post('update',           [ApprovedPostalCodeAreaController::class, 'update'])->name('approvedpostalcodearea.update')->middleware(['auth', 'can:approvedpostalcodearea-edit']);
+    Route::post('delete',           [ApprovedPostalCodeAreaController::class, 'destroy'])->name('approvedpostalcodearea.delete')->middleware(['auth', 'can:approvedpostalcodearea-delete']);
 });
 // Route::group(['prefix'  => 'settings'],function(){
 //     Route::get('',                  [SettingController::class, 'index'])->name('setting.index')->middleware('auth');
@@ -285,19 +285,19 @@ Route::group(['prefix'  => 'approvedpostalcodeareas'],function(){
 //     // Route::get('getTaskInfo/{id}',  [PostalCodeController::class, 'getTaskInfo'])->name('task.getTaskInfo')->middleware('auth');
 // });
 Route::group(['prefix'  => 'jobtemplates'],function(){
-    Route::get('',                                  [JobTemplateController::class, 'index'])->name('jobtemplate.index')->middleware('auth');
-    Route::get('fetch',                             [JobTemplateController::class, 'fetchTemplatesPaginate'])->name('jobtemplate.fetch')->middleware('auth');
-    Route::get('{id}/info',                         [JobTemplateController::class, 'getTemplateInfo'])->name('jobtemplate.info')->middleware('auth');
-    Route::post('',                                 [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware('auth');
-    Route::patch('{template}',                      [JobTemplateController::class, 'update'])->name('jobtemplate.update')->middleware('auth');
-    Route::delete('{template}',                     [JobTemplateController::class, 'destroy'])->name('jobtemplate.destroy')->middleware('auth');
-    Route::post('createFromJob',                    [JobTemplateController::class, 'createFromJob'])->name('jobtemplate.createFromJob')->middleware('auth');
-    Route::post('createJobsBatch',                  [JobTemplateController::class, 'createJobsBatch'])->name('jobtemplate.createJobsBatch')->middleware('auth');
-    Route::post('{template}/setFieldLock',          [JobTemplateController::class, 'setFieldLock'])->name('jobtemplate.setFieldLock')->middleware('auth');
-    Route::post('{template}/addDropOff',            [JobTemplateController::class, 'addDropOff'])->name('jobtemplate.addDropOff')->middleware('auth');
-    Route::post('{template}/removeDropOff',         [JobTemplateController::class, 'removeDropOff'])->name('jobtemplate.removeDropOff')->middleware('auth');
-    Route::post('{template}/addReturn',             [JobTemplateController::class, 'addReturn'])->name('jobtemplate.addReturn')->middleware('auth');
-    Route::post('{template}/removeReturn',          [JobTemplateController::class, 'removeReturn'])->name('jobtemplate.removeReturn')->middleware('auth');
+    Route::get('',                                  [JobTemplateController::class, 'index'])->name('jobtemplate.index')->middleware(['auth', 'can:jobtemplate-view']);
+    Route::get('fetch',                             [JobTemplateController::class, 'fetchTemplatesPaginate'])->name('jobtemplate.fetch')->middleware(['auth', 'can:jobtemplate-view']);
+    Route::get('{id}/info',                         [JobTemplateController::class, 'getTemplateInfo'])->name('jobtemplate.info')->middleware(['auth', 'can:jobtemplate-view']);
+    Route::post('',                                 [JobTemplateController::class, 'store'])->name('jobtemplate.store')->middleware(['auth', 'can:jobtemplate-create']);
+    Route::patch('{template}',                      [JobTemplateController::class, 'update'])->name('jobtemplate.update')->middleware(['auth', 'can:jobtemplate-edit']);
+    Route::delete('{template}',                     [JobTemplateController::class, 'destroy'])->name('jobtemplate.destroy')->middleware(['auth', 'can:jobtemplate-delete']);
+    Route::post('createFromJob',                    [JobTemplateController::class, 'createFromJob'])->name('jobtemplate.createFromJob')->middleware(['auth', 'can:jobtemplate-create']);
+    Route::post('createJobsBatch',                  [JobTemplateController::class, 'createJobsBatch'])->name('jobtemplate.createJobsBatch')->middleware(['auth', 'can:jobtemplate-create']);
+    Route::post('{template}/setFieldLock',          [JobTemplateController::class, 'setFieldLock'])->name('jobtemplate.setFieldLock')->middleware(['auth', 'can:jobtemplate-edit']);
+    Route::post('{template}/addDropOff',            [JobTemplateController::class, 'addDropOff'])->name('jobtemplate.addDropOff')->middleware(['auth', 'can:jobtemplate-edit']);
+    Route::post('{template}/removeDropOff',         [JobTemplateController::class, 'removeDropOff'])->name('jobtemplate.removeDropOff')->middleware(['auth', 'can:jobtemplate-edit']);
+    Route::post('{template}/addReturn',             [JobTemplateController::class, 'addReturn'])->name('jobtemplate.addReturn')->middleware(['auth', 'can:jobtemplate-edit']);
+    Route::post('{template}/removeReturn',          [JobTemplateController::class, 'removeReturn'])->name('jobtemplate.removeReturn')->middleware(['auth', 'can:jobtemplate-edit']);
     
     // Old routes (commented - for reference only)
     // Route::patch('update',                    [JobTemplateController::class, 'update'])->name('jobTemplate.update')->middleware('auth');
@@ -317,11 +317,11 @@ Route::group(['prefix'  => 'emails'],function(){
     Route::post('delete/{emailAddress}',      [EmailAddressController::class, 'destroy'])->name('email.delete')->middleware('auth');
 });
 Route::group(['prefix' => 'extratypes'], function(){
-    Route::get('',                  [ExtraTypesController::class, 'index'])->name('extratype.index')->middleware('auth');
-    Route::post('store',            [ExtraTypesController::class, 'store'])->name('extratype.store')->middleware('auth');
-    Route::post('update',           [ExtraTypesController::class, 'update'])->name('extratype.update')->middleware('auth');
-    Route::post('delete',           [ExtraTypesController::class, 'destroy'])->name('extratype.delete')->middleware('auth');
-    Route::get('fetch',             [ExtraTypesController::class, 'fetch'])->name('extratype.fetch')->middleware('auth');
+    Route::get('',                  [ExtraTypesController::class, 'index'])->name('extratype.index')->middleware(['auth', 'can:extratype-view']);
+    Route::post('store',            [ExtraTypesController::class, 'store'])->name('extratype.store')->middleware(['auth', 'can:extratype-create']);
+    Route::post('update',           [ExtraTypesController::class, 'update'])->name('extratype.update')->middleware(['auth', 'can:extratype-edit']);
+    Route::post('delete',           [ExtraTypesController::class, 'destroy'])->name('extratype.delete')->middleware(['auth', 'can:extratype-delete']);
+    Route::get('fetch',             [ExtraTypesController::class, 'fetch'])->name('extratype.fetch')->middleware(['auth', 'can:extratype-view']);
 });
 Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(function () {
     Route::get('/', [UserSettingController::class, 'index'])->name('index')->middleware('can:setting-view');

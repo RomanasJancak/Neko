@@ -313,9 +313,11 @@
             <input type="text" id="search-input" class="form-control" placeholder="Search by ID or Name...">
         </div>
         <div class="action-buttons">
+            @can('jobtemplate-create')
             <button id="btn-create-template" class="btn btn-success">
                 <i class="fas fa-plus"></i> Create Template
             </button>
+            @endcan
         </div>
     </div>
 
@@ -343,9 +345,13 @@
         <!-- Content loaded here -->
     </div>
     <div class="modal-footer">
+        @can('jobtemplate-delete')
         <button id="modal-delete-btn" class="btn btn-danger" style="margin-right: auto;">Delete</button>
+        @endcan
         <button id="modal-close-footer-btn" class="btn btn-secondary">Cancel</button>
+        @can('jobtemplate-edit')
         <button id="modal-save-btn" class="btn btn-success">Save Changes</button>
+        @endcan
     </div>
 </div>
 
@@ -376,7 +382,9 @@
     </div>
     <div class="modal-footer">
         <button id="create-template-cancel-btn" class="btn btn-secondary">Cancel</button>
+        @can('jobtemplate-create')
         <button id="create-template-submit-btn" class="btn btn-success">Create Template</button>
+        @endcan
     </div>
 </div>
 
@@ -436,12 +444,22 @@
     </div>
     <div class="modal-footer">
         <button id="create-jobs-cancel-btn" class="btn btn-secondary">Cancel</button>
+        @can('jobtemplate-create')
         <button id="create-jobs-submit-btn" class="btn btn-success">Create Jobs</button>
+        @endcan
     </div>
 </div>
 
 @endsection
 
 @push('scripts')
+<script>
+window.JOB_TEMPLATE_PERMISSIONS = {
+    canView: @json(auth()->user()->can('jobtemplate-view')),
+    canCreate: @json(auth()->user()->can('jobtemplate-create')),
+    canEdit: @json(auth()->user()->can('jobtemplate-edit')),
+    canDelete: @json(auth()->user()->can('jobtemplate-delete')),
+};
+</script>
 @vite('resources/js/jobtemplate/index.js')
 @endpush

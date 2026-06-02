@@ -4,6 +4,12 @@
  */
 
 const API_BASE = window.ROUTES.WEB.JOBTEMPLATE;
+const JOB_TEMPLATE_PERMISSIONS = window.JOB_TEMPLATE_PERMISSIONS || {
+    canView: true,
+    canCreate: true,
+    canEdit: true,
+    canDelete: true,
+};
 
 let currentPage = 1;
 let currentSort = { field: 'id', order: 'asc' };
@@ -29,12 +35,18 @@ function attachEventListeners() {
     }, 300));
 
     // Create Template button
-    document.getElementById('btn-create-template').addEventListener('click', openCreateTemplateModal);
+    const createTemplateButton = document.getElementById('btn-create-template');
+    if (createTemplateButton && JOB_TEMPLATE_PERMISSIONS.canCreate) {
+        createTemplateButton.addEventListener('click', openCreateTemplateModal);
+    }
 
     // Create Template Modal
     document.getElementById('create-template-close-btn').addEventListener('click', closeCreateTemplateModal);
     document.getElementById('create-template-cancel-btn').addEventListener('click', closeCreateTemplateModal);
-    document.getElementById('create-template-submit-btn').addEventListener('click', handleCreateTemplate);
+    const createTemplateSubmitButton = document.getElementById('create-template-submit-btn');
+    if (createTemplateSubmitButton && JOB_TEMPLATE_PERMISSIONS.canCreate) {
+        createTemplateSubmitButton.addEventListener('click', handleCreateTemplate);
+    }
 
     // Modal close buttons
     document.getElementById('modal-close-btn').addEventListener('click', closeTemplateModal);
@@ -44,7 +56,10 @@ function attachEventListeners() {
     // Create Jobs Modal
     document.getElementById('create-jobs-close-btn').addEventListener('click', closeCreateJobsModal);
     document.getElementById('create-jobs-cancel-btn').addEventListener('click', closeCreateJobsModal);
-    document.getElementById('create-jobs-submit-btn').addEventListener('click', handleCreateJobs);
+    const createJobsSubmitButton = document.getElementById('create-jobs-submit-btn');
+    if (createJobsSubmitButton && JOB_TEMPLATE_PERMISSIONS.canCreate) {
+        createJobsSubmitButton.addEventListener('click', handleCreateJobs);
+    }
 
     // Date inputs for job creation
     document.getElementById('start-date').addEventListener('change', updateJobsSummary);
@@ -65,12 +80,19 @@ function attachEventListeners() {
     document.getElementById('pagination-container').addEventListener('click', handlePaginationClick);
 
     // Modal footer buttons
-    document.getElementById('modal-delete-btn').addEventListener('click', () => {
-        if (selectedTemplateId) {
-            handleDeleteTemplate(selectedTemplateId);
-        }
-    });
-    document.getElementById('modal-save-btn').addEventListener('click', handleUpdateTemplate);
+    const deleteButton = document.getElementById('modal-delete-btn');
+    if (deleteButton && JOB_TEMPLATE_PERMISSIONS.canDelete) {
+        deleteButton.addEventListener('click', () => {
+            if (selectedTemplateId) {
+                handleDeleteTemplate(selectedTemplateId);
+            }
+        });
+    }
+
+    const saveButton = document.getElementById('modal-save-btn');
+    if (saveButton && JOB_TEMPLATE_PERMISSIONS.canEdit) {
+        saveButton.addEventListener('click', handleUpdateTemplate);
+    }
 
     // Modal body actions (event delegation)
     const modalBody = document.getElementById('modal-body-content');
@@ -234,21 +256,39 @@ function renderTemplates(templates) {
     `;
 
     templates.forEach(template => {
+        const rowActionButtons = [];
+
+        if (JOB_TEMPLATE_PERMISSIONS.canView) {
+            rowActionButtons.push(`
+                <button class="btn-action btn-view" data-action="view-template" data-id="${template.id}">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            `);
+        }
+
+        if (JOB_TEMPLATE_PERMISSIONS.canCreate) {
+            rowActionButtons.push(`
+                <button class="btn-action btn-jobs" data-action="create-jobs" data-id="${template.id}">
+                    <i class="fas fa-plus-circle"></i> Create Jobs
+                </button>
+            `);
+        }
+
+        if (JOB_TEMPLATE_PERMISSIONS.canDelete) {
+            rowActionButtons.push(`
+                <button class="btn-action btn-delete" data-action="delete-template" data-id="${template.id}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            `);
+        }
+
         html += `
             <tr>
                 <td><strong>#${template.id}</strong></td>
                 <td>${sanitizeHtml(template.name)}</td>
                 <td>
                     <div class="row-actions" style="justify-content: flex-end;">
-                        <button class="btn-action btn-view" data-action="view-template" data-id="${template.id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn-action btn-jobs" data-action="create-jobs" data-id="${template.id}">
-                            <i class="fas fa-plus-circle"></i> Create Jobs
-                        </button>
-                        <button class="btn-action btn-delete" data-action="delete-template" data-id="${template.id}">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
+                        ${rowActionButtons.join('')}
                     </div>
                 </td>
             </tr>

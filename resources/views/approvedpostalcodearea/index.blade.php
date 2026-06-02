@@ -4,7 +4,7 @@
 <div class="container">
   <div class="row">
     <div class="col">
-      <h1>Approved Postal Code Areas</h1><button class="btn btn-secondary create-btn" >Add new Postal Code Area</button> 
+      <h1>Approved Postal Code Areas</h1>@can('approvedpostalcodearea-create')<button class="btn btn-secondary create-btn" >Add new Postal Code Area</button>@endcan
     </div>
   </div>
   <div class="row">
@@ -54,8 +54,12 @@
             <td>{{ $postalcodearea->type }}</td>
             <td>{{ $postalcodearea->name }}</td>
             <td>
+              @can('approvedpostalcodearea-edit')
               <button class="btn btn-primary edit-btn" data-postalcodeareaid="{{ $postalcodearea->id }}"><i class="bi bi-pen"></i></button>
+              @endcan
+              @can('approvedpostalcodearea-delete')
               <button class="btn btn-danger delete-btn" data-postalcodeareaid="{{ $postalcodearea->id }}"><i class="bi bi-trash"></i></button>
+              @endcan
             </td>
           </tr>
           @endforeach

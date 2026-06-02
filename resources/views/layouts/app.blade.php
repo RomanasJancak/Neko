@@ -126,24 +126,36 @@
                               Other
                           </button>
                               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                  @can('jobtemplate-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('jobtemplate.index')}}">Job templates</a>
                                   </li>
+                                  @endcan
+                                  @can('bike-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('bike.index')}}">Bikes</a>
                                   </li>
+                                  @endcan
+                                  @can('extratype-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('extratype.index')}}">Addon types</a>
                                   </li>
+                                  @endcan
+                                  @can('addonrule-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('addonrule.index')}}">AddOnRules</a>
                                   </li>
+                                  @endcan
+                                  @can('status-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('status.index')}}">Statuses</a>
                                   </li>
+                                  @endcan
+                                  @can('packageType-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('packageType.index')}}">Package types</a>
                                   </li>
+                                  @endcan
                                   <li>
                                   <a class="dropdown-item " href="{{route('role.index')}}">Users and roles</a>
                                   </li>
@@ -161,9 +173,11 @@
                                   <a class="dropdown-item " href="{{route('role.hierarchy')}}">Hierarchy</a>
                                   </li>
                                   @endif
+                                  @can('approvedpostalcodearea-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('approvedpostalcodearea.index')}}">Postal code areas</a>
                                   </li>
+                                  @endcan
                                   @can('setting-view')
                                   <li>
                                   <a class="dropdown-item " href="{{route('setting.index')}}">Settings</a>

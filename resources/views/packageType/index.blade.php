@@ -5,11 +5,13 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Package Types</h1><button class="btn btn-secondary create-btn" >Add new Package Type</i></button>        
+            <h1>Package Types</h1>@can('packageType-create')<button class="btn btn-secondary create-btn" >Add new Package Type</i></button>@endcan
+            @can('packageType-create')
             <form method="POST" action="{{ route('packageType.createBackup') }}">
                 @csrf
                 <button type="submit" class="btn btn-primary">Create Backup</button>
             </form>
+            @endcan
             <table class="table">
                 <thead>
                     <tr>
@@ -49,16 +51,20 @@
                         <button id="collapseButton-{{ $packageType->id }}" class="btn btn-primary collapse-button" style="display: none;">Collapse</button>
                         </td>
                         <td>
+                            @can('packageType-edit')
                             <button class="btn btn-primary edit-btn" 
                                 data-packagetypeid="{{ $packageType->id }}"
                                 
                                 data-name="{{ $packageType->name }}"
                             ><i class="bi bi-pen"></i></button>
+                            @endcan
+                            @can('packageType-delete')
                             <button class="btn btn-danger delete-btn" 
                                 data-packagetypeid="{{ $packageType->id }}"
                                 
                                 data-name="{{ $packageType->name }}"
                             ><i class="bi bi-trash"></i></button>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach

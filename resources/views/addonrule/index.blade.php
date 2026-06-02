@@ -9,11 +9,13 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Pricing rules</h1><button class="btn btn-secondary create-btn" >Add new Pricing rule</i></button>        
+            <h1>Pricing rules</h1>@can('addonrule-create')<button class="btn btn-secondary create-btn" >Add new Pricing rule</i></button>@endcan
+            @can('addonrule-create')
             <form method="POST" action="{{ route('addonrule.createBackup') }}">
             @csrf
             <button type="submit" class="btn btn-primary">Create Backup</button>
         </form>
+            @endcan
             <table class="table">
                 <thead>
                     <tr>
@@ -47,12 +49,16 @@
                         </td>
                         
                         <td>
+                            @can('addonrule-edit')
                             <button class="btn btn-primary edit-btn" 
                                 data-addonruleid="{{ $addonrule->id }}"
                             ><i class="bi bi-pen"></i></button>
+                            @endcan
+                            @can('addonrule-delete')
                             <button class="btn btn-danger delete-btn" 
                                 data-addonruleid="{{ $addonrule->id }}"
                             ><i class="bi bi-trash"></i></button>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach

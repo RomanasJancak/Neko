@@ -5,7 +5,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Bikes</h1><button class="btn btn-secondary create-btn" >Add new Bike</i></button>
+            <h1>Bikes</h1>@can('bike-create')<button class="btn btn-secondary create-btn" >Add new Bike</i></button>@endcan
             <table class="table">
                 <thead>
                     <tr>
@@ -20,14 +20,18 @@
                         <td>{{ $bike->id }}</td>
                         <td>{{ $bike->name }}</td>
                         <td>
+                            @can('bike-edit')
                             <button class="btn btn-primary edit-btn" 
                                 data-bikeid="{{ $bike->id }}"
                                 data-name="{{ $bike->name }}"
                             ><i class="bi bi-pen"></i></button>
+                            @endcan
+                            @can('bike-delete')
                             <button class="btn btn-danger delete-btn" 
                                 data-bikeid="{{ $bike->id }}"
                                 data-name="{{ $bike->name }}"
                             ><i class="bi bi-trash"></i></button>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach
