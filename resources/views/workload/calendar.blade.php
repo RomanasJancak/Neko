@@ -46,7 +46,7 @@
                     <div class="card">
                         <div class="card-header">
                             <?php $p = DateTime::createFromFormat('Y-m-d',$currentYear."-".$currentMonth."-".$day)?>
-                            <h5>{{ $day }} {{$p->format('l')}}<a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
+                            <h5>@displayDate($currentYear.'-'.$currentMonth.'-'.$day) {{$p->format('l')}}<a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
                         </div>
                         <div class="card-body">
                             @if(isset($workloadData[$day]))
@@ -82,7 +82,7 @@
                     <div class="card">
                         <div class="card-header">
                             <?php $p = DateTime::createFromFormat('Y-m-d',$currentYear."-".$currentMonth."-".$day)?>
-                            <h5>{{ $day }} {{$p->format('l')}}<a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
+                            <h5>@displayDate($currentYear.'-'.$currentMonth.'-'.$day) {{$p->format('l')}}<a class="btn btn-info" href="{{ route('day.showdashboard', ['date' => $currentYear.'-'.$currentMonth.'-'.$day]) }}">List</a></h5>
                         </div>
                         <div class="card-body">
                             @if(isset($workloadData[$day]))
