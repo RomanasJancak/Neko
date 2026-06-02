@@ -116,10 +116,11 @@
                               </form>
                           </div>
                       </li> -->
-                      <li>
-                      <li>
-                        <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
-                      </li>
+                                            @can('invoice-view')
+                                            <li>
+                                                <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
+                                            </li>
+                                            @endcan
                       <div class="dropdown">
                           <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                               Other

@@ -41,7 +41,11 @@ class PermissionSeeder extends Seeder
             'job-create',
             'job-edit',
             'job-delete',
-            'job-create-chooseAnyPostalCode'
+            'job-create-chooseAnyPostalCode',
+            'invoice-view',
+            'invoice-create',
+            'invoice-edit',
+            'invoice-delete',
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([

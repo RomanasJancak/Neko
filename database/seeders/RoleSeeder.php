@@ -44,6 +44,10 @@ class RoleSeeder extends Seeder
             'job-edit',
             'job-delete',
             'job-create-chooseAnyPostalCode',
+            'invoice-view',
+            'invoice-create',
+            'invoice-edit',
+            'invoice-delete',
             'setting-view',
             'setting-edit'
         ]);
@@ -60,6 +64,10 @@ class RoleSeeder extends Seeder
             'job-create',
             'job-edit',
             'job-delete',
+            'invoice-view',
+            'invoice-create',
+            'invoice-edit',
+            'invoice-delete',
         ]);
 
         $courier = Role::firstOrCreate(

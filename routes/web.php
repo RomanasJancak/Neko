@@ -332,19 +332,19 @@ Route::middleware(['auth'])->prefix('settings')->name('setting.')->group(functio
     Route::post('sql-dump/upload', [SettingController::class, 'uploadSqlDump'])->name('sqlDump.upload')->middleware('can:setting-edit');
 });
 Route::group(['prefix'  => 'invoices'],function(){
-    Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware('auth');
-    Route::get('create', [InvoiceController::class, 'create'])->name('invoice.create')->middleware('auth');
-    Route::post('store', [InvoiceController::class, 'store'])->name('invoice.store')->middleware('auth');
-    Route::get('show/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show')->middleware('auth');
-    Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware('auth');
-    Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
-    Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware('auth');
-    Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware('auth');
-    Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware('auth');
-    Route::get('viewHTML/{invoice}', [InvoiceController::class, 'viewHTML'])->name('invoice.viewHTML')->middleware('auth');
-    Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware('auth');
-    Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware('auth');
-    Route::get('{invoice}/info', [InvoiceController::class, 'getInfo'])->name('invoice.getInfo')->middleware('auth');
+    Route::get('', [InvoiceController::class, 'index'])->name('invoice.index')->middleware(['auth', 'can:invoice-view']);
+    Route::get('create', [InvoiceController::class, 'create'])->name('invoice.create')->middleware(['auth', 'can:invoice-create']);
+    Route::post('store', [InvoiceController::class, 'store'])->name('invoice.store')->middleware(['auth', 'can:invoice-create']);
+    Route::get('show/{invoice}', [InvoiceController::class, 'show'])->name('invoice.show')->middleware(['auth', 'can:invoice-view']);
+    Route::get('edit/{invoice}', [InvoiceController::class, 'edit'])->name('invoice.edit')->middleware(['auth', 'can:invoice-edit']);
+    Route::post('update/{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware(['auth', 'can:invoice-edit']);
+    Route::delete('destroy/{invoice}', [InvoiceController::class, 'destroy'])->name('invoice.destroy')->middleware(['auth', 'can:invoice-delete']);
+    Route::patch('{invoice}', [InvoiceController::class, 'update'])->name('invoice.update')->middleware(['auth', 'can:invoice-edit']);
+    Route::get('viewPDF/{invoice}', [InvoiceController::class, 'viewPDF'])->name('invoice.viewPDF')->middleware(['auth', 'can:invoice-view']);
+    Route::get('viewHTML/{invoice}', [InvoiceController::class, 'viewHTML'])->name('invoice.viewHTML')->middleware(['auth', 'can:invoice-view']);
+    Route::post('{invoice}/snapshots', [InvoiceController::class, 'generateSnapshot'])->name('invoice.snapshots.generate')->middleware(['auth', 'can:invoice-edit']);
+    Route::post('{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoice.sendEmail')->middleware(['auth', 'can:invoice-edit']);
+    Route::get('{invoice}/info', [InvoiceController::class, 'getInfo'])->name('invoice.getInfo')->middleware(['auth', 'can:invoice-view']);
 });
 Route::group(['prefix'  => 'invoiceitems'],function(){
     Route::get('show/{invoiceItem}',  [InvoiceItemController::class, 'show'])->name('invoiceItem.show')->middleware('auth');
