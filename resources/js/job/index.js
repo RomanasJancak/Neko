@@ -1274,7 +1274,7 @@ function setJobValues(jobId,buttonClicked){
                 restoreTemplateNoteIconSpan.classList.remove('d-none');
                 restoreTemplateNoteIconSpan.title = data.template.notes;
             }
-            jobDateField.value = data.date;
+            jobDateField.value = data.date.split('T')[0];
             let multiDrop = data.dropoffs.length > 1;
             data.tasks.forEach(function(task){
                 appendTaskToContainer(containerTasks,task,buttonClicked,multiDrop);
