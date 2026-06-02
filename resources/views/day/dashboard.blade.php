@@ -1,13 +1,102 @@
 @extends('layouts.app')
+@section('style')
+<style>
+  .dashboard-columns {
+    row-gap: 1rem;
+  }
+
+  .task-collapse-toggle {
+    white-space: nowrap;
+  }
+
+  .task-collapsed-summary {
+    display: none;
+  }
+
+  .draggable.is-collapsed .task-full-header,
+  .draggable.is-collapsed .task-body-content,
+  .draggable.is-collapsed .task-status-section {
+    display: none;
+  }
+
+  .draggable.is-collapsed .task-collapsed-summary {
+    display: flex;
+    align-items: center;
+  }
+
+  .task-summary-type {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 360px) {
+    .dashboard-date-col {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .dashboard-columns > .job-columenToGetDropEvent {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .job-header {
+      gap: 0.35rem;
+      padding: 0.35rem;
+    }
+
+    .job-header .col,
+    .job-header .col-auto {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .job-header .btn,
+    .task-status-section .btn,
+    .task-collapsed-summary .btn {
+      width: 100%;
+      margin-top: 0.35rem;
+    }
+
+    .draggable {
+      padding: 0.2rem;
+    }
+
+    .job-header-div,
+    .pickup-row,
+    .task-status-section {
+      font-size: 0.8rem;
+    }
+
+    .pickup-row > div:first-child {
+      writing-mode: horizontal-tb !important;
+      transform: none !important;
+      min-height: auto;
+      padding: 0.25rem 0;
+    }
+
+    .pickup-row .col-2,
+    .pickup-row .col-8 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    .task-collapsed-summary {
+      padding: 0.25rem;
+    }
+  }
+</style>
+@endsection
 @section('content')
 <div class="container">
   <div class="row">
-    <div class="col-2">
+    <div class="col-12 col-sm-4 col-md-2 dashboard-date-col">
       <label for="nameField">Date : </label>
       <input type="date" id="datepicker" class="form-control" value="{{$day->name}}" >
     </div>
   </div>
-  <div class="row">
+  <div class="row dashboard-columns">
     @unless($courierOnly ?? false)
     <div class="job-columenToGetDropEvent col-2 border border-dark rounded" id="job-column-unassigned">
       <div class="row border job-header" id="job-column-unassigned-header">
@@ -112,15 +201,33 @@
       </div>
       <div class="row job-dropableListArea">
         @foreach ($user->tasksByDate($date) as $task)
-        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="taskElement-{{$task->id}}" data-jobid="{{$task->job->id}}">
-          <div class="row job-header-div">
+        @php
+          $taskTypeLabel = $task->pickup ? 'Pickup' : ($task->package ? 'Dropoff' : ($task->return ? 'Return' : ($task->customTask ? 'Custom' : 'Task')));
+          $nextStatusInfo = $task->statusNextInfo();
+          $nextStatusOptions = $nextStatusInfo['status_next_options'] ?? [];
+        @endphp
+        <div class="col-12 border border-dark border-2 rounded draggable" style="background-color: {{$task->job->status->color_main}};" draggable="true" id="taskElement-{{$task->id}}" data-jobid="{{$task->job->id}}" data-taskid="{{$task->id}}" data-task-summary="{{$taskTypeLabel}}" data-has-next-status="{{ count($nextStatusOptions) > 0 ? 1 : 0 }}">
+          <div class="row job-header-div task-full-header align-items-center">
             <div class="col job-id-div">
               NJ {{$task->job->id}}
             </div>
             <div class="col job-status-div">
                 {{$task->status->name}} [{{$task->order_number}}]
             </div>
+            <div class="col-auto">
+              <button type="button" class="btn btn-sm btn-outline-light task-collapse-toggle" data-taskid="{{$task->id}}">Collapse</button>
+            </div>
           </div>
+          <div class="row task-collapsed-summary align-items-center justify-content-between">
+            <div class="col">
+              <strong>NJ {{$task->job->id}}</strong>
+              <span class="badge text-bg-dark task-summary-type">{{$taskTypeLabel}}</span>
+            </div>
+            <div class="col-auto">
+              <button type="button" class="btn btn-sm btn-outline-light task-collapse-toggle" data-taskid="{{$task->id}}">Expand</button>
+            </div>
+          </div>
+          <div class="task-body-content">
           @isset($task->pickup)  
           <div class="row pickup-row border" style="background-color: {{$task->job->status->color_pickup}};">
             <div  class="col-2" 
@@ -192,11 +299,8 @@
             </div>
           </div>
           @endisset
-          <div class="row btn-group btn-group-sm" role="group">
-            @php
-              $nextStatusInfo = $task->statusNextInfo();
-              $nextStatusOptions = $nextStatusInfo['status_next_options'] ?? [];
-            @endphp
+          </div>
+          <div class="row btn-group btn-group-sm task-status-section" role="group">
             <div class="col-auto">
               <button type="button" class="btn btn-success" id="button-currentTaskStatus-{{$task->id}}" disabled>{{$task->status->name}}</button>
             </div>
@@ -243,6 +347,51 @@ document.addEventListener('DOMContentLoaded', function() {
       ? window.ROUTES.WEB.TASK.UPDATE_STATUS
       : '{{ route("task.updateStatus") }}';
 
+  function getTaskCard(taskId) {
+    return document.querySelector('.draggable[data-taskid="' + taskId + '"]');
+  }
+
+  function updateTaskCollapseButtons(card, isCollapsed, canCollapse) {
+    if (!card) {
+      return;
+    }
+
+    card.querySelectorAll('.task-collapse-toggle').forEach(function(button) {
+      button.style.display = canCollapse ? '' : 'none';
+      button.textContent = button.closest('.task-collapsed-summary')
+        ? 'Expand'
+        : 'Collapse again';
+      button.setAttribute('aria-expanded', String(!isCollapsed));
+    });
+  }
+
+  function setTaskCollapsed(taskId, isCollapsed) {
+    const card = getTaskCard(taskId);
+    if (!card) {
+      return;
+    }
+
+    card.classList.toggle('is-collapsed', isCollapsed);
+    updateTaskCollapseButtons(card, isCollapsed, card.dataset.hasNextStatus === '0');
+  }
+
+  function syncTaskCollapseState(taskId, nextStatusOptions) {
+    const card = getTaskCard(taskId);
+    if (!card) {
+      return;
+    }
+
+    const canCollapse = !Array.isArray(nextStatusOptions) || nextStatusOptions.length === 0;
+    card.dataset.hasNextStatus = canCollapse ? '0' : '1';
+
+    if (canCollapse) {
+      setTaskCollapsed(taskId, true);
+      return;
+    }
+
+    setTaskCollapsed(taskId, false);
+  }
+
   function renderNextStatusButtons(taskId, nextStatusOptions) {
     const container = document.getElementById('task-next-status-container-' + taskId);
     if (!container) {
@@ -258,6 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
       disabledButton.disabled = true;
       disabledButton.textContent = 'No next status';
       container.appendChild(disabledButton);
+      syncTaskCollapseState(taskId, nextStatusOptions);
       return;
     }
 
@@ -271,7 +421,31 @@ document.addEventListener('DOMContentLoaded', function() {
       nextButton.textContent = option.name;
       container.appendChild(nextButton);
     });
+
+    syncTaskCollapseState(taskId, nextStatusOptions);
   }
+
+  document.querySelectorAll('.draggable[data-taskid]').forEach(function(card) {
+    syncTaskCollapseState(card.dataset.taskid, card.dataset.hasNextStatus === '1' ? [{}] : []);
+  });
+
+  document.addEventListener('click', function(event) {
+    const collapseButton = event.target.closest('.task-collapse-toggle');
+    if (!collapseButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const taskId = collapseButton.getAttribute('data-taskid');
+    const card = getTaskCard(taskId);
+    if (!taskId || !card || card.dataset.hasNextStatus !== '0') {
+      return;
+    }
+
+    setTaskCollapsed(taskId, !card.classList.contains('is-collapsed'));
+  });
 
   document.addEventListener('click', function(event) {
     const button = event.target.closest('.button-changeTaskStatus');
