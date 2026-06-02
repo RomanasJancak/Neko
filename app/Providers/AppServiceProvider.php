@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Job;
 use App\Models\Package;
@@ -31,6 +32,14 @@ class AppServiceProvider extends ServiceProvider
       if (!app()->environment('local')) {
         URL::forceScheme('https');
       }
+
+      Blade::directive('displayDate', function ($expression) {
+        return "<?php echo app(\\App\\Services\\DateFormatService::class)->formatForUser($expression); ?>";
+      });
+
+      Blade::directive('displayInvoiceDate', function ($expression) {
+        return "<?php echo app(\\App\\Services\\DateFormatService::class)->formatForInvoicePdf($expression); ?>";
+      });
 
       Job::observe(JobObserver::class);
       Pickuptask::observe(PickupTaskObserver::class);

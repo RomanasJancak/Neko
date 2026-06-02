@@ -54,7 +54,7 @@
                   data-sent-at="{{ optional($invoice->sent_at)->format('Y-m-d H:i:s') }}"
                   data-sent-by="{{ optional($invoice->sentByUser)->name ?? 'Unknown user' }}"
                 >
-                  <span class="badge bg-success">{{ optional($invoice->sent_at)->format('M d, Y') }}</span>
+                  <span class="badge bg-success">@displayDate($invoice->sent_at)</span>
                 </button>
               @else
                 <span class="badge bg-secondary">Not sent</span>

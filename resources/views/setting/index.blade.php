@@ -24,6 +24,10 @@ legend {
     </div>
 @endif
 
+<div class="alert alert-info mb-4">
+    Personal date format changes how dates are shown in the app for your account. The invoice PDF date format is global and editable by admins only.
+</div>
+
 <form method="POST" action="{{ route('setting.update') }}">
     @csrf
 

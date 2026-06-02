@@ -6,6 +6,21 @@ class UserSettingDefinition
     public static function all(): array
     {
       return [
+            'ui' => [
+                'dateFormat' => [
+                    'label' => 'Date format',
+                    'type' => 'select',
+                    'options' => [
+                        'Y-m-d' => '2026-06-02',
+                        'd/m/Y' => '02/06/2026',
+                        'm/d/Y' => '06/02/2026',
+                        'd M Y' => '02 Jun 2026',
+                        'd-M-Y' => '02-Jun-2026',
+                    ],
+                    'rules' => ['required', 'in:Y-m-d,d/m/Y,m/d/Y,d M Y,d-M-Y'],
+                    'default' => 'Y-m-d',
+                ],
+            ],
             'global' => [
                 'vatRate' => [
                     'label' => 'VAT rate',
@@ -18,6 +33,20 @@ class UserSettingDefinition
                     'type' => 'number',
                     'rules' => ['required', 'integer', 'min:0', 'max:3650'],
                     'default' => 1,
+                ],
+                'invoicePdfDateFormat' => [
+                    'label' => 'Invoice PDF date format',
+                    'type' => 'select',
+                    'admin_only' => true,
+                    'options' => [
+                        'Y-m-d' => '2026-06-02',
+                        'd/m/Y' => '02/06/2026',
+                        'm/d/Y' => '06/02/2026',
+                        'd M Y' => '02 Jun 2026',
+                        'd-M-Y' => '02-Jun-2026',
+                    ],
+                    'rules' => ['required', 'in:Y-m-d,d/m/Y,m/d/Y,d M Y,d-M-Y'],
+                    'default' => 'Y-m-d',
                 ],
             ],
             'models' => [
@@ -100,6 +129,28 @@ public static function validationRules(): array
 
     return $rules;
 }
+
+    public static function adminOnlyKeys(): array
+    {
+        $keys = [];
+
+        $flatten = function (array $settings, string $prefix = '') use (&$flatten, &$keys) {
+            foreach ($settings as $key => $value) {
+                $path = $prefix === '' ? $key : "$prefix.$key";
+                if (is_array($value) && isset($value['admin_only']) && $value['admin_only'] === true) {
+                    $keys[] = $path;
+                }
+
+                if (is_array($value)) {
+                    $flatten($value, $path);
+                }
+            }
+        };
+
+        $flatten(self::all());
+
+        return $keys;
+    }
 
 
 }

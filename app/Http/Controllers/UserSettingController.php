@@ -117,8 +117,15 @@ public function update(Request $request, SettingsService $settings)
         $validated[$dotKey] = $value;
     }
 
-    // Save each setting
+    $adminOnlyKeys = UserSettingDefinition::adminOnlyKeys();
     $user = auth()->user();
+    foreach ($validated as $key => $value) {
+        if (in_array($key, $adminOnlyKeys, true) && !$user->isAdminOrSuperAdmin()) {
+            abort(403, 'You are not allowed to edit this setting.');
+        }
+    }
+
+    // Save each setting
     foreach ($validated as $key => $value) {
         if (str_starts_with($key, 'global.')) {
             $settings->setGlobal($key, $value);

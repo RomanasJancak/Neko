@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container mt-4">
-    <h4 class="mb-3">My Jobs &mdash; {{ \Carbon\Carbon::parse($today)->format('l, d M Y') }}</h4>
+    <h4 class="mb-3">My Jobs &mdash; @displayDate($today)</h4>
 
     @if($jobs->isEmpty())
         <div class="alert alert-info">No jobs assigned to you today.</div>

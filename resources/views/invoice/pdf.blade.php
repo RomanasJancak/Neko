@@ -147,8 +147,8 @@
             </td>
             <td style="line-height: 1.6;">
               <div>{{ $invoiceData['invoice_number'] }}</div>
-              <div>{{ $invoiceData['invoice_date'] }}</div>
-              <div>{{ $invoiceData['due_date'] }}</div>
+              <div>@displayInvoiceDate($invoiceData['invoice_date'] ?? null)</div>
+              <div>@displayInvoiceDate($invoiceData['due_date'] ?? null)</div>
               <div class="title">£{{ number_format($totals['grand_total'], 2) }}</div>
             </td>
           </tr>

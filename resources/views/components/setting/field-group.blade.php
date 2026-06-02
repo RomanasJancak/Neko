@@ -6,7 +6,12 @@
         $fullSetting = data_get($fullDefinition, $currentKey);
         $label = $fullSetting['label'] ?? null;
         $type = $fullSetting['type'] ?? 'text';
+        $isAdminOnly = ($fullSetting['admin_only'] ?? false) === true;
     @endphp
+
+    @if($isAdminOnly && !(auth()->user()?->isAdminOrSuperAdmin()))
+        @continue
+    @endif
 
     @if(is_array($fullSetting) && isset($fullSetting['label']))
         {{-- Leaf node with a label: render setting --}}

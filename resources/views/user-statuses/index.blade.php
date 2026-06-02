@@ -51,7 +51,7 @@
                     {{ $us->status->name }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-gray-400">
-                    {{ $us->created_at->format('Y-m-d') }}
+                    @displayDate($us->created_at)
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right flex gap-2 justify-end">
                     <form action="{{ route('user-statuses.index') }}" method="GET" style="display:inline;">
