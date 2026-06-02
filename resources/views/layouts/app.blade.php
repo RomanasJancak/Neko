@@ -121,6 +121,11 @@
                                                 <a class="btn dropdown-toggle " href="{{route('invoice.index')}}">Invoices</a>
                                             </li>
                                             @endcan
+                                            @role('courier')
+                                            <li>
+                                                <a class="btn dropdown-toggle " href="{{ route('courier.dashboard') }}">My Jobs</a>
+                                            </li>
+                                            @endrole
                       <div class="dropdown">
                           <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                               Other

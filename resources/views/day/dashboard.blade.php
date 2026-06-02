@@ -8,6 +8,7 @@
     </div>
   </div>
   <div class="row">
+    @unless($courierOnly ?? false)
     <div class="job-columenToGetDropEvent col-2 border border-dark rounded" id="job-column-unassigned">
       <div class="row border job-header" id="job-column-unassigned-header">
         <div class="col border">Unassigned jobs list</div>
@@ -101,11 +102,12 @@
         @endforeach
       </div>
     </div>
+    @endunless
     @foreach ($users as $user)
     <div class="job-columenToGetDropEvent col border border-dark rounded" id="job-column-usercolumn-{{$user->id}}">
       <div class="row border job-header" id="job-column-usercolumn_{{$user->id}}-header">
         <div class="col-auto">{{$user->name}}</div>
-        <div class="col-auto">{{$user->workload($day)->bike->name}}</div>
+        <div class="col-auto">{{ optional(optional($user->workload($day))->bike)->name ?? 'No bike assigned' }}</div>
         <div class="col"><button class="btn btn-primary button-copy-user-jobs" id="button-copy-user-jobs-{{$user->id}}" data-jobs="">Copy</button></div>
       </div>
       <div class="row job-dropableListArea">
@@ -228,10 +230,11 @@
 
 document.addEventListener('DOMContentLoaded', function() {
   var datepicker = document.getElementById('datepicker');
+  var showDashboardUrlTemplate = @json(($courierOnly ?? false) ? route('courier.dashboard', ':date') : route('day.showdashboard', ':date'));
 
   datepicker.addEventListener('change', function(event) {
                 var selectedDate = event.target.value;
-                var url = '{{ route("day.showdashboard", ":date") }}';
+                var url = showDashboardUrlTemplate;
                 url = url.replace(':date', selectedDate);
                 window.location.href = url;
             });

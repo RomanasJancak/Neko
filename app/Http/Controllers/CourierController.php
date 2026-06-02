@@ -33,6 +33,28 @@ class CourierController extends Controller
 
         return view('courier.today', compact('jobs', 'today'));
     }
+
+    public function dashboard(?string $date = null)
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->hasRole('courier')) {
+            abort(403);
+        }
+
+        $date = $date ? Carbon::parse($date)->toDateString() : Carbon::today()->toDateString();
+
+        $day = Day::firstOrCreate(
+            ['date' => $date],
+            ['name' => $date]
+        );
+
+        $users = collect([$user]);
+        $jobsUnassigned = collect();
+        $courierOnly = true;
+
+        return view('day.dashboard', compact('date', 'jobsUnassigned', 'users', 'day', 'courierOnly'));
+    }
     public function getJobsForCourier($courier,$date){
         $date = Carbon::parse($date)->toDateString();
         $jobs = Job::with([
