@@ -159,7 +159,7 @@
                     <div class="row">
                         <div class="col" id="reportrange" data-start="{{ request()->query('startDate', '') }}" data-end="{{ request()->query('endDate', '') }}">
                             <i class="fa fa-calendar"></i>&nbsp;
-                                <input type="text" id="search-date-range" value="1987-04-02 - 2025-12-31">
+                                <input type="text" id="search-date-range" value="{{ request()->query('startDate', now()->startOfYear()->toDateString()) }} - {{ request()->query('endDate', now()->toDateString()) }}">
                             <i class="fa fa-caret-down"></i>
                         </div>
                     </div>
@@ -224,7 +224,7 @@
                     <span style="cursor : pointer" class="span-toClientShow" data-clientid="{{$job->clientToBill->id}}"> {{$job->clientToBill->name}}</span>  
                 </td>
                 <td>            
-                    {{$job->date}}
+                    @displayDate($job->date)
                 </td>
                 <td>
                 @foreach ($job->tasks as $task)                    

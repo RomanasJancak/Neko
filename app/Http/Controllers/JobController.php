@@ -37,6 +37,7 @@ use App\Services\InvoicePricingService;
 
 
 use App\Services\BackupService;
+use App\Services\DateFormatService;
 use App\Services\SettingsService;
 
 use App\Settings\UserSettingDefinition;
@@ -1009,7 +1010,7 @@ public function index(Request $request,SettingsService $settings)
         
         }
     }
-    public function getJobInfo($jobId)
+    public function getJobInfo($jobId, DateFormatService $dateFormatService)
     {
         // Fetch the client's information based on the $clientId
         $job = Job::find($jobId);
@@ -1080,6 +1081,7 @@ public function index(Request $request,SettingsService $settings)
                 'returns'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'return'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'date'                  =>  $job->date,
+                'date_display'          =>  $dateFormatService->formatForUser($job->date),
                 'fixed_price'           =>  $job->fixed_price === 0,
                 'tasks'                 =>  is_null($job->tasks) ? 'none' : $job->tasks->map(function ($task) {
                     return [
@@ -1252,7 +1254,7 @@ public function index(Request $request,SettingsService $settings)
         return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    public function fetchJobsPaginate(Request $request)
+    public function fetchJobsPaginate(Request $request, DateFormatService $dateFormatService)
     {
         try {
             $id = $request->get('id', '');
@@ -1344,7 +1346,7 @@ public function index(Request $request,SettingsService $settings)
                 
                         return response()->json([
                             'request'   =>  $request->all(),
-                            'jobs' =>  $jobs->map(function ($job) {
+                            'jobs' =>  $jobs->map(function ($job) use ($dateFormatService) {
                                 return[
                                     'id'    =>  $job->id,
                                     'is_locked_for_non_admin_users' => $job->isLockedForUser(auth()->user()),
@@ -1355,6 +1357,7 @@ public function index(Request $request,SettingsService $settings)
                                     'status'        =>  $job->status,
                                     'tasks' =>  $job->tasks,
                                     'date'  =>  $job->getDate(),
+                                    'date_display' => $dateFormatService->formatForUser($job->getDate()),
                                     'pickup'    =>  (null !== $job->getPickupTask())?[
                                             'id'  =>  $job->getPickupTask()->id,
                                             'isAddressSameAsClientAdress' =>   $job->clientToBill->isSameAsPickupAdress($job->getPickupTask()->pickupAddressFull()),
@@ -1401,7 +1404,7 @@ public function index(Request $request,SettingsService $settings)
                         ], 500);
                     }
     }
-    public function fetchJobsPaginateLight(Request $request)
+    public function fetchJobsPaginateLight(Request $request, DateFormatService $dateFormatService)
     {
         try {
             $id = $request->get('id', '');
@@ -1494,7 +1497,7 @@ public function index(Request $request,SettingsService $settings)
             ]);
 
             return response()->json([
-                'jobs' => $jobs->map(function ($job) {
+                'jobs' => $jobs->map(function ($job) use ($dateFormatService) {
                     $pickupTask = $job->getPickupTask();
                     return [
                         'id' => $job->id,
@@ -1518,6 +1521,7 @@ public function index(Request $request,SettingsService $settings)
                                 ];
                             })->values(),
                         'date' => $job->getDate(),
+                        'date_display' => $dateFormatService->formatForUser($job->getDate()),
                         'pickup' => !is_null($pickupTask) ? [
                             'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
                             'namdeOfAddress' => $pickupTask->nameOfAddress(),

@@ -302,7 +302,7 @@ function buildJobRowElement({
     row.appendChild(columnForLogoAndClientName);
 
     const columnForDate = document.createElement('td');
-    columnForDate.textContent = job.date;
+    columnForDate.textContent = job.date_display || job.date;
     row.appendChild(columnForDate);
 
     const columnForAddress = document.createElement('td');
@@ -524,7 +524,7 @@ function fetchJobs(page = 1, url) {
             columnForLogoAndClientName.appendChild(span_linkToClient);
             row.appendChild(columnForLogoAndClientName);
             let columnForDate =  document.createElement('td');
-            columnForDate.textContent = job.date;
+            columnForDate.textContent = job.date_display || job.date;
             row.appendChild(columnForDate);
             let columnForAddress =  document.createElement('td');
             let div = document.createElement('div');
@@ -1625,7 +1625,7 @@ function set_Some_JobCreationFields_ToDefaultValues(){
     let jobDateField = document.getElementById('jobDateField');
     statusIdField_SelectElement.value = 10; //10 - unassigned
     courierIdField_SelectElement.value = 0;
-    jobDateField.value = "2024-08-19";
+    jobDateField.value = new Date().toISOString().split('T')[0];
 
 }
 function repopulateJobRow(jobId,jobRow){
