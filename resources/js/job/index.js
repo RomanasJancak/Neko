@@ -2135,7 +2135,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!document.getElementById('confirmMagicNumber').clicked) {
                 document.getElementById('magic_number_actions').style.display = 'none';
                 let jobId = document.getElementById('idField').value;
-                setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
+                //setJobValues(jobId, global_typeOfButtonClickedToOpenJobModal);
             }
         }, 500);
     });
