@@ -92,7 +92,9 @@
                     <div class="row">
                         <div class="col">
                             Id
-                            <button id="button-sort-id" class="sort-btn" data-sort-field="id" data-sort-order="asc">
+                            <button id="button-sort-id" 
+                            class="sort-btn {{ $sortField === 'id' ? 'active' : '' }}" 
+                            data-sort-field="id" data-sort-order="{{ $sortField === 'id' ? $sortOrder : 'asc' }}">
                                 <i id="button-sort-id-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
                             </button>
                         </div>
@@ -108,7 +110,7 @@
                     <div class="row">
                         <div class="col">
                             Status
-                            <button id="button-sort-status" class="sort-btn" data-sort-field="status" data-sort-order="asc">
+                            <button id="button-sort-status" class="sort-btn {{ $sortField === 'status' ? 'active' : '' }}" data-sort-field="status" data-sort-order="{{ $sortField === 'status' ? $sortOrder : 'asc' }}">
                                 <i id="button-sort-status-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
                             </button>
                         </div>
@@ -129,7 +131,7 @@
                     <div class="row">
                         <div class="col">
                             Client
-                            <button id="button-sort-clientName" class="sort-btn" data-sort-field="clientName" data-sort-order="asc">
+                            <button id="button-sort-clientName" class="sort-btn {{ $sortField === 'clientName' ? 'active' : '' }}" data-sort-field="clientName" data-sort-order="{{ $sortField === 'clientName' ? $sortOrder : 'asc' }}">
                                 <i id="button-sort-clientName-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
                             </button>
                         </div>
@@ -145,7 +147,7 @@
                     <div class="row">
                         <div class="col">
                             Date                    
-                            <button id="button-sort-date" class="sort-btn" data-sort-field="date" data-sort-order="asc">
+                            <button id="button-sort-date" class="sort-btn {{ $sortField === 'date' ? 'active' : '' }}" data-sort-field="date" data-sort-order="{{ $sortField === 'date' ? $sortOrder : 'asc' }}">
                                 <i id="button-sort-date-icon" data-default-class="fa-solid fa-up-down" class="fa-solid fa-up-down"></i>
                             </button>
                         </div>

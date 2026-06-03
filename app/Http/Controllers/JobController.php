@@ -85,7 +85,7 @@ public function index(Request $request,SettingsService $settings)
             ->paginate(10)
             ->appends($request->query());
         $jobToOpen = Job::find($id);
-        return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen','optionsForDropOffsSearch','dropOffSearchFields'));
+        return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','jobToOpen','optionsForDropOffsSearch','dropOffSearchFields','sortField','sortOrder'));
     }
 
     // Base query
@@ -170,8 +170,7 @@ public function index(Request $request,SettingsService $settings)
     $jobs = $query->paginate(10)->appends($request->query());
 
 
-
-    return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','optionsForDropOffsSearch','dropOffSearchFields'));
+    return view('job.index', compact('jobs', 'couriers', 'statuses', 'packageTypes','optionsForDropOffsSearch','dropOffSearchFields','sortField','sortOrder'));
 }
     /**
      * Show the form for creating a new resource.

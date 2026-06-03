@@ -1980,7 +1980,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'All':[moment().subtract(2025,'years'),moment().add(99,'years')],
         }
     }, datepicker_function);
-    //datepicker_function(initial_datePicker_start, initial_datePicker_end);
     const inputForDatPicker = document.getElementById('search-date-range');
     inputForDatPicker.addEventListener('change', function () {
         const val = inputForDatPicker.value.trim();
@@ -1998,6 +1997,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    datepicker_function(moment().subtract(2025,'years'), moment().add(99,'years'));
     const urlParams = new URLSearchParams(window.location.search);
     const jobId_openMoal = urlParams.get('id');
     const openModal_param = urlParams.get('openModal');
