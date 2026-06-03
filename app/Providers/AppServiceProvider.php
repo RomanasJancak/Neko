@@ -13,6 +13,7 @@ use App\Observers\JobObserver;
 use App\Observers\PackageObserver;
 use App\Observers\PickupTaskObserver;
 use App\Observers\ReturnTaskObserver;
+use Illuminate\Support\Facades\Vite;
 
 class AppServiceProvider extends ServiceProvider
 {
