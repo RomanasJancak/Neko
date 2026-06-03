@@ -32,6 +32,19 @@ class AppServiceProvider extends ServiceProvider
       if (!app()->environment('local')) {
         URL::forceScheme('https');
       }
+      if (app()->environment('test')) {
+        
+        // 1. Force URLs to use the subfolder
+        if (!app()->runningInConsole()) {
+            URL::forceRootUrl(config('app.url'));
+        }
+
+        // 2. Tell Vite where the manifest file actually lives now
+        Vite::useManifestFilename(base_path('../public_html/TEST/build/manifest.json'));
+        
+        // 3. Tell Vite where the hotfile lives (stops it from breaking during local development checks)
+        Vite::useHotFile(base_path('../public_html/TEST/hot'));
+      }
 
       Blade::directive('displayDate', function ($expression) {
         return "<?php echo app(\\App\\Services\\DateFormatService::class)->formatForUser($expression); ?>";
