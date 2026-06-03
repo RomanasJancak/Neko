@@ -1325,7 +1325,9 @@ public function index(Request $request,SettingsService $settings)
                     ->orderBy('statuses.name', $sortOrder)
                     ->select('jobs.*'); 
                 }, function ($q) use ($sortField, $sortOrder) {
-                    $q->orderBy("jobs.$sortField", $sortOrder);
+                    if (!in_array($sortField, ['clientName', 'status'], true)) {
+                        $q->orderBy("jobs.$sortField", $sortOrder);
+                    }
                 })
                 ->paginate(10);
 
@@ -1478,7 +1480,9 @@ public function index(Request $request,SettingsService $settings)
                         ->orderBy('statuses.name', $sortOrder)
                         ->select('jobs.*');
                 }, function ($q) use ($sortField, $sortOrder) {
-                    $q->orderBy("jobs.$sortField", $sortOrder);
+                    if (!in_array($sortField, ['clientName', 'status'], true)) {
+                        $q->orderBy("jobs.$sortField", $sortOrder);
+                    }
                 })
                 ->paginate(10);
 
