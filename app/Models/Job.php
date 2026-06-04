@@ -198,13 +198,7 @@ class Job extends Model
         return $returnValue;
     }
     public function urlToLogo(){
-        $returnValue = '';
-        if (!file_exists(public_path('files/logos/'.$this->clientToBill->id.".png"))) {
-            $returnValue    =   asset('files/logos/0.png');
-        }else{
-            $returnValue =  asset('files/logos/'.$this->clientToBill->id.".png");
-        }
-        return $returnValue;
+      return asset("files/logos/{$this->clientToBill_id}.png");
     }
     public function getDate(){
         $returnValue = '';
