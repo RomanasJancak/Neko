@@ -19,6 +19,10 @@ return new class extends Migration
             $table->unsignedBigInteger('job_id');
             $table->unsignedBigInteger('order_number');
             $table->string('note')->nullable();
+            $table->string('taskable_type')->nullable()->after('job_id');
+            $table->unsignedBigInteger('taskable_id')->nullable()->after('taskable_type');
+
+            $table->index(['taskable_type', 'taskable_id']);
         });
     }
 
