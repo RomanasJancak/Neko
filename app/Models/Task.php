@@ -15,7 +15,14 @@ class Task extends Model
         'status_id',
         'job_id',
         'order_number',
+        'taskable_type',
+        'taskable_id',
     ];
+
+    public function taskable()
+    {
+        return $this->morphTo();
+    }
     public function pickup()
     {
         return $this->hasOne(Pickuptask::class);
@@ -30,28 +37,20 @@ class Task extends Model
         return $this->hasOne(CustomTask::class);
     }
     public function type(){
-        $return_value   =   isset($this->pickup)
-                            ?   'pickup'
-                            :   (isset($this->package)
-                                ?   'dropOff'
-                                :   (isset($this->return)
-                                    ?   'return'
-                                    :   (isset($this->customTask)
-                                        ?   'custom'
-                                        :   null)));
-        return $return_value;
+        return match ($this->taskable_type) {
+            Pickuptask::class => 'pickup',
+            Package::class    => 'dropOff',
+            ReturnTask::class => 'return',
+            CustomTask::class => 'custom',
+            default           => null,
+        };
     }
     public function typeOfTask(){
-        $return_value   =   isset($this->pickup)
-                            ?   $this->hasOne(Pickuptask::class)
-                            :   (isset($this->package)
-                                ?   $this->hasOne(Package::class)
-                                :   (isset($this->return)
-                                    ?   $this->hasOne(ReturnTask::class)
-                                    :   (isset($this->customTask)
-                                        ?   $this->hasOne(CustomTask::class)
-                                        :   null)));
-        return $return_value;
+        if (!$this->taskable_type) {
+            return null;
+        }
+
+        return $this->hasOne($this->taskable_type);
     }
     public function job(){
         return $this->belongsTo(Job::class);
@@ -67,15 +66,7 @@ class Task extends Model
     }
     public function resolvedStatus()
     {
-        return isset($this->pickup)
-            ? $this->pickup()->first()?->status
-            : (isset($this->package)
-                ? $this->package()->first()?->status
-                : (isset($this->return)
-                    ? $this->return()->first()?->status
-                    : (isset($this->customTask)
-                        ? $this->customTask()->first()?->status
-                        : null)));
+        return $this->taskable?->status;
     }
 
     public function statusNextInfo(): array
@@ -84,130 +75,40 @@ class Task extends Model
     }
     public function nameOfAddress()
     {
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->nameOfAddress() 
-                            :   (isset($this->package)
-                                ?   $this->package->nameOfAddress()
-                                :   (isset($this->return)
-                                    ?   $this->return->nameOfAddress()
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->nameOfAddress()
-                                        :   null)));
-        return $return_value;
+      return $this->taskable?->nameOfAddress();
     }
     public function country()
     {
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->country() 
-                            :   (isset($this->package)
-                                ?   $this->package->country()
-                                :   (isset($this->return)
-                                    ?   $this->return->country()
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->country()
-                                        :   null)));
-        return $return_value;
+        return $this->taskable?->country();
     }
     public function city()
     {
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->city() 
-                            :   (isset($this->package)
-                                ?   $this->package->city() 
-                                :   (isset($this->return)
-                                    ?   $this->return->city() 
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->city() 
-                                        :   null)));
-        return $return_value;
+        return $this->taskable?->city();
     }
     public function addressShort(){
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->addressShort() 
-                            :   (isset($this->package)
-                                ?   $this->package->addressShort()
-                                :   (isset($this->return)
-                                    ?   $this->return->addressShort()
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->name
-                                        :   null)));
-        return $return_value;
+        return $this->taskable?->addressShort();
     }
     public function postalCode()
     {
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->postalCode() 
-                            :   (isset($this->package)
-                                ?   $this->package->postalCode()
-                                :   (isset($this->return)
-                                    ?   $this->return->postalCode()
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->postalCode()
-                                        :   null)));
-        return $return_value;
+        return $this->taskable?->postalCode();
     }
     public function addressLine()
     {
-        $return_value   =   isset($this->pickup)
-                            ?   $this->pickup->addressLine() 
-                            :   (isset($this->package)
-                                ?   $this->package->addressLine()
-                                :   (isset($this->return)
-                                    ?   $this->return->addressLine()
-                                    :   (isset($this->customTask)
-                                        ?   $this->customTask->addressLine()
-                                        :   null)));
-        return $return_value;
+        return $this->taskable?->addressLine();
     }
     public function fullAddress()//not finished
     {
-        $return_value   =   isset($this->pickup)
-                ?   $this->pickup->pickupAddressFull() 
-                :   (isset($this->package)
-                    ?   $this->package->dropoff_country.' '.$this->package->dropoff_city.' '.$this->package->dropoff_postal_code.' '.$this->package->dropoff_adress_line
-                    :   (isset($this->return)
-                        ?   $this->return->addressFull()
-                        :   (isset($this->customTask)
-                            ?   $this->customTask->name
-                            :   null)));
-        return $return_value;
+        return $this->taskable?->fullAddress();
     }
 
     public function timeWindow()
     {
-        $return_value   =   isset($this->pickup)
-            ?   $this->pickup->timeWindow() 
-            :   (isset($this->package)
-                ?   $this->package->timeWindow() 
-                :   (isset($this->return)
-                    ?   $this->return->timeWindow()
-                    :   (isset($this->customTask)
-                        ?   $this->customTask->name
-                        :   null)));
-        return $return_value;
+        return $this->taskable?->timeWindow();
     }
     public function timeWindowBegin(){
-        $return_value   =   isset($this->pickup)
-        ?   $this->pickup->timeWindowBegin() 
-        :   (isset($this->package)
-            ?   $this->package->timeWindowBegin() 
-            :   (isset($this->return)
-                ?   $this->return->timeWindowBegin()
-                :   (isset($this->customTask)
-                    ?   $this->customTask->timeWindowBegin()
-                    :   null)));
-        return $return_value;
+        return $this->taskable?->timeWindowBegin();
     }
     public function timeWindowEnd(){
-        $return_value   =   isset($this->pickup)
-        ?   $this->pickup->timeWindowEnd() 
-        :   (isset($this->package)
-            ?   $this->package->timeWindowEnd() 
-            :   (isset($this->return)
-                ?   $this->return->timeWindowEnd()
-                :   (isset($this->customTask)
-                    ?   $this->customTask->timeWindowEnd()
-                    :   null)));
-        return $return_value;
+        return $this->taskable?->timeWindowEnd();
     }
 }
