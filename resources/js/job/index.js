@@ -291,7 +291,7 @@ function buildJobRowElement({
     img.style.maxWidth = '2rem';
     img.style.height = 'auto';
     const spanLinkToClient = document.createElement('span');
-    spanLinkToClient.textContent = job.clientName;
+    spanLinkToClient.textContent = job.clientToBill.name;
     if (clientNameAsLink) {
         spanLinkToClient.className = 'span-toClientShow';
         spanLinkToClient.dataset.clientid = job.clientToBill?.id;
@@ -471,8 +471,11 @@ function fetchJobs(page = 1, url) {
   }else{
     /*This replaced :*/
     //xhr.open('GET', window.ROUTES.WEB.JOB.FETCH+`?id=${id}&clientName=${clientName}
-    /* This */
-    xhr.open('GET', window.ROUTES.WEB.JOB.FETCHLIGHT+`?id=${id}&clientName=${clientName}
+    /* This then replaced */
+    //xhr.open('GET', window.ROUTES.WEB.JOB.FETCHLIGHT+`?id=${id}&clientName=${clientName}
+    /* with this */
+    xhr.open('GET', window.ROUTES.WEB.JOB.FETCHEXTRALIGHT+`?id=${id}&clientName=${clientName}
+
         &${statusParams.join('&').toString()}
         &date=${date}&startDate=${startDate}&endDate=${endDate}&package=${pakuote}&sortField=${sortField}
         &sortOrder=${sortOrder}&page=${page}
@@ -488,12 +491,21 @@ function fetchJobs(page = 1, url) {
           document.getElementById('jobsTableBody').innerHTML = '';
           data.jobs.forEach(job => {
               let packageCounter = 1;
-              let isAddressSameAsClientAdress = job.pickup.isAddressSameAsClientAdress;
-              let addressNameToDisplay = isAddressSameAsClientAdress 
+
+              let isAddressSameAsClientAdress = job.pickup ? job.pickup.isAddressSameAsClientAdress : false;
+              /*let addressNameToDisplay = isAddressSameAsClientAdress 
                                           ? (job.clientToBill.shortenedName !=='') 
                                           ? job.clientToBill.shortenedName+' '+job.clientToBill.pickup_postal_code
                                               :job.clientToBill.name
-                                          : job.pickup.namdeOfAddress;
+                                          : job.pickup ? job.pickup.nameOfAddress : '';*/
+            let addressNameToDisplay = '';
+            if(isAddressSameAsClientAdress){
+              addressNameToDisplay = job.clientToBill.shortenedName 
+              ? `${job.clientToBill.shortenedName} ${job.clientToBill.pickup_postal_code}`
+              : job.clientToBill.name;
+            }else{
+              addressNameToDisplay = job.pickup.fullAddress;
+            }                              
             let row = document.createElement('tr');
             let columnForId =  document.createElement('td');
             let idSpan = document.createElement('span');
@@ -512,13 +524,17 @@ function fetchJobs(page = 1, url) {
             let columnForLogoAndClientName =  document.createElement('td');
             columnForLogoAndClientName.className = 'no-padding';
             let img = document.createElement('img');
+            img.onerror = function() {
+              this.src = '/files/logos/0.png'; // Your default logo path
+              this.onerror = null;             // Prevents an infinite loop if the default logo is also missing
+            };
             img.src = job.urlToLogo;
             img.style.maxWidth = '2rem';
             img.style.height = 'auto';
             let span_linkToClient = document.createElement('span');
-            span_linkToClient.textContent = job.clientName;
+            span_linkToClient.textContent = job.clientToBill.name;
             span_linkToClient.className = 'span-toClientShow';
-            span_linkToClient.dataset.clientid = job.clientToBill.id;
+            span_linkToClient.dataset.clientid = job.clientToBill ? job.clientToBill.id : '';
             span_linkToClient.style.cursor = 'pointer';
             columnForLogoAndClientName.appendChild(img);
             columnForLogoAndClientName.appendChild(span_linkToClient);
@@ -536,7 +552,7 @@ function fetchJobs(page = 1, url) {
             i.className = 'bi bi-info-circle-fill';
             let spanTooltip = document.createElement('span');
             spanTooltip.className = 'tooltip';
-            spanTooltip.textContent = job.pickup.fullAddress;
+            spanTooltip.textContent = job.pickup ? job.pickup.fullAddress : '';
             spanInfoIcon.appendChild(i);
             spanInfoIcon.appendChild(spanTooltip);
             div.appendChild(spanAddressName);
@@ -544,7 +560,7 @@ function fetchJobs(page = 1, url) {
             columnForAddress.appendChild(div);
             row.appendChild(columnForAddress);
             let columnForDropOffs =  document.createElement('td');
-            job.tasks.forEach(task => {
+            job.tasks ? job.tasks.forEach(task => {
                 if(task.package){
                     let div = document.createElement('div');
                     div.className = 'row';
@@ -576,7 +592,7 @@ function fetchJobs(page = 1, url) {
                     div.appendChild(div2);
                     columnForDropOffs.appendChild(div);
                 }
-            });
+            }): '';
             row.appendChild(columnForDropOffs);
             let columnForPrice =  document.createElement('td');
             let span1 = document.createElement('span');
