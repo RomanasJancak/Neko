@@ -69,6 +69,9 @@ class Package extends Model
     public function addressShort(){
         return $this->dropoff_adress_line.' '.$this->dropoff_postal_code;
     }
+    public function fullAddress(){
+        return $this->dropoff_adress_line.' '.$this->dropoff_postal_code.' '.$this->dropoff_city .' '.$this->dropoff_country;
+    }
     public function timeWindow(){
         return $this->packagedropofftimebegin.'/'.$this->packagedropofftimeend;
     }

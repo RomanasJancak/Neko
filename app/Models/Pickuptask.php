@@ -62,6 +62,9 @@ class Pickuptask extends Model
     public function timeWindowEnd(){
         return $this->pickup_time_end;
     }
+    public function fullAddress(){
+        return $this->pickupclientaddressline.' '.$this->pickupclientpostalcode.' '.$this->pickupclientcity .' '.$this->pickupclientcountry;
+    }
     public function timeWindowBeginFormatted(): string
     {
         if (!$this->pickup_time_begin) return 'N/A';
