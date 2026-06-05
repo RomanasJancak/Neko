@@ -188,14 +188,15 @@ class Job extends Model
         }
         return $returnValue;
     }
-    public function getPickupTask(){
-        $returnValue = null;
-        foreach($this->tasks as $task){
-            if($task->type() === 'pickup'){
-                $returnValue = $task->pickup;
-            }
-        }
-        return $returnValue;
+    public function getPickupTask()
+    {
+        // Filter the already-loaded tasks collection in memory
+        $pickupTask = $this->tasks->first(function ($task) {
+            return $task->taskable_type === Pickuptask::class;
+        });
+
+        // Return the child model data directly
+        return $pickupTask ? $pickupTask->taskable : null;
     }
     public function urlToLogo(){
       return asset("files/logos/{$this->clientToBill_id}.png");
