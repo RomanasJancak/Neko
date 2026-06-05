@@ -12,6 +12,12 @@ class DateFormatService
     public function __construct(private readonly SettingsService $settings)
     {
     }
+    public function getUserFormat(?User $user = null): string
+    {
+        $user ??= Auth::user();
+
+        return (string) ($this->settings->get('global.dateFormat', $user) ?? 'Y-m-d');
+    }
 
     public function userDateFormat(?User $user = null): string
     {
