@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use App\Filters\JobFilter;
 
 use App\Models\Client;
 use App\Models\Distance;
@@ -1405,8 +1406,72 @@ public function index(Request $request,SettingsService $settings)
                         ], 500);
                     }
     }
-    public function fetchJobsPaginateLight(Request $request, DateFormatService $dateFormatService)
+    public function fetchJobsPaginateExtraLight(Request $request, DateFormatService $dateFormatService, JobFilter $jobFilter)
     {
+      try{
+        $query = Job::with(['tasks.taskable']);
+        $query = $jobFilter->filter($query,$request->all());
+        $jobs = $query->paginate(10);
+        $jobs->appends($request->all());
+        $userFormatStr = $dateFormatService->userDateFormat(auth()->user());
+        return response()->json([
+            'jobs' =>  $jobs->map(function ($job) use ($dateFormatService, $userFormatStr) {
+              $pickupTask = $job->getPickupTask();
+                return[
+                    'id'    =>  $job->id,
+                    'status'    =>  [
+                        'id' => $job->status->id,
+                        'name' => $job->status->name,
+                    ],
+                    'clientToBill'  =>  [
+                        'id' => $job->clientToBill->id,
+                        'name' => $job->clientToBill->name,
+                        'shortenedName' => $job->clientToBill->shortenedName,
+                        'pickup_postal_code' => $job->clientToBill->pickup_postal_code,
+                    ],
+                    'urlToLogo'   =>  $job->urlToLogo(),
+                    'clientName'    =>  $job->clientToBill->name,
+                    'date_display' => $dateFormatService->format($job->date, $userFormatStr),
+                    'pickup' => !is_null($pickupTask) ? [
+                        'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
+                        'nameOfAddress' => $pickupTask->nameOfAddress(),
+                        'fullAddress' => $pickupTask->pickupAddressFull(),
+                    ] : '',
+                    'tasks' => collect($job->getDropOffTasks())->map(function ($dropoff) {
+                        return [
+                          'package' =>[
+                            'id' => $dropoff->id,
+                            'nameOfAddress' => $dropoff->nameOfAddress(),
+                            'fullAddress' => $dropoff->fullAddress(),
+                            'dropoff_name' => $dropoff->package->dropoff_name,
+                            'dropoff_adress_line' => $dropoff->package->dropoff_adress_line,
+                            'dropoff_postal_code' => $dropoff->package->dropoff_postal_code,
+                          ]
+                        ];
+                     }),
+                ];
+            }),
+            'links' => (string) $jobs->links(),
+        ]);
+      }catch (QueryException $e) {
+        return response()->json([
+            'request'   =>  $request->all(),
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+      } catch (\Exception $e) {
+        return response()->json([
+            'request'   =>  $request->all(),
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+      }
+    }
+    public function fetchJobsPaginateLight(Request $request, DateFormatService $dateFormatService, JobFilter $jobFilter)
+    {
+ 
         try {
             $id = $request->get('id', '');
             $clientName = $request->get('clientName', '');

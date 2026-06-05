@@ -28,6 +28,8 @@ use App\Http\Controllers\UserStatusController;
 use App\Http\Controllers\EmailAddressController;
 use App\Http\Controllers\PermissionController;
 
+use App\Http\Controllers\BenchmarkController;
+
 use App\Models\User;
    
 /*
@@ -40,7 +42,7 @@ use App\Models\User;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
+Route::get('/admin/benchmark-endpoints', [BenchmarkController::class, 'run']);
 // Route::get('/', function () {
 //     return view('welcome');
 // });
@@ -163,6 +165,7 @@ Route::group(['prefix' => 'jobs'], function(){
     Route::get('getJobToString/{id}',     [JobController::class, 'getJobToString'])->name('job.getJobToString')->middleware('auth');
     Route::get('fetchJobsPaginate', [JobController::class, 'fetchJobsPaginate'])->name('job.fetch')->middleware('auth');
     Route::get('fetchJobsPaginateLight', [JobController::class, 'fetchJobsPaginateLight'])->name('job.fetch.light')->middleware('auth');
+    Route::get('fetchJobsPaginateExtraLight', [JobController::class, 'fetchJobsPaginateExtraLight'])->name('job.fetch.extra_light')->middleware('auth');
     Route::post('create_JobTemplate_fromThisJob/{id}',     [JobController::class, 'create_JobTemplate_fromThisJob'])->name('job.create_JobTemplate_fromThisJob')->middleware(['auth', 'can:jobtemplate-create']);
     Route::post('copy',            [JobController::class, 'copy'])->name('job.copy')->middleware('auth');
     Route::post('moveToOtherInvoiceItem/{job}',            [JobController::class, 'moveToOtherInvoiceItem'])->name('job.moveToOtherInvoiceItem')->middleware('auth');
