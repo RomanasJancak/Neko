@@ -71,7 +71,7 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $pickupTask->save();
+                $task->taskable()->save($pickupTask);
             }
             if($request->input('type') === 'dropOff'){
                 $package = new Package;
@@ -89,7 +89,7 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $package->save();
+                $task->taskable()->save($package);
             }
             
             if($request->input('type') === 'return'){
@@ -128,7 +128,7 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $returnTask->save();
+                $task->taskable()->save($returnTask);
             }
             return response()->json([
                 'success'   => true,

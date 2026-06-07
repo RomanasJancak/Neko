@@ -34,7 +34,7 @@ class Package extends Model
     }
     public function task()
     {
-        return $this->belongsTo(Task::class);
+        return $this->morphOne(Task::class, 'taskable');
     }
     public function status(){
         return $this->belongsTo(Status::class,'status_id');

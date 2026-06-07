@@ -24,7 +24,7 @@ class ReturnTask extends Model
     ];
     public function task()
     {
-        return $this->belongsTo(Task::class);
+        return $this->morphOne(Task::class, 'taskable');
     }
     public function addressShort(){
         return $this->adress_line.' '.$this->postal_code;

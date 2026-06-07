@@ -261,7 +261,7 @@ public function index(Request $request,SettingsService $settings)
             $customTask->time_begin     =   $request->input('common_date').' '.$request->input('custom_time_begin');
             $customTask->time_end       =   $request->input('common_date').' '.$request->input('custom_time_end');
             $customTask->notes          =   $request->input('generalnotes');
-            $customTask->save();
+            $task->taskable()->save($customTask); 
             return response()->json(['success'  => true,
             'message'           =>  'Validation succes.',
             'inputs'            =>  $request->input(),
@@ -323,7 +323,7 @@ public function index(Request $request,SettingsService $settings)
             $pickuptask->pickupclientpostalcode       =   $request->input('pickupclientpostalcode');
             $pickuptask->notes       =   null;
             $pickuptask->price       =   null;
-            $pickuptask->save();
+            $task->taskable()->save($pickuptask);
             if(isset($request->jobcheckboxaddon)){
                 foreach($request->input('jobcheckboxaddon') as $key => $addOnRuleId){
                     $addOn = new Addon();
@@ -365,7 +365,7 @@ public function index(Request $request,SettingsService $settings)
                 $package->price                     =   $packageType->price;
                 $package->baseQuantityThreshold     =   $packageType->baseQuantityThreshold;
                 $package->maxQuantityThreshold      =   $packageType->maxQuantityThreshold;
-                $package->save();
+                $task->taskable()->save($package);
                 if(isset($request->packagecheckboxaddon[$key])){
                     foreach($request->input('packagecheckboxaddon')[$key] as $keyB => $addOnRuleId){
                         $addOn = new Addon();
@@ -399,7 +399,7 @@ public function index(Request $request,SettingsService $settings)
                 $returntask->country       =   $request->input('returnclientcountry');
                 $returntask->postal_code       =   $request->input('returnclientpostalcode');
                 $returntask->notes       =   null;
-                $returntask->save();
+                $task->taskable()->save($returntask);
             }
             return response()->json(['success'  => true,
             'message'           =>  'Validation succes.',

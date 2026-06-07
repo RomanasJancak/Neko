@@ -24,7 +24,7 @@ class Pickuptask extends Model
         'status_id',
     ];
     public function task(){
-        return $this->belongsTo(Task::class);
+        return $this->morphOne(Task::class, 'taskable');
     }
     public function status(){
         return $this->belongsTo(Status::class,'status_id');
