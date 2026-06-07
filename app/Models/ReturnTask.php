@@ -30,7 +30,10 @@ class ReturnTask extends Model
         return $this->adress_line.' '.$this->postal_code;
     }
     public function addressFull(){
-        return $this->country.' '.$this->city.' '.$this->postal_code.' '.$this->adress_line;
+        return $this->country.' '.$this->city.' '.$this->adress_line.' '.$this->adress_line;
+    }
+    public function fullAddress(){
+        return $this->adress_line.' '.$this->adress_line.' '.$this->city .' '.$this->country;
     }
     public function nameOfAddress(){
         return $this->name;
