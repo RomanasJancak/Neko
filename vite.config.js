@@ -25,6 +25,13 @@ export default defineConfig({
         }),
     ],
     server: {
+        host: '0.0.0.0',
+        port: 5173,
+        cors: true,      // Allows remote browsers to pull assets safely
+        hmr: {
+            host: '5.20.166.68', // Your actual public IP from your .env
+            port: 5173,
+        },
         // Make sure this is not active in production
         //hmr: false, // Disable HMR (Hot Module Replacement) in production
     },
