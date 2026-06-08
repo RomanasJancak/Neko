@@ -67,7 +67,8 @@ class UserStatusController extends Controller
         return response()->json([
             'message' => 'User status created successfully.',
             'data' => $userStatus->load('status')
-        ], Response::HTTP_CREATED);
+        //], Response::HTTP_CREATED);
+        ], 201);
     }
 
     /**
