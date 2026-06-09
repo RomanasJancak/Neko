@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build:frontend": "cd neko && npm install && npm run build && rm -rf ../../../public/dist && cp -r dist ../../../public/dist"
     },
     "devDependencies": {
         "@popperjs/core": "^2.11.6",
