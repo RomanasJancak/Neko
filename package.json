@@ -4,7 +4,9 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "build:frontend": "cd neko && npm install && npm run build && rm -rf ../../../public/dist && cp -r dist ../../../public/dist"
+        "build:frontend": "npm --prefix neko install && npm --prefix neko run build && rm -rf public/neko && mkdir -p public/neko && cp -r neko/build/* public/neko/",
+        "build:all": "npm run build && npm run build:frontend",
+        "dev:frontend": "npm --prefix neko start"
     },
     "devDependencies": {
         "@popperjs/core": "^2.11.6",

@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/neko/static/css/main.8d659c49.css",
+    "main.js": "/neko/static/js/main.23b7dd17.js",
+    "static/js/453.9884e811.chunk.js": "/neko/static/js/453.9884e811.chunk.js",
+    "index.html": "/neko/index.html",
+    "main.8d659c49.css.map": "/neko/static/css/main.8d659c49.css.map",
+    "main.23b7dd17.js.map": "/neko/static/js/main.23b7dd17.js.map",
+    "453.9884e811.chunk.js.map": "/neko/static/js/453.9884e811.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.8d659c49.css",
+    "static/js/main.23b7dd17.js"
+  ]
+}

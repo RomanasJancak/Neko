@@ -43,6 +43,15 @@ use App\Models\User;
 |
 */
 Route::get('/admin/benchmark-endpoints', [BenchmarkController::class, 'run']);
+
+Route::get('/neko/{path?}', function () {
+    $indexFile = public_path('neko/index.html');
+
+    abort_unless(file_exists($indexFile), 404, 'Neko frontend is not built yet. Run: npm run build:frontend');
+
+    return response()->file($indexFile);
+})->where('path', '.*')->name('neko.frontend');
+
 // Route::get('/', function () {
 //     return view('welcome');
 // });
