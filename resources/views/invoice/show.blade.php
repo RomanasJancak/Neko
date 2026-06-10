@@ -27,7 +27,7 @@
     <div class="card-body">
       <h5 class="card-title">Customer: {{ $invoice->client->name }}</h5>
       <p class="card-text">Date: {{ $invoice->invoice_date }}</p>
-      <p class="card-text">Total Amount: ${{ number_format($invoice->total, 2) }}</p>
+      <p class="card-text">Total Amount without VAT: £{{ number_format($invoice->total, 2) }}</p>
     </div>
   </div>
 
