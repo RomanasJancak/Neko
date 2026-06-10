@@ -293,7 +293,7 @@
 </div>
 <!-- Modal job begin -->
 <div class="modal fade" data-bs-backdrop="static" id="jobModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="row g-0">
                 <div class="col-9 border rounded d-flex flex-column "> <!--Left side -->
@@ -419,7 +419,7 @@
 
 <!-- Modal task begin -->
 <div class="modal fade" data-bs-backdrop="static" id="taskModalWindow" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-body">
                 @include('task.show')

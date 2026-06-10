@@ -276,7 +276,7 @@
       
   </script>
 <script>
-  function showAlert({message, type = 'info', duration = 3000, zIndex = 10000}) {
+  function showAlert({message, type = 'info', duration = 1500, zIndex = 10000}) {
       const alertBox = document.getElementById('navAlert');
       const alertText = document.getElementById('navAlertText');
 
