@@ -215,7 +215,7 @@
             @if ($index === 0)
               <td rowspan="{{ $dropCount }}">#{{ $job['id'] }}</td>
               <td rowspan="{{ $dropCount }}">{{ ucfirst($job['status']) }}</td>
-              <td rowspan="{{ $dropCount }}">{{ $job['date'] }}</td>
+              <td rowspan="{{ $dropCount }}">{{ \Carbon\Carbon::parse($job['date'])->format('d-m-Y') }}</td>
               <td rowspan="{{ $dropCount }}">
                 {{ $job['pickup']['address'] }}<br>
                 <span class="time">{{ $job['pickup']['time_window_begin'] }}–{{ $job['pickup']['time_window_end'] }}</span>
