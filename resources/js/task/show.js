@@ -65,47 +65,93 @@ function addTypeHeadSearchToTaskWindow(searchInput){
             }
         });
 
-        // Add keyboard navigation for arrow keys and enter
-        searchInput.on('keydown', function(e) {
-            console.log(e.keyCode);
-            var $menu = searchInput.data('typeahead').$menu;
-            var $active = $menu.find('.active');
-            console.log($menu, $active);
+        // Add keyboard navigation for arrow keys, enter, and tab confirmation.
+        // Capture phase avoids missing events when plugins intercept key handlers.
+        var inputEl = searchInput.get(0);
+        if (!inputEl) return;
+
+        if (inputEl._typeaheadTaskKeydownHandler) {
+            inputEl.removeEventListener('keydown', inputEl._typeaheadTaskKeydownHandler, true);
+        }
+
+        var keydownHandler = function(e) {
+            var typeahead = searchInput.data('typeahead');
+            if (!typeahead || !typeahead.$menu) return;
+
+            var $menu = typeahead.$menu;
             if (!$menu.is(':visible')) return;
-            console.log('--');
+
+            var $items = $menu.find('li:has(a)');
+            if (!$items.length) {
+                $items = $menu.find('a');
+            }
+            if (!$items.length) return;
+
+            var $active = $items.filter('.active').first();
+            if (!$active.length) {
+                $active = $items.find('.active').closest('li, a').first();
+            }
+            var activeIndex = $items.index($active);
+
+            function setActive(index) {
+                $items.removeClass('active');
+                $items.find('.active').removeClass('active');
+
+                var $item = $items.eq(index);
+                $item.addClass('active');
+                $item.closest('li').addClass('active');
+                $item.find('a').addClass('active');
+                $item.children('a').addClass('active');
+            }
+
+            function selectActiveOrFirst() {
+                var $selected = $items.filter('.active').first();
+                if (!$selected.length) {
+                    $selected = $items.find('.active').closest('li, a').first();
+                }
+                if (!$selected.length) {
+                    $selected = $items.first();
+                    setActive(0);
+                }
+
+                var $clickTarget = $selected.is('a') ? $selected : $selected.find('a').first();
+                if ($clickTarget.length) {
+                    $clickTarget.trigger('click');
+                } else {
+                    $selected.trigger('click');
+                }
+            }
+
             switch(e.keyCode) {
                 case 38: // up
                     e.preventDefault();
-                    console.log($active.length, $active.prev().length);
-                    if ($active.length && $active.prev().length) {
-                        $active.removeClass('active');
-                        $active.prev().addClass('active');
+                    if (activeIndex <= 0) {
+                        setActive($items.length - 1);
                     } else {
-                        $active.removeClass('active');
-                        $menu.find('li').last().addClass('active');
+                        setActive(activeIndex - 1);
                     }
                     break;
                 case 40: // down
                     e.preventDefault();
-                    console.log($active.length, $active.next().length);
-                    if ($active.length && $active.next().length) {
-                        console.log('next');
-                        $active.removeClass('active');
-                        $active.next().addClass('active');
+                    if (activeIndex < 0 || activeIndex >= $items.length - 1) {
+                        setActive(0);
                     } else {
-                        $active.removeClass('active');
-                        $menu.find('li').first().addClass('active');
+                        setActive(activeIndex + 1);
                     }
                     break;
                 case 13: // enter
-                    if ($active.length) {
-                        e.preventDefault();
-                        $active.trigger('click');
-                    }
+                    e.preventDefault();
+                    selectActiveOrFirst();
+                    break;
+                case 9: // tab
+                    // Confirm current suggestion and keep native tab navigation to next field.
+                    selectActiveOrFirst();
                     break;
             }
-            console.log($menu, $active);
-        });
+        };
+
+        inputEl.addEventListener('keydown', keydownHandler, true);
+        inputEl._typeaheadTaskKeydownHandler = keydownHandler;
     }
 }
 document.getElementById('submitTaskform').addEventListener('click', function(event) {

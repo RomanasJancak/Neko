@@ -139,9 +139,9 @@
           </div>
 
           <div class="mb-3">
-            <label for="invoiceEmailBody" class="form-label">Body</label>
+            <label for="invoiceEmailBody" class="form-label">Email body</label>
             <div class="mb-1 d-flex flex-wrap gap-1">
-              <small class="text-muted me-1 align-self-center">Insert:</small>
+              <small class="text-muted me-1 align-self-center">Insert quick link:</small>
               <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":invoice_number">Invoice Number</button>
               <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":client_name">Client Name</button>
               <button type="button" class="btn btn-outline-secondary btn-sm js-insert-token" data-token=":invoice_date">Invoice Date</button>

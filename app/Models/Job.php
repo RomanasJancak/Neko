@@ -331,15 +331,28 @@ class Job extends Model
         
         foreach($this->addOns_distance as $addOn){
             if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
+                $threshold = (float) $matches[1];
+                $chargingStep = (float) $matches[2];
+                if ($chargingStep <= 0) {
+                    continue;
+                }
                 $thresholds[] = [
-                    'threshold' => $matches[1],
+                    'threshold' => $threshold,
                     'price'     => $addOn['price'],
-                    'charginStep'   =>  $matches[2],
+                    'charginStep'   =>  $chargingStep,
                 ];
             }
         }
         //dd($thresholds);
         $returnDistance = $distance;
+        if (empty($thresholds)) {
+            return [
+                'value' => $returnDistance,
+                'price' => 0,
+                '$freeMile' => 0,
+            ];
+        }
+
         usort($thresholds, function ($a, $b) {
             return $a['threshold'] <=> $b['threshold'];
         });
@@ -394,6 +407,10 @@ class Job extends Model
     }
     public function price_outsidePostalCodeZone(){
         $price = 0;
+        if (empty($this->addOns_postalCode) || !isset($this->addOns_postalCode[0]['price'])) {
+            return 0;
+        }
+
         $outOfZonePrice = $this->addOns_postalCode[0]['price'];
         $approvedPostalCodes = ApprovedPostalCodeArea::all();
         
@@ -457,10 +474,15 @@ class Job extends Model
         //$freeWeight = 20.00;
         foreach($this->addOns_weight as $addOn){
             if(preg_match('/threshold-([0-9.]+)-step-([0-9.]+)/', $addOn['name'], $matches)){
+                $threshold = (float) $matches[1];
+                $chargingStep = (float) $matches[2];
+                if ($chargingStep <= 0) {
+                    continue;
+                }
                 $thresholds[] = [
-                    'threshold' => $matches[1],
+                    'threshold' => $threshold,
                     'price'     => $addOn['price'],
-                    'charginStep'   =>  $matches[2],
+                    'charginStep'   =>  $chargingStep,
                 ];
             }
         }
@@ -472,6 +494,16 @@ class Job extends Model
         foreach($dropOffs as $dropOff){
             $weight+=$dropOff->package->weight;
         }
+        if (empty($thresholds)) {
+            return [
+                'value' => $weight,
+                'price' => 0,
+                'freeWeight' => 0,
+                'thresholds' => [],
+                'information' => [],
+            ];
+        }
+
         usort($thresholds, function ($a, $b) {
             return $a['threshold'] <=> $b['threshold'];
         });
