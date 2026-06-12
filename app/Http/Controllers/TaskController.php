@@ -412,7 +412,10 @@ class TaskController extends Controller
                 $task->taskable?->update(['status_id' => $nextStatus->id]);
             });
   
+            $task->refresh();
+            $updatedNextInfo = $transitionService->getNextStatusInfo($task);
 
+            
             return response()->json([
                 'success'   => true,
                 'message'   => 'Task status updated successfully. ',
