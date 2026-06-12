@@ -51,9 +51,11 @@
         </div>
     </div>
     <div class="row justify-content-md-center">
-        <div class="col-auto">
+        <div class="col-auto" style="position: relative;">
             <label for="taskClientNameField">Name</label>
-            <input class="form-control" type="text" name="id" id="taskClientNameField" value="">
+            <input id="taskClientNameField" type="text" autocomplete="off" class="form-control" />
+  
+            <div id="dropdown" class="typeahead-dropdown"></div>
             <input type="hidden" name="clientId" id="task_clientIdField" value="">
         </div>
         <div class="col-auto d-none">

@@ -18,6 +18,34 @@
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
     @yield('style')
+    <style>
+      .typeahead-dropdown {
+        border: 1px solid #ccc;
+        width: 100%; 
+        max-width: 400px;
+        display: none;
+        position: absolute;
+        left: 0;
+        top: 100%; 
+        background: #2b3035; /* Matches your Bootstrap dark theme background color */
+        z-index: 1055; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        border-radius: 4px;
+      }
+
+      .typeahead-dropdown-item {
+        padding: 10px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #fff; /* White text for dark theme compatibility */
+      }
+
+      .typeahead-dropdown-item:hover,
+      .typeahead-dropdown-item.active {
+        background: #495057; /* Highlight grey for item selection visibility */
+        color: #fff;
+      }
+    </style>
 </head>
 <body>
 <!-- Example single danger button -->
