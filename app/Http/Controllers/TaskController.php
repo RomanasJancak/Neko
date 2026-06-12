@@ -391,7 +391,7 @@ class TaskController extends Controller
                     'message' => 'No next status is available for this task.',
                     'new_status_name' => $task->status?->name,
                     'next_status_options' => $nextInfo['status_next_options'] ?? [],
-                ], 200);
+                ], 422);
             }
 
 
@@ -415,7 +415,7 @@ class TaskController extends Controller
             $task->refresh();
             $updatedNextInfo = $transitionService->getNextStatusInfo($task);
 
-            
+
             return response()->json([
                 'success'   => true,
                 'message'   => 'Task status updated successfully. ',
