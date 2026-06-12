@@ -17,6 +17,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Carbon;
 
+use Illuminate\Support\Facades\DB;
+
 class TaskController extends Controller
 {
     /**
@@ -392,6 +394,8 @@ class TaskController extends Controller
                 ], 200);
             }
 
+
+
             if (! $transitionService->isTransitionAllowed($task, (int) $nextStatus->id)) {
                 return response()->json([
                     'success' => false,
@@ -402,25 +406,11 @@ class TaskController extends Controller
                 ], 422);
             }
 
-            $task->status_id = $nextStatus->id;
-            $task->save();
-
-            if (isset($task->pickup) && $task->pickup) {
-                $task->pickup->status_id = $nextStatus->id;
-                $task->pickup->save();
-            } elseif (isset($task->package) && $task->package) {
-                $task->package->status_id = $nextStatus->id;
-                $task->package->save();
-            } elseif (isset($task->return) && $task->return) {
-                $task->return->status_id = $nextStatus->id;
-                $task->return->save();
-            } elseif (isset($task->customTask) && $task->customTask) {
-                $task->customTask->status_id = $nextStatus->id;
-                $task->customTask->save();
-            }
-
-            $task->refresh();
-            $updatedNextInfo = $transitionService->getNextStatusInfo($task);
+            DB::transaction(function () use ($task, $nextStatus) {
+                $task->status_id = $nextStatus->id;
+                $task->save();
+                $task->taskable?->update(['status_id' => $nextStatus->id]);
+            });
   
 
             return response()->json([
