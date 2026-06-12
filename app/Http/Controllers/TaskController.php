@@ -71,7 +71,9 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $task->taskable()->save($pickupTask);
+                $pickupTask->save();
+                $task->taskable()->associate($pickupTask);
+                $task->save();
             }
             if($request->input('type') === 'dropOff'){
                 $package = new Package;
@@ -89,7 +91,9 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $task->taskable()->save($package);
+                $package->save();
+                $task->taskable()->associate($package);
+                $task->save();
             }
             
             if($request->input('type') === 'return'){
@@ -128,7 +132,9 @@ class TaskController extends Controller
                     $address['postalCode'],
                     $address['addressLine'],
                 );
-                $task->taskable()->save($returnTask);
+                $returnTask->save();
+                $task->taskable()->associate($returnTask);
+                $task->save();
             }
             return response()->json([
                 'success'   => true,
@@ -209,7 +215,6 @@ class TaskController extends Controller
         if($request->input('type') === 'pickup'){
 
             $pickupTask = $task->pickup;
-            $pickupTask->task_id = $task->id;
             $pickupTask->status_id = $task->status_id;
             $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
             $pickupTask->setAddress(
@@ -441,22 +446,32 @@ class TaskController extends Controller
      */
     public function destroy(Request $request)
     {
-        try{
-        $task = Task::findOrFail($request->id);
-        if ($task->typeOfTask()) {
-            $task->typeOfTask()->delete();
-        }
-        $task->delete();
-        $task->job->save();
+        try {
+            // 1. Find the task
+            $task = Task::findOrFail($request->id);
+            
+            // 2. Safely delete the child object (Package, PickupTask, ReturnTask) if it exists
+            if ($task->taskable) {
+                $task->taskable->delete();
+            }
 
-        return response()->json([
-            'success'   => true,
-            'message'   => 'Task deleted successfully. ',
-        ]);
-        } catch (\Exception $e){
-            return response()->json(['error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),], 500);
+            // 3. Delete the parent task itself
+            $task->delete();
+
+            // 4. Update the job's updated_at timestamp if needed (replaces $task->job->save())
+            $task->job?->touch();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Task and its associated details deleted successfully.',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ], 500);
         }   
     }
     public function getTaskInfo($taskId)
