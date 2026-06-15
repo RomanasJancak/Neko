@@ -16,10 +16,10 @@ class JobFilter
         $this->sortField = $filters['sortField'] ?? $this->sortField;
         $this->sortOrder = $filters['sortOrder'] ?? $this->sortOrder;
 
-        if($filters['package']){
-          $this->packageFilters = is_string($filters['dOsp']) 
-            ? json_decode($filters['dOsp'], true) 
-            : $filters['dOsp'];
+                if (!empty($filters['package']) && array_key_exists('dOsp', $filters)) {
+                    $this->packageFilters = is_string($filters['dOsp'])
+                        ? json_decode($filters['dOsp'], true)
+                        : $filters['dOsp'];
         }
 
         foreach ($filters as $filter => $value) {
