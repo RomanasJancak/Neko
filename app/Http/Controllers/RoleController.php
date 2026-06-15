@@ -115,8 +115,8 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:125', 'unique:roles,name'],
         ]);
-        $role = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $role = Role::create(['name' => $validated['name'],'display_name' => $validated['name'], 'guard_name' => 'web']);
+        //app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         return response()->json(['message' => 'created', 'role' => $role]);
     }
 
