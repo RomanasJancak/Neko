@@ -7,24 +7,57 @@ use Illuminate\Database\Eloquent\Builder;
 class JobFilter
 {
     private $packageFilters = [];
+
+    private string $sortField = 'id';
+    private string $sortOrder = 'asc';
+
     public function filter(Builder $query, array $filters): Builder
     {
+        $this->sortField = $filters['sortField'] ?? $this->sortField;
+        $this->sortOrder = $filters['sortOrder'] ?? $this->sortOrder;
 
         if($filters['package']){
           $this->packageFilters = is_string($filters['dOsp']) 
             ? json_decode($filters['dOsp'], true) 
             : $filters['dOsp'];
         }
-        //dd(request()->all(), $this->packageFilters,$filters['dOsp']);
+
         foreach ($filters as $filter => $value) {
             if (method_exists($this, $filter)) {
                 $this->$filter($query, $value);
             }
         }
+        $this->applySorting($query);
 
         return $query;
     }
-
+    protected function sortField(Builder $query, $value): void
+    {
+        $this->applySorting($query);
+    }
+    private function applySorting(Builder $query): void
+    {
+        if ($this->sortField === 'clientName') {
+            // Use a safe subquery order to avoid table/alias collisions entirely
+            $query->orderBy(
+                \App\Models\Client::select('name')
+                    ->whereColumn('clients.id', 'jobs.clientToBill_id')
+                    ->take(1),
+                $this->sortOrder
+            );
+        } elseif ($this->sortField === 'status') {
+            // Safe subquery order for status as well
+            $query->orderBy(
+                \App\Models\Status::select('name')
+                    ->whereColumn('statuses.id', 'jobs.status_id')
+                    ->take(1),
+                $this->sortOrder
+            );
+        } else {
+            // Standard column sorting
+            $query->orderBy("jobs.{$this->sortField}", $this->sortOrder);
+        }
+    }
     protected function id(Builder $query, $value): void
     {
         $query->where('jobs.id', 'like', "%{$value}%");
