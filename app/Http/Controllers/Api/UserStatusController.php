@@ -134,6 +134,12 @@ class UserStatusController extends Controller
     )]
     public function destroy(UserStatus $user_status)
     {
+        if ($userStatus->userDayStatuses()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete this status configuration because it is actively assigned to users on certain days.'
+            ], 422); // 422 Unprocessable Entity
+        }
         DB::transaction(function () use ($user_status) {
             Status::find($user_status->status_id)->delete();
             $user_status->delete();

@@ -14,4 +14,8 @@ class UserStatus extends Model
     {
         return $this->belongsTo(Status::class);
     }
+    public function userDayStatuses(): HasMany
+    {
+        return $this->hasMany(UserDayStatus::class, 'user_status_id');
+    }
 }
