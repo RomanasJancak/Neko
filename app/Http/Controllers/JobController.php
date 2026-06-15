@@ -1428,27 +1428,29 @@ public function index(Request $request,SettingsService $settings)
                         'name' => $job->clientToBill->name,
                         'shortenedName' => $job->clientToBill->shortenedName,
                         'pickup_postal_code' => $job->clientToBill->pickup_postal_code,
-                    ],
-                    'urlToLogo'   =>  $job->urlToLogo(),
-                    'clientName'    =>  $job->clientToBill->name,
-                    'date_display' => $dateFormatService->format($job->date, $userFormatStr),
-                    'pickup' => !is_null($pickupTask) ? [
-                        'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
-                        'nameOfAddress' => $pickupTask->nameOfAddress(),
-                        'fullAddress' => $pickupTask->pickupAddressFull(),
-                    ] : '',
-                    'tasks' => collect($job->getDropOffTasks())->map(function ($dropoff) {
-                        return [
-                          'package' =>[
-                            'id' => $dropoff->id,
-                            'nameOfAddress' => $dropoff->nameOfAddress(),
-                            'fullAddress' => $dropoff->fullAddress(),
-                            'dropoff_name' => $dropoff->package->dropoff_name,
-                            'dropoff_adress_line' => $dropoff->package->dropoff_adress_line,
-                            'dropoff_postal_code' => $dropoff->package->dropoff_postal_code,
-                          ]
+                ],
+                'urlToLogo'   =>  $job->urlToLogo(),
+                'clientName'    =>  $job->clientToBill->name,
+                'date_display' => $dateFormatService->format($job->date, $userFormatStr),
+                'pickup' => !is_null($pickupTask) ? [
+                    'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
+                    'nameOfAddress' => $pickupTask->nameOfAddress(),
+                    'fullAddress' => $pickupTask->pickupAddressFull(),
+                ] : '',
+                'tasks' => collect($job->getDropOffTasks())->map(function ($dropoff) {
+                    return [
+                      'package' =>[
+                        'id' => $dropoff->id,
+                        'nameOfAddress' => $dropoff->nameOfAddress(),
+                        'fullAddress' => $dropoff->fullAddress(),
+                        'dropoff_name' => $dropoff->package->dropoff_name,
+                        'dropoff_adress_line' => $dropoff->package->dropoff_adress_line,
+                        'dropoff_postal_code' => $dropoff->package->dropoff_postal_code,
+                      ]
                         ];
                     }),
+                  'price' =>  $job->price()['totalPrice'],
+                  'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
             ];
         });
         return response()->json([
