@@ -1414,7 +1414,49 @@ public function index(Request $request,SettingsService $settings)
         $jobs = $query->paginate(10);
         $jobs->appends($request->all());
         $userFormatStr = $dateFormatService->userDateFormat(auth()->user());
+        // NEW
+        $jobs->through(function ($job) use ($dateFormatService, $userFormatStr) {
+            $pickupTask = $job->getPickupTask();
+            return [
+                'id'    =>  $job->id,
+                'status'    =>  [
+                    'id' => $job->status->id,
+                    'name' => $job->status->name,
+                ],
+                'clientToBill'  =>  [
+                        'id' => $job->clientToBill->id,
+                        'name' => $job->clientToBill->name,
+                        'shortenedName' => $job->clientToBill->shortenedName,
+                        'pickup_postal_code' => $job->clientToBill->pickup_postal_code,
+                    ],
+                    'urlToLogo'   =>  $job->urlToLogo(),
+                    'clientName'    =>  $job->clientToBill->name,
+                    'date_display' => $dateFormatService->format($job->date, $userFormatStr),
+                    'pickup' => !is_null($pickupTask) ? [
+                        'isAddressSameAsClientAdress' => $job->clientToBill->isSameAsPickupAdress($pickupTask->pickupAddressFull()),
+                        'nameOfAddress' => $pickupTask->nameOfAddress(),
+                        'fullAddress' => $pickupTask->pickupAddressFull(),
+                    ] : '',
+                    'tasks' => collect($job->getDropOffTasks())->map(function ($dropoff) {
+                        return [
+                          'package' =>[
+                            'id' => $dropoff->id,
+                            'nameOfAddress' => $dropoff->nameOfAddress(),
+                            'fullAddress' => $dropoff->fullAddress(),
+                            'dropoff_name' => $dropoff->package->dropoff_name,
+                            'dropoff_adress_line' => $dropoff->package->dropoff_adress_line,
+                            'dropoff_postal_code' => $dropoff->package->dropoff_postal_code,
+                          ]
+                        ];
+                    }),
+            ];
+        });
         return response()->json([
+            'jobs' => $jobs->items(),
+            'links' => (string) $jobs->links(),
+        ]);
+        //OLD
+        /*return response()->json([
             'jobs' =>  $jobs->map(function ($job) use ($dateFormatService, $userFormatStr) {
               $pickupTask = $job->getPickupTask();
                 return[
@@ -1453,6 +1495,7 @@ public function index(Request $request,SettingsService $settings)
             }),
             'links' => (string) $jobs->links(),
         ]);
+        */
       }catch (QueryException $e) {
         return response()->json([
             'request'   =>  $request->all(),
