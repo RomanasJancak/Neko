@@ -1,33 +1,60 @@
 export const clientInforReadOnlyState = {readOnly : false};
+function showModal(modalSelector) {
+    if (window.$) {
+        window.$(modalSelector).modal('show');
+        return;
+    }
+
+    const modalElement = document.querySelector(modalSelector);
+    if (modalElement && window.bootstrap) {
+        const modal = new window.bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+export function setClientFormReadOnlyState(readOnly = false) {
+    clientInforReadOnlyState.readOnly = readOnly;
+    const fieldIds = [
+        'nameField',
+        'reg-adress-section-adress-country-field',
+        'reg-adress-section-adress-city-field',
+        'reg-adress-section-adress-postalcode-field',
+        'reg-adress-section-adress-addressline-field',
+        'phoneNumberField',
+    ];
+
+    fieldIds.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.readOnly = readOnly;
+        }
+    });
+}
 export function fillClientViewForm(clientId){
   var clientInfoUrl = window.ROUTES.WEB.CLIENT.GETINFO.replace(':id', clientId);
   fetch(clientInfoUrl)
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
+            const payload = data && data.success === false ? null : (data.success ? data : data);
+            if (payload) {
         document.getElementById('clientid').value = clientId;
-        document.getElementById('nameField').value = data.name;
-        document.getElementById('shortenedNameField').value = data.nickName;
+                document.getElementById('nameField').value = payload.name || '';
+                document.getElementById('shortenedNameField').value = payload.nickName || '';
 
-        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
+                document.getElementById('reg-adress-section-adress-country-field').value = payload.country || '';
+                document.getElementById('reg-adress-section-adress-city-field').value = payload.city || '';
+                document.getElementById('reg-adress-section-adress-postalcode-field').value = payload.postal_code || '';
+                document.getElementById('reg-adress-section-adress-addressline-field').value = payload.address_line || '';
 
-        document.getElementById('phoneNumberField').value = data.phone;
-        populateWithAddresses(data.addresses);
-        populateWithEmails(data.emails);
+                document.getElementById('phoneNumberField').value = payload.phone || '';
+                populateWithAddresses(payload.addresses || []);
+                populateWithEmails(payload.emails || []);
       } else {
         console.error('Error fetching client info:', data.message);
       }
     })
     .catch(error => console.error('Fetch error:', error));
-  document.getElementById('nameField').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-country-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-city-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-addressline-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('phoneNumberField').readOnly = clientInforReadOnlyState.readOnly;
+    setClientFormReadOnlyState(clientInforReadOnlyState.readOnly);
 }
 export function cleanClientForm(){
   document.getElementById('clientid').value = '';
@@ -40,6 +67,10 @@ export function cleanClientForm(){
   document.getElementById('phoneNumberField').value = '';
   const container = document.getElementById('container-addresses');
   container.innerHTML = '';
+    const emailsContainer = document.getElementById('container-emails');
+    if (emailsContainer) {
+        emailsContainer.innerHTML = '';
+    }
 }
 
 function deleteEmail(emailId = null){
@@ -267,6 +298,57 @@ function populateSelectionOfUnassignedPackageTypes(packageTypes){
       selectELement.appendChild(option);
   });
 }
+
+export function openClientFormForView({ clientId, modalSelector = '#clientModalWindow' }) {
+    if (!clientId) {
+        return;
+    }
+    setClientFormReadOnlyState(true);
+    fillClientViewForm(clientId);
+    showModal(modalSelector);
+}
+
+export function openClientFormForEdit({ clientId, formAction, submitButtonText = 'Update', modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(false);
+    fillClientViewForm(clientId);
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonText;
+    }
+    showModal(modalSelector);
+}
+
+export function openClientFormForDelete({ clientId, formAction, submitButtonText = 'Delete', modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(true);
+    fillClientViewForm(clientId);
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonText;
+    }
+    showModal(modalSelector);
+}
+
+export function openClientFormForCreate({ formAction, submitButtonHtml = "<i class='bi bi-save'></i>", modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(false);
+    cleanClientForm();
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonHtml;
+    }
+    showModal(modalSelector);
+}
 function fetch_UnassignedPackageTypes(clientId){
   const routeUrl = window.ROUTES.WEB.CLIENT.FETCHUNASSIGNEDPACKAGETYPES.replace(':id', clientId);
   fetch(routeUrl)
@@ -317,3 +399,11 @@ export function fetchPackageTypes(clientId){
             console.error(error);
         });
 }
+
+window.fillClientViewForm = fillClientViewForm;
+window.cleanClientForm = cleanClientForm;
+window.setClientFormReadOnlyState = setClientFormReadOnlyState;
+window.openClientFormForView = openClientFormForView;
+window.openClientFormForEdit = openClientFormForEdit;
+window.openClientFormForDelete = openClientFormForDelete;
+window.openClientFormForCreate = openClientFormForCreate;

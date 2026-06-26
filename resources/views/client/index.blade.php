@@ -147,7 +147,10 @@
         const container = document.getElementById('container-addresses');
         const addressElement = document.querySelector(`input[name="address_id[]"][value="${address_id}"]`);
         if(addressElement) {
-            container.removeChild(addressElement.parentElement.parentElement);
+            const addressNode = addressElement.closest('.address-card-item') || addressElement.closest('.row');
+            if (addressNode && container.contains(addressNode)) {
+                container.removeChild(addressNode);
+            }
         }
         if(address_id) {
             const routeUrl = `{{ route('address.delete', ['address' => ':addressId']) }}`.replace(':addressId', address_id);
@@ -171,99 +174,25 @@
             container.removeChild(event.target.parentElement.parentElement.parentElement);
         }
     }
-    function populateWithAddresses(addresses){
-        const container = document.getElementById('container-addresses');
-        //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" value="${address.type}" placeholder="Type"></div>
-        container.innerHTML = '';
-        addresses.forEach(address => {
-        const addressRow = `
-        <div class="row">
-            <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control" value="${address.id}"></div>
-            <div class="col address-input-field"><input style="font-size: 0.8em;" type="text" name="name[]" class="form-control" value="${address.name}" placeholder="Name" ></div>
-            
-            <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" value="${address.address_line_1}" placeholder="Address line 1"></div>
-            <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" value="${address.address_line_2}" placeholder="Address line 1"></div>
-            <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" value="${address.postal_code}" placeholder="Postal code"></div>
-            <div class="col address-input-field"><input type="text" name="city[]" class="form-control" value="${address.city}" placeholder="City"></div>
-            <div class="col address-input-field"><input type="text" name="country[]" class="form-control" value="${address.country}" placeholder="Country"></div>
-            <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="${address.id}" onclick="deleteAddress(${address.id})">
-                <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', addressRow);
-        });
-    }
     function editClient(clientId) {
-        const form = document.querySelector('#clientForm');
-        if (form) {
-            form.setAttribute('action', "{{ route('client.update') }}");
-            const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-
-            fetch(routeUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        document.getElementById('clientid').value = clientId;
-                        document.getElementById('nameField').value = data.name;
-                        document.getElementById('shortenedNameField').value = data.nickName;
-
-                        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-                        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-                        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-                        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-
-                        document.getElementById('phoneNumberField').value = data.phone;
-                        populateWithAddresses(data.addresses);
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-
-            document.getElementById('nameField').readOnly = false;
-            document.getElementById('reg-adress-section-adress-country-field').readOnly = false;
-            document.getElementById('reg-adress-section-adress-city-field').readOnly = false;
-            document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = false;
-            document.getElementById('reg-adress-section-adress-addressline-field').readOnly = false;  
-            document.getElementById('phoneNumberField').readOnly = false;
-
-            const submitButton = document.getElementById('submitform');
-            submitButton.innerHTML = "Update";
+        if (window.openClientFormForEdit) {
+            window.openClientFormForEdit({
+                clientId,
+                formAction: "{{ route('client.update') }}",
+                submitButtonText: 'Update',
+                modalSelector: '#modalWindow',
+            });
         }
-        $('#modalWindow').modal('show');
     }
     function deleteClient(clientId) {
-        const form = document.querySelector('#clientForm');       
-        if (form) {          
-            form.setAttribute('action', "{{ route('client.delete') }}");
-            const routeUrl = `{{ route('getClientInfo', ['clientId' => ':clientId']) }}`.replace(':clientId', clientId);
-            
-            fetch(routeUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        document.getElementById('clientid').value = clientId;
-                        document.getElementById('nameField').value = data.name;
-                        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-                        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-                        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-                        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
-                        document.getElementById('phoneNumberField').value = data.phone;
-                    }
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-            document.getElementById('nameField').readOnly = true;
-            document.getElementById('reg-adress-section-adress-country-field').readOnly = true;
-            document.getElementById('reg-adress-section-adress-city-field').readOnly = true;
-            document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = true;
-            document.getElementById('reg-adress-section-adress-addressline-field').readOnly = true;
-            document.getElementById('phoneNumberField').readOnly = true;
-            const submitButton = document.getElementById('submitform');
-            submitButton.innerHTML = "Delete";
+        if (window.openClientFormForDelete) {
+            window.openClientFormForDelete({
+                clientId,
+                formAction: "{{ route('client.delete') }}",
+                submitButtonText: 'Delete',
+                modalSelector: '#modalWindow',
+            });
         }
-        $('#modalWindow').modal('show');
     }
 
     function submitUpdateWeightRules(){
@@ -544,27 +473,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('button_addSelectedPackageType').setAttribute('disabled', 'disabled');
         document.querySelectorAll('.create-btn').forEach(button => {
             button.addEventListener('click', () => {
-                const form = document.querySelector(`#clientForm`);
-                if (form) {
-                    document.getElementById('nameField').readOnly = false;
-                    form.setAttribute('action', "{{ route('client.store') }}");
-                    submitButton = document.getElementById('submitform');
-                    submitButton.innerHTML = "<i class='bi bi-save'></i>";
+                if (window.openClientFormForCreate) {
+                    window.openClientFormForCreate({
+                        formAction: "{{ route('client.store') }}",
+                        submitButtonHtml: "<i class='bi bi-save'></i>",
+                        modalSelector: '#modalWindow',
+                    });
                 }
-                // Clear the form fields
-                document.getElementById('clientid').value = '';
-                document.getElementById('nameField').value = '';
-                document.getElementById('shortenedNameField').value = '';
-                document.getElementById('reg-adress-section-adress-country-field').value = '';
-                document.getElementById('reg-adress-section-adress-city-field').value = '';
-                document.getElementById('reg-adress-section-adress-postalcode-field').value = '';
-                document.getElementById('reg-adress-section-adress-addressline-field').value = '';
-                document.getElementById('phoneNumberField').value = '';
-                const addressContainer = document.getElementById('container-addresses');
-                addressContainer.innerHTML = '';
-                
-
-                $('#modalWindow').modal('show');
             });
         });
 
