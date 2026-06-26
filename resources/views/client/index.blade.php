@@ -49,14 +49,8 @@
                             @endif
                         </td>
                         <td>
-                            <button class="btn btn-primary edit-btn" 
-                                data-clientid="{{ $client->id }}"
-                                onclick="editClient({{ $client->id }})"
-                            ><i class="bi bi-pen"></i></button>
-                            <button class="btn btn-danger delete-btn" 
-                                data-clientid="{{ $client->id }}"
-                                onclick="deleteClient({{ $client->id }})"
-                            ><i class="bi bi-trash"></i></button>
+                            <button class="btn btn-primary edit-btn" data-clientid="{{ $client->id }}"><i class="bi bi-pen"></i></button>
+                            <button class="btn btn-danger delete-btn" data-clientid="{{ $client->id }}"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
                     @endforeach
@@ -570,14 +564,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <a href="https://wa.me/${client.phone}" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>` : ''}
                                 </td>
                                 <td>
-                                    <button class="btn btn-primary edit-btn" 
-                                        data-clientid="${client.id}"
-                                        onclick="editClient(${client.id})"
-                                    ><i class="bi bi-pen"></i></button>
-                                    <button class="btn btn-danger delete-btn" 
-                                        data-clientid="${client.id}"
-                                        onclick="deleteClient(${client.id})"
-                                    ><i class="bi bi-trash"></i></button>
+                                    <button class="btn btn-primary edit-btn" data-clientid="${client.id}"><i class="bi bi-pen"></i></button>
+                                    <button class="btn btn-danger delete-btn" data-clientid="${client.id}"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -613,6 +601,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 button.dataset.sortOrder = newOrder;
                 
                 fetchClients();
+            }
+
+            if (event.target.closest('.edit-btn')) {
+                event.preventDefault();
+                const button = event.target.closest('.edit-btn');
+                const clientId = button.getAttribute('data-clientid');
+                if (clientId) {
+                    editClient(clientId);
+                }
+            }
+
+            if (event.target.closest('.delete-btn')) {
+                event.preventDefault();
+                const button = event.target.closest('.delete-btn');
+                const clientId = button.getAttribute('data-clientid');
+                if (clientId) {
+                    deleteClient(clientId);
+                }
             }
         });
 

@@ -23,13 +23,24 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" placeholder="Postal code"></div>
             <div class="col address-input-field"><input type="text" name="city[]" class="form-control" placeholder="City"></div>
             <div class="col address-input-field"><input type="text" name="country[]" class="form-control" placeholder="Country"></div>
-            <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="" onclick="deleteAddress()">
+            <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-remove-new-address" style="background: none; border: none;" id='button-remove-address' idofaddress="">
                 <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
             </div>
         </div>
     `;
 
     container.insertAdjacentHTML('beforeend', address);
+  });
+  document.getElementById('container-addresses').addEventListener('click', function(e) {
+    const removeButton = e.target.closest('.js-remove-new-address');
+    if (!removeButton) {
+      return;
+    }
+
+    const row = removeButton.closest('.row');
+    if (row) {
+      row.remove();
+    }
   });
   document.getElementById('button-view-packages').addEventListener('click',function(e){
     const clientId = document.getElementById('clientid').value;

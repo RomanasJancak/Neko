@@ -119,10 +119,50 @@ function deleteEmail(emailId = null){
         });
 }
 
-window.deleteEmail = deleteEmail;
+function bindEmailContainerEvents(containerMain) {
+    if (!containerMain || containerMain.dataset.eventsBound === '1') {
+        return;
+    }
+
+    containerMain.addEventListener('click', event => {
+        const deleteButton = event.target.closest('.js-email-delete');
+        if (deleteButton) {
+            const emailId = deleteButton.getAttribute('data-email-id');
+            if (emailId) {
+                deleteEmail(emailId);
+            }
+            return;
+        }
+
+        const removeLocalButton = event.target.closest('.js-email-remove-local');
+        if (removeLocalButton) {
+            const row = removeLocalButton.closest('.row');
+            if (row) {
+                row.remove();
+            }
+            return;
+        }
+
+        const editButton = event.target.closest('.js-email-edit');
+        if (editButton) {
+            const emailId = editButton.getAttribute('data-email-id');
+            if (typeof window.editEmail === 'function') {
+                window.editEmail(emailId);
+            }
+        }
+    });
+
+    containerMain.dataset.eventsBound = '1';
+}
+
 function populateWithEmails(emails){
   console.log("THIS 1", emails);
     const container_main = document.getElementById('container-emails');
+    if (!container_main) {
+        return;
+    }
+    bindEmailContainerEvents(container_main);
+
     const container = document.createElement('div');
     container.className = 'row';
 
@@ -140,10 +180,10 @@ function populateWithEmails(emails){
             <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value="${email.id}"></div>
             <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="${email.email}" placeholder="Email" ></div>
             <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="${email.type}" placeholder="Type (e.g. work, personal)" ></div>
-            <div class="col email-input-field"><button type="button" class="btn btn-info btn-xs text-info" style="background: none; border: none;" id='button-edit-email' idofemail="${email.id}" onclick="editEmail(${email.id})">
+            <div class="col email-input-field"><button type="button" class="btn btn-info btn-xs text-info js-email-edit" style="background: none; border: none;" data-email-id="${email.id}">
                 <i class="fa-solid fa-pencil" aria-hidden="true" style="color: inherit;"></i>
             </div>
-            <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-email' idofemail="${email.id}" onclick="deleteEmail(${email.id})">
+            <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-email-delete" style="background: none; border: none;" data-email-id="${email.id}">
                 <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
             </div>
       `;
@@ -155,58 +195,89 @@ function populateWithEmails(emails){
     addButton.type = 'button';
     addButton.className = 'btn btn-primary';
     addButton.textContent = 'Add Email';
-    addButton.onclick = () => {
+    addButton.addEventListener('click', () => {
         const newEmailRow = `
             <div class="row">        
                 <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value=""></div>
                 <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="" placeholder="Email" ></div>
                 <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="" placeholder="Type (e.g. work, personal)" ></div>
-                <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" onclick="this.parentElement.parentElement.remove()">
+                <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-email-remove-local" style="background: none; border: none;">
                     <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
                 </div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newEmailRow);
-    };
+    });
     container_main.appendChild(addButton);
 }
+function editAdddress(addressId = null){
+  console.log("editAdddress called with addressId:", addressId);
+    if (!addressId) {
+        return;
+    }
+    const addressElement = document.querySelector(`input[name="address_id[]"][value="${addressId}"]`);
+    if (!addressElement) {
+        return;
+    }
+    const row = addressElement.closest('.row');
+    if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.add('highlight');
+        setTimeout(() => {
+            row.classList.remove('highlight');
+        }, 2000);
+    }
+}
+function bindAddressContainerEvents(containerMain) {
+    if (!containerMain || containerMain.dataset.eventsBound === '1') {
+        return;
+    }
+
+    containerMain.addEventListener('click', event => {
+        const editButton = event.target.closest('.js-address-edit');
+        if (editButton) {
+            const addressId = editButton.getAttribute('data-address-id');
+            editAdddress(addressId);
+            return;
+        }
+
+        const deleteButton = event.target.closest('.js-address-delete');
+        if (deleteButton) {
+            const addressId = deleteButton.getAttribute('data-address-id');
+            if (typeof window.deleteAddress === 'function') {
+                window.deleteAddress(addressId);
+            }
+        }
+    });
+
+    containerMain.dataset.eventsBound = '1';
+}
+
+window.editAdddress = editAdddress;
 function populateWithAddresses(addresses){
         const container_main = document.getElementById('container-addresses');
+        if (!container_main) {
+            return;
+        }
+        bindAddressContainerEvents(container_main);
+
         const container = document.createElement('div');
         container.className = 'row';
         container_main.innerHTML = '';
         container_main.appendChild(container);
         addresses.forEach(address => {
-          const addressRow = `
-            <div class="row">        
-                <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control" value="${address.id}"></div>
-                <div class="col address-input-field"><input style="font-size: 0.8em;" type="text" name="name[]" class="form-control" value="${address.name}" placeholder="Name" ></div>
-                
-                <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" value="${address.address_line_1}" placeholder="Address line 1"></div>
-                <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" value="${address.address_line_2}" placeholder="Address line 1"></div>
-                <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" value="${address.postal_code}" placeholder="Postal code"></div>
-                <div class="col address-input-field"><input type="text" name="city[]" class="form-control" value="${address.city}" placeholder="City"></div>
-                <div class="col address-input-field"><input type="text" name="country[]" class="form-control" value="${address.country}" placeholder="Country"></div>
-                <div class="col address-input-field"><button type="button" class="btn btn-info btn-xs text-info" style="background: none; border: none;" id='button-edit-address' idofaddress="${address.id}" onclick="editAddress(${address.id})">
-                    <i class="fa-solid fa-pencil" aria-hidden="true" style="color: inherit;"></i>
-                </div>
-                <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="${address.id}" onclick="deleteAddress(${address.id})">
-                    <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
-                </div>
-                
-          `;
-          //container.insertAdjacentHTML('beforeend', addressRow);
           const addressCard = document.createElement('div');
 addressCard.className = 'col-6 col-md-4 col-lg-3'; // Responsive Bootstrap grid classes
 addressCard.innerHTML = `
     <div class="card h-100" style="border: 1px solid #dee2e6; border-radius: .375rem; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);">
+        <input type="hidden" name="address_id[]" class="form-control" value="${address.id}">
         <div class="card-body" style="padding: 0.75rem;">
             <h6 class="card-title mb-1" style="font-size: 0.95rem; line-height: 1.2;">
                 ${address.name} <small style="color: #6c757d;">(${address.shortname})</small>
-                <button type="button" class="btn btn-info btn-xs text-info float-end" style="background: none; border: none; padding: 0; font-size: 0.8rem;" idofaddress="${address.id}">
+                <button type="button" class="btn btn-info btn-xs text-info float-end js-address-edit" style="background: none; border: none; padding: 0; font-size: 0.8rem;" data-address-id="${address.id}">
                     <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                 </button>
-                <button type="button" class="btn btn-danger btn-xs text-danger float-end me-2" style="background: none; border: none; padding: 0; font-size: 0.8rem;" idofaddress="${address.id}">
+                <button type="button" class="btn btn-danger btn-xs text-danger float-end me-2 js-address-delete" style="background: none; border: none; padding: 0; font-size: 0.8rem;" data-address-id="${address.id}">
                     <i class="fa fa-minus-circle" aria-hidden="true"></i>
                 </button>
             </h6>
