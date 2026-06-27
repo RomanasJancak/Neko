@@ -325,7 +325,9 @@ Route::group(['prefix'  => 'jobtemplates'],function(){
 Route::group(['prefix'  => 'addresses'],function(){
     Route::post('delete/{address}',           [AddressController::class, 'destroy'])->name('address.delete')->middleware('auth');
     Route::get('getAddressInfo/{id}',         [AddressController::class, 'getAddressInfo'])->name('address.getAddressInfo')->middleware('auth');    
-});
+    Route::post('update',                     [AddressController::class, 'update'])->name('address.update')->middleware('auth');
+    Route::post('create',                     [AddressController::class, 'store'])->name('address.store')->middleware('auth');
+});    
 Route::group(['prefix'  => 'emails'],function(){
     Route::post('delete/{emailAddress}',      [EmailAddressController::class, 'destroy'])->name('email.delete')->middleware('auth');
 });

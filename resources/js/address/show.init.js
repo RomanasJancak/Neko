@@ -7,4 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
   } else {
     addressInforReadOnlyState.readOnly = true;
   }
+  setupAddressFormSubmit(document.getElementById('address-submitform'));
+  
 });

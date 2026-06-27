@@ -1,4 +1,5 @@
 export const clientInforReadOnlyState = {readOnly : false};
+import {fillAddressViewForm,setupAddressFormSubmit} from '../address/show.js';
 function showModal(modalSelector) {
     if (window.$) {
         window.$(modalSelector).modal('show');
@@ -210,8 +211,12 @@ function populateWithEmails(emails){
     });
     container_main.appendChild(addButton);
 }
+export function createAddress(){
+  $('#client-modalWindow-adddress').modal('show');
+  const clientId = document.getElementById('clientid').value;
+  fillAddressViewForm(null, clientId);
+}
 function editAdddress(addressId = null){
-  console.log("editAdddress called with addressId:", addressId);
     if (!addressId) {
         return;
     }
@@ -219,14 +224,16 @@ function editAdddress(addressId = null){
     if (!addressElement) {
         return;
     }
-    const row = addressElement.closest('.row');
-    if (row) {
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        row.classList.add('highlight');
-        setTimeout(() => {
-            row.classList.remove('highlight');
-        }, 2000);
-    }
+    $('#client-modalWindow-adddress').modal('show');
+    fillAddressViewForm(addressId);
+    // const row = addressElement.closest('.row');
+    // if (row) {
+    //     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //     row.classList.add('highlight');
+    //     setTimeout(() => {
+    //         row.classList.remove('highlight');
+    //     }, 2000);
+    // }
 }
 function bindAddressContainerEvents(containerMain) {
     if (!containerMain || containerMain.dataset.eventsBound === '1') {
@@ -376,6 +383,7 @@ export function openClientFormForView({ clientId, modalSelector = '#clientModalW
     }
     setClientFormReadOnlyState(true);
     fillClientViewForm(clientId);
+    setupAddressFormSubmit(document.getElementById('address-submitform'));
     showModal(modalSelector);
 }
 
