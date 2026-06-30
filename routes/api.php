@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ColourController;
 use App\Http\Controllers\Api\CourierController;
 use App\Http\Controllers\Api\CourierWorkloadController;
 use App\Http\Controllers\Api\JobController;
@@ -17,6 +18,7 @@ Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('jobs', JobController::class);
     Route::apiResource('users', UserController::class);
+    Route::apiResource('colours', ColourController::class)->names('api.colours');
     
     // Workload Routes
     Route::get('workloads/calendar', [WorkloadController::class, 'calendar']);

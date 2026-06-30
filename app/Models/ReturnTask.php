@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 use Carbon\Carbon;
 
@@ -26,6 +27,12 @@ class ReturnTask extends Model
     {
         return $this->morphOne(Task::class, 'taskable');
     }
+
+    public function colours(): MorphMany
+    {
+        return $this->morphMany(Colour::class, 'taskable');
+    }
+
     public function addressShort(){
         return $this->adress_line.' '.$this->postal_code;
     }

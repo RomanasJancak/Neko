@@ -75,6 +75,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|confirmed',
             'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
+            'colour' => ['nullable', 'string', 'regex:/^#?[0-9A-Fa-f]{6}$/'],
         ]);
 
         $user = User::create([
@@ -89,6 +90,9 @@ class UserController extends Controller
             'is_active' => true,
             'last_activity_at' => now(),
         ]);
+        if ($request->has('colour')) {
+            $user->syncMainColour($request->input('colour'));
+        }
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
@@ -145,6 +149,10 @@ class UserController extends Controller
             }
             $user->email = $request->user_email;
             $user->client_id = $request->filled('client_id') ? (int) $request->client_id : null;
+
+        if ($request->has('colour')) {
+            $user->syncMainColour($request->input('colour'));
+        }
 
         if (auth()->user()->can('user-edit') && $request->filled('role')) {
             $user->syncRoles(Role::find($request->role));

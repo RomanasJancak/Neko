@@ -24,6 +24,11 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="colour">Main Colour</label>
+                            <input id="colour" type="color" class="form-control form-control-color" name="colour" value="{{ old('colour', '#808080') }}">
+                        </div>
+
+                        <div class="form-group">
                             <label for="username">Username</label>
                             <input id="username" type="text" class="form-control" name="username" required>
                         </div>

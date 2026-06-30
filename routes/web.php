@@ -19,6 +19,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\JobTemplateController;
 use App\Http\Controllers\ApprovedPostalCodeAreaController;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\ColourController;
 use App\Http\Controllers\ExtraTypesController;
 use App\Http\Controllers\UserSettingController;
 use App\Http\Controllers\NoteController;
@@ -377,6 +378,9 @@ Route::resource('user-day-statuses', App\Http\Controllers\UserDayStatusControlle
     ->parameters([
         'user-day-statuses' => 'userDayStatus' // Ensures {user_day_status} matches your controller variable
 ]);
+Route::resource('colours', ColourController::class)
+    ->middleware('auth')
+    ->only(['index', 'store', 'update', 'destroy']);
 
 Route::get('/get-token', function () {
     // 1. Find the first user (or specify an ID: User::find(1))
