@@ -137,10 +137,12 @@ class UserController extends Controller
             $activityChanged = $user->isActive() !== $request->input('is_active');
             $user->name = $request->user_name;
             $user->phone = $request->get('phone', '');
-            $user->activity()->update([
-                'is_active' => true,
-                'last_activity_at' => now(),
-            ]);
+            if($activityChanged) {
+                $user->activity()->update([
+                    'is_active' => $request->input('is_active'),
+                    $request->input('is_active') ? null : 'last_activity_at' => now(),
+                ]);
+            }
             $user->email = $request->user_email;
             $user->client_id = $request->filled('client_id') ? (int) $request->client_id : null;
 

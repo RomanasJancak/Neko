@@ -88,7 +88,8 @@ class UserController extends Controller
      * @OA\Property(property="name", type="string", example="John Doe"),
      * @OA\Property(property="email", type="string", example="john@example.com"),
      * @OA\Property(property="phone", type="string", example="+3706000000"),
-     * @OA\Property(property="roles", type="array", @OA\Items(type="string", example="admin"))
+     * @OA\Property(property="roles", type="array", @OA\Items(type="string", example="admin")),
+     * @OA\Property(property="active", type="boolean", example=true)
      * ))
      * )
      * )
@@ -120,6 +121,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'roles' => $user->roles->pluck('name'),
+                'active' => $user->isActive(),
             ];
         });
 
@@ -202,6 +204,7 @@ class UserController extends Controller
             'phone'    => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'password' => 'nullable|confirmed|min:6',
             'role'     => 'sometimes|exists:roles,id',
+            'active'   => 'sometimes|boolean',
         ]);
 
         try {
@@ -216,11 +219,18 @@ class UserController extends Controller
             if (isset($validatedData['role'])) {
                 $user->syncRoles([$validatedData['role']]);
             }
-
+            if(isset($validatedData['active'])) {
+                $user->activity()->updateOrCreate([], [
+                    'is_active' => $validatedData['active'],
+                    'last_activity_at' => now(),
+                ]);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'User updated successfully.',
                 'user'    => $user->load('roles'),
+                'request_data' => $request->all(),
+                'validated_data' => $validatedData,
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -282,6 +292,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'user' => $user->only(['id', 'name','phone', 'email','client_id', 'roles']),
+            'active' => $user->isActive(),
         ]);
     }
 }
