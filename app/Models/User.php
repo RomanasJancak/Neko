@@ -60,6 +60,14 @@ class User extends Authenticatable
             $query->whereDate('date', $date);
         })->get();
     }
+    public function activity()
+    {
+        return $this->hasOne(Activity::class);
+    }
+    public function isActive() : bool
+    {
+        return $this->activity ? (bool) $this->activity->is_active : false;
+    }
     public function settings()
     {
         return $this->hasMany(UserSetting::class);

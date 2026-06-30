@@ -85,7 +85,10 @@ class UserController extends Controller
             
         ]);
         $user->assignRole($request->role);
-
+        $user->activity()->create([
+            'is_active' => true,
+            'last_activity_at' => now(),
+        ]);
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
@@ -131,10 +134,13 @@ class UserController extends Controller
             abort(403, 'You do not have permission to edit this user.');
         }
 
-
+            $activityChanged = $user->isActive() !== $request->input('is_active');
             $user->name = $request->user_name;
             $user->phone = $request->get('phone', '');
-
+            $user->activity()->update([
+                'is_active' => true,
+                'last_activity_at' => now(),
+            ]);
             $user->email = $request->user_email;
             $user->client_id = $request->filled('client_id') ? (int) $request->client_id : null;
 
