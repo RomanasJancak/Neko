@@ -1014,7 +1014,9 @@ public function index(Request $request,SettingsService $settings)
     {
         // Fetch the client's information based on the $clientId
         $job = Job::find($jobId);
-
+        //************** */
+        //$job->price();
+        //**************  */
         if ($job) {
             $snapshotService = app(JobPriceSnapshotService::class);
             $pricePayload = $snapshotService->snapshotToPayload($job) ?? $job->price();

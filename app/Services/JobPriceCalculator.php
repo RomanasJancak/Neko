@@ -13,12 +13,20 @@ class JobPriceCalculator
     protected float $price = 0;
     protected array $breakdown = [];
     protected $rules ;
+    protected float $oversizePrice = 0;
+    protected array $priceAdjustments = [];
 
     public function __construct(Job $job)
     {
         $this->job = $job;
         $this->job->populateVariables();
         $this->rules = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($this->job->date,$this->job->clientToBill->id),true);
+        $this->findOversizeRule();
+        foreach($this->rules as $rule){
+            if (strpos($rule['name'], 'price') === 0) {
+                $this->priceAdjustments[] = $rule;
+            }
+        }
     }
 
     public function calculate(): array
@@ -26,18 +34,8 @@ class JobPriceCalculator
         //=============================================
         $packageResult = $this->price_packages();
 
-        // 2. Explicitly bridge the state back to the model so $this->job->oversizePrice() doesn't fail
-        if ($packageResult['isOversize']) {
-            // Use reflection or a temporary public method/property if price_oversize_status is private
-            // Since it is private on your model, the cleanest local fix without touching the model yet is:
-            $this->add('oversizePrice', $packageResult['isOversize'] ? $this->job->price_oversize : 0);
-        } else {
-            $this->add('oversizePrice', 0);
-        }
-
-
         //================================================
-        $this->add('price_packages', $packageResult['price']);
+        $this->add('price_packages',$packageResult['price']);
 
 
 
@@ -50,6 +48,13 @@ class JobPriceCalculator
         $this->add('price_bankHoliday', $this->job->price_bankHoliday()['price']);
         $this->add('price_sameDayReturn', $this->job->price_sameDayReturn()['price']);
         $this->add('price_adjustment_number', $this->job->price_adjustment_number);
+        if($packageResult['isOversize']){
+            $this->add('oversizePrice', $this->oversizePrice);
+        }else{
+            $this->add('oversizePrice', 0);
+        }
+        
+        
         
         // Save breakdown to job_prices table
         foreach ($this->breakdown as $type => $value) {
@@ -82,6 +87,13 @@ class JobPriceCalculator
         ]);
       }
     }
+    protected function findOversizeRule(){
+      foreach($this->rules as $rule){
+            if (strpos($rule['name'], 'package-oversize') === 0) {
+                $this->oversizePrice = $rule['price'];
+            }
+      }
+    }
     protected function add(string $type, float $amount): void
     {
         $this->price += $amount;
@@ -94,7 +106,23 @@ class JobPriceCalculator
     protected function price_packages(): array
     {
         $packages = [];
-        
+        $packagePriceAdjustmentRules = [];
+
+        foreach ($this->priceAdjustments as $rule) {
+            if (strpos($rule['name'], 'package-') === 6) {
+                preg_match('/package-(\d+)/', $rule['name'], $matches);
+                $id = isset($matches[1]) ? (int)$matches[1] : 0;
+                $increase = (substr($rule['name'], -4) === '-inc');
+                if (!isset($packagePriceAdjustmentRules[$id])) {
+                  $packagePriceAdjustmentRules[$id] = 0;
+                }
+                if ($increase) {
+                  $packagePriceAdjustmentRules[$id] += $rule['price'] ?? 0; // Assumed $rule['value'] holds the amount
+                } else {
+                  $packagePriceAdjustmentRules[$id] -= $rule['price'] ?? 0;
+                }
+            }
+        }
         foreach ($this->job->getDropOffTasks() as $task) {
             $packageType = $task->package->packageType;
             $packageTypeId = $packageType->id;
@@ -109,8 +137,11 @@ class JobPriceCalculator
                 ];
             }
 
-            $packages[$packageTypeId]['quantity'] += $task->package->quantity;
-            $packages[$packageTypeId]['total_price'] += ($task->package->quantity * $packageType->price);
+            $packages[$packageTypeId]['quantity'] += $task->package->quantity; // sums all packages quantity for this package type
+            $adjustment = $packagePriceAdjustmentRules[$packageTypeId] ?? 0;
+            $packages[$packageTypeId]['total_price'] += ($packageType->price + $adjustment); 
+            // sums all packages price for this package type, does not care how much is there in 
+            // individual dropoff task, because price is per instance, not per quantity
         }
 
         $oversize = false;
