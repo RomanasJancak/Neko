@@ -988,6 +988,12 @@ class Job extends Model
         return $this->price();
     }
     public function price(){
+        if($this->isInvoiced()){
+            return [
+                'breakdownOfPrice' => json_decode($this->price_snapshot, true),
+                'totalPrice' => $this->price,
+            ];
+        }
         $this->populateVariables();
         $priceCalculator = new JobPriceCalculator($this);
         $calculatorPriceArray = $priceCalculator->calculate();
