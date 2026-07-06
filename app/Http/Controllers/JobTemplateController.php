@@ -616,7 +616,8 @@ class JobTemplateController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Template updated successfully',
-                'template' => $template
+                'template' => $template,
+                'request' => $request->all(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
