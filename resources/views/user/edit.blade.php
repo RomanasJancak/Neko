@@ -24,6 +24,11 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="colour">Main Colour</label>
+                            <input id="colour" type="color" class="form-control form-control-color" name="colour" value="{{ old('colour', $user->mainColour?->colour ?? '#808080') }}">
+                        </div>
+
+                        <div class="form-group">
                             <label for="client_id">Client</label>
                             <select class="form-select" name="client_id" id="client_id">
                                 <option value="">No client</option>

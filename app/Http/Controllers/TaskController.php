@@ -442,17 +442,16 @@ class TaskController extends Controller
         try {
             // 1. Find the task
             $task = Task::findOrFail($request->id);
+            $taskable = null;
             
-            // 2. Safely delete the child object (Package, PickupTask, ReturnTask) if it exists
-            if ($task->taskable) {
-                $task->taskable->delete();
-            }
+            $taskable = $task->taskable;
 
             // 3. Delete the parent task itself
             $task->delete();
+            $taskable?->delete();
 
             // 4. Update the job's updated_at timestamp if needed (replaces $task->job->save())
-            $task->job?->touch();
+            //$task->job?->touch();
 
             return response()->json([
                 'success' => true,

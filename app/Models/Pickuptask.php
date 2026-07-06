@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 
 use Carbon\Carbon;
@@ -26,6 +27,12 @@ class Pickuptask extends Model
     public function task(){
         return $this->morphOne(Task::class, 'taskable');
     }
+
+    public function colours(): MorphMany
+    {
+        return $this->morphMany(Colour::class, 'taskable');
+    }
+
     public function status(){
         return $this->belongsTo(Status::class,'status_id');
     }

@@ -1,33 +1,61 @@
 export const clientInforReadOnlyState = {readOnly : false};
+import {fillAddressViewForm,setupAddressFormSubmit} from '../address/show.js';
+function showModal(modalSelector) {
+    if (window.$) {
+        window.$(modalSelector).modal('show');
+        return;
+    }
+
+    const modalElement = document.querySelector(modalSelector);
+    if (modalElement && window.bootstrap) {
+        const modal = new window.bootstrap.Modal(modalElement);
+        modal.show();
+    }
+}
+
+export function setClientFormReadOnlyState(readOnly = false) {
+    clientInforReadOnlyState.readOnly = readOnly;
+    const fieldIds = [
+        'nameField',
+        'reg-adress-section-adress-country-field',
+        'reg-adress-section-adress-city-field',
+        'reg-adress-section-adress-postalcode-field',
+        'reg-adress-section-adress-addressline-field',
+        'phoneNumberField',
+    ];
+
+    fieldIds.forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.readOnly = readOnly;
+        }
+    });
+}
 export function fillClientViewForm(clientId){
   var clientInfoUrl = window.ROUTES.WEB.CLIENT.GETINFO.replace(':id', clientId);
   fetch(clientInfoUrl)
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
+            const payload = data && data.success === false ? null : (data.success ? data : data);
+            if (payload) {
         document.getElementById('clientid').value = clientId;
-        document.getElementById('nameField').value = data.name;
-        document.getElementById('shortenedNameField').value = data.nickName;
+                document.getElementById('nameField').value = payload.name || '';
+                document.getElementById('shortenedNameField').value = payload.nickName || '';
 
-        document.getElementById('reg-adress-section-adress-country-field').value = data.country;
-        document.getElementById('reg-adress-section-adress-city-field').value = data.city;
-        document.getElementById('reg-adress-section-adress-postalcode-field').value = data.postal_code;
-        document.getElementById('reg-adress-section-adress-addressline-field').value = data.address_line;
+                document.getElementById('reg-adress-section-adress-country-field').value = payload.country || '';
+                document.getElementById('reg-adress-section-adress-city-field').value = payload.city || '';
+                document.getElementById('reg-adress-section-adress-postalcode-field').value = payload.postal_code || '';
+                document.getElementById('reg-adress-section-adress-addressline-field').value = payload.address_line || '';
 
-        document.getElementById('phoneNumberField').value = data.phone;
-        populateWithAddresses(data.addresses);
-        populateWithEmails(data.emails);
+                document.getElementById('phoneNumberField').value = payload.phone || '';
+                populateWithAddresses(payload.addresses || []);
+                populateWithEmails(payload.emails || []);
       } else {
         console.error('Error fetching client info:', data.message);
       }
     })
     .catch(error => console.error('Fetch error:', error));
-  document.getElementById('nameField').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-country-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-city-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-postalcode-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('reg-adress-section-adress-addressline-field').readOnly = clientInforReadOnlyState.readOnly;
-  document.getElementById('phoneNumberField').readOnly = clientInforReadOnlyState.readOnly;
+    setClientFormReadOnlyState(clientInforReadOnlyState.readOnly);
 }
 export function cleanClientForm(){
   document.getElementById('clientid').value = '';
@@ -40,6 +68,10 @@ export function cleanClientForm(){
   document.getElementById('phoneNumberField').value = '';
   const container = document.getElementById('container-addresses');
   container.innerHTML = '';
+    const emailsContainer = document.getElementById('container-emails');
+    if (emailsContainer) {
+        emailsContainer.innerHTML = '';
+    }
 }
 
 function deleteEmail(emailId = null){
@@ -88,10 +120,50 @@ function deleteEmail(emailId = null){
         });
 }
 
-window.deleteEmail = deleteEmail;
+function bindEmailContainerEvents(containerMain) {
+    if (!containerMain || containerMain.dataset.eventsBound === '1') {
+        return;
+    }
+
+    containerMain.addEventListener('click', event => {
+        const deleteButton = event.target.closest('.js-email-delete');
+        if (deleteButton) {
+            const emailId = deleteButton.getAttribute('data-email-id');
+            if (emailId) {
+                deleteEmail(emailId);
+            }
+            return;
+        }
+
+        const removeLocalButton = event.target.closest('.js-email-remove-local');
+        if (removeLocalButton) {
+            const row = removeLocalButton.closest('.row');
+            if (row) {
+                row.remove();
+            }
+            return;
+        }
+
+        const editButton = event.target.closest('.js-email-edit');
+        if (editButton) {
+            const emailId = editButton.getAttribute('data-email-id');
+            if (typeof window.editEmail === 'function') {
+                window.editEmail(emailId);
+            }
+        }
+    });
+
+    containerMain.dataset.eventsBound = '1';
+}
+
 function populateWithEmails(emails){
   console.log("THIS 1", emails);
     const container_main = document.getElementById('container-emails');
+    if (!container_main) {
+        return;
+    }
+    bindEmailContainerEvents(container_main);
+
     const container = document.createElement('div');
     container.className = 'row';
 
@@ -109,10 +181,10 @@ function populateWithEmails(emails){
             <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value="${email.id}"></div>
             <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="${email.email}" placeholder="Email" ></div>
             <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="${email.type}" placeholder="Type (e.g. work, personal)" ></div>
-            <div class="col email-input-field"><button type="button" class="btn btn-info btn-xs text-info" style="background: none; border: none;" id='button-edit-email' idofemail="${email.id}" onclick="editEmail(${email.id})">
+            <div class="col email-input-field"><button type="button" class="btn btn-info btn-xs text-info js-email-edit" style="background: none; border: none;" data-email-id="${email.id}">
                 <i class="fa-solid fa-pencil" aria-hidden="true" style="color: inherit;"></i>
             </div>
-            <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-email' idofemail="${email.id}" onclick="deleteEmail(${email.id})">
+            <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-email-delete" style="background: none; border: none;" data-email-id="${email.id}">
                 <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
             </div>
       `;
@@ -124,58 +196,95 @@ function populateWithEmails(emails){
     addButton.type = 'button';
     addButton.className = 'btn btn-primary';
     addButton.textContent = 'Add Email';
-    addButton.onclick = () => {
+    addButton.addEventListener('click', () => {
         const newEmailRow = `
             <div class="row">        
                 <div class="col email-input-field" style="display: none;"><input type="hidden" name="email_id[]" class="form-control" value=""></div>
                 <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email[]" class="form-control" value="" placeholder="Email" ></div>
                 <div class="col email-input-field"><input style="font-size: 0.8em;" type="text" name="email_type[]" class="form-control" value="" placeholder="Type (e.g. work, personal)" ></div>
-                <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" onclick="this.parentElement.parentElement.remove()">
+                <div class="col email-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-email-remove-local" style="background: none; border: none;">
                     <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
                 </div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', newEmailRow);
-    };
+    });
     container_main.appendChild(addButton);
 }
+export function createAddress(){
+  $('#client-modalWindow-adddress').modal('show');
+  const clientId = document.getElementById('clientid').value;
+  fillAddressViewForm(null, clientId);
+}
+function editAdddress(addressId = null){
+    if (!addressId) {
+        return;
+    }
+    const addressElement = document.querySelector(`input[name="address_id[]"][value="${addressId}"]`);
+    if (!addressElement) {
+        return;
+    }
+    $('#client-modalWindow-adddress').modal('show');
+    fillAddressViewForm(addressId);
+    // const row = addressElement.closest('.row');
+    // if (row) {
+    //     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //     row.classList.add('highlight');
+    //     setTimeout(() => {
+    //         row.classList.remove('highlight');
+    //     }, 2000);
+    // }
+}
+function bindAddressContainerEvents(containerMain) {
+    if (!containerMain || containerMain.dataset.eventsBound === '1') {
+        return;
+    }
+
+    containerMain.addEventListener('click', event => {
+        const editButton = event.target.closest('.js-address-edit');
+        if (editButton) {
+            const addressId = editButton.getAttribute('data-address-id');
+            editAdddress(addressId);
+            return;
+        }
+
+        const deleteButton = event.target.closest('.js-address-delete');
+        if (deleteButton) {
+            const addressId = deleteButton.getAttribute('data-address-id');
+            if (typeof window.deleteAddress === 'function') {
+                window.deleteAddress(addressId);
+            }
+        }
+    });
+
+    containerMain.dataset.eventsBound = '1';
+}
+
+window.editAdddress = editAdddress;
 function populateWithAddresses(addresses){
         const container_main = document.getElementById('container-addresses');
+        if (!container_main) {
+            return;
+        }
+        bindAddressContainerEvents(container_main);
+
         const container = document.createElement('div');
         container.className = 'row';
         container_main.innerHTML = '';
         container_main.appendChild(container);
         addresses.forEach(address => {
-          const addressRow = `
-            <div class="row">        
-                <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control" value="${address.id}"></div>
-                <div class="col address-input-field"><input style="font-size: 0.8em;" type="text" name="name[]" class="form-control" value="${address.name}" placeholder="Name" ></div>
-                
-                <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" value="${address.address_line_1}" placeholder="Address line 1"></div>
-                <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" value="${address.address_line_2}" placeholder="Address line 1"></div>
-                <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" value="${address.postal_code}" placeholder="Postal code"></div>
-                <div class="col address-input-field"><input type="text" name="city[]" class="form-control" value="${address.city}" placeholder="City"></div>
-                <div class="col address-input-field"><input type="text" name="country[]" class="form-control" value="${address.country}" placeholder="Country"></div>
-                <div class="col address-input-field"><button type="button" class="btn btn-info btn-xs text-info" style="background: none; border: none;" id='button-edit-address' idofaddress="${address.id}" onclick="editAddress(${address.id})">
-                    <i class="fa-solid fa-pencil" aria-hidden="true" style="color: inherit;"></i>
-                </div>
-                <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger" style="background: none; border: none;" id='button-remove-address' idofaddress="${address.id}" onclick="deleteAddress(${address.id})">
-                    <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
-                </div>
-                
-          `;
-          //container.insertAdjacentHTML('beforeend', addressRow);
           const addressCard = document.createElement('div');
 addressCard.className = 'col-6 col-md-4 col-lg-3'; // Responsive Bootstrap grid classes
 addressCard.innerHTML = `
     <div class="card h-100" style="border: 1px solid #dee2e6; border-radius: .375rem; box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);">
+        <input type="hidden" name="address_id[]" class="form-control" value="${address.id}">
         <div class="card-body" style="padding: 0.75rem;">
             <h6 class="card-title mb-1" style="font-size: 0.95rem; line-height: 1.2;">
                 ${address.name} <small style="color: #6c757d;">(${address.shortname})</small>
-                <button type="button" class="btn btn-info btn-xs text-info float-end" style="background: none; border: none; padding: 0; font-size: 0.8rem;" idofaddress="${address.id}">
+                <button type="button" class="btn btn-info btn-xs text-info float-end js-address-edit" style="background: none; border: none; padding: 0; font-size: 0.8rem;" data-address-id="${address.id}">
                     <i class="fa-solid fa-pencil" aria-hidden="true"></i>
                 </button>
-                <button type="button" class="btn btn-danger btn-xs text-danger float-end me-2" style="background: none; border: none; padding: 0; font-size: 0.8rem;" idofaddress="${address.id}">
+                <button type="button" class="btn btn-danger btn-xs text-danger float-end me-2 js-address-delete" style="background: none; border: none; padding: 0; font-size: 0.8rem;" data-address-id="${address.id}">
                     <i class="fa fa-minus-circle" aria-hidden="true"></i>
                 </button>
             </h6>
@@ -267,6 +376,58 @@ function populateSelectionOfUnassignedPackageTypes(packageTypes){
       selectELement.appendChild(option);
   });
 }
+
+export function openClientFormForView({ clientId, modalSelector = '#clientModalWindow' }) {
+    if (!clientId) {
+        return;
+    }
+    setClientFormReadOnlyState(true);
+    fillClientViewForm(clientId);
+    setupAddressFormSubmit(document.getElementById('address-submitform'));
+    showModal(modalSelector);
+}
+
+export function openClientFormForEdit({ clientId, formAction, submitButtonText = 'Update', modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(false);
+    fillClientViewForm(clientId);
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonText;
+    }
+    showModal(modalSelector);
+}
+
+export function openClientFormForDelete({ clientId, formAction, submitButtonText = 'Delete', modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(true);
+    fillClientViewForm(clientId);
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonText;
+    }
+    showModal(modalSelector);
+}
+
+export function openClientFormForCreate({ formAction, submitButtonHtml = "<i class='bi bi-save'></i>", modalSelector = '#modalWindow' }) {
+    const form = document.querySelector('#clientForm');
+    if (form && formAction) {
+        form.setAttribute('action', formAction);
+    }
+    setClientFormReadOnlyState(false);
+    cleanClientForm();
+    const submitButton = document.getElementById('submitform');
+    if (submitButton) {
+        submitButton.innerHTML = submitButtonHtml;
+    }
+    showModal(modalSelector);
+}
 function fetch_UnassignedPackageTypes(clientId){
   const routeUrl = window.ROUTES.WEB.CLIENT.FETCHUNASSIGNEDPACKAGETYPES.replace(':id', clientId);
   fetch(routeUrl)
@@ -317,3 +478,11 @@ export function fetchPackageTypes(clientId){
             console.error(error);
         });
 }
+
+window.fillClientViewForm = fillClientViewForm;
+window.cleanClientForm = cleanClientForm;
+window.setClientFormReadOnlyState = setClientFormReadOnlyState;
+window.openClientFormForView = openClientFormForView;
+window.openClientFormForEdit = openClientFormForEdit;
+window.openClientFormForDelete = openClientFormForDelete;
+window.openClientFormForCreate = openClientFormForCreate;

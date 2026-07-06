@@ -88,7 +88,8 @@ class UserController extends Controller
      * @OA\Property(property="name", type="string", example="John Doe"),
      * @OA\Property(property="email", type="string", example="john@example.com"),
      * @OA\Property(property="phone", type="string", example="+3706000000"),
-     * @OA\Property(property="roles", type="array", @OA\Items(type="string", example="admin"))
+     * @OA\Property(property="roles", type="array", @OA\Items(type="string", example="admin")),
+     * @OA\Property(property="active", type="boolean", example=true)
      * ))
      * )
      * )
@@ -120,6 +121,13 @@ class UserController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'roles' => $user->roles->pluck('name'),
+                'active' => $user->isActive(),
+                'colours' => $user->colours->map(function ($colour) {
+                    return [
+                        'type' => $colour->type,
+                        'hex_code' => $colour->hex_code,
+                    ];
+                })->toArray(),
             ];
         });
 
@@ -157,6 +165,7 @@ class UserController extends Controller
             'password' => 'required|confirmed|min:6',
             'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'role' => 'required|exists:roles,id',
+            'colour' => ['nullable', 'string', 'regex:/^#?[0-9A-Fa-f]{6}$/'],
         ]);
 
         try {
@@ -165,18 +174,21 @@ class UserController extends Controller
             
             $user = User::create($userData);
             $user->assignRole($validatedData['role']);
+            if (array_key_exists('colour', $validatedData)) {
+                $user->syncMainColour($validatedData['colour']);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'User created successfully.',
-                'user' => $user->load('roles'),
+                'user' => $user->load('roles', 'mainColour'),
             ], 201);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    /**
+/**
      * @OA\Put(
      * path="/api/users/{user}",
      * summary="Update an existing user",
@@ -185,13 +197,26 @@ class UserController extends Controller
      * @OA\Parameter(name="user", in="path", required=true, @OA\Schema(type="integer")),
      * @OA\RequestBody(
      * @OA\JsonContent(
-     * @OA\Property(property="name", type="string"),
-     * @OA\Property(property="email", type="string"),
-     * @OA\Property(property="password", type="string"),
-     * @OA\Property(property="role", type="integer")
+     * @OA\Property(property="name", type="string", example="John Doe Updated"),
+     * @OA\Property(property="email", type="string", format="email", example="john.updated@example.com"),
+     * @OA\Property(property="phone", type="string", example="+3706000000"),
+     * @OA\Property(property="password", type="string", format="password", example="newpassword123"),
+     * @OA\Property(property="password_confirmation", type="string", example="newpassword123"),
+     * @OA\Property(property="role", type="integer", example=1),
+     * @OA\Property(property="active", type="boolean", example=true),
+     * @OA\Property(
+     * property="colours",
+     * type="array",
+     * @OA\Items(
+     * @OA\Property(property="type", type="string", example="main"),
+     * @OA\Property(property="hex_code", type="string", example="#FFAAFF")
+     * )
+     * )
      * )
      * ),
-     * @OA\Response(response=200, description="User updated successfully")
+     * @OA\Response(response=200, description="User updated successfully"),
+     * @OA\Response(response=422, description="Validation errors"),
+     * @OA\Response(response=500, description="Server Error")
      * )
      */
     public function update(Request $request, User $user)
@@ -202,6 +227,10 @@ class UserController extends Controller
             'phone'    => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
             'password' => 'nullable|confirmed|min:6',
             'role'     => 'sometimes|exists:roles,id',
+            'active'   => 'sometimes|boolean',
+            'colours'            => 'sometimes|array',
+            'colours.*.type'     => 'required_with:colours|string|max:255',
+            'colours.*.hex_code' => ['required_with:colours', 'string', 'regex:/^#?[0-9A-Fa-f]{6}$/'],
         ]);
 
         try {
@@ -211,16 +240,31 @@ class UserController extends Controller
                 unset($validatedData['password']);
             }
 
-            $user->update(collect($validatedData)->except('role')->toArray());
+            $user->update(collect($validatedData)->except('role', 'colour')->toArray());
 
             if (isset($validatedData['role'])) {
                 $user->syncRoles([$validatedData['role']]);
             }
-
+            if (!empty($validatedData['colours'])) {
+                foreach ($validatedData['colours'] as $colourData) {
+                    $user->colours()->updateOrCreate(
+                        ['type' => $colourData['type']],     
+                        ['hex_code' => $colourData['hex_code']] 
+                    );
+                }
+            }
+            if(isset($validatedData['active'])) {
+                $user->activity()->updateOrCreate([], [
+                    'is_active' => $validatedData['active'],
+                    'last_activity_at' => now(),
+                ]);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'User updated successfully.',
-                'user'    => $user->load('roles'),
+                'user'    => $user->load('roles','colours'),
+                'request_data' => $request->all(),
+                'validated_data' => $validatedData,
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -276,12 +320,18 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load('roles:id,name,display_name,client_id');
+        $user->load('roles:id,name,display_name,client_id' );
         $user->roles->makeHidden(['pivot']);
+        $colours = $user->colours->map(function ($colour) {
+            return [
+                'type' => $colour->type,
+                'hex_code' => $colour->hex_code,
+            ];
+        })->toArray();
 
         return response()->json([
             'success' => true,
-            'user' => $user->only(['id', 'name','phone', 'email','client_id', 'roles']),
+            'user' => array_merge($user->only(['id', 'name','phone', 'email','client_id', 'roles']), ['colours' => $colours, 'active' => $user->isActive()]),
         ]);
     }
 }

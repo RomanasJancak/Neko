@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -59,6 +61,40 @@ class User extends Authenticatable
         })->whereHas('workloads.day', function ($query) use ($date) {
             $query->whereDate('date', $date);
         })->get();
+    }
+    public function activity()
+    {
+        return $this->hasOne(Activity::class);
+    }
+
+    public function colours(): MorphMany
+    {
+        return $this->morphMany(Colour::class, 'taskable');
+    }
+
+    public function mainColour(): MorphOne
+    {
+        return $this->morphOne(Colour::class, 'taskable')->where('type', 'main');
+    }
+
+    public function syncMainColour(?string $colour): void
+    {
+        $colour = is_string($colour) ? trim($colour) : null;
+
+        if ($colour === null || $colour == '') {
+            $this->mainColour()->delete();
+            return;
+        }
+
+        $this->colours()->updateOrCreate(
+            ['type' => 'main'],
+            ['colour' => $colour]
+        );
+    }
+
+    public function isActive() : bool
+    {
+        return $this->activity ? (bool) $this->activity->is_active : false;
     }
     public function settings()
     {

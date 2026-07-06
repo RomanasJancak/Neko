@@ -67,9 +67,13 @@ class UserDayStatusController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'user_status_id' => 'required|exists:user_statuses,id',
-            'day_id' => 'required|exists:days,id',
+            'date' => 'required|date',
         ]);
-        $userDayStatus->update($validated);
+        $userDayStatus->update([
+            'user_id' => $validated['user_id'],
+            'user_status_id' => $validated['user_status_id'],
+            'day_id' => Day::firstOrCreate(['name' => $validated['date'], 'date' => $validated['date']])->id,
+        ]);
         return redirect()->route('user-day-statuses.index')->with('success', 'Updated!');
     }
 

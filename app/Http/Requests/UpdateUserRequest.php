@@ -37,6 +37,7 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone' => ['nullable', 'string', 'regex:/^\+?[1-9]\d{1,14}$/'],
+            'colour' => ['nullable', 'string', 'regex:/^#?[0-9A-Fa-f]{6}$/'],
             'role' => ['sometimes', 'required', 'exists:roles,id'],
             'client_id' => ['nullable', 'integer', 'exists:clients,id'],
         ];

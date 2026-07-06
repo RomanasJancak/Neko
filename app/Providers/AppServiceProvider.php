@@ -9,10 +9,12 @@ use App\Models\Job;
 use App\Models\Package;
 use App\Models\Pickuptask;
 use App\Models\ReturnTask;
+use App\Models\Task;
 use App\Observers\JobObserver;
 use App\Observers\PackageObserver;
 use App\Observers\PickupTaskObserver;
 use App\Observers\ReturnTaskObserver;
+use App\Observers\TaskObserver;
 use Illuminate\Support\Facades\Vite;
 
 class AppServiceProvider extends ServiceProvider
@@ -59,5 +61,6 @@ class AppServiceProvider extends ServiceProvider
       Pickuptask::observe(PickupTaskObserver::class);
       Package::observe(PackageObserver::class);
       ReturnTask::observe(ReturnTaskObserver::class);
+      Task::observe(TaskObserver::class);
     }
 }

@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8000",
+            "url": "http://5.20.166.68:8000",
             "description": "Main API Server"
         },
         {
@@ -615,6 +615,10 @@
                                                                     "type": "string",
                                                                     "example": "admin"
                                                                 }
+                                                            },
+                                                            "active": {
+                                                                "type": "boolean",
+                                                                "example": true
                                                             }
                                                         },
                                                         "type": "object"
@@ -747,16 +751,50 @@
                             "schema": {
                                 "properties": {
                                     "name": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "example": "John Doe Updated"
                                     },
                                     "email": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john.updated@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+3706000000"
                                     },
                                     "password": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "newpassword123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "newpassword123"
                                     },
                                     "role": {
-                                        "type": "integer"
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "colours": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "main"
+                                                },
+                                                "hex_code": {
+                                                    "type": "string",
+                                                    "example": "#FFAAFF"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -767,6 +805,12 @@
                 "responses": {
                     "200": {
                         "description": "User updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation errors"
+                    },
+                    "500": {
+                        "description": "Server Error"
                     }
                 },
                 "security": [

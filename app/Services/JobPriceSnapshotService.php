@@ -42,7 +42,12 @@ class JobPriceSnapshotService
             ->whereNotIn('type', $types)
             ->delete();
     }
-
+    public function deleteSnapshot(Job $job): void
+    {
+        JobPrice::query()
+            ->where('job_id', $job->id)
+            ->delete();
+    }
     /**
      * Reconstruct the Job::price() response shape from stored snapshot rows.
      * Returns null when no snapshot exists yet (caller should fall back to live calc).

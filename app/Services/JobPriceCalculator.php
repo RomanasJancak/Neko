@@ -13,27 +13,48 @@ class JobPriceCalculator
     protected float $price = 0;
     protected array $breakdown = [];
     protected $rules ;
+    protected float $oversizePrice = 0;
+    protected array $priceAdjustments = [];
 
     public function __construct(Job $job)
     {
         $this->job = $job;
         $this->job->populateVariables();
         $this->rules = json_decode(AddOnRule::getAllThatAreApplicableToThisDateForSpecificClient($this->job->date,$this->job->clientToBill->id),true);
+        $this->findOversizeRule();
+        foreach($this->rules as $rule){
+            if (strpos($rule['name'], 'price') === 0) {
+                $this->priceAdjustments[] = $rule;
+            }
+        }
     }
 
     public function calculate(): array
-    {
+    {   
+        //=============================================
+        $packageResult = $this->price_packages();
+
+        //================================================
+        $this->add('price_packages',$packageResult['price']);
+
+
+
         $this->add('price_food', $this->price_food()['price']);
         $this->add('price_distance', $this->job->price_distance()['price']);
         $this->add('price_outsidePostalCodeZone', $this->job->price_outsidePostalCodeZone());
         $this->add('price_weight', $this->job->price_weight()['price']);
-        $this->add('price_timing', $this->job->new_price_timing()['price']);
-        $this->add('price_packages', $this->job->price_packages()['price']);
+        $this->add('price_timing', $this->job->new_price_timing()['price']);        
         $this->add('price_sunday', $this->job->price_sunday()['price']);
         $this->add('price_bankHoliday', $this->job->price_bankHoliday()['price']);
-        $this->add('oversizePrice', $this->job->oversizePrice());
         $this->add('price_sameDayReturn', $this->job->price_sameDayReturn()['price']);
         $this->add('price_adjustment_number', $this->job->price_adjustment_number);
+        if($packageResult['isOversize']){
+            $this->add('oversizePrice', $this->oversizePrice);
+        }else{
+            $this->add('oversizePrice', 0);
+        }
+        
+        
         
         // Save breakdown to job_prices table
         foreach ($this->breakdown as $type => $value) {
@@ -66,6 +87,13 @@ class JobPriceCalculator
         ]);
       }
     }
+    protected function findOversizeRule(){
+      foreach($this->rules as $rule){
+            if (strpos($rule['name'], 'package-oversize') === 0) {
+                $this->oversizePrice = $rule['price'];
+            }
+      }
+    }
     protected function add(string $type, float $amount): void
     {
         $this->price += $amount;
@@ -75,37 +103,61 @@ class JobPriceCalculator
     {
         $this->job->populateVariables();
     }
-    protected function price_packages(){
-      $price = 0;
-      $packages = [];
-      foreach($this->job->getDropOffTasks() as $task){
-        $packageTypeId = $task->package->package_type_id;
-        if(!isset($packages[$packageTypeId])){
-          $packages[$packageTypeId]['quantity'] += $task->package->quantity;
-          $packages[$packageTypeId]['total_price'] += $task->package->packageType->price;
-        }else{
-          $packages[$packageTypeId] = [
-              'id'    => $task->package->packageType->id,
-              'price' => $task->package->packageType->price,
-              'quantity' => $task->package->quantity,
-              'baseQuantityThreshold' => $task->package->packageType->baseQuantityThreshold,
-              'total_price' => $task->package->packageType->price, // Keep track of the total price for this package type
-          ];
-        } 
-      }
-      $oversize = false;
-      $tempPrice = 0;
-      foreach($packages as $package){
-        if($package['quantity'] > $package['baseQuantityThreshold']){
-          $oversize = true;
+    protected function price_packages(): array
+    {
+        $packages = [];
+        $packagePriceAdjustmentRules = [];
+
+        foreach ($this->priceAdjustments as $rule) {
+            if (strpos($rule['name'], 'package-') === 6) {
+                preg_match('/package-(\d+)/', $rule['name'], $matches);
+                $id = isset($matches[1]) ? (int)$matches[1] : 0;
+                $increase = (substr($rule['name'], -4) === '-inc');
+                if (!isset($packagePriceAdjustmentRules[$id])) {
+                  $packagePriceAdjustmentRules[$id] = 0;
+                }
+                if ($increase) {
+                  $packagePriceAdjustmentRules[$id] += $rule['price'] ?? 0; // Assumed $rule['value'] holds the amount
+                } else {
+                  $packagePriceAdjustmentRules[$id] -= $rule['price'] ?? 0;
+                }
+            }
         }
-        $tempPrice += $package['total_price'];
-      }
-      $price += $tempPrice;
-      return [
-        'price' => $price,
-        'isOversize' => $oversize,
-      ];
+        foreach ($this->job->getDropOffTasks() as $task) {
+            $packageType = $task->package->packageType;
+            $packageTypeId = $packageType->id;
+
+            if (!isset($packages[$packageTypeId])) {
+                $packages[$packageTypeId] = [
+                    'id' => $packageTypeId,
+                    'price' => $packageType->price,
+                    'quantity' => 0,
+                    'baseQuantityThreshold' => $packageType->baseQuantityThreshold,
+                    'total_price' => 0,
+                ];
+            }
+
+            $packages[$packageTypeId]['quantity'] += $task->package->quantity; // sums all packages quantity for this package type
+            $adjustment = $packagePriceAdjustmentRules[$packageTypeId] ?? 0;
+            $packages[$packageTypeId]['total_price'] += ($packageType->price + $adjustment); 
+            // sums all packages price for this package type, does not care how much is there in 
+            // individual dropoff task, because price is per instance, not per quantity
+        }
+
+        $oversize = false;
+        $totalPrice = 0;
+
+        foreach ($packages as $package) {
+            if ($package['quantity'] > $package['baseQuantityThreshold']) {
+                $oversize = true;
+            }
+            $totalPrice += $package['total_price'];
+        }
+
+        return [
+            'price' => $totalPrice,
+            'isOversize' => $oversize,
+        ];
     }
     protected function price_food(){
       foreach($this->job->getDropOffTasks() as $task){

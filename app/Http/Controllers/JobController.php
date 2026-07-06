@@ -1014,10 +1014,13 @@ public function index(Request $request,SettingsService $settings)
     {
         // Fetch the client's information based on the $clientId
         $job = Job::find($jobId);
-
+        //************** */
+        //$job->price();
+        //**************  */
         if ($job) {
             $snapshotService = app(JobPriceSnapshotService::class);
             $pricePayload = $snapshotService->snapshotToPayload($job) ?? $job->price();
+            // $pricePayload = $job->price();
             return response()->json([
                 'price'             =>  $pricePayload,
                 'id'                =>  $job->id,
@@ -1416,6 +1419,9 @@ public function index(Request $request,SettingsService $settings)
         $userFormatStr = $dateFormatService->userDateFormat(auth()->user());
         // NEW
         $jobs->through(function ($job) use ($dateFormatService, $userFormatStr) {
+            $snapshotService = app(JobPriceSnapshotService::class);
+            $pricePayload = $snapshotService->snapshotToPayload($job) ?? $job->price();
+            //$pricePayload = $job->price();
             $pickupTask = $job->getPickupTask();
             return [
                 'id'    =>  $job->id,
@@ -1449,8 +1455,7 @@ public function index(Request $request,SettingsService $settings)
                       ]
                         ];
                     }),
-                  'price' =>  $job->price()['totalPrice'],
-                  'price' =>  $job->fixed_price === 0? $job->price()['totalPrice'] : $job->fixed_price,
+                  'price' =>  $job->fixed_price === 0? $pricePayload['totalPrice'] : $job->fixed_price,
             ];
         });
         return response()->json([

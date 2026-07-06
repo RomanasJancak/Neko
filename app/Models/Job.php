@@ -9,6 +9,7 @@ use App\Models\ApprovedPostalCodeArea;
 use App\Services\FieldLockService;
 use App\Services\JobPriceSnapshotService;
 use App\Services\SettingsService;
+use App\Services\JobPriceCalculator;
 
 class Job extends Model
 {
@@ -987,18 +988,28 @@ class Job extends Model
         return $this->price();
     }
     public function price(){
+        if($this->isInvoiced()){
+            return [
+                'breakdownOfPrice' => json_decode($this->price_snapshot, true),
+                'totalPrice' => $this->price,
+            ];
+        }
         $this->populateVariables();
-
+        $priceCalculator = new JobPriceCalculator($this);
+        $calculatorPriceArray = $priceCalculator->calculate();
         $price = 0;
+        //dd($this->price_packages());
         $price+=$this->price_food()['price'];
         $price+=$this->price_distance()['price'];
         $price+=$this->price_outsidePostalCodeZone();
         $price+=$this->price_weight()['price'];
         $price+=$this->new_price_timing()['price'];
-        $price+=$this->price_packages()['price'];
+        //$price+=$this->price_packages()['price'];
+        $price+=$calculatorPriceArray['breakdown']['price_packages'];
         $price+=$this->price_sunday()['price'];
         $price+=$this->price_bankHoliday()['price'];
-        $price+=$this->oversizePrice();
+        //$price+=$this->oversizePrice();
+        $price+=$calculatorPriceArray['breakdown']['oversizePrice'];
         $price+=$this->price_sameDayReturn()['price'];
         $price+=$this->price_adjustment_number;
         $this->price = $price;
@@ -1013,7 +1024,7 @@ class Job extends Model
                 'price_sunday'          =>  $this->fixed_price === 0?$this->price_sunday()['price']:0,
                 'price_bankHoliday'     =>  $this->fixed_price === 0?$this->price_bankHoliday()['price']:0,
                 'price_sameDayReturn'   =>  $this->fixed_price === 0?$this->price_sameDayReturn():0,
-                'oversizePrice'         =>  $this->fixed_price === 0?$this->oversizePrice():0,
+                'oversizePrice'         =>  $this->fixed_price === 0?$calculatorPriceArray['breakdown']['oversizePrice']:0,
                 'price_food'            =>  $this->fixed_price === 0?$this->price_food()['price']:0,
                 'price_adjustment_number' => $this->fixed_price === 0?$this->price_adjustment_number:0,
                 'price'                 =>  $this->fixed_price === 0?$this->price:$this->fixed_price,
@@ -1023,8 +1034,12 @@ class Job extends Model
             'price_Distance'        =>  $this->fixed_price === 0?$this->price_distance():0,
             'price_OutOfZone'       =>  $this->fixed_price === 0?$this->price_outsidePostalCodeZone():0,
             'weight_price'          =>  $this->fixed_price === 0?$this->price_weight():0,
-            'price-packages' =>  $this->fixed_price === 0?$this->price_packages():0,
-            'price_oversize_added'  =>  $this->fixed_price === 0?$this->oversizePrice():0,
+            'price-packages' =>  $this->fixed_price === 0?[
+                                                            'price' => $calculatorPriceArray['breakdown']['price_packages'],
+                                                            'packages' => $this->price_packages()['packages'],
+                                                            'oversize' => $calculatorPriceArray['breakdown']['oversizePrice'],
+                                                            ]:0,
+            'price_oversize_added'  =>  $this->fixed_price === 0?$calculatorPriceArray['breakdown']['oversizePrice']:0,
             'price_oversize_value'  =>  $this->fixed_price === 0?$this->price_oversize:0,
             'price_package_oversize'        =>  $this->fixed_price === 0?$this->oversizePrice():0,
             'timing_price'          =>  $this->fixed_price === 0?$this->new_price_timing():0,
@@ -1034,7 +1049,10 @@ class Job extends Model
         ];
         if (!$this->invoice_item_id) {
             app(JobPriceSnapshotService::class)->persistLatestSnapshot($this, $returnArray);
+        }else{
+            //app(JobPriceSnapshotService::class)->deleteSnapshot($this);
         }
+        //dd($returnArray,$calculatorPriceArray);
         return $returnArray;
     }
 }

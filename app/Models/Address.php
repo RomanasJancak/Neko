@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Address extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'name',
+        'address_line_1',
+        'address_line_2',
+        'city',
+        'country',
+        'postal_code_id',
+        'model',
+        'model_id',
+    ];
 
     public function postalCode()
     {

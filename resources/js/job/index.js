@@ -1,4 +1,4 @@
-import { fillClientViewForm,clientInforReadOnlyState } from '../client/show.js';
+import { openClientFormForView } from '../client/show.js';
 function setControlButtonsState(id,state = false){
   let buttonsContainer = document.getElementById(`container-tasks`);
   let buttons ;
@@ -810,6 +810,8 @@ function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         let submitButton = document.getElementById('submitTaskform');
+        console.log('Button clicked:', button);
+        submitButton.textContent  = 'Confirm creation';
         if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
             document.getElementById('taskIdField').disabled = true;
@@ -1437,8 +1439,10 @@ function addEventListenerToJobTemplateCreateButton(button){
 function addEventListenerToViewClientButton_click(element){
     element.addEventListener('click', (e) => {
         e.preventDefault();
-        $('#clientModalWindow').modal('show');
-        fillClientViewForm(element.getAttribute('data-clientid'));
+        openClientFormForView({
+            clientId: element.getAttribute('data-clientid'),
+            modalSelector: '#clientModalWindow',
+        });
     });
 }
 function toggle_CreateNewTaskButton(enable = true){

@@ -62,11 +62,11 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title" id="ModalLabel">Packages</h6>
+                <h6 class="modal-title" id="ModalLabel">Address</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                 @include('address.partials.info-window');
+                 @include('address.partials.info-window')
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

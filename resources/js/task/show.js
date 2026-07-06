@@ -207,6 +207,7 @@ function initTaskPage() {
 
     // 3. Set up Form Submission Processing
     submitBtn.addEventListener('click', function(event) {
+        console.log("Submit button clicked, processing task form submission..."); // Debugging log
         event.preventDefault();
         let submitButton = event.target;
         const typeField = document.getElementById('taskTypeField');
