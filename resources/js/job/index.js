@@ -810,6 +810,8 @@ function addEventListenerToButton(button){
     button.addEventListener('click', (e) => {
         e.preventDefault();
         let submitButton = document.getElementById('submitTaskform');
+        console.log('Button clicked:', button);
+        submitButton.textContent  = 'Confirm creation';
         if(button.id === 'createNewTask'){
             setReadOnlyToFieldsOfTaskModal(false);
             document.getElementById('taskIdField').disabled = true;
