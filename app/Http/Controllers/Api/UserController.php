@@ -122,7 +122,12 @@ class UserController extends Controller
                 'phone' => $user->phone,
                 'roles' => $user->roles->pluck('name'),
                 'active' => $user->isActive(),
-                'main_colour' => $user->mainColour?->colour,
+                'colours' => $user->colours->map(function ($colour) {
+                    return [
+                        'type' => $colour->type,
+                        'hex_code' => $colour->hex_code,
+                    ];
+                })->toArray(),
             ];
         });
 
@@ -315,14 +320,18 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load('roles:id,name,display_name,client_id');
+        $user->load('roles:id,name,display_name,client_id' );
         $user->roles->makeHidden(['pivot']);
+        $colours = $user->colours->map(function ($colour) {
+            return [
+                'type' => $colour->type,
+                'hex_code' => $colour->hex_code,
+            ];
+        })->toArray();
 
         return response()->json([
             'success' => true,
-            'user' => $user->only(['id', 'name','phone', 'email','client_id', 'roles']),
-            'active' => $user->isActive(),
-            'main_colour' => $user->mainColour?->colour,
+            'user' => array_merge($user->only(['id', 'name','phone', 'email','client_id', 'roles']), ['colours' => $colours, 'active' => $user->isActive()]),
         ]);
     }
 }
