@@ -48,6 +48,7 @@ class AuthController extends Controller
         $validatedData = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'device_name' => ['nullable', 'string', 'max:100'],
         ]);
 
         $user = User::where('email', $validatedData['email'])->first();
@@ -59,18 +60,66 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $tokenName = $validatedData['device_name'] ?? 'spa-token';
+        $token = $user->createToken($tokenName)->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
             'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'roles' => $user->roles->pluck('name')->values(),
+            'user' => $this->serializeUser($user),
+            'data' => [
+                'token' => $token,
+                'user' => $this->serializeUser($user),
             ],
         ]);
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $this->serializeUser($user),
+            ],
+        ]);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        $token = $request->user()?->currentAccessToken();
+
+        if ($token) {
+            $token->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out from current session.',
+        ]);
+    }
+
+    public function logoutAll(Request $request): JsonResponse
+    {
+        $request->user()?->tokens()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out from all sessions.',
+        ]);
+    }
+
+    private function serializeUser(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'roles' => $user->roles->pluck('name')->values(),
+            'permissions' => $user->getAllPermissions()->pluck('name')->values(),
+        ];
     }
 }

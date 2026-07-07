@@ -15,6 +15,16 @@ use App\Http\Controllers\Api\UserStatusController;
 
 Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
+Route::prefix('v1')->group(function () {
+    Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('auth/me', [AuthController::class, 'me']);
+        Route::post('auth/logout', [AuthController::class, 'logout']);
+        Route::post('auth/logout-all', [AuthController::class, 'logoutAll']);
+    });
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('jobs', JobController::class);
     Route::apiResource('users', UserController::class);

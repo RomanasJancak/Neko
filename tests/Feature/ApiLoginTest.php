@@ -56,4 +56,106 @@ class ApiLoginTest extends TestCase
                 'error' => 'Invalid credentials.',
             ]);
     }
+
+    public function test_user_can_login_via_v1_auth_endpoint_and_receive_contract_payload(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password123',
+        ]);
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+            'device_name' => 'react-web',
+        ]);
+
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Login successful.',
+            ])
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'token',
+                'user' => [
+                    'id',
+                    'name',
+                    'email',
+                    'roles',
+                    'permissions',
+                ],
+                'data' => [
+                    'token',
+                    'user' => [
+                        'id',
+                        'name',
+                        'email',
+                        'roles',
+                        'permissions',
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_authenticated_user_can_fetch_current_profile_from_v1_me_endpoint(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password123',
+        ]);
+        $token = $user->createToken('react-web')->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'user' => [
+                        'id',
+                        'name',
+                        'email',
+                        'roles',
+                        'permissions',
+                    ],
+                ],
+            ]);
+    }
+
+    public function test_authenticated_user_can_logout_current_token_only(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password123',
+        ]);
+        $token = $user->createToken('react-web')->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/v1/auth/logout')
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Logged out from current session.',
+            ]);
+
+        $this->assertCount(0, $user->fresh()->tokens);
+    }
+
+    public function test_authenticated_user_can_logout_all_tokens(): void
+    {
+        $user = User::factory()->create([
+            'password' => 'password123',
+        ]);
+        $token = $user->createToken('react-web')->plainTextToken;
+        $user->createToken('mobile-app');
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/v1/auth/logout-all')
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Logged out from all sessions.',
+            ]);
+
+        $this->assertCount(0, $user->fresh()->tokens);
+    }
 }
