@@ -886,7 +886,7 @@ class Job extends Model
     public function price_bankHoliday(): array 
     {
         $jobDate = $this->getDate();        
-        if (!app(HolidayService::class)->isBankHoliday($jobDate)) {
+        if (!app(\App\Services\HolidayService::class)->isBankHoliday($jobDate)) {
             return [
                 'price' => 0,
                 'isApplicable' => false,
