@@ -15,6 +15,7 @@ class Job extends Model
 {
     use HasFactory;
 
+
     static $snakeAttributes = false;
 
     private $addOns             =   [];
@@ -27,46 +28,46 @@ class Job extends Model
     private $price_oversize_status     =   0;
     private $sameDayReturnAddOnPrice = 0;
     private $addon_food_price         =   0;
-
+    /*
     private $bankHolidays = [
-    '2024-01-01' => 'New Year’s Day',
-    '2024-03-29' => 'Good Friday',
-    '2024-04-01' => 'Easter Monday',
-    '2024-05-06' => 'Early May Bank Holiday',
-    '2024-05-27' => 'Spring Bank Holiday',
-    '2024-08-26' => 'Summer Bank Holiday',
-    '2024-12-25' => 'Christmas Day',
-    '2024-12-26' => 'Boxing Day',
-    '2025-01-01' => 'New Year’s Day',
-    '2025-04-18' => 'Good Friday',
-    '2025-04-21' => 'Easter Monday',
-    '2025-05-05' => 'Early May Bank Holiday',
-    '2025-05-26' => 'Spring Bank Holiday',
-    '2025-08-25' => 'Summer Bank Holiday',
-    '2025-12-25' => 'Christmas Day',
-    '2025-12-26' => 'Boxing Day',
-    '2026-01-01' => 'New Year’s Day',
-    '2026-04-03' => 'Good Friday',
-    '2026-04-06' => 'Easter Monday',
-    '2026-05-04' => 'Early May Bank Holiday',
-    '2026-05-25' => 'Spring Bank Holiday',
-    '2026-08-31' => 'Summer Bank Holiday',
-    '2026-12-25' => 'Christmas Day',
-    '2026-12-26' => 'Boxing Day',
-    '2027-01-01' => 'New Year’s Day',
-    '2027-03-26' => 'Good Friday',
-    '2027-03-29' => 'Easter Monday',
-    '2027-05-03' => 'Early May Bank Holiday',
-    '2027-05-31' => 'Spring Bank Holiday',
-    '2027-08-30' => 'Summer Bank Holiday',
-    '2027-12-25' => 'Christmas Day',
-    '2027-12-26' => 'Boxing Day',
-    '2028-01-01' => 'New Year’s Day',
-    '2028-04-14' => 'Good Friday',
-    '2028-04-17' => 'Easter Monday',
-    '2028-05-01' => 'Early May Bank Holiday',
+      '2024-01-01' => 'New Year’s Day',
+      '2024-03-29' => 'Good Friday',
+      '2024-04-01' => 'Easter Monday',
+      '2024-05-06' => 'Early May Bank Holiday',
+      '2024-05-27' => 'Spring Bank Holiday',
+      '2024-08-26' => 'Summer Bank Holiday',
+      '2024-12-25' => 'Christmas Day',
+      '2024-12-26' => 'Boxing Day',
+      '2025-01-01' => 'New Year’s Day',
+      '2025-04-18' => 'Good Friday',
+      '2025-04-21' => 'Easter Monday',
+      '2025-05-05' => 'Early May Bank Holiday',
+      '2025-05-26' => 'Spring Bank Holiday',
+      '2025-08-25' => 'Summer Bank Holiday',
+      '2025-12-25' => 'Christmas Day',
+      '2025-12-26' => 'Boxing Day',
+      '2026-01-01' => 'New Year’s Day',
+      '2026-04-03' => 'Good Friday',
+      '2026-04-06' => 'Easter Monday',
+      '2026-05-04' => 'Early May Bank Holiday',
+      '2026-05-25' => 'Spring Bank Holiday',
+      '2026-08-31' => 'Summer Bank Holiday',
+      '2026-12-25' => 'Christmas Day',
+      '2026-12-26' => 'Boxing Day',
+      '2027-01-01' => 'New Year’s Day',
+      '2027-03-26' => 'Good Friday',
+      '2027-03-29' => 'Easter Monday',
+      '2027-05-03' => 'Early May Bank Holiday',
+      '2027-05-31' => 'Spring Bank Holiday',
+      '2027-08-30' => 'Summer Bank Holiday',
+      '2027-12-25' => 'Christmas Day',
+      '2027-12-26' => 'Boxing Day',
+      '2028-01-01' => 'New Year’s Day',
+      '2028-04-14' => 'Good Friday',
+      '2028-04-17' => 'Easter Monday',
+      '2028-05-01' => 'Early May Bank Holiday',
     ];
-    
+    */
     private $workShift_Begin    = "08:00:00";
     private $workShift_End      = "16:00:00";
     private $workingHours_minimum = "07:00:00";
@@ -213,7 +214,12 @@ class Job extends Model
         return $returnValue;
     }
     public function getBankHolidaysAttribute(){
-        return collect($this->bankHolidays);
+        return collect(app(HolidayService::class)->getBankHolidays())->map(function ($name, $date) {
+            return [
+                'date' => $date,
+                'name' => $name,
+            ];
+        })->values()->toArray();
     }
     public function hasReturn()
     {
@@ -877,54 +883,26 @@ class Job extends Model
             'isApplicable' => true,
         ];
     }
-    /*
-    public function price_bankHoliday(){
-        $bankHolidayAddon;
-        $jobDate = $this->getDate();
-        foreach($this->bankHolidays as $holiday){
-            if($jobDate == $holiday['date']){
-                foreach($this->addOns_time as $addOn){
-                    if(strpos($addOn['name'], 'time-bankHoliday') === 0){
-                        $bankHolidayAddon = $addOn;
-                    }
-                }
+    public function price_bankHoliday(): array 
+    {
+        $jobDate = $this->getDate();        
+        if (!app(HolidayService::class)->isBankHoliday($jobDate)) {
+            return [
+                'price' => 0,
+                'isApplicable' => false,
+            ];
+        }
+        foreach ($this->addOns_time as $addOn) {
+            if (str_starts_with($addOn['name'], 'time-bankHoliday')) {
                 return [
-                    'price' => $bankHolidayAddon['price'],
+                    'price' => $addOn['price'],
                     'isApplicable' => true,
                 ];
             }
         }
         return [
             'price' => 0,
-            'isApplicable' => false,
-        ];
-    }
-    */
-    public function price_bankHoliday(): array 
-    {
-        $jobDate = $this->getDate();
-
-        // O(1) Instant Lookup instead of a foreach loop
-        if (isset($this->bankHolidays[$jobDate])) {
-            $bankHolidayAddon = null;
-
-            // Find the specific addon price
-            foreach ($this->addOns_time as $addOn) {
-                if (str_starts_with($addOn['name'], 'time-bankHoliday')) {
-                    $bankHolidayAddon = $addOn;
-                    break; // Stop looping once found to save extra CPU cycles
-                }
-            }
-
-            return [
-                'price' => $bankHolidayAddon ? $bankHolidayAddon['price'] : 0,
-                'isApplicable' => true,
-            ];
-        }
-
-        return [
-            'price' => 0,
-            'isApplicable' => false,
+            'isApplicable' => true,
         ];
     }    
     public function price_food(){
