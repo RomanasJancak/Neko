@@ -770,9 +770,10 @@ class Job extends Model
         $price = 0;
         $packages = [];
     
+
         // Step 1: Loop through tasks and accumulate packages by type (id)
         foreach ($this->tasks as $task) {
-            if ($task->type() === 'dropOff') {
+            if ($task->type() === 'dropOff' && $packageTypeId = $task->package?->packageType?->id) {
                 $packageTypeId = $task->package->packageType->id;
     
                 // If the package type already exists in the array, accumulate its quantity
