@@ -377,12 +377,13 @@ function populateSelectionOfUnassignedPackageTypes(packageTypes){
   });
 }
 
-export function openClientFormForView({ clientId, modalSelector = '#clientModalWindow' }) {
+export function openClientFormForView({ clientId, modalSelector = '#modalWindow' }) {
     if (!clientId) {
         return;
     }
     setClientFormReadOnlyState(true);
     fillClientViewForm(clientId);
+    
     setupAddressFormSubmit(document.getElementById('address-submitform'));
     showModal(modalSelector);
 }
@@ -394,9 +395,11 @@ export function openClientFormForEdit({ clientId, formAction, submitButtonText =
     }
     setClientFormReadOnlyState(false);
     fillClientViewForm(clientId);
+    setupAddressFormSubmit(document.getElementById('address-submitform'));
     const submitButton = document.getElementById('submitform');
     if (submitButton) {
         submitButton.innerHTML = submitButtonText;
+        submitButton.setAttribute('data-option', 'update');
     }
     showModal(modalSelector);
 }
@@ -411,6 +414,7 @@ export function openClientFormForDelete({ clientId, formAction, submitButtonText
     const submitButton = document.getElementById('submitform');
     if (submitButton) {
         submitButton.innerHTML = submitButtonText;
+        submitButton.setAttribute('data-option', 'delete');
     }
     showModal(modalSelector);
 }
