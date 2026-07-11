@@ -602,16 +602,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 fetchClients();
             }
-
+            
             if (event.target.closest('.edit-btn')) {
                 event.preventDefault();
                 const button = event.target.closest('.edit-btn');
                 const clientId = button.getAttribute('data-clientid');
                 if (clientId) {
-                    editClient(clientId);
+                    openClientFormForEdit({
+                      clientId: clientId,
+                      formAction: "{{ route('client.update') }}",
+                      submitButtonText: 'Update',
+                      modalSelector: '#modalWindow' 
+                    });
+                    
                 }
             }
-
+            
             if (event.target.closest('.delete-btn')) {
                 event.preventDefault();
                 const button = event.target.closest('.delete-btn');

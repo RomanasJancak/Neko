@@ -12,26 +12,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('button-add-address').addEventListener('click', function(e) {
     createAddress();
     document.getElementById('address-submitform').setAttribute('form-action', 'create');
-    // e.preventDefault();
-    // //<div class="col address-input-field"><input type="text" name="type[]" class="form-control" placeholder="Type"></div>
-    // const container = document.getElementById('container-addresses');
-    // const address = `
-    //     <div class="row">
-    //         <div class="col address-input-field" style="display: none;"><input type="hidden" name="address_id[]" class="form-control"></div>
-    //         <div class="col address-input-field"><input type="text" name="name[]" class="form-control" placeholder="Name"></div>
-            
-    //         <div class="col address-input-field"><input type="text" name="address_line_1[]" class="form-control" placeholder="Address line 1"></div>
-    //         <div class="col address-input-field"><input type="text" name="address_line_2[]" class="form-control" placeholder="Address line 2"></div>
-    //         <div class="col address-input-field"><input type="text" name="postal_code[]" class="form-control" placeholder="Postal code"></div>
-    //         <div class="col address-input-field"><input type="text" name="city[]" class="form-control" placeholder="City"></div>
-    //         <div class="col address-input-field"><input type="text" name="country[]" class="form-control" placeholder="Country"></div>
-    //         <div class="col address-input-field"><button type="button" class="btn btn-danger btn-xs text-danger js-remove-new-address" style="background: none; border: none;" id='button-remove-address' idofaddress="">
-    //             <i class="fa fa-minus-circle" aria-hidden="true" style="color: inherit;"></i>
-    //         </div>
-    //     </div>
-    // `;
-
-    // container.insertAdjacentHTML('beforeend', address);
   });
   document.getElementById('container-addresses').addEventListener('click', function(e) {
     const removeButton = e.target.closest('.js-remove-new-address');
