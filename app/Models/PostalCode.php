@@ -32,7 +32,24 @@ class PostalCode extends Model
             $this->fillPostalCodeAttributes($attributes['postal_code']);
         }
     }
+    public static function parse(string $postalCode): array
+    {
+        $postalCode = strtoupper(trim($postalCode));
+        $pattern = '/^([A-Z]{1,2}) ?(\d{1,2}[A-Z]?)? ?(\d)? ?([A-Z]{2})?$/';
 
+        if (preg_match($pattern, $postalCode, $matches)) {
+            return [
+                'area'     => $matches[1] ?? null,
+                'district' => $matches[2] ?? null,
+                'sector'   => $matches[3] ?? null,
+                'unit'     => $matches[4] ?? null
+            ];
+        }
+
+        return [
+            'area' => null, 'district' => null, 'sector' => null, 'unit' => null
+        ];
+    }
     /**
      * Fill the postal code attributes based on the full postal code.
      *

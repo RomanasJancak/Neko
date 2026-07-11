@@ -388,31 +388,8 @@ class Job extends Model
             '$freeMile' => $freeMile,
         ];
     }
-    public function parseUkPostalCode($postalCode) {
-        // Standardize the format by converting to uppercase (keep spaces intact)
-        $postalCode = strtoupper($postalCode);
-    
-        // Updated regex pattern to account for spaces
-        $pattern = '/^([A-Z]{1,2}) ?(\d{1,2}[A-Z]?)? ?(\d)? ?([A-Z]{2})?$/';
-    
-        if (preg_match($pattern, $postalCode, $matches)) {
-            return [
-                'area' => $matches[1] ?? null,      // Area: letters at the start
-                'district' => $matches[2] ?? null, // District: numbers/letters after the area
-                'sector' => $matches[3] ?? null,   // Sector: first number after the space
-                'unit' => $matches[4] ?? null      // Unit: last two letters
-            ];
-        } else {
-            // Return empty components for unparseable input
-            return [
-                'area' => null,
-                'district' => null,
-                'sector' => null,
-                'unit' => null
-            ];
-        }
-    }
-    public function price_outsidePostalCodeZone(){
+    public function price_outsidePostalCodeZone()
+    {
         $price = 0;
         if (empty($this->addOns_postalCode) || !isset($this->addOns_postalCode[0]['price'])) {
             return 0;
@@ -421,36 +398,32 @@ class Job extends Model
         $outOfZonePrice = $this->addOns_postalCode[0]['price'];
         $approvedPostalCodes = ApprovedPostalCodeArea::all();
         
-        foreach($this->tasks as $task){
+        foreach ($this->tasks as $task) {
             $postalCode = strtoupper($task->postalCode());
-            $postalCodeDecoded = $this->parseUkPostalCode($postalCode);
+            $postalCodeDecoded = PostalCode::parse($postalCode);
             $isInside = false;
             
             foreach ($approvedPostalCodes as $approvedPostalCode) {
-                //echo(json_encode($postalCodeDecoded));
                 $nameToUpper = strtoupper($approvedPostalCode->name);
+                $approvedPostalCodeDecoded = PostalCode::parse($nameToUpper);
                 
-                $approvedPostalCodeDecoded = $this->parseUkPostalCode($nameToUpper);
                 switch ($approvedPostalCode->type) {
                     case 'district':
-                        if($postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district']){
-                            if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
-                                $isInside = true;
-                            }
+                        if ($postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district'] &&
+                            $postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']) {
+                            $isInside = true;
                         }
                         break;
                     case 'area':
-                        if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
+                        if ($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']) {
                             $isInside = true;
                         }
                         break;
                     case 'sector':
-                        if($postalCodeDecoded['sector'] === $approvedPostalCodeDecoded['sector']){
-                            if($postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district']){
-                                if($postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']){
-                                    $isInside = true;
-                                }
-                            }
+                        if ($postalCodeDecoded['sector'] === $approvedPostalCodeDecoded['sector'] &&
+                            $postalCodeDecoded['district'] === $approvedPostalCodeDecoded['district'] &&
+                            $postalCodeDecoded['area'] === $approvedPostalCodeDecoded['area']) {
+                            $isInside = true;
                         }
                         break;
                     case 'postalcode':
