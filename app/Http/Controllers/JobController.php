@@ -1069,18 +1069,24 @@ public function index(Request $request,SettingsService $settings)
                             : false,
                     ]
                 ),
-                'dropoffs'              =>  is_null($job->getDropOffTasks()) ? 'none' : collect($job->getDropOffTasks())->map(function ($dropoff) {
-                    return [
-                        'id'    =>  $dropoff->id,
-                        'packageType_price' => $dropoff->package->packageType->price,
-                        'nameOfAddress'  =>  $dropoff->nameOfAddress(),
-                        'address'   =>  $dropoff->fullAddress(),
-                        'timeWindow'    =>  [
-                            'begin' =>  $dropoff->timeWindowBegin(),
-                            'end'   =>  $dropoff->timeWindowEnd(),
-                        ],
-                    ];
-                }),
+                
+                'dropoffs'              =>  is_null($job->getDropOffTasks()) ? 'none' : collect($job->getDropOffTasks())
+                    ->filter(function ($dropoff) {
+                        return !is_null($dropoff->package); // Skips tasks missing an attached package record
+                    })
+                    ->map(function ($dropoff) {
+                        return [
+                            'id'    =>  $dropoff->id,
+                            'packageType_price' => $dropoff->package->packageType?->price ?? 0, // Uses null-safe assignment
+                            'nameOfAddress'  =>  $dropoff->nameOfAddress(),
+                            'address'   =>  $dropoff->fullAddress(),
+                            'timeWindow'    =>  [
+                                'begin' =>  $dropoff->timeWindowBegin(),
+                                'end'   =>  $dropoff->timeWindowEnd(),
+                            ],
+                        ];
+                    })->values(),
+                
                 'returns'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'return'               =>  is_null($job->getReturnTask()) ? 'none' : $job->getReturnTask(),
                 'date'                  =>  $job->date,
@@ -1443,18 +1449,22 @@ public function index(Request $request,SettingsService $settings)
                     'nameOfAddress' => $pickupTask->nameOfAddress(),
                     'fullAddress' => $pickupTask->pickupAddressFull(),
                 ] : '',
-                'tasks' => collect($job->getDropOffTasks())->map(function ($dropoff) {
-                    return [
-                      'package' =>[
-                        'id' => $dropoff->id,
-                        'nameOfAddress' => $dropoff->nameOfAddress(),
-                        'fullAddress' => $dropoff->fullAddress(),
-                        'dropoff_name' => $dropoff->package->dropoff_name,
-                        'dropoff_adress_line' => $dropoff->package->dropoff_adress_line,
-                        'dropoff_postal_code' => $dropoff->package->dropoff_postal_code,
-                      ]
+                'tasks' => collect($job->getDropOffTasks())
+                    ->filter(function ($dropoff) {
+                        return !is_null($dropoff->package); // Filters out any orphaned dropoff tasks
+                    })
+                    ->map(function ($dropoff) {
+                        return [
+                            'package' => [
+                                'id' => $dropoff->id,
+                                'nameOfAddress' => $dropoff->nameOfAddress(),
+                                'fullAddress' => $dropoff->fullAddress(),
+                                'dropoff_name' => $dropoff->package->dropoff_name ?? 'N/A',
+                                'dropoff_adress_line' => $dropoff->package->dropoff_adress_line ?? '',
+                                'dropoff_postal_code' => $dropoff->package->dropoff_postal_code ?? '',
+                            ]
                         ];
-                    }),
+                    })->values(),
                   'price' =>  $job->fixed_price === 0? $pricePayload['totalPrice'] : $job->fixed_price,
             ];
         });
