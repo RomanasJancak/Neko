@@ -138,9 +138,14 @@ class TaskController extends Controller
                 $task->taskable()->associate($returnTask);
                 $task->save();
             }
+            $taskName = get_class($task->taskable) === 'App\\Models\\Pickuptask' ? 
+                          'Pickup' : 
+                          (get_class($task->taskable) === 'App\\Models\\ReturnTask' ? 
+                            'Return' : (get_class($task->taskable) === 'App\\Models\\Package' ? 
+                            'Drop Off' : 'Custom'));
             return response()->json([
                 'success'   => true,
-                'message'       => 'Task created successfully. ',
+                'message'       => $taskName . ' created successfully. ',
                 'request'       =>  $request->all(),
                 'task'          =>  $task,
                 'pickupTask'    =>  $request->input('type') === 'pickup' ? $pickupTask : 'doesNotExist',
