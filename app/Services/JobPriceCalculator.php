@@ -103,11 +103,26 @@ class JobPriceCalculator
     {
         $this->job->populateVariables();
     }
-    protected function price_packages(): array
+    protected function price_packages(array $tasksForDelete = []): array
     {
+        // 1. Delete from both database and memory if invalid tasks are passed in
+        if (!empty($tasksForDelete)) {
+            $deleteIds = collect($tasksForDelete)->pluck('id')->all();
+            
+            // Delete permanently from the database
+            \App\Models\Task::whereIn('id', $deleteIds)->delete();
+            
+            // Filter out of the in-memory relation so getDropOffTasks() updates immediately
+            $filteredTasks = $this->job->tasks->reject(function ($task) use ($deleteIds) {
+                return in_array($task->id, $deleteIds);
+            });
+            $this->job->setRelation('tasks', $filteredTasks);
+        }
+
         $packages = [];
         $packagePriceAdjustmentRules = [];
-
+        $invalidTasksFound = [];
+        
         foreach ($this->priceAdjustments as $rule) {
             if (strpos($rule['name'], 'package-') === 6) {
                 preg_match('/package-(\d+)/', $rule['name'], $matches);
@@ -117,13 +132,19 @@ class JobPriceCalculator
                   $packagePriceAdjustmentRules[$id] = 0;
                 }
                 if ($increase) {
-                  $packagePriceAdjustmentRules[$id] += $rule['price'] ?? 0; // Assumed $rule['value'] holds the amount
+                  $packagePriceAdjustmentRules[$id] += $rule['price'] ?? 0;
                 } else {
                   $packagePriceAdjustmentRules[$id] -= $rule['price'] ?? 0;
                 }
             }
         }
+
+        // Loop over tasks (this reads the newly filtered relation if we are in a recursive loop)
         foreach ($this->job->getDropOffTasks() as $task) {
+            if (!$task->package || !$task->package->packageType) {
+                $invalidTasksFound[] = $task;
+                continue;
+            }
             $packageType = $task->package->packageType;
             $packageTypeId = $packageType->id;
 
@@ -137,11 +158,14 @@ class JobPriceCalculator
                 ];
             }
 
-            $packages[$packageTypeId]['quantity'] += $task->package->quantity; // sums all packages quantity for this package type
+            $packages[$packageTypeId]['quantity'] += $task->package->quantity;
             $adjustment = $packagePriceAdjustmentRules[$packageTypeId] ?? 0;
             $packages[$packageTypeId]['total_price'] += ($packageType->price + $adjustment); 
-            // sums all packages price for this package type, does not care how much is there in 
-            // individual dropoff task, because price is per instance, not per quantity
+        }
+
+        // 2. If we caught new invalid tasks, delete them and recursively re-calculate
+        if (!empty($invalidTasksFound)) {
+            return $this->price_packages($invalidTasksFound);
         }
 
         $oversize = false;
