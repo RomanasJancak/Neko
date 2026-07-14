@@ -954,60 +954,57 @@ public function index(Request $request,SettingsService $settings)
         
         }
     }
-    public function copy(Request $request,Job $job){
-        try{
-
-            $job = Job::find($request->id);
+    public function copy(Request $request, Job $job)
+    {
+        try {
+            $job = Job::findOrFail($request->id);
+            
+            // 1. Replicate the parent Job
             $newJob = $job->replicate()->fill([
-              'status_id' => 10,
+                'status_id' => 10, // Resets status to pending/default
             ]);
             $newJob->save();
-            foreach($job->tasks as $task){
+
+            // Load tasks and their corresponding polymorphic taskable models
+            $job->load('tasks.taskable');
+
+            foreach ($job->tasks as $task) {
+                // 2. Replicate the parent Task
                 $newTask = $task->replicate()->fill([
-                    'job_id'    =>  $newJob->id,
+                    'job_id' => $newJob->id,
                 ]);
                 $newTask->save();
-                $task_string = (string) $task;
-                if(isset($task->pickup)){
 
-                    $newPickup = $task->pickup->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newPickup->save();
-                }
-                if(isset($task->package)){
-                    $newPackage = $task->package->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newPackage->save();
-                }
-                if(isset($task->return)){
-                    $newReturn = $task->return->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newReturn->save();
+                // 3. Replicate the polymorphic child (Pickuptask, Package, Returntask, Customtask)
+                if ($task->taskable) {
+                    $newSubtask = $task->taskable->replicate();
+                    
+                    // Explicitly bind the new task ID if needed by the child schema
+                    if (isset($newSubtask->task_id)) {
+                        $newSubtask->task_id = $newTask->id;
+                    }
+                    
+                    // Save through the morph relationship to auto-populate polymorphic keys
+                    $newTask->taskable()->save($newSubtask);
                 }
             }
+
             $newJob->refresh();
             $newJob->save();
 
-            //$newJob_array = json_encode($newJob_array, JSON_PRETTY_PRINT);
             return response()->json([
-                'success'   => true,
-                'message'   => 'Job copied successfully. ',
-                'data'      => [
-                    'NewJobId'   =>  $newJob->id,
-                    //'NewJobStringRepresentation'   =>  $newJob_string,
-                    //'NewJobArrayRepresentation'   =>  $newJob_array,
+                'success' => true,
+                'message' => 'Job copied successfully.',
+                'data'    => [
+                    'NewJobId' => $newJob->id,
                 ],
             ]);
-        } catch (\Exception $e){
-            return response()->json(['error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
             ], 500);
-        
         }
     }
     public function getJobInfo($jobId, DateFormatService $dateFormatService)
