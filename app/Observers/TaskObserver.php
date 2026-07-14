@@ -11,14 +11,17 @@ class TaskObserver
   public function created(Task $task): void
   {
     $this->ensurePickupBeforeDelivery($task);
+    $this->recalculateJobPrice($task);
   }
   public function updated(Task $task): void
   {
-    $this->ensurePickupBeforeDelivery($task); 
+    $this->ensurePickupBeforeDelivery($task);
+    $this->recalculateJobPrice($task);
   }
   public function deleting(Task $task): void
   {
     $this->ensurePickupBeforeDelivery($task);
+    $this->recalculateJobPrice($task);
 
   }
   private function ensurePickupBeforeDelivery(Task $task): void
@@ -33,6 +36,14 @@ class TaskObserver
         $pickupTask->order_number = 0;
         $pickupTask->save();
       }
+    }
+  }
+  private function recalculateJobPrice(Task $task): void
+  {
+    $job = $task->job;
+    if ($job) {
+      $job->recalculatePrice();
+      $job->save();
     }
   }
 }
