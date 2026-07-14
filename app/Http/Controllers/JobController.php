@@ -1208,6 +1208,7 @@ public function index(Request $request,SettingsService $settings)
 
             $job->price_adjustment_number = $request->input('price_adjustment_number');
             $job->save();
+            $job->recalculatePrice();
 
             return response()->json([
                 'success' => true,
