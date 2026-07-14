@@ -843,38 +843,73 @@ class JobController extends Controller
     public function copy(Request $request,Job $job){
         try{
 
-            $job = Job::find($request->id);
-            $newJob = $job->replicate()->fill([
-            ]);
-            $newJob->save();
-            foreach($job->tasks as $task){
-                $newTask = $task->replicate()->fill([
-                    'job_id'    =>  $newJob->id,
-                ]);
-                $newTask->save();
-                $task_string = (string) $task;
-                if(isset($task->pickup)){
+            $job = Job::with(['tasks.pickup', 'tasks.package', 'tasks.return', 'tasks.customTask'])
+                ->findOrFail($request->id);
 
-                    $newPickup = $task->pickup->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newPickup->save();
+            $newJob = DB::transaction(function () use ($job) {
+                $newJob = $job->replicate();
+                $newJob->status_id = 10;
+                $newJob->saveQuietly();
+
+                foreach ($job->tasks as $task) {
+                    $newTask = $task->replicate();
+                    $newTask->job_id = $newJob->id;
+                    $newTask->saveQuietly();
+
+                    if ($task->pickup) {
+                        $newPickup = $task->pickup->replicate();
+                        $newPickup->task_id = $newTask->id;
+                        $newPickup->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => Pickuptask::class,
+                            'taskable_id' => $newPickup->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    }
+
+                    if ($task->package) {
+                        $newPackage = $task->package->replicate();
+                        $newPackage->task_id = $newTask->id;
+                        $newPackage->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => Package::class,
+                            'taskable_id' => $newPackage->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    }
+
+                    if ($task->return) {
+                        $newReturn = $task->return->replicate();
+                        $newReturn->task_id = $newTask->id;
+                        $newReturn->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => ReturnTask::class,
+                            'taskable_id' => $newReturn->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    }
+
+                    if ($task->customTask) {
+                        $newCustomTask = $task->customTask->replicate();
+                        $newCustomTask->task_id = $newTask->id;
+                        $newCustomTask->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => CustomTask::class,
+                            'taskable_id' => $newCustomTask->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    }
                 }
-                if(isset($task->package)){
-                    $newPackage = $task->package->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newPackage->save();
-                }
-                if(isset($task->return)){
-                    $newReturn = $task->return->replicate()->fill([
-                        'task_id'   =>  $newTask->id,
-                    ]);
-                    $newReturn->save();
-                }
-            }
-            $newJob->refresh();
-            $newJob->save();
+
+                $newJob->load(['tasks.pickup', 'tasks.package', 'tasks.return', 'tasks.customTask']);
+                $newJob->recalculatePrice();
+
+                return $newJob;
+            });
 
             //$newJob_array = json_encode($newJob_array, JSON_PRETTY_PRINT);
             return response()->json([

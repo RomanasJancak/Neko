@@ -957,40 +957,67 @@ public function index(Request $request,SettingsService $settings)
     public function copy(Request $request, Job $job)
     {
         try {
-            $job = Job::findOrFail($request->id);
-            
-            // 1. Replicate the parent Job
-            $newJob = $job->replicate()->fill([
-                'status_id' => 10, // Resets status to pending/default
-            ]);
-            $newJob->save();
+            $job = Job::with(['tasks.pickup', 'tasks.package', 'tasks.return', 'tasks.customTask'])
+                ->findOrFail($request->id);
 
-            // Load tasks and their corresponding polymorphic taskable models
-            $job->load('tasks.taskable');
+            $newJob = DB::transaction(function () use ($job) {
+                $newJob = $job->replicate();
+                $newJob->status_id = 10;
+                $newJob->saveQuietly();
 
-            foreach ($job->tasks as $task) {
-                // 2. Replicate the parent Task
-                $newTask = $task->replicate()->fill([
-                    'job_id' => $newJob->id,
-                ]);
-                $newTask->save();
+                foreach ($job->tasks as $task) {
+                    $newTask = $task->replicate();
+                    $newTask->job_id = $newJob->id;
+                    $newTask->saveQuietly();
 
-                // 3. Replicate the polymorphic child (Pickuptask, Package, Returntask, Customtask)
-                if ($task->taskable) {
-                    $newSubtask = $task->taskable->replicate();
-                    
-                    // Explicitly bind the new task ID if needed by the child schema
-                    if (isset($newSubtask->task_id)) {
-                        $newSubtask->task_id = $newTask->id;
+                    if ($task->pickup) {
+                        $newPickup = $task->pickup->replicate();
+                        $newPickup->task_id = $newTask->id;
+                        $newPickup->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => Pickuptask::class,
+                            'taskable_id' => $newPickup->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    } elseif ($task->package) {
+                        $newPackage = $task->package->replicate();
+                        $newPackage->task_id = $newTask->id;
+                        $newPackage->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => Package::class,
+                            'taskable_id' => $newPackage->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    } elseif ($task->return) {
+                        $newReturn = $task->return->replicate();
+                        $newReturn->task_id = $newTask->id;
+                        $newReturn->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => ReturnTask::class,
+                            'taskable_id' => $newReturn->id,
+                        ]);
+                        $newTask->saveQuietly();
+                    } elseif ($task->customTask) {
+                        $newCustomTask = $task->customTask->replicate();
+                        $newCustomTask->task_id = $newTask->id;
+                        $newCustomTask->saveQuietly();
+
+                        $newTask->forceFill([
+                            'taskable_type' => CustomTask::class,
+                            'taskable_id' => $newCustomTask->id,
+                        ]);
+                        $newTask->saveQuietly();
                     }
-                    
-                    // Save through the morph relationship to auto-populate polymorphic keys
-                    $newTask->taskable()->save($newSubtask);
                 }
-            }
 
-            $newJob->refresh();
-            $newJob->save();
+                $newJob->load(['tasks.pickup', 'tasks.package', 'tasks.return', 'tasks.customTask']);
+                $newJob->recalculatePrice();
+
+                return $newJob;
+            });
 
             return response()->json([
                 'success' => true,
