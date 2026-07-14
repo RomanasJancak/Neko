@@ -207,153 +207,162 @@ class TaskController extends Controller
         }
     }
     public function update(UpdateTaskRequest $request, Task $task)
-    {
-        try{
-        $task = Task::findOrFail($request->id);
-        $task->date = $request->filled('date') ? $request->input('date') : $task->date;
-        //$task->job_id           =   $request->input('jobId');
-        $task->status_id        =   $request->input('status_id');
-        $task->note = $request->filled('note') ? $request->input('note') : $task->note;
-        $task->save();
-        
-        $taskTypeObject = null;
-        $address = $this->getAddressInput($request->input('address'));
-        //return response()->json([$address]);
-        if($request->input('type') === 'pickup'){
-
-            $pickupTask = $task->pickup;
-            $pickupTask->status_id = $task->status_id;
-            $pickupTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
-            $pickupTask->setAddress(
-                $address['name'],
-                $address['country'],
-                $address['city'],
-                $address['postalCode'],
-                $address['addressLine'],
-            );
-            $pickupTask->save();
+      {
+        try {
+            $task = Task::findOrFail($request->id);
+            $task->date = $request->filled('date') ? $request->input('date') : $task->date;
+            $task->status_id = $request->input('status_id');
+            $task->note = $request->filled('note') ? $request->input('note') : $task->note;
+            $task->save();
             
-            $taskTypeObject = $pickupTask;
-        }
-        if($request->input('type') === 'return'){
-            $returnTask = $task->return;
-            $returnTask->task_id = $task->id;
-            $returnTask->status_id = $task->status_id;
-            $returnTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
-            $returnTask->is_flexible = $request->input('returnTask.is_flexible');
-            if($request->input('returnTask.is_flexible')){
-                if($request->input('date') !== $request->input('returnTask.date')){
-                    $returnTaskDate = Carbon::parse($request->input('returnTask.date'));
-                    $timeBegin = Carbon::parse($request->input('time.begin'));
-                    $timeEnd = Carbon::parse($request->input('time.end'));
-                    $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
-                    $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
-                    $returnTask->setTimeWindow(
-                        $timeBegin->toDateTimeString(),
-                        $timeEnd->toDateTimeString()
-                    );
-                }
-            }else{
-                $returnTaskDate = Carbon::parse($request->input('date'));
-                $timeBegin = Carbon::parse($request->input('time.begin'));
-                $timeEnd = Carbon::parse($request->input('time.end'));
-                $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
-                $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
-                $returnTask->setTimeWindow(
-                    $timeBegin->toDateTimeString(),
-                    $timeEnd->toDateTimeString()
-                );
-            }
-            $returnTask->setAddress(
-                $address['name'],
-                $address['country'],
-                $address['city'],
-                $address['postalCode'],
-                $address['addressLine'],
-            );
-            $returnTask->save();
-            $taskTypeObject = $returnTask;
-        }
-        
-        if($request->input('type') === 'dropOff'){
+            $taskTypeObject = null;
+            $address = $this->getAddressInput($request->input('address'));
 
-            $package = $task->package;
-            $package->task_id = $task->id;
-            $package->status_id = $task->status_id;
-            $package->packageType_id = $request->input('package.type');
-            $package->weight = $request->input('package.weight');
-            $package->dimensions = 0;
-            $package->quantity = $request->input('package.quantity');
-            $package->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
-            $package->setAddress(
-                $address['name'],
-                $address['country'],
-                $address['city'],
-                $address['postalCode'],
-                $address['addressLine'],
-            );
-            if($request->input('hasCrateCollection')){
-                $package->hasReturn = $request->input('hasCrateCollection');
-                if(!$task->job->hasReturn()){
-                    $returnTask = new ReturnTask();
-                    $taskForReturn = new Task();
-                    $taskForReturn->date             =   $request->input('date');
-                    $taskForReturn->job_id           =   $task->job->id;
-                    $taskForReturn->status_id        =   $request->input('status_id');
-                    $taskForReturn->save();
-                    $returnTask->task_id = $taskForReturn->id;
-                    $returnTask->status_id = $taskForReturn->status_id;
-                    $returnTask->setTimeWindow($request->input('time.begin'),$request->input('time.end'));
-                    $returnTask->is_flexible = false;
+            // Safe Polymorphic Resolution
+            $subtask = $task->taskable;
+
+            if ($request->input('type') === 'pickup' && $subtask instanceof \App\Models\Pickuptask) {
+                $subtask->status_id = $task->status_id;
+                $subtask->setTimeWindow($request->input('time.begin'), $request->input('time.end'));
+                $subtask->setAddress(
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine']
+                );
+                $subtask->save();
+                
+                $taskTypeObject = $subtask;
+            }
+
+            if ($request->input('type') === 'return' && $subtask instanceof \App\Models\ReturnTask) {
+                $subtask->status_id = $task->status_id;
+                $subtask->setTimeWindow($request->input('time.begin'), $request->input('time.end'));
+                $subtask->is_flexible = $request->input('returnTask.is_flexible');
+                
+                if ($request->input('returnTask.is_flexible')) {
+                    if ($request->input('date') !== $request->input('returnTask.date')) {
+                        $returnTaskDate = Carbon::parse($request->input('returnTask.date'));
+                        $timeBegin = Carbon::parse($request->input('time.begin'));
+                        $timeEnd = Carbon::parse($request->input('time.end'));
+                        $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $subtask->setTimeWindow(
+                            $timeBegin->toDateTimeString(),
+                            $timeEnd->toDateTimeString()
+                        );
+                    }
+                } else {
                     $returnTaskDate = Carbon::parse($request->input('date'));
                     $timeBegin = Carbon::parse($request->input('time.begin'));
                     $timeEnd = Carbon::parse($request->input('time.end'));
                     $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
                     $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
-                    $returnTask->setTimeWindow(
+                    $subtask->setTimeWindow(
                         $timeBegin->toDateTimeString(),
                         $timeEnd->toDateTimeString()
                     );
-                    if($task->job->getPickupTask()){
-                        $returnTask->setAddress(
-                            $task->job->getPickupTask()->nameOfAddress(),
-                            $task->job->getPickupTask()->country(),
-                            $task->job->getPickupTask()->city(),
-                            $task->job->getPickupTask()->postalCode(),
-                            $task->job->getPickupTask()->addressLine(),
-                        );
-                    }else{
-                        $returnTask->setAddress(
-                            $address['name'],
-                            $address['country'],
-                            $address['city'],
-                            $address['postalCode'],
-                            $address['addressLine'],
-                        );
-                    }
-                    $returnTask->save();
                 }
-
+                
+                $subtask->setAddress(
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine']
+                );
+                $subtask->save();
+                
+                $taskTypeObject = $subtask;
             }
-            $package->save();
+            
+            if ($request->input('type') === 'dropOff' && $subtask instanceof \App\Models\Package) {
+                $subtask->status_id = $task->status_id;
+                $subtask->packageType_id = $request->input('package.type');
+                $subtask->weight = $request->input('package.weight');
+                $subtask->dimensions = 0;
+                $subtask->quantity = $request->input('package.quantity');
+                $subtask->setTimeWindow($request->input('time.begin'), $request->input('time.end'));
+                $subtask->setAddress(
+                    $address['name'],
+                    $address['country'],
+                    $address['city'],
+                    $address['postalCode'],
+                    $address['addressLine']
+                );
+                
+                if ($request->input('hasCrateCollection')) {
+                    $subtask->hasReturn = $request->input('hasCrateCollection');
+                    
+                    if (!$task->job->hasReturn()) {
+                        $returnTask = new ReturnTask();
+                        $taskForReturn = new Task();
+                        $taskForReturn->date = $request->input('date');
+                        $taskForReturn->job_id = $task->job->id;
+                        $taskForReturn->status_id = $task->status_id;
+                        $taskForReturn->save();
+                        
+                        $returnTask->task_id = $taskForReturn->id;
+                        $returnTask->status_id = $taskForReturn->status_id;
+                        $returnTask->setTimeWindow($request->input('time.begin'), $request->input('time.end'));
+                        $returnTask->is_flexible = false;
+                        
+                        $returnTaskDate = Carbon::parse($request->input('date'));
+                        $timeBegin = Carbon::parse($request->input('time.begin'));
+                        $timeEnd = Carbon::parse($request->input('time.end'));
+                        $timeBegin->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $timeEnd->setDate($returnTaskDate->year, $returnTaskDate->month, $returnTaskDate->day);
+                        $returnTask->setTimeWindow(
+                            $timeBegin->toDateTimeString(),
+                            $timeEnd->toDateTimeString()
+                        );
+                        
+                        if ($task->job->getPickupTask()) {
+                            $returnTask->setAddress(
+                                $task->job->getPickupTask()->nameOfAddress(),
+                                $task->job->getPickupTask()->country(),
+                                $task->job->getPickupTask()->city(),
+                                $task->job->getPickupTask()->postalCode(),
+                                $task->job->getPickupTask()->addressLine()
+                            );
+                        } else {
+                            $returnTask->setAddress(
+                                $address['name'],
+                                $address['country'],
+                                $address['city'],
+                                $address['postalCode'],
+                                $address['addressLine']
+                            );
+                        }
+                        $returnTask->save();
+                        
+                        // Associate ReturnTask via Polymorphism
+                        $taskForReturn->taskable()->associate($returnTask);
+                        $taskForReturn->save();
+                    }
+                }
+                $subtask->save();
 
-            $taskTypeObject = $package;
-        }
-        
-        return response()->json([
-            'success'   => true,
-            'message'   => 'Task updated successfully. ',
-            'task'      =>  $task,
-            'taskTypeObject'    =>   $taskTypeObject,
-            'requestData' =>  $request->all(),
-        ]);
+                $taskTypeObject = $subtask;
+            }
+            
+            return response()->json([
+                'success'        => true,
+                'message'        => 'Task updated successfully. ',
+                'task'           => $task,
+                'taskTypeObject' => $taskTypeObject,
+                'requestData'    => $request->all(),
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(),
-            'requests' => $request->all(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),], 500);
+            return response()->json([
+                'error'    => $e->getMessage(),
+                'requests' => $request->all(),
+                'file'     => $e->getFile(),
+                'line'     => $e->getLine(),
+            ], 500);
         }
-    }
+      }
     public function swap_order(UpdateTaskRequest $request)
     {
         try{

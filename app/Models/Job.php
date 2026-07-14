@@ -823,7 +823,8 @@ class Job extends Model
     public function price_sameDayReturn(){
         $price = 0;
         $returnTask = $this->getReturnTask();
-        if ($returnTask) {
+        // Use PHP's null-safe operator (?->) to check if the return relation exists
+        if ($returnTask && $returnTask->return) {
             if(!$returnTask->return->is_flexible){
                 $price = $this->sameDayReturnAddOnPrice;
             }
